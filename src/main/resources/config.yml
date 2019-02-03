@@ -1,0 +1,638 @@
+#!
+#!     ▄█   ▄█▄  ▄█  ███▄▄▄▄      ▄██████▄  ████████▄   ▄██████▄    ▄▄▄▄███▄▄▄▄      ▄████████ 
+#!    ███ ▄███▀ ███  ███▀▀▀██▄   ███    ███ ███   ▀███ ███    ███ ▄██▀▀▀███▀▀▀██▄   ███    ███ 
+#!    ███▐██▀   ███▌ ███   ███   ███    █▀  ███    ███ ███    ███ ███   ███   ███   ███    █▀  
+#!   ▄█████▀    ███▌ ███   ███  ▄███        ███    ███ ███    ███ ███   ███   ███   ███        
+#!  ▀▀█████▄    ███▌ ███   ███ ▀▀███ ████▄  ███    ███ ███    ███ ███   ███   ███ ▀███████████ 
+#!    ███▐██▄   ███  ███   ███   ███    ███ ███    ███ ███    ███ ███   ███   ███          ███ 
+#!    ███ ▀███▄ ███  ███   ███   ███    ███ ███   ▄███ ███    ███ ███   ███   ███    ▄█    ███ 
+#!    ███   ▀█▀ █▀    ▀█   █▀    ████████▀  ████████▀   ▀██████▀   ▀█   ███   █▀   ▄████████▀  
+#!    ▀                                                                                        
+#!
+# The version is to help determine which version this config is. Please don't modify this value.
+version: "2.0.0"
+
+# Print additional information in the console. Useful for figuring out errors and issues.
+debug: false
+
+# Configure your database settings.
+database:
+    mysql:
+        enabled: false
+        user: "root"
+        password: "password"
+        address: "localhost"
+        name: "kingdoms-example"
+    # Table name configuration for both SQL databases.
+    kingdoms-table: "Kingdoms"
+    player-table: "Players"
+    land-table: "Lands"
+    # If Kingdoms should attempt to auto save.
+    auto-save:
+        enabled: true
+        # The interval in seconds of which the auto save should run at.
+        # Auto saving is done asynchronously.
+        interval: "5 minutes"
+    # If you want to transfer databases you can use this configuration.
+    # Simple set the database you want to transfer from to true.
+    # Example: If you needed SQLite to MySQL you would enable SQLite.
+    transfer:
+        sqlite: false
+        mysql: false
+# All settings for worlds.
+worlds:
+    # Change the list below to a blacklist or a whitelist.
+    # By default the list will be allowed worlds for Kingdoms to opperate in.
+    list-is-whitelist: true
+    # This list below will be the either blacklisted worlds or the whitelisted worlds allowed.
+    list:
+        - "world"
+        - "exampleworld"
+# Taxes are used for land chunks, each land owned by a player will be taxed.
+taxes:
+    enabled: false
+    # If you want to give money to Kingdoms for the amount of land they own.
+    reverse: false
+    interval: "1 hour and 5 seconds"
+    # Takes X amount of dollars per each land chunk owned.
+    amount: 10
+    # If the Kingdom can't afford the tax on their land should the Kingdom be disbanded?
+    disband-cant-afford: false
+structures:
+    # Adds placement instructions by default to the bottom lore.
+    additional-lore:
+        - "&6Right click the ground with the disk item given to build."
+        - "&cOnly one structure is allowed per land."
+    nexus:
+        title: "&bNexus"
+        # The block material that will be used.
+        material: "BEACON"
+        # The item given to the player that they have to click the ground with to build the structure.
+        inventory-material: "MUSIC_DISC_WAIT"
+        description:
+            - "&7The Nexus executes most Kingdom actions."
+    regulator:
+        enabled: true
+        cost: 50
+        title: "&bRegulator"
+        material: "REDSTONE_BLOCK"
+        inventory-material: "MUSIC_DISC_CHIRP"
+        description:
+            - "&7Regulators can allow ranked players to change who can build, who can interact in each chunk of land,"
+            - "&7if monsters can spawn, if animals can spawn, and other similar functions in each chunk of land."
+    radar:
+        enabled: true
+        cost: 150
+        title: "&bRadar"
+        material: "NOTE_BLOCK"
+        inventory-material: "MUSIC_DISC_MELLOHI"
+        description:
+            - "&7Executing '/k map' while standing on land with a radar will reveal all structures."
+            - "&7A radar will also start ticking sound if enemies are near."
+    output:
+        enabled: true
+        # How much resource points this structure costs to aquire.
+        cost: 250
+        title: "&bOutpost"
+        # The block material that will be used.
+        material: "HAY_BLOCK"
+        # The item given to the player that they have to click the ground with to build the structure.
+        inventory-material: "MUSIC_DISC_13"
+        description:
+            - "&7The Outpost allows direct access to your Nexus."
+            - "&7It enables you to access turrets, upgrades, and unlockable structures."
+            - "&7Outposts can produce exp bottles from resource points aswell."
+    powercell:
+        enabled: true
+        cost: 250
+        title: "&bPowercell"
+        material: "REDSTONE_TORCH"
+        inventory-material: "MUSIC_DISC_BLOCKS"
+        description:
+            - "&7Chunks next to a chunk with a power cell cannot be invaded without invading the power cell first."
+            - "&cDoes not work on other power cell lands."
+    arsenal:
+        enabled: true
+        cost: 500
+        title: "&bArsenal"
+        material: "FURNACE"
+        inventory-material: "MUSIC_DISC_STAL"
+        description:
+            - "&7Purchase special consumable items."
+    siege-engine:
+        enabled: true
+        cost: 1000
+        title: "&bSiege Engine"
+        material: "DISPENSER"
+        inventory-material: "MUSIC_DISC_11"
+        description:
+            - "&7Siege structure. Place next to target land, and fire from the GUI. Siege Engines have."
+    shield-battery:
+        enabled: true
+        cost: 1000
+        title: "&bShield Battery"
+        material: "PRISMARINE"
+        inventory-material: "MUSIC_DISC_MALL"
+        description:
+            - "&7When placed in land connected to your nexus land, your nexus' shield limit and recharge will increase."
+    extractor:
+        enabled: true
+        cost: 1000
+        title: "&bExtractor"
+        material: "EMERALD_BLOCK"
+        inventory-material: "MUSIC_DISC_CAT"
+        description:
+            - "&7Extractors produce resource points every set time."
+            - "&7Resource points must be manually collected from the extractor."
+    warp-pad:
+        enabled: true
+        cost: 5000
+        title: "&bWarp Pad"
+        material: "SEA_LANTERN"
+        inventory-material: "MUSIC_DISC_STRAD"
+        description:
+            - "&7Warp Pads allow Kingdom members to teleport to the Kingdom's nexus and outposts."
+# All Kingdom related configurations.
+kingdoms:
+    invading:
+        # Should players not be allowed to leave a Kingdoms land if they're invading?
+        invading-deny-chunk-change: true
+        
+        
+        
+
+cost:
+    nexusupgrades:
+        dmg-reduc: 70
+        regen-boost: 70
+        dmg-boost: 70
+        arrow-boost: 100
+        maxmembers: 10
+    misc-upgrades:
+        anticreeper: 20
+        antitrample: 50
+        bombshards: 1000
+        glory: 200
+        nexusguard: 100
+        psioniccore: 500
+    champion:
+        health: 1
+        speed: 20
+        resist: 10
+        weapon: 10
+        duel: 100
+        drag: 30
+        mock: 10
+        thor: 300
+        damagecap: 300
+        plow: 600
+        strength: 500
+        armor: 300
+        reinforcements: 800
+        mimic: 600
+        focus: 700
+        aqua: 500
+        determination: 5
+    outpost:
+        xpbottle: 5
+    turrets:
+        arrowturret: 100
+        nexustower: 300
+        flameturret: 150
+        pressuremine: 2
+        chemicalmine: 1
+        healingstation: 100
+        psionictotem: 250
+        soldierspawner: 500
+        hellfireturret: 300
+        heatbeamturret: 200
+    turretupgrades:
+        simplified-model: 1000
+        flurry: 1000
+        concentrated-blast: 1000
+        virulent-plague: 1000
+        improved-healing: 1000
+        voodoo: 3000
+        final-service: 3000
+        hellstorm: 5000
+        unrelenting-gaze: 5000
+    arsenal:
+        turretbreaker: 1000
+        siegerocket: 500        
+Plugin:
+    Debug-Land-Check: false
+    Monitor-mode: false
+    allowSpecialCharactersInNamingKingdoms: false
+    Lang: eng
+    enable-autosave: true
+    initiatePlayerLoadBeforePlayerJoin: true
+    serverName: yourServer
+minutes-per-backup: 43200
+allow-pacifist: false
+pacifist-default-on: false
+ally-pvp: false
+DO-NOT-TOUCH:
+    grabPlayerFromFileDB: false
+    grabLandFromFileDB: false
+    grabKingdomsFromFileDB: false
+    grabConquestMapsFromFileDB: false
+enabled-worlds:
+- world
+worlds-where-land-is-explosive-vulnerable:
+- VoidWorldd
+no-region-claim: true
+warzone-free-pvp: false
+can-open-storage-blocks-in-other-kingdom-land: false
+siege:
+    fire:
+        cost: 1000
+        explosion-radius: 4.0
+        shield-damage: 200
+        cooldown: 60
+    shield:
+        recharge-cost-base: 50
+        recharge-cost-exponent: 5.0
+        batteryshield: 500
+        batteryrecharge: 100
+        base-recharge: 100
+        base: 1000
+        recharge-cost-reset-time-in-min: 720
+canOnlyInvadeDuringMasswar: false
+hidePacifistsFromTop: false
+kingdom-expiry-days: 999
+denied-commands-neutral:
+- /example
+- /example1
+denied-commands-enemy:
+- /sethome
+- /essentials:sethome
+- /derpcommand with any arguments
+disableFlowIntoLand: true
+showLandEnterMessage: true
+nexusMiningAmount: 20
+private-chests:
+    enable-private-chests: true
+    explosion-immune: true
+    sign-creation-rp-cost: 0
+useWorldguardSupport: true
+useGriefPreventionSupport: true
+useResidenceSupport: true
+useTitleAPISupport: true
+useActionBarAPISupport: true
+useScoreboardStatsSupport: true
+usePlaceHolderAPISupport: true
+useMVdWPlaceHolderAPISupport: true
+useDynmapSupport: true
+useHolographicSupport: true
+protectNeutralLandFromExplosions: false
+neutralPlayersCannotFightOnOwnLand: false
+kingdom-home-stops-working-if-unclaimed: false
+land-must-be-connected: false
+worldguard:
+    regions-that-allow-claiming:
+    - RegionWherePlayersCanClaimLandIn
+disallowed-kingdom-names:
+- anal
+- anus
+- arse
+- ass
+- ballsack
+- balls
+- bastard
+- bitch
+- biatch
+- bloody
+- blowjob
+- blow job
+- bollock
+- bollok
+- boner
+- boob
+- bugger
+- bum
+- butt
+- buttplug
+- clitoris
+- cock
+- coon
+- crap
+- cunt
+- damn
+- dick
+- dildo
+- dyke
+- fag
+- feck
+- fellate
+- fellatio
+- felching
+- fuck
+- fudgepacker
+- fudge packer
+- flange
+- Goddamn
+- God damn
+- hell
+- homo
+- jerk
+- jizz
+- knobend
+- knob end
+- labia
+- muff
+- nigger
+- nigga
+- penis
+- piss
+- poop
+- prick
+- pube
+- pussy
+- queer
+- scrotum
+- sex
+- shit
+- slut
+- smegma
+- spunk
+- tit
+- tosser
+- turd
+- twat
+- vagina
+- wank
+- whore
+- wtf
+disable-join-messages: false
+#Deprecaded due to changes in worldedit API
+#conquests:
+#    enabled: false
+#    upkeep:
+#        max-supply-for-one-land: 100
+#        per-turret: 30
+#        wall: 50
+#        spawner: 50
+#    logistics:
+#        time-in-minutes-to-apply-rewards-and-upkeep: 60
+#    costs:
+#        turret: 100
+#        wall: 200
+#        spawner: 100
+#    rp-rewards-per-hour:
+#        perland: 1
+#        percapital: 200
+#    attack-costs:
+#        empty-land: 100
+#        enemy-land: 100
+#        enemy-capital-land: 500
+#        empty-capital: 500
+#    canAttackCapitalInFullyOccupiedLand: false
+#    attack-cooldown-in-minutes: 30
+champion-specs:
+    thor-delay: 5.0
+    drag-min-range: 7.0
+    invader-lose-on-champion-void-damage: true
+economy:
+    enabled: false
+    kingdom-create-cost: 0
+    money-needed-for-one-rp: 10
+kingdom-create-item-cost:
+- DIAMOND,5
+- GOLD_INGOT,5
+- IRON_INGOT,5
+kingdom-create-need-item-cost: false
+markers-on-by-default: true
+items-needed-for-one-resource-point: 5
+claim-cost: 5
+invade-cost: 10
+hidewarppadlocations: false
+enable-auto-backup: true
+beginner-shield:
+    duration-in-minutes: 5
+mine:
+    reward-delay-in-minutes: 1440
+    reward-amount: 100
+regulator:
+    allow-toggling-animal-spawn: true
+    allow-toggling-monster-spawn: true
+minimum-members-online-to-be-invaded: 0
+land-per-member: 5
+base-member-count: 10
+maximum-land-claims: 0
+respawn-in-kingdom-home: false
+infinite-claim-worlds:
+- worldThatAllowsYouToClaimInfinitely
+unreplaceableblocks:
+- BEDROCK
+- OBSIDIAN
+- CHEST
+- ENDER_CHEST
+allowedToUseInOtherKingdomLand:
+- MONSTER_EGG
+- POTION
+- SPLASH_POTION
+- SHIELD
+- AIR
+- GOLDEN_APPLE
+defaulton:
+    misc-upgrades:
+        anticreeper: false
+        antitrample: false
+        bombshards: false
+        glory: false
+        nexusguard: false
+        psioniccore: false
+max:
+    nexusupgrades:
+        dmg-reduc: 40
+        regen-boost: 200
+        dmg-boost: 60
+        arrow-boost: 60
+        maxmembers: 30
+    champion:
+        health: 2048
+        determination: 2048
+        speed: 5
+        resist: 100
+        weapon: 10
+        duel: 1
+        drag: 1
+        mock: 6
+        thor: 10
+        damagecap: 1
+        plow: 1
+        strength: 50
+        armor: 5
+        reinforcements: 2
+        mimic: 1
+        focus: 1
+default:
+    champion:
+        health: 100
+        speed: 0
+        resist: 0
+        weapon: 0
+        duel: 0
+        drag: 0
+        mock: 0
+        thor: 0
+        damagecap: 0
+        plow: 0
+        strength: 0
+        armor: 0
+        reinforcements: 0
+        mimic: 0
+        focus: 0
+        aqua: 0
+        determination: 0
+magnitude:
+    champion:
+        healthI: 2
+        healthII: 50
+        determinationI: 2
+        determinationII: 50
+destroy-extra-turrets-to-enforce-max: false
+max-per-land:
+    turrets:
+        arrowturret: 1000
+        flameturret: 1000
+        pressuremine: 1000
+        chemicalmine: 1000
+        healingstation: 1000
+        psionictotem: 1000
+        soldierspawner: 1000
+        hellfireturret: 1000
+        heatbeamturret: 1000
+turret-specs:
+    attack-mobs: true
+    arrowturret:
+        range: 8
+        skin: _LifeBlood_
+        damage: 4
+    nexustower:
+        range: 8
+        damage: 0
+    flameturret:
+        range: 8
+        skin: MHF_WSkeleton
+        damage: 3
+    healingstation:
+        range: 8
+        skin: MHF_Zombie
+        damage: 1
+    psionictotem:
+        range: 8
+        skin: MHF_Creeper
+        damage: 6
+    soldierspawner:
+        range: 8
+        skin: CybermanAC
+        strength-level: -1
+    hellfireturret:
+        range: 8
+        skin: BadLuck
+        damage: 7
+    heatbeamturret:
+        range: 8
+        skin: MHF_Guardian
+        damage: 3
+    pressuremine:
+        blast: 2
+    chemicalmine:
+        poison-potency: 1
+enable:
+    turretupgrades:
+        simplified-model: true
+        flurry: true
+        concentrated-blast: true
+        virulent-plague: true
+        improved-healing: true
+        voodoo: true
+        final-service: true
+        hellstorm: true
+        unrelenting-gaze: true
+    nexus:
+        dmgreduc: true
+        regenboost: true
+        dmgboost: true
+        arrowboost: true
+    misc:
+        anticreeper:
+            enabled: true
+            protect-storage-blocks: true
+        antitrample: true
+        bombshards:
+            enabled: true
+            protect-storage-blocks: true
+        glory: true
+        nexusguard: true
+        psioniccore: true
+    champion:
+        speed: true
+        resist: true
+        weapon: true
+        duel: true
+        drag: true
+        mock: true
+        thor: true
+        damagecap: true
+        plow: true
+        aqua: true
+        strength: true
+        armor: true
+        reinforcements: true
+        mimic: true
+        focus: true
+        determination: false
+    arsenal:
+        turretbreaker: true
+        siegerocket: true
+        siegerocket-explosion-radius: 3.0
+    structure:
+        powercell: true
+        outpost: true
+        extractor: true
+        warppad: true
+        regulator: true
+        siegeengine: true
+        arsenal: true
+        shieldbattery: true
+        radar: true
+    turret:
+        arrow: true
+        flameturret: true
+        pressuremine: true
+        chemicalmine: true
+        healingtower: true
+        psionictotem: true
+        soldierspawner: true
+        hellfire: true
+        heatbeam: true
+worlds-with-no-building-in-unoccupied-land:
+- Put
+- Worlds
+- Here
+use-whitelist: false
+disallow-named-or-lored-items-from-rp-trade: false
+resource-point-item-names-that-cannot-be-traded: []
+resource-point-trade-blacklist: []
+whitelist-items: []
+special-item-cases:
+- IRON_INGOT,30
+- GOLD_INGOT,20
+- EMERALD,50
+- DIAMOND,50
+can-interact-in-safezone:
+- ENDER_CHEST
+- WORKBENCH
+- ANVIL
+- ENCHANTMENT_TABLE
+can-interact-in-warzone:
+- ENDER_CHEST
+- WORKBENCH
+- ANVIL
+- ENCHANTMENT_TABLE
+khome-delay: 3
+invite_expire_delay: 10
+useKingdomPrefixes: true
+can-not-leave-chunk-if-invading: true
