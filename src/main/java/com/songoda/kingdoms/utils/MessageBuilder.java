@@ -149,10 +149,19 @@ public class MessageBuilder {
 	/**
 	 * Sends the message as an actionbar to the defined players.
 	 * 
-	 * @param senders
+	 * @param players the players to send to
 	 */
 	public void sendActionbar(Player... players) {
 		toPlayers(players).sendActionbar();
+	}
+	
+	/**
+	 * Sends the message as a title to the defined players.
+	 * 
+	 * @param players the players to send to
+	 */
+	public void sendTitle(Player... players) {
+		toPlayers(players).sendTitle();
 	}
 	
 	/**
@@ -173,6 +182,11 @@ public class MessageBuilder {
 			complete = Formatting.messagesPrefixed(configuration, nodes);
 		else
 			complete = Formatting.messages(configuration, nodes);
+		complete = applyPlaceholders(complete);
+		return complete;
+	}
+	
+	private String applyPlaceholders(String input) {
 		// Default Placeholders
 		if (defaultPlaceholderObject == null)
 			defaultPlaceholderObject = senders.get(0);
@@ -180,10 +194,10 @@ public class MessageBuilder {
 			for (String syntax : placeholder.getSyntaxes()) {
 				if (placeholder instanceof SimplePlaceholder) {
 					SimplePlaceholder simple = (SimplePlaceholder) placeholder;
-					complete = complete.replaceAll(Pattern.quote(syntax), simple.get());
+					input = input.replaceAll(Pattern.quote(syntax), simple.get());
 				} else if (defaultPlaceholderObject != null) {
 					if (placeholder.getType().isAssignableFrom(defaultPlaceholderObject.getClass()))
-						complete = complete.replaceAll(Pattern.quote(syntax), placeholder.replace_i(defaultPlaceholderObject));
+						input = input.replaceAll(Pattern.quote(syntax), placeholder.replace_i(defaultPlaceholderObject));
 				}
 			}
 		}
@@ -193,13 +207,62 @@ public class MessageBuilder {
 			for (String syntax : placeholder.getSyntaxes()) {
 				if (placeholder instanceof SimplePlaceholder) {
 					SimplePlaceholder simple = (SimplePlaceholder) placeholder;
-					complete = complete.replaceAll(Pattern.quote(syntax), simple.get());
+					input = input.replaceAll(Pattern.quote(syntax), simple.get());
 				} else {
-					complete = complete.replaceAll(Pattern.quote(syntax), placeholder.replace_i(entry.getValue()));
+					input = input.replaceAll(Pattern.quote(syntax), placeholder.replace_i(entry.getValue()));
 				}
 			}
 		}
-		return complete;
+		// This allows users to insert new lines into their lores.
+		int i = configuration.getInt("kingdoms.new-lines", 4); //The max about of new lines users are allowed.
+		while (input.contains("%newline%") || input.contains("%nl%")) {
+			input = input.replaceAll(Pattern.quote("%newline%"), "\n");
+			input = input.replaceAll(Pattern.quote("%nl%"), "\n");
+			i--;
+			if (i <= 0)
+				break;
+		}
+		return input;
+	}
+	
+	/**
+	 * Sends the final product of the builder as a title if the players using toPlayers are set.
+	 * 
+	 * WARNING: The title method needs to have the following as a configuration, this is special.
+	 * title:
+	 * 	  enabled: false
+	 * 	  title: "&2Example"
+	 * 	  subtitle: "&5&lColors work too."
+	 * 	  fadeOut: 20
+	 * 	  fadeIn: 20
+	 * 	  stay: 200
+	 */
+	public void sendTitle() {
+		Kingdoms instance = Kingdoms.getInstance();
+		if (configuration == null)
+			configuration = instance.getConfiguration("messages").orElse(instance.getConfig());
+		if (nodes.length != 1)
+			return;
+		if (!configuration.getBoolean(nodes[0] + ".enabled", false))
+			return;
+		String subtitle = configuration.getString(nodes[0] + ".subtitle", "");
+		String title = configuration.getString(nodes[0] + ".title", "");
+		int fadeOut = configuration.getInt(nodes[0] + ".fadeOut", 20);
+		int fadeIn = configuration.getInt(nodes[0] + ".fadeIn", 20);
+		int stay = configuration.getInt(nodes[0] + ".stay", 200);
+		title = applyPlaceholders(title).replaceAll("\n", "");
+		subtitle = applyPlaceholders(subtitle).replaceAll("\n", "");
+		Player[] players = senders.parallelStream()
+				.filter(sender -> sender instanceof Player)
+				.toArray(Player[]::new);
+		if (senders != null && senders.size() > 0)
+			new Title.Builder()
+					.subtitle(subtitle)
+					.fadeOut(fadeOut)
+					.fadeIn(fadeIn)
+					.title(title)
+					.stay(stay)
+					.send(players);
 	}
 	
 	/**
@@ -207,6 +270,7 @@ public class MessageBuilder {
 	 */
 	public void sendActionbar() {
 		get();
+		complete = complete.replaceAll("\n", "");
 		ActionbarManager actionbar = Kingdoms.getInstance().getManager("actionbar", ActionbarManager.class).orElseCreate();
 		if (senders != null && senders.size() > 0) {
 			for (CommandSender sender : senders) {

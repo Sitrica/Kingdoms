@@ -154,6 +154,10 @@ structures:
             - "&7Warp Pads allow Kingdom members to teleport to the Kingdom's nexus and outposts."
 # All Kingdom related configurations.
 kingdoms:
+    # messages that happen when walking into an unoccupied land chunk.
+    message-land-enter-unoccupied:
+        actionbar: true
+        message: true
     invading:
         # Should players not be allowed to leave a Kingdoms land if they're invading?
         invading-deny-chunk-change: true
