@@ -1,11 +1,11 @@
 package com.songoda.kingdoms.utils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.bukkit.command.CommandSender;
@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 
 import com.google.common.collect.Sets;
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.managers.ActionbarManager;
 import com.songoda.kingdoms.placeholders.Placeholder;
 import com.songoda.kingdoms.placeholders.Placeholders;
 import com.songoda.kingdoms.placeholders.SimplePlaceholder;
@@ -21,7 +22,7 @@ import com.songoda.kingdoms.placeholders.SimplePlaceholder;
 public class MessageBuilder {
 
 	private Map<Placeholder<?>, Object> placeholders = new HashMap<>();
-	private final Set<CommandSender> senders = new HashSet<>();
+	private final List<CommandSender> senders = new ArrayList<>();
 	private FileConfiguration configuration;
 	private Object defaultPlaceholderObject;
 	private String complete;
@@ -114,7 +115,12 @@ public class MessageBuilder {
 	 * @return The MessageBuilder for chaining.
 	 */
 	public MessageBuilder replace(String syntax, Object replacement) {
-		placeholders.put(new SimplePlaceholder(syntax), replacement.toString());
+		placeholders.put(new SimplePlaceholder(syntax) {
+			@Override
+			public String get() {
+				return replacement.toString();
+			}
+		}, replacement.toString());
 		return this;
 	}
 	
@@ -141,6 +147,15 @@ public class MessageBuilder {
 	}
 	
 	/**
+	 * Sends the message as an actionbar to the defined players.
+	 * 
+	 * @param senders
+	 */
+	public void sendActionbar(Player... players) {
+		toPlayers(players).sendActionbar();
+	}
+	
+	/**
 	 * Sends the final product of the builder.
 	 */
 	public void send(CommandSender... senders) {
@@ -159,9 +174,14 @@ public class MessageBuilder {
 		else
 			complete = Formatting.messages(configuration, nodes);
 		// Default Placeholders
-		if (defaultPlaceholderObject != null) {
-			for (Placeholder<?> placeholder : Placeholders.getPlaceholders()) {
-				for (String syntax : placeholder.getSyntaxes()) {
+		if (defaultPlaceholderObject == null)
+			defaultPlaceholderObject = senders.get(0);
+		for (Placeholder<?> placeholder : Placeholders.getPlaceholders()) {
+			for (String syntax : placeholder.getSyntaxes()) {
+				if (placeholder instanceof SimplePlaceholder) {
+					SimplePlaceholder simple = (SimplePlaceholder) placeholder;
+					complete = complete.replaceAll(Pattern.quote(syntax), simple.get());
+				} else if (defaultPlaceholderObject != null) {
 					if (placeholder.getType().isAssignableFrom(defaultPlaceholderObject.getClass()))
 						complete = complete.replaceAll(Pattern.quote(syntax), placeholder.replace_i(defaultPlaceholderObject));
 				}
@@ -171,14 +191,33 @@ public class MessageBuilder {
 		for (Entry<Placeholder<?>, Object> entry : placeholders.entrySet()) {
 			Placeholder<?> placeholder = entry.getKey();
 			for (String syntax : placeholder.getSyntaxes()) {
-				complete = complete.replaceAll(Pattern.quote(syntax), placeholder.replace_i(entry.getValue()));
+				if (placeholder instanceof SimplePlaceholder) {
+					SimplePlaceholder simple = (SimplePlaceholder) placeholder;
+					complete = complete.replaceAll(Pattern.quote(syntax), simple.get());
+				} else {
+					complete = complete.replaceAll(Pattern.quote(syntax), placeholder.replace_i(entry.getValue()));
+				}
 			}
 		}
 		return complete;
 	}
 	
 	/**
-	 * Sends the final product of the builder.
+	 * Sends the final product of the builder as an actionbar if the players using toPlayers are set.
+	 */
+	public void sendActionbar() {
+		get();
+		ActionbarManager actionbar = Kingdoms.getInstance().getManager("actionbar", ActionbarManager.class).orElseCreate();
+		if (senders != null && senders.size() > 0) {
+			for (CommandSender sender : senders) {
+				if (sender instanceof Player)
+					actionbar.sendActionBar((Player)sender, complete);
+			}
+		}
+	}
+	
+	/**
+	 * Sends the final product of the builder if the senders are set.
 	 */
 	public void send() {
 		get();

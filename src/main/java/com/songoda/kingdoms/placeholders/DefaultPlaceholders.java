@@ -1,11 +1,27 @@
 package com.songoda.kingdoms.placeholders;
 
+import java.util.Optional;
+
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
-public class DefaultPlaceholders {
+import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.Manager;
 
-	public static void register() {
+public class DefaultPlaceholders extends Manager {
+
+	static {
+		registerManager("defaultplaceholders", new DefaultPlaceholders());
+		Placeholders.registerPlaceholder(new SimplePlaceholder("%prefix%") {
+			@Override
+			public String get() {
+				Optional<FileConfiguration> messages = Kingdoms.getInstance().getConfiguration("messages");
+				if (messages.isPresent())
+					return messages.get().getString("messages.prefix", "&7[&6Kingdoms&7] &r");
+				return "&7[&6Kingdoms&7] &r";
+			}
+		});
 		Placeholders.registerPlaceholder(new Placeholder<Player>("%player%") {
 			@Override
 			public String replace(Player player) {
@@ -25,5 +41,12 @@ public class DefaultPlaceholders {
 			}
 		});
 	}
+	
+	protected DefaultPlaceholders() {
+		super(false);
+	}
+
+	@Override
+	public void onDisable() {}
 	
 }

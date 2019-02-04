@@ -1,14 +1,16 @@
 package com.songoda.kingdoms.placeholders;
 
-public class SimplePlaceholder extends Placeholder<String> {
+public abstract class SimplePlaceholder extends Placeholder<String> {
 	
-	public SimplePlaceholder(String... syntaxes) {
-		super(syntaxes);
+	public SimplePlaceholder(String... syntax) {
+		super(syntax);
 	}
 
 	@Override
-	public String replace(String string) {
-		return string;
+	public final String replace(String object) {
+		return get();
 	}
+	
+	public abstract String get();
 	
 }

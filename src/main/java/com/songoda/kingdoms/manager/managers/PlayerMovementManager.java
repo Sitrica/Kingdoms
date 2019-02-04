@@ -135,7 +135,7 @@ public class PlayerMovementManager extends Manager {
 		if (chunkTo != chunkFrom) {
 			//Check if player is in a fightzone
 			boolean invadingDeny = configuration.getBoolean("invading-deny-chunk-change", true);
-			if (GameManagement.getPlayerManager().getSession(event.getPlayer()).getFightZone() != null && invadingDeny) {
+			if (GameManagement.getPlayerManager().getSession(player).getFightZone() != null && invadingDeny) {
 				// Direction from to to.
 				Vector vector = from.toVector().subtract(to.toVector()).normalize().multiply(2);
 				// This used to be teleport to player.getLocation().add(vector)
@@ -174,8 +174,9 @@ public class PlayerMovementManager extends Manager {
 		//TODO Should not be possible to get null
 		if (kingdomPlayer == null)
 			return;
-		Land landTo = landManager.getOrLoadLand(event.getToChunk());
 		Chunk chunkFrom = event.getFromChunk();
+		Chunk chunkTo = event.getToChunk();
+		Land landTo = landManager.getOrLoadLand(chunkTo);
 		if (chunkFrom != null) {
 			Land landFrom = landManager.getOrLoadLand(chunkFrom);
 			UUID fromOwner = landFrom.getOwnerUUID();
@@ -185,17 +186,23 @@ public class PlayerMovementManager extends Manager {
 			else if (fromOwner.equals(toOwner))
 				return;
 		}
-	
+		Bukkit.getScheduler().runTaskAsynchronously(instance, new Runnable() {
+			@Override
+			public void run() {
+				if (landTo.getOwnerUUID() == null) {
+					MessageBuilder message = new MessageBuilder(false, "map.unoccupied-land.actionbar")
+							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
+							.replace("%world%", world.getName())
+							.setPlaceholderObject(player);
+					if(Config.getConfig().getBoolean("showLandEnterMessage"))
+						kp.sendMessage(ChatColor.DARK_GREEN + Kingdoms.getLang().getString("Map_Unoccupied", kp.getLang()));
+					return;
+				}
+			}
+		});
 		new Thread(new Runnable() {
 			@Override
 			public void run(){
-			if(landTo.getOwnerUUID() == null){
-				ExternalManager.sendActionBar(e.getPlayer(), ChatColor.DARK_GREEN + "" + ChatColor.BOLD + Kingdoms.getLang().getString("Map_Unoccupied", GameManagement.getPlayerManager().getSession(e.getPlayer()).getLang()));
-				if(Config.getConfig().getBoolean("showLandEnterMessage"))
-				kp.sendMessage(ChatColor.DARK_GREEN + Kingdoms.getLang().getString("Map_Unoccupied", kp.getLang()));
-	
-				return;
-			}
 	
 			Kingdom kingdom = GameManagement.getKingdomManager().getOrLoadKingdom(landTo.getOwnerUUID());
 	

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -56,6 +58,35 @@ public class Utils {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> Set<Class<T>> getClassesOf(Kingdoms instance, String basePackage, Class<T> type) {
+		JarFile jar = getJar(instance);
+		if (jar == null)
+			return null;
+		basePackage = basePackage.replace('.', '/') + "/";
+		Set<Class<T>> classes = new HashSet<>();
+		try {
+			for (Enumeration<JarEntry> jarEntry = jar.entries(); jarEntry.hasMoreElements();) {
+				String name = jarEntry.nextElement().getName();
+				if (name.startsWith(basePackage) && name.endsWith(".class")) {
+					String className = name.replace("/", ".").substring(0, name.length() - 6);
+					Class<?> clazz = Class.forName(className, true, instance.getClass().getClassLoader());
+					if (type.isAssignableFrom(clazz))
+						classes.add((Class<T>) clazz);
+				}
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				jar.close();
+			} catch (final IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return classes;
 	}
 	
 	/**

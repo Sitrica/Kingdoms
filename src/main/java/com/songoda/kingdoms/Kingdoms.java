@@ -52,10 +52,10 @@ public class Kingdoms extends JavaPlugin {
 		Bukkit.getPluginManager().registerEvents(new WorldManager(), this);
 		commandHandler = new CommandHandler(this);
 		managerHandler = new ManagerHandler(instance);
-		getLogger().info(Formatting.color("&a============================="));
-		getLogger().info(Formatting.color("&7Kingdoms " + getDescription().getVersion() + " by &5Songoda <3&7!"));
-		getLogger().info(Formatting.color("&7Kingdoms has been &aEnabled."));
-		getLogger().info(Formatting.color("&a============================="));
+		consoleMessage("&a=============================");
+		consoleMessage("&7Kingdoms " + getDescription().getVersion() + " by &5Songoda <3&7!");
+		consoleMessage("&7Kingdoms has been &aEnabled.");
+		consoleMessage("&a=============================");
 
 		
 		

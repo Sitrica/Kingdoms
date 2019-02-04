@@ -20,7 +20,7 @@ public class ActionbarManager extends Manager {
 		super(false);
 	}
 	
-	public static void sendActionBar(Player player, String... messages) {
+	public void sendActionBar(Player player, String... messages) {
 		if (Utils.classExists("net.md_5.bungee.api.ChatMessageType") || Utils.classExists("net.md_5.bungee.api.chat.TextComponent")) {
 			if (Utils.methodExists(Spigot.class, "sendMessage", ChatMessageType.class, TextComponent.class)) {
 				for (String message : messages) {
