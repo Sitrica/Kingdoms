@@ -152,12 +152,76 @@ structures:
         inventory-material: "MUSIC_DISC_STRAD"
         description:
             - "&7Warp Pads allow Kingdom members to teleport to the Kingdom's nexus and outposts."
-# All Kingdom related configurations.
+# All Kingdom and chunk related configurations.
 kingdoms:
-    # messages that happen when walking into an unoccupied land chunk.
-    message-land-enter-unoccupied:
+    # If the player keeps going in and out of lands, what should the cooldown time be.
+    # Actionbars get excluded from this, so the player will always know where they are.
+    # Example:
+    #   a player goes into an enemy's kingdom, this gets triggered.
+    #   If they run out of the kingdom and into another within the defined time, (default 5 seconds)
+    #   Then Kingdoms will not message them again.
+    message-spam: false
+    message-spam-cooldown: "5 seconds"
+    # Messages that happen when walking into an unoccupied land chunk.
+    # Placeholders: %world%, %player% and %chunk%
+    land-enter-unoccupied:
         actionbar: true
+        message: false
+        # Titles may have blank strings.
+        title:
+            enabled: false
+            title: "&2&lUnoccupied Land"
+            subtitle: "&7You have just entered uunoccupied land"
+            fadeOut: 20
+            fadeIn: 20
+            stay: 200
+    # Messages that happen when walking into a neutral kingdom towards the player or their kingdom.
+    # can be called when the player doesn't have a kingdom and they walk into a kingdoms land to.
+    # Placeholders: %world%, %chunk%, %player%, %kingdom%, %color% and %lore% - Lore is the Kingdoms description and color is the relation.
+    land-enter-neutral:
+        actionbar: true
+        # Chat messages for this one will display the lore of the Kingdom.
         message: true
+        # Titles may have blank strings.
+        title:
+            enabled: true
+            title: "&f&l%kingdom%'s Kingdom"
+            subtitle: "&7%lore%"
+            fadeOut: 20
+            fadeIn: 20
+            stay: 200
+    # Messages that happen when a player walks into an allience's kingdom.
+    # Placeholders: %world%, %chunk%, %player%, %kingdom%, %color% and %lore% - Lore is the Kingdoms description and color is the relation.
+    land-enter-allience:
+        actionbar: true
+        # Chat messages for this one will display the lore of the Kingdom.
+        message: true
+        # Titles may have blank strings.
+        title:
+            enabled: true
+            title: "&e&l%kingdom%'s Kingdom"
+            subtitle: "&7%lore%"
+            fadeOut: 20
+            fadeIn: 20
+            stay: 200
+    # Messages that happen when a player walks into an enemy's kingdom.
+    # Placeholders: %world%, %chunk%, %player%, %kingdom%, %color% and %lore% - Lore is the Kingdoms description and color is the relation.
+    land-enter-enemy:
+        actionbar: true
+        # Chat messages for this one will display the lore of the Kingdom.
+        message: true
+        # Titles may have blank strings.
+        title:
+            enabled: true
+            title: "&c&l%kingdom%'s Kingdom"
+            subtitle: "&7%lore%"
+            fadeOut: 20
+            fadeIn: 20
+            stay: 200
+    # Users can use %newline% or %nl% to make line breaks in their Kingdom lores.
+    # This limits how many new lines they're allowed. The more lines the longer the chat message can be.
+    new-lines: 4
+    # Configurations about invading.
     invading:
         # Should players not be allowed to leave a Kingdoms land if they're invading?
         invading-deny-chunk-change: true
@@ -165,6 +229,11 @@ kingdoms:
         
         
 
+        
+        
+        
+        
+        
 cost:
     nexusupgrades:
         dmg-reduc: 70

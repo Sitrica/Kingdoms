@@ -271,7 +271,7 @@ public class MessageBuilder {
 	public void sendActionbar() {
 		get();
 		complete = complete.replaceAll("\n", "");
-		ActionbarManager actionbar = Kingdoms.getInstance().getManager("actionbar", ActionbarManager.class).orElseCreate();
+		ActionbarManager actionbar = Kingdoms.getInstance().getManager("actionbar", ActionbarManager.class);
 		if (senders != null && senders.size() > 0) {
 			for (CommandSender sender : senders) {
 				if (sender instanceof Player)

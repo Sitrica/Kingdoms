@@ -35,36 +35,18 @@ import java.util.UUID;
 
 public class PlayerMovementManager extends Manager {
 
-	private final List<String> worlds = new ArrayList<>();
 	private long spam = System.currentTimeMillis();
 	private final FileConfiguration configuration;
+	private final WorldManager worldManager;
 	private final LandManager landManager;
 	private final Kingdoms instance;
-	private final boolean whitelist;
 	
 	public PlayerMovementManager() {
 		super(true);
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
-		this.whitelist = configuration.getBoolean("worlds.list-is-whitelist", true);
-		this.landManager = instance.getManager("land", LandManager.class).orElseCreate();
-		List<String> temp = configuration.getStringList("worlds.list");
-		if (temp == null || temp.isEmpty()) {
-			worlds.add("world");
-			return;
-		}
-		worlds.addAll(temp);
-	}
-	
-	private boolean checkWorld(World world) {
-		if (whitelist) {
-			if (!worlds.contains(world.getName()))
-				return false;
-		} else {
-			if (worlds.contains(world.getName()))
-				return false;
-		}
-		return true;
+		this.landManager = instance.getManager("land", LandManager.class);
+		this.worldManager = instance.getManager("world", WorldManager.class);
 	}
 
 	@EventHandler
@@ -102,7 +84,7 @@ public class PlayerMovementManager extends Manager {
 	public void onPlayerMove(PlayerMoveEvent event) {
 		Player player = event.getPlayer();
 		World world = player.getWorld();
-		if (checkWorld(world))
+		if (worldManager.acceptsWorld(world))
 			return;
 		if (ExternalManager.isCitizen(player))
 			return;
@@ -169,7 +151,7 @@ public class PlayerMovementManager extends Manager {
 	public void onChunkChange(PlayerChangeChunkEvent event) {
 		Player player = event.getPlayer();
 		World world = player.getWorld();
-		if (checkWorld(world))
+		if (worldManager.acceptsWorld(world))
 			return;
 		//TODO add configuration option to ignore or not regions.
 		if (ExternalManager.isInRegion(player.getLocation()))

@@ -1,130 +1,117 @@
 package com.songoda.kingdoms.objects.player;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.UUID;
-
-import com.songoda.kingdoms.constants.ChatChannel;
-import com.songoda.kingdoms.constants.Pioneer;
-import com.songoda.kingdoms.constants.kingdom.Kingdom;
-import com.songoda.kingdoms.constants.land.KChestSign;
-import com.songoda.kingdoms.constants.land.SimpleChunkLocation;
-import com.songoda.kingdoms.constants.player.Challenger;
-import com.songoda.kingdoms.constants.player.Confirmable;
-import com.songoda.kingdoms.constants.player.KSignModifier;
-import com.songoda.kingdoms.constants.player.Markable;
-import com.songoda.kingdoms.constants.player.Member;
-import com.songoda.kingdoms.constants.player.OfflineKingdomPlayer;
-import com.songoda.kingdoms.constants.player.PrivateChat;
-import com.songoda.kingdoms.events.KingdomPlayerChatChannelChangeEvent;
-import com.songoda.kingdoms.main.Kingdoms;
-import com.songoda.kingdoms.manager.game.GameManagement;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
-public class KingdomPlayer extends OfflineKingdomPlayer implements KSignModifier, Pioneer, Challenger, Member, PrivateChat, Markable, Confirmable {
+import com.songoda.kingdoms.manager.managers.ChatManager.ChatChannel;
+
+public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {//Pioneer, Member, PrivateChat, Confirmable {
 	
-	private transient Kingdom kingdom;
-	private boolean temp;
-	
-	private KingdomPlayer() {
-		super();
-	}
+	private boolean autoClaiming, autoMapping, vanished, admin;
+	public ChatChannel channel = ChatChannel.PUBLIC;
+	private transient LivingEntity opponent;
+	private transient Chunk invading;
+	private final Player player;
 	
 	public KingdomPlayer(Player player) {
-		super(player.getUniqueId());
-
-	}
-
-    public KingdomPlayer(UUID uuid) {
-        super(uuid);
-
-    }
-	public Player getPlayer() {
-		return Bukkit.getPlayer(uuid);
-		//return player;
-	}
-	public Kingdom getKingdom() {
-//		if(kingdom == null && this.getKingdomUuid() != null){
-//			kingdom = GameManagement.getKingdomManager().getOrLoadKingdom(kingdomUuid);
-//		}
-		if (kingdomUuid!=null) {
-			return GameManagement.getKingdomManager().getOrLoadKingdom(kingdomUuid);
-		}
-		return null;
-	}
-	public void setUuid(UUID uuid) {
-		this.uuid = uuid;
-	}
-	public void setKingdom(Kingdom kingdom) {
-		this.kingdom = kingdom;
-		super.setKingdomUuid(kingdom == null ? null : kingdom.getKingdomUuid());
-	}
-	public void sendMessage(String message){
-		if (message.isEmpty() || message.equals("{null}")) return;
-
-//		if(GameManagement.getApiManager().isPlaceHolderAPIEnabled()){
-//			message = GameManagement.getApiManager().setPlaceHolder(player, message);
-//		}
-//		if(GameManagement.getApiManager().isMVdWPlaceholderAPIEnabled()){
-//			message = GameManagement.getApiManager().setPlaceHolderMvdW(player, message);
-//		}
-		getPlayer().sendMessage(Kingdoms.getLang().getString("Plugin_Display") +
-				" " +
-				ChatColor.GRAY+message);
-	}
-
-	private boolean isKMapOn = false;
-	public boolean isKMapOn(){
-		return isKMapOn;
-	}
-
-	public void setKMapOn(boolean isKMapOn){
-		this.isKMapOn = isKMapOn;
-	}
-	////////////////////////////////////////////////////////////
-	private boolean isKAutoClaimOn = false;
-	public boolean isKAutoClaimOn(){
-		return isKAutoClaimOn;
-	}
-
-	public void setKAutoClaimOn(boolean isKAutoClaimOn){
-		this.isKAutoClaimOn = isKAutoClaimOn;
-	}
-	////////////////////////////////////////////////////////////
-	private transient ChunkLocation loc;
-	public ChunkLocation getLoc() {
-		return new ChunkLocation(this.getPlayer().getLocation().getChunk());
-	}
-
-//	public void setLoc(SimpleChunkLocation loc) {
-//		this.loc = loc;
-//	}
-	///////////////////////////////////////////////////////////
-	private transient boolean isAdminMode = false;
-	public boolean isAdminMode(){
-		return this.isAdminMode;
-	}
-	public void setAdminMode(boolean boo){
-		this.isAdminMode = boo;
+		super(player);
+		this.player = player;
 	}
 	
-	///////////////////////////////////////////////////////////
-	private transient Location loginLocation;
-	public Location getLoginLocation() {
-		return loginLocation;
+	public Player getPlayer() {
+		return player;
+	}
+	
+	public Chunk getChunkAt() {
+		return player.getLocation().getChunk();
+	}
+	
+	public boolean hasKingdom() {
+		return kingdom == null;
+	}
+	
+	public Location getLocation() {
+		return player.getLocation();
+	}
+	
+	public boolean isAdminMode() {
+		return admin;
+	}
+	
+	public void setAdminMode(boolean admin) {
+		this.admin = admin;
+	}
+	
+	public boolean isVanished() {
+		return vanished;
+	}
+	
+	public void setVanished(boolean vanished) {
+		this.vanished = vanished;
+	}
+	
+	public boolean isAutoMapping() {
+		return autoMapping;
+	}
+	
+	public void setAutoMapping(boolean autoMapping) {
+		this.autoMapping = autoMapping;
+	}
+	
+	public boolean isAutoClaiming() {
+		return autoClaiming;
+	}
+	
+	public void setAutoClaiming(boolean autoClaiming) {
+		this.autoClaiming = autoClaiming;
+	}
+	
+	@Override
+	public Chunk getInvadingChunk() {
+		return invading;
 	}
 
-	public void setLoginLocation(Location loginLocation) {
-		this.loginLocation = loginLocation;
+	@Override
+	public void setInvadingChunk(Chunk invading) {
+		this.invading = invading;
 	}
-	////////////////////////////////////////////////////////////
-	private transient boolean creatingKingdom = false;
+	
+	public ChatChannel getChatChannel() {
+		return channel;
+	}
+	
+	public void setChatChannel(ChatChannel channel) {
+		this.channel = channel;
+	}
+	
+	@Override
+	public LivingEntity getOpponent() {
+		return opponent;
+	}
+	
+	@Override
+	public void setOpponent(LivingEntity opponent) {
+		this.opponent = opponent;
+	}
+	
+	
+	
+	
+	
+	
+	
+
+
+
+
+
+	
+
+
+
+	/*private transient boolean creatingKingdom = false;
 	@Override
 	public boolean isProcessing() {
 		return creatingKingdom;
@@ -233,37 +220,6 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements KSignModifier
 	public void setModifyingSign(KChestSign sign) {
 		modifyingSign = sign;
 	}
+	*/
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + getUuid().hashCode() + ((rank == null) ? 0 : rank.hashCode());
-		return result;
-	}
-
-
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		KingdomPlayer other = (KingdomPlayer) obj;
-		
-		if (getPlayer() == null) {
-			if (other.getPlayer() != null)
-				return false;
-		} else {
-			if(other.getPlayer() == null) return false;
-			
-			if(!getPlayer().getUniqueId().equals(other.getPlayer().getUniqueId())){
-				return false;
-			}
-		}
-		return true;
-	}
 }

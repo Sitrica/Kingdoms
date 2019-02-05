@@ -49,9 +49,8 @@ public class Kingdoms extends JavaPlugin {
 			}
 			configurations.put(name, configuration);
 		}
-		Bukkit.getPluginManager().registerEvents(new WorldManager(), this);
-		commandHandler = new CommandHandler(this);
 		managerHandler = new ManagerHandler(instance);
+		commandHandler = new CommandHandler(this);
 		consoleMessage("&a=============================");
 		consoleMessage("&7Kingdoms " + getDescription().getVersion() + " by &5Songoda <3&7!");
 		consoleMessage("&7Kingdoms has been &aEnabled.");
@@ -111,8 +110,8 @@ public class Kingdoms extends JavaPlugin {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends Manager> ManagerOptional<T> getManager(String name, Class<T> expected) {
-		return (ManagerOptional<T>) getManager(name);
+	public <T extends Manager> T getManager(String name, Class<T> expected) {
+		return (T) getManager(name).orElseCreate();
 	}
 	
 	public ManagerOptional<Manager> getManager(String name) {

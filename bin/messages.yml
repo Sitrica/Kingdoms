@@ -12,7 +12,7 @@
 version: "1.0.0"
 
 # Information: Placeholders that are available for each message will be commented above it.
-# Default placeholders that exist on every message are %prefix%
+# Default placeholders that exist on every message are %prefix% and %newline%/%nl%
 # Placeholders that if their object is found at the time of the message will be present: %player%, %sender% and %string% - sender being the user the message is sending too.
 
 # All command and general messages.
@@ -43,11 +43,29 @@ kingdoms:
 # All messages relating to maps and chunks.
 map:
     # Called when a user walks into an unoccupied chunk of land.
-    # Placeholders: %player%, %world% and %chunk% - which is the chunk the player is walking into.
+    # Placeholders: %player%, %kingdom%, %lore%, %world%, %color% and %chunk% - which is the chunk the player is walking into.
     unoccupied-land:
         actionbar: "&2&lUnoccupied Land"
         message: "&2You have entered unoccupied land."
+    # Called when a user walks into another kingdoms land but their neutral.
+    # Placeholders: %player%, %kingdom%, %lore%, %world%, %color% and %chunk% - which is the chunk the player is walking into.
+    neutral-land:
+        actionbar: "&a&lNeutral Land - &2(&f%kingdom%&2)"
+        message: "&aYou have entered %kingdom%'s kingdom and they're neutral with you.%newline%&7%lore%"
+    # Called when a user walks into an allience's kingdom.
+    # Placeholders: %player%, %kingdom%, %lore%, %world%, %color% and %chunk% - which is the chunk the player is walking into.
+    allience-land:
+        actionbar: "&e&lAllience's Land - &6(&f%kingdom%&6)"
+        message: "&eYou have entered %kingdom%'s kingdom and they're an allience with you.%newline%&7%lore%"
+    # Called when a user walks into an enemy's kingdom.
+    # Placeholders: %player%, %kingdom%, %lore%, %world%, %color% and %chunk% - which is the chunk the player is walking into.
+    enemy-land:
+        actionbar: "&c&lEnemy's Land - &4(&f%kingdom%&4)"
+        message: "&eYou have entered %kingdom%'s kingdom and they're an enemy with you!%newline%&7%lore%"
     
+    
+
+
     
     
 
@@ -470,7 +488,6 @@ Misc_Inventory_Full: '&cPlease have at least one empty slot in your inventory'
 Misc_Invasion_Victory: We have conquered [%chunk%] from %kingdom%
 Misc_Invasion_Nexus_Victory: We have pillaged %rp% from %kingdom%
 Misc_Neutral_Toggled: '&aNeutrality toggled.'
-Misc_Neutral: '&aNeutral'
 Misc_Cannot_Neutral: '&cKingdoms that have invaded before cannot become pacifist!'
 Misc_Shield_Up_Invade_Warning: '&cYour Kingdom shield is still up for %time% minutes! Use /k invade again in the next 5 seconds to discard shield and begin invasion.'
 Misc_Cannot_Invade_Shielded: '&cYou cannot invade a shielded kingdom! Their shield expires in %time% minutes.'

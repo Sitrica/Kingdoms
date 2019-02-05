@@ -225,6 +225,34 @@ kingdoms:
     invading:
         # Should players not be allowed to leave a Kingdoms land if they're invading?
         invading-deny-chunk-change: true
+# All configurations related to ranks, you can add ranks and manager their priority in this section.
+ranks-use-prefix: true
+# Use the chat-color option.
+ranks-use-chat-color: true
+ranks:
+    # The king is usally the owner.
+    king:
+        # The priority of this rank. The lower the value the higher their power in the kingdom they have.
+        priority: 0
+        # The color the rank gets. Colors can be viewed here https://hub.spigotmc.org/javadocs/spigot/org/bukkit/ChatColor.html
+        color: "RED"
+        chat-color: "GRAY"
+        # Ranks can have a CSS unicode as their symbol in Minecraft.
+        # The kings unicode is a crown. You can view unicodes here: https://unicode-table.com
+        # Chess symbols work good https://unicode-table.com/en/blocks/miscellaneous-symbols/
+        unicode-icon: "\u265a"
+        name: "King"
+        # Placeholders: %player%, %kingdom%, %priority%, %name% (rank name), %unicode%/%icon%, %player% and all Kingdom related placeholders.
+        prefix: "&8[&c%unicode%&8][&7%kingdom%&8] &7"
+# If you want to have queens aswell you can add this rank.
+#    queen:
+#        priority: 1
+#        color: "LIGHT_PURPLE"
+#        # Queen symbol
+#        unicode-icon: "\265B"
+#        name: "Queen"
+#        # Placeholders: %player%, %kingdom%, %priority%, %name% (rank name), %unicode%/%icon%, %player% and all Kingdom related placeholders.
+#        prefix: "&8[&d%unicode%&8][&7%kingdom%&8]"
         
         
         

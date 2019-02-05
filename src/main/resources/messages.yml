@@ -62,6 +62,10 @@ map:
     enemy-land:
         actionbar: "&c&lEnemy's Land - &4(&f%kingdom%&4)"
         message: "&eYou have entered %kingdom%'s kingdom and they're an enemy with you!%newline%&7%lore%"
+claiming:
+    world-disabled: "&cThis command is disabled in this world."
+chat:
+    ally-chat-prefix: "&d[%rank%] %player%: "
     
     
 
@@ -73,19 +77,15 @@ Plugin_NotEnabled: Plugin is not enabled.
 Plugin_SetEnableToTrue: Please set Enable option to true in your config.yml file.
 Plugin_WillBeDisabled: This plugin will be disabled.
 Plugin_OreRegeneratorNotFound: No OreRegenerator plugin found, disabling kingdom ore regeneration after land expiry
-Rank_King: "\u265a"
 Rank_Mods: "\u2694"
 Rank_Generals: "\u265b"
 Rank_All: "\u265f"
-Rank_King_Name: King
 Rank_Mods_Name: Mods
 Rank_Generals_Name: Generals
 Rank_All_Name: All
 Chat_Prefix_Members: "&8[&a\u265f&8][&7%kingdom%&8]"
 Chat_Prefix_Mods: "&8[&1\u2694&8][&7%kingdom%&8]"
 Chat_Prefix_Generals: "&8[&6\u265b&8][&7%kingdom%&8]"
-Chat_Prefix_Kings: "&8[&c\u265a&8][&7%kingdom%&8]"
-Chat_Allychat_Prefix: '&d[%rank%] %player%: '
 Chat_Kingdomchat_Prefix: '&a[%rank%] %player%: '
 PlaceHolders_None: none
 Command_Info_PageTextHeader: '&6Page %currpagenum%'
@@ -441,7 +441,6 @@ Misc_Max_Land_Reached: '&cMaximum land claims reached'
 Misc_Must_Be_Connected: '&cYour land must be connected to your other land!'
 Misc_Not_Enough_Points: '&cYou need %cost% resourcepoints!'
 Misc_Invalid_Command: '&cInvalid command, do /k for help'
-Misc_Invalid_World: '&cInvalid world. This command is disabled in this world.'
 Misc_Preparing_Info: '&cPreparing your new player data...'
 Misc_Preparing_Info_Finished: '&aData loaded! Enjoy!'
 Misc_Not_In_Land: '&cYou can only do that in your land'

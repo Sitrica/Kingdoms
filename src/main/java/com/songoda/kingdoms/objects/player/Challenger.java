@@ -1,11 +1,16 @@
 package com.songoda.kingdoms.objects.player;
 
-import com.songoda.kingdoms.constants.land.SimpleChunkLocation;
-import org.bukkit.entity.Entity;
+import org.bukkit.Chunk;
+import org.bukkit.entity.LivingEntity;
 
 public interface Challenger {
-	public Entity getChampionPlayerFightingWith();
-	public void setChampionPlayerFightingWith(Entity champion);
-	public ChunkLocation getFightZone();
-	public void setInvadingChunk(ChunkLocation loc);
+	
+	public LivingEntity getOpponent();
+	
+	public void setOpponent(LivingEntity opponent);
+	
+	public Chunk getInvadingChunk();
+	
+	public void setInvadingChunk(Chunk chunk);
+
 }

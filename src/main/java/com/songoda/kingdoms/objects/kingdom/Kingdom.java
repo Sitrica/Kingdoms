@@ -2,36 +2,27 @@ package com.songoda.kingdoms.objects.kingdom;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import com.songoda.kingdoms.constants.StructureType;
-import com.songoda.kingdoms.manager.game.GameManagement;
-import com.songoda.kingdoms.manager.game.LandManager;
-import com.songoda.kingdoms.objects.KingdomPlayer;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
-import com.songoda.kingdoms.constants.Rank;
-import com.songoda.kingdoms.constants.land.Land;
-import com.songoda.kingdoms.constants.land.SimpleChunkLocation;
-import com.songoda.kingdoms.events.KingdomResourcePointChangeEvent;
-import com.songoda.kingdoms.main.Config;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import com.songoda.kingdoms.main.Kingdoms;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
 public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	
-	transient List<KingdomPlayer> onlineMembers = new ArrayList<KingdomPlayer>();
-	transient List<Kingdom> onlineEnemies = new ArrayList<Kingdom>();
-	transient List<Kingdom> onlineAllies = new ArrayList<Kingdom>();
-	transient int uptime = 2;
-	////////////////////////////////////////////////////////////////////////////
-	Location nexus_loc;
-	Location home_loc;
+	private final Set<KingdomPlayer> onlineMembers = new HashSet<>();
+	private final Set<Kingdom> onlineEnemies = new HashSet<>();
+	private final Set<Kingdom> onlineAllies = new HashSet<>();
+	private Location nexus, spawn;
 	
 	int chestsize = 9;
 	long timestamp = 0;
@@ -46,41 +37,25 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	PowerUp powerUp = new PowerUp();
 	TurretUpgradeInfo turretUpgrades = new TurretUpgradeInfo();
 	
-	public Kingdom() {
-		super();
-		onlineMembers = new ArrayList<KingdomPlayer>();
-		onlineEnemies = new ArrayList<Kingdom>();
-		onlineAllies = new ArrayList<Kingdom>();
-		maxMember = Config.getConfig().getInt("base-member-count");
-	}
-	
 	public Kingdom(UUID uuid) {
 		super(uuid);
+		maxMember = Config.getConfig().getInt("base-member-count");
 	}
 
-	public Location getNexus_loc() {
-		return nexus_loc;
+	public Location getNexusLocation() {
+		return nexus;
 	}
 
-	public int getTimeToExpire() {
-		return uptime;
-	}
-	
-	public void setTimeToExpire(int uptime) {
-		this.uptime = uptime;
+	public void setNexusLocation(Location nexus) {
+		this.nexus = nexus;
 	}
 
-	public void setNexus_loc(Location nexus_loc) {
-		this.nexus_loc = nexus_loc;
-		
+	public Location getSpawn() {
+		return spawn;
 	}
 
-	public Location getHome_loc() {
-		return home_loc;
-	}
-
-	public void setHome_loc(Location home_loc) {
-		this.home_loc = home_loc;
+	public void setSpawn(Location spawn) {
+		this.spawn = spawn;
 		
 	}
 
@@ -91,17 +66,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	public void setChestsize(int chestsize) {
 		this.chestsize = chestsize;
 		
-	}
-
-	public List<KingdomPlayer> getOnlineMembers() {
-		List<KingdomPlayer> onlinePlayers = new ArrayList<>();
-		for (UUID uuid : membersList){
-			OfflinePlayer op = Bukkit.getOfflinePlayer(uuid);
-			if (op.isOnline()){
-				onlinePlayers.add(GameManagement.getPlayerManager().getSession(uuid));
-			}
-		}
-		return onlinePlayers;
 	}
 
 	public List<Kingdom> getOnlineEnemies() {
@@ -311,16 +275,16 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	}
 	
 	public void addMember(UUID uuid){
-		if(membersList.contains(uuid)) return;
-		membersList.add(uuid);
+		if(members.contains(uuid)) return;
+		members.add(uuid);
 		
 	}
 	public void removeMember(UUID uuid){
-		membersList.remove(uuid);
+		members.remove(uuid);
 		
 	}
-/*	public void setMembersList(List<UUID> membersList) {
-		this.membersList = membersList;
+/*	public void setmembers(List<UUID> members) {
+		this.members = members;
 		
 	}*/
 	
@@ -471,7 +435,7 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 					!Config.getConfig().getBoolean("disable-join-messages")) {
 				sendAnnouncement(null, Kingdoms.getLang().getString("Misc_Announcer_King_Online").replaceAll("%player%", kp.getPlayer().getName()), true);
 			}
-		}else if(!onlineMembers.contains(kp) && membersList.contains(kp.getUuid())){
+		}else if(!onlineMembers.contains(kp) && members.contains(kp.getUuid())){
 			if(kp.getRank() == Rank.KING) kp.setRank(Rank.ALL);
 			onlineMembers.add(kp);
 			
@@ -483,7 +447,7 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	@Override
 	public void onKingdomPlayerLogout(KingdomPlayer kp) {
 		Kingdoms.logDebug("event logout? "+onlineMembers.contains(kp));
-		if(onlineMembers.contains(kp) && membersList.contains(kp.getUuid())){
+		if(onlineMembers.contains(kp) && members.contains(kp.getUuid())){
 			onlineMembers.remove(kp);
 			
 			if(!kp.isVanishMode()&&
@@ -497,7 +461,7 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 			if(!kp.getKingdomName().equalsIgnoreCase(kingdomName)) return;
 		}
 		kp.setRank(Rank.ALL);
-		this.membersList.add(kp.getUuid());
+		this.members.add(kp.getUuid());
 		if(kp.isOnline()) this.onlineMembers.add((KingdomPlayer) kp);
 		
 		sendAnnouncement(null, Kingdoms.getLang().getString("Command_Accept_Announcement").replaceAll("%player%", kp.getName()), true);
@@ -505,7 +469,7 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 
 	@Override
 	public void onMemberQuitKingdom(OfflineKingdomPlayer kp) {
-		if(!this.membersList.contains(kp.getUuid())) return;
+		if(!this.members.contains(kp.getUuid())) return;
 		
 		if(kp instanceof KingdomPlayer){
 			if(((KingdomPlayer) kp).getPlayer() != null){
@@ -519,7 +483,7 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 			kp.setLastDonatedAmt(0);
 			kp.setLastTimeDonated(null);
 			
-			this.membersList.remove(kp.getUuid());
+			this.members.remove(kp.getUuid());
 			if(this.onlineMembers.contains((KingdomPlayer) kp))this.onlineMembers.remove((KingdomPlayer) kp);
 		}else{
 			kp.setRank(Rank.ALL);
@@ -527,7 +491,7 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 			kp.setDonatedAmt(0);
 			kp.setLastDonatedAmt(0);
 			kp.setLastTimeDonated(null);
-			this.membersList.remove(kp.getUuid());
+			this.members.remove(kp.getUuid());
 		}
 
 		sendAnnouncement(null, "["+kp.getName()+"] has left your kingdom!", true);
@@ -543,7 +507,37 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 		if(onlineAllies.contains(k)) onlineAllies.remove(k);
 		if(onlineEnemies.contains(k)) onlineEnemies.remove(k);
 	}
-	////////////////////////////////////////////////////////////
 
+	// Lime note: This stuff is new below.
+	public Set<KingdomPlayer> getOnlinePlayers() {
+		Set<KingdomPlayer> players = new HashSet<>();
+		for (UUID uuid : members) {
+			OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
+			if (player.isOnline())
+				players.add(GameManagement.getPlayerManager().getSession(uuid));
+		}
+		return players;
+	}
 	
+	public Set<KingdomPlayer> getOnlineAllies() {
+		Set<KingdomPlayer> players = new HashSet<>();
+		Bukkit.getWorlds().parallelStream()
+				.filter(world -> worldManager.acceptsWorld(world))
+				.forEach(world -> {
+					for (Player player : world.getPlayers()) {
+						KingdomPlayer kingdomPlayer = GameManagement.getPlayerManager().getSession(player);
+						if (kingdomPlayer.isAdminMode() || !kingdomPlayer.hasKingdom()) {
+							players.add(kingdomPlayer);
+							continue;
+						}
+						Kingdom playerKingdom = kingdomPlayer.getKingdom();
+						if (!kingdom.isMember(kingdomPlayer))
+							continue;
+						if (kingdom.isAllianceWith(playerKingdom) && playerKingdom.isAllianceWith(kingdom))
+							players.add(kingdomPlayer);
+					}
+				});
+		return players;
+	}
+
 }

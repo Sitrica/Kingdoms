@@ -20,18 +20,18 @@ import org.bukkit.OfflinePlayer;
 
 public class OfflineKingdom {
 
-	private int might = 0, resourcepoints = 0, extraLandClaims = 0, timeLeftToNextInvasion = 0;
+	private int might = 0, resourcepoints = 0, claims = 0, timeLeftToNextInvasion = 0;
+	private final HashMap<String, Long> cdTimeNeeded = new HashMap<>();
 	private final Map<String, String> invasionLog = new HashMap<>();
 	private final Map<String, Long> cooldowns = new HashMap<>();
 	private final List<UUID> members = new ArrayList<>();
 	private final List<UUID> enemies= new ArrayList<>();
 	private final List<UUID> allies = new ArrayList<>();
-	private String kingName, kingdomName, kingdomLore;
-	private boolean isNeutral, hasInvaded;
+	private int shieldValue = 0, shieldRadius = 0;
+	private String kingName, kingdomName, lore;
+	private boolean neutral, hasInvaded;
 	private UUID uuid, king;
 	private int dynmapColor = KingdomManager.getRandomColor();
-	
-	HashMap<String, Long> cdTimeNeeded = new HashMap<String, Long>();
 	
 	protected OfflineKingdom() {
 		this(UUID.randomUUID());
@@ -41,23 +41,83 @@ public class OfflineKingdom {
 		this.uuid = uuid;
 	}
 	
-	public void clearInvasionLog(){
-		invasionLog.clear();
+	public UUID getKing() {
+		return king;
 	}
 	
-	public void addInvasionLog(OfflineKingdom victim, OfflineKingdomPlayer invader, boolean victorious, Land target) {
-		SimpleDateFormat format1 = new SimpleDateFormat ("E dd MM YYYY");
-		SimpleDateFormat format2 = new SimpleDateFormat ("hh:mm:ss a zzz");
-		Date date = new Date();
-		String format = format1.format(date) + "|" + format2.format(date);
-		if (!invasionLog.containsKey("[" + invasionLog.size() + "] " +  format)) {
-			invasionLog.put("[" + invasionLog.size() + "] " + format, victim.getKingdomName() + "," + invader.getName() + "," + victorious + "," + LocationUtils.chunkToString(target.getChunk()));
-		}
+	public void setKing(UUID king) {
+		this.king = king;
+	}
+	
+	public String getName() {
+		return kingdomName;
+	}
+	
+	public int getMight() {
+		return might;
+	}
+	
+	public void setMight(int might) {
+		this.might = might;
+	}
+	
+	public boolean isNeutral() {
+		return neutral;
 	}
 
+	public void setNeutral(boolean neutral) {
+		this.neutral = neutral;
+	}
+
+	public void setKingdomName(String kingdomName) {
+		this.kingdomName = kingdomName;
+	}
 	
-	private int shieldValue = 0;
-	private int shieldRadius = 0;
+	public int getClaims() {
+		return claims;
+	}
+	
+	public void setClaims(int claims) {
+		this.claims = claims;
+	}
+	
+	public String getLore() {
+		return lore;
+	}
+	
+	public void setLore(String lore) {
+		this.lore = lore;
+	}
+	
+	public UUID getKingdomUUID() {
+		return uuid;
+	}
+	
+	public int getResourcepoints() {
+		return resourcepoints;
+	}
+	
+	public boolean isOnline(){
+		return GameManagement.getKingdomManager().isOnline(kingdomName);
+	}
+
+	public Kingdom getKingdom(){
+		return GameManagement.getKingdomManager().getOrLoadKingdom(kingdomName);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	public int getShieldValue() {
@@ -86,6 +146,10 @@ public class OfflineKingdom {
     public void giveShield(int shieldTimeInMin){
     	beginCooldown(SHIELD, shieldTimeInMin);
     }
+    
+    public boolean hasInvaded() {
+		return hasInvaded;
+	}
 
 	public boolean isShieldUp(){
 		return getTimeLeft(SHIELD) > 0;
@@ -112,22 +176,6 @@ public class OfflineKingdom {
 	public Map<String, String> getInvasionLog() {
 		return invasionLog;
 	}
-
-	public boolean isOnline(){
-		return GameManagement.getKingdomManager().isOnline(kingdomName);
-	}
-	
-	public String getKingdomName() {
-		return kingdomName;
-	}
-
-	public void setKingdomName(String kingdomName) {
-		this.kingdomName = kingdomName;
-	}
-
-	public Kingdom getKingdom(){
-		return GameManagement.getKingdomManager().getOrLoadKingdom(kingdomName);
-	}
 	
 	public String getKingName(){
 		if(kingName == null){
@@ -137,28 +185,23 @@ public class OfflineKingdom {
 		
 		return kingName;
 	}
-	public int getResourcepoints() {
-		return resourcepoints;
-	}
-
-	public int getMight() {
-		return might;
-	}
-
-	public String getKingdomLore() {
-		return kingdomLore;
-	}
-
-	public void setKing(UUID uuid){
-		this.king = uuid;
-	}
-	
-	public UUID getKing() {
-		return king;
-	}
 	
 	public int getDynmapColor() {
 		return dynmapColor;
+	}
+	
+	public void clearInvasionLog() {
+		invasionLog.clear();
+	}
+	
+	public void addInvasionLog(OfflineKingdom victim, OfflineKingdomPlayer invader, boolean victorious, Land target) {
+		SimpleDateFormat format1 = new SimpleDateFormat ("E dd MM YYYY");
+		SimpleDateFormat format2 = new SimpleDateFormat ("hh:mm:ss a zzz");
+		Date date = new Date();
+		String format = format1.format(date) + "|" + format2.format(date);
+		if (!invasionLog.containsKey("[" + invasionLog.size() + "] " +  format)) {
+			invasionLog.put("[" + invasionLog.size() + "] " + format, victim.getKingdomName() + "," + invader.getName() + "," + victorious + "," + LocationUtils.chunkToString(target.getChunk()));
+		}
 	}
 	
 	public List<UUID> getMembersList() {
@@ -193,32 +236,10 @@ public class OfflineKingdom {
 		return false;
 	}
 
-	public boolean isNeutral() {
-		return isNeutral;
-	}
-
-	public boolean hasInvaded() {
-		return hasInvaded;
-	}
-
-	public void setNeutral(boolean isNeutral) {
-		this.isNeutral = isNeutral;
-	}
-
-	public int getExtraLandClaims() {
-		return extraLandClaims;
-	}
-
-	public void setExtraLandClaims(int additionalLandMax) {
-		this.extraLandClaims = additionalLandMax;
-	}
-
 	public void setHasInvaded(boolean hasInvaded) {
 		this.hasInvaded = hasInvaded;
 	}
 	
-	//private long researchStart = 0;
-	//private long researchNeededTimeInMS = 0;
 	public void beginCooldown(String name, int researchNeededTimeInMinutes){
 		cooldowns.put(name.toLowerCase(), System.currentTimeMillis());
 		cdTimeNeeded.put(name.toLowerCase(), TimeUnit.MINUTES.toMillis(researchNeededTimeInMinutes));
@@ -231,7 +252,6 @@ public class OfflineKingdom {
 		if(!cdTimeNeeded.containsKey(key)) return 0;
 		if(cooldowns.get(key) == 0) return 0;
 		if(cdTimeNeeded.get(key)== 0) return 0;
-		//return researchNeededTimeInMS - (System.currentTimeMillis() - researchStart);
 		return cdTimeNeeded.get(key)
 				- (System.currentTimeMillis() 
 				- cooldowns.get(key));
@@ -240,8 +260,6 @@ public class OfflineKingdom {
 	public void speedUp(String name, long time){
 		String key = name.toLowerCase();
 		cdTimeNeeded.put(key, cdTimeNeeded.get(key) - time);
-		//researchNeededTimeInMS -= time;
-		//if(researchNeededTimeInMS < 0) researchNeededTimeInMS = 0;
 		if(cdTimeNeeded.get(key) < 0)
 			cdTimeNeeded.put(key, 0L);
 	}
@@ -256,32 +274,4 @@ public class OfflineKingdom {
 		cdTimeNeeded.put(key, 0L);
 	}
 
-	public UUID getKingdomUuid() {
-		return uuid;
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((kingdomName == null) ? 0 : kingdomName.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		OfflineKingdom other = (OfflineKingdom) obj;
-		if (kingdomName == null) {
-			if (other.kingdomName != null)
-				return false;
-		} else if (!kingdomName.equals(other.kingdomName))
-			return false;
-		return true;
-	}
 }

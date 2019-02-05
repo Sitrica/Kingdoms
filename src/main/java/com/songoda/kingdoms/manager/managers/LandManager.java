@@ -87,6 +87,8 @@ public class LandManager extends Manager {
 	
 	private final Map<Chunk, Land> lands = new ConcurrentHashMap<>();
 	private final List<String> unclaiming = new ArrayList<>(); //TODO test if this is even requried. It's a queue to avoid claiming and removing at same time.
+	private final FileConfiguration configuration;
+	private final WorldManager worldManager;
 	private static Database<Land> database;
 	private final Thread autoSaveThread;
 	private Kingdoms instance;
@@ -94,7 +96,7 @@ public class LandManager extends Manager {
 	public LandManager() {
 		super(true);
 		this.instance = Kingdoms.getInstance();
-		FileConfiguration configuration = instance.getConfig();
+		this.configuration = instance.getConfig();
 		ConfigurationSection section = configuration.getConfigurationSection("database");
 		int interval = section.getInt("auto-save.interval", 60);
 		if (configuration.getBoolean("database.mysql.enabled", false)) {
@@ -536,31 +538,34 @@ public class LandManager extends Manager {
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR)
-	public void onChunkChange(PlayerChangeChunkEvent e) {
-		if(ExternalManager.isCitizen(e.getPlayer())){
+	public void onChunkChange(PlayerChangeChunkEvent event) {
+		Player player = event.getPlayer();
+		if (ExternalManager.isCitizen(player))
 			return;
-		}
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if(kp.isKMapOn()){
+		KingdomPlayer kingdomPlayer = GameManagement.getPlayerManager().getSession(player);
+		if (kingdomPlayer.isKMapOn()) {
 			Bukkit.getScheduler().scheduleSyncDelayedTask(Kingdoms.getInstance(), new Runnable() {
 				public void run() {
-					GUIManagement.getMapManager().displayMap(e.getPlayer(), false);
+					GUIManagement.getMapManager().displayMap(player, false);
 				}
 			}, 1L);
 		}
-		
-		if(kp.isKAutoClaimOn()){
+		if (kingdomPlayer.isKAutoClaimOn()){
 			Bukkit.getScheduler().scheduleSyncDelayedTask(Kingdoms.getInstance(), new Runnable() {
 				public void run() {
-					attemptNormalLandClaim(kp);
+					attemptNormalLandClaim(kingdomPlayer);
 				}
 			}, 1L);
 		}
 	}
 	
-	public void attemptNormalLandClaim(KingdomPlayer kp){
-		if(!Config.getConfig().getStringList("enabled-worlds").contains(kp.getPlayer().getWorld().getName())){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Invalid_World", kp.getLang()));
+	public void attemptNormalLandClaim(KingdomPlayer kingdomPlayer) {
+		Player player = kingdomPlayer.getPlayer();
+		if (!worldManager.acceptsWorld(player.getWorld().getName())) {
+			new MessageBuilder("claiming.world-disabled")
+					.replace("%player%", player.getName())
+					.replace("%player%", player.getName())
+					.send(player);
 			return;
 		}
 		
