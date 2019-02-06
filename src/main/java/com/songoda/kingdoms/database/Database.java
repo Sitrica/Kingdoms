@@ -28,7 +28,15 @@ public abstract class Database<T> {
 	
 	public abstract void save(String key, T value);
 	
-	public abstract T load(String key, T def);
+	public abstract T get(String key, T def);
+	
+	public T get(String key) {
+		return get(key, null);
+	}
+	
+	public void delete(String key) {
+		save(key, null);
+	}
 	
 	public abstract boolean has(String key);
 	

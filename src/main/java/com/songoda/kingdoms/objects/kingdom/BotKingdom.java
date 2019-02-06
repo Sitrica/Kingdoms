@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.songoda.kingdoms.objects.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 
 import org.bukkit.command.CommandSender;
@@ -15,6 +14,7 @@ import org.bukkit.plugin.Plugin;
 public abstract class BotKingdom extends Kingdom {
 
 	private Plugin register;
+	
 	public BotKingdom(String kingdomName, Plugin plugin) {
 		super();
 		setKingdomName(kingdomName);

@@ -7,9 +7,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-
-import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.MessageBuilder;
@@ -27,7 +24,7 @@ public class RankManager extends Manager {
 	
 	protected RankManager() {
 		super(false);
-		this.section = Kingdoms.getInstance().getConfig().getConfigurationSection("ranks");
+		this.section = configuration.getConfigurationSection("ranks");
 		for (String rank : section.getKeys(false)) {
 			ChatColor chat = ChatColor.valueOf(section.getString(rank + ".chat-color", "WHITE"));
 			ChatColor color = ChatColor.valueOf(section.getString(rank + ".color", "WHITE"));
@@ -42,12 +39,10 @@ public class RankManager extends Manager {
 	public class Rank {
 		
 		private final String name, unicode, node, configurationName;
-		private final FileConfiguration configuration;
 		private final ChatColor color, chat;
 		private final int priority;
 		
 		private Rank(String configurationName, String node, String name, String unicode, ChatColor chat, ChatColor color, int priority) {
-			this.configuration = Kingdoms.getInstance().getConfig();
 			this.configurationName = configurationName;
 			this.priority = priority;
 			this.unicode = unicode;

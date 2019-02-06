@@ -1,19 +1,23 @@
 package com.songoda.kingdoms.objects.player;
 
-import java.util.Date;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.managers.KingdomManager;
+import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.manager.managers.RankManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 
 public class OfflineKingdomPlayer {
 
+	protected final KingdomManager kingdomManager;
+	protected final PlayerManager playerManager;
 	protected transient Kingdom kingdom;
+	protected final Kingdoms instance;
 	protected final String name;
 	protected final UUID uuid;
 	protected boolean marker;
@@ -26,7 +30,10 @@ public class OfflineKingdomPlayer {
 	public OfflineKingdomPlayer(OfflinePlayer player) {
 		this.name = player.getName();
 		this.uuid = player.getUniqueId();
-		this.rank = Kingdoms.getInstance().getManager("rank", RankManager.class).getDefaultRank();
+		this.instance = Kingdoms.getInstance();
+		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.rank = instance.getManager("rank", RankManager.class).getDefaultRank();
 	}
 	
 	public UUID getUniqueId() {
@@ -50,11 +57,11 @@ public class OfflineKingdomPlayer {
 	}
 	
 	public void setKingdom(Kingdom kingdom) {
-		this.kingdom = GameManagement.getKingdomManager().getOrLoadKingdom(kingdom);
+		this.kingdom = kingdomManager.getKingdom(kingdom);
 	}
 	
 	public KingdomPlayer getKingdomPlayer() {
-		return GameManagement.getPlayerManager().getSession(uuid);
+		return playerManager.getSession(uuid);
 	}
 
 }

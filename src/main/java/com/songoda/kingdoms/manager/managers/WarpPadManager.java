@@ -18,7 +18,6 @@ import com.songoda.kingdoms.objects.land.Land;
 public class WarpPadManager extends Manager {
 	
 	static {
-		//TODO may need to add an "AFTER" state to register after LandManager.
 		registerManager("warppad", new WarpPadManager());
 	}
 	
@@ -27,7 +26,7 @@ public class WarpPadManager extends Manager {
 	protected WarpPadManager() {
 		super(false);
 		Kingdoms isntance = Kingdoms.getInstance();
-		LandManager landManager = isntance.getManager("land", LandManager.class).orElseCreate();
+		LandManager landManager = isntance.getManager("land", LandManager.class);
 		landManager.getLoadedLand().parallelStream()
 				.map(chunk -> landManager.getOrLoadLand(chunk))
 				.forEach(land -> checkLoad(land));

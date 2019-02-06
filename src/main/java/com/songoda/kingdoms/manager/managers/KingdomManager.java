@@ -4,16 +4,19 @@ import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.Database;
 import com.songoda.kingdoms.database.DatabaseTransferTask;
 import com.songoda.kingdoms.database.SQLiteDatabase;
+import com.songoda.kingdoms.events.KingdomLoadEvent;
 import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.managers.CooldownManager.KingdomCooldown;
 import com.songoda.kingdoms.objects.kingdom.BotKingdom;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
-import com.songoda.kingdoms.objects.kingdom.KingdomCooldown;
 import com.songoda.kingdoms.objects.kingdom.MiscUpgrade;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
+import com.songoda.kingdoms.utils.IntervalUtils;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -27,11 +30,14 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -42,290 +48,149 @@ public class KingdomManager extends Manager {
 		registerManager("kingdom", new KingdomManager());
 	}
 	
-	public static Map<String, UUID> kingdomNameList = new TreeMap<>(CaseInsensitiveComparator.INSTANCE);
-	public static Map<UUID, OfflineKingdom> kingdomList = new HashMap<>();
-	private final Set<String> botKingdoms = new HashSet<>();
-	private final FileConfiguration configuration;
-	private static Database<OfflineKingdom> db;
-	private final Thread autoSaveThread;
-	private final Kingdoms instance;
+	public static Set<OfflineKingdom> kingdoms = new HashSet<>();
+	private final Set<BotKingdom> bots = new HashSet<>();
+	private final Database<OfflineKingdom> database;
+	private final CooldownManager cooldowns;
+	private BukkitTask autoSaveThread;
 
-	KingdomManager() {
+	protected KingdomManager() {
 		super(true);
-		this.instance = Kingdoms.getInstance();
-		this.configuration = instance.getConfig();
-		//TODO left off here, finish mysql.
-		if (configuration.getBoolean("MySql.Enabled")) {
-			try {
-				if (Config.getConfig().getBoolean("DO-NOT-TOUCH.grabKingdomsFromFileDB")) {
-					Config.getConfig().set("DO-NOT-TOUCH.grabKingdomsFromFileDB", false);
-					List<DatabaseTransferTask.TransferPair> pairs = new ArrayList<>();
-					pairs.add(new DatabaseTransferTask.TransferPair(createFileDB(), createMysqlDB()));
-					new Thread(new DatabaseTransferTask(Kingdoms.getInstance(), pairs)).start();
+		this.cooldowns = instance.getManager("cooldown", CooldownManager.class);
+		if (configuration.getBoolean("database.mysql.enabled", false))
+			database = getMySQLDatabase(OfflineKingdom.class);
+		else
+			database = getSQLiteDatabase(OfflineKingdom.class);
+		if (configuration.getBoolean("database.auto-save.enabled")) {
+			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
+			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
+				@Override 
+				public void run() {
+					for (OfflineKingdom kingdom : kingdoms) {
+						UUID uuid = kingdom.getUniqueId();
+						String name = kingdom.getName();
+						//TODO Add a temp system if it's needed later, this is bad management.
+						/*if (name.endsWith("_tmp")) {
+							kingdoms.remove(kingdom);
+							database.delete(kingdom.getUniqueId() + "");
+							continue;
+						}*/
+						Kingdoms.debugMessage("Saving Kingdom: " + name);
+						if (cooldowns.isInCooldown(kingdom, "attackcd"))
+							kingdom.setInvasionCooldown(cooldowns.getTimeLeft(kingdom, "attackcd"));
+						//null king means ready to remove
+						if (kingdom.getKing() == null && !(kingdom instanceof BotKingdom)) {
+							database.save(uuid + "", null);
+							continue;
+						}
+						database.save(uuid + "", kingdom);
+					}
 				}
-				db = createMysqlDB();
-				Kingdoms.logInfo("Mysql Connection Success!");
-				Kingdoms.logInfo("Using " + Config.getConfig().getString("MySql.DBAddr") + " with user " + Config.getConfig().getString("MySql.DBUser"));
-			} finally {
-				if (db == null) {
-					db = createFileDB();
-					Kingdoms.logInfo("Using file database for Kingdom data");
-				}
-
-				kingdomNameList.clear();
-				autoSaveThread = new Thread(new AutoSaveTask());
-				//2016-08-11
-				autoSaveThread.setPriority(Thread.MIN_PRIORITY);
-				if (Config.getConfig().getBoolean("Plugin.enable-autosave"))
-					autoSaveThread.start();
-			}
-		} else {
-			db = createFileDB();
-			Kingdoms.logInfo("Using file database for Kingdom data");
-
-			kingdomNameList.clear();
-			autoSaveThread = new Thread(new AutoSaveTask());
-			//2016-08-11
-			autoSaveThread.setPriority(Thread.MIN_PRIORITY);
-			if (Config.getConfig().getBoolean("Plugin.enable-autosave"))
-				autoSaveThread.start();
+			}, 0, IntervalUtils.getInterval(interval) * 20);
 		}
-
-
+	}
+	
+	public Set<OfflineKingdom> getKingdoms() {
+		return kingdoms;
 	}
 
-	public Set<String> getBotKingdomNames() {
-		return botKingdoms;
+	public Set<BotKingdom> getBotKingdoms() {
+		return bots;
+	}
+	
+	public Kingdom getKingdom(OfflineKingdom kingdom) {
+		return getKingdom(kingdom.getUniqueId());
+	}
+
+	public Kingdom getKingdom(UUID uuid) {
+		if (uuid == null)
+			return null;
+		Kingdoms.debugMessage("Fetching info for kingdom: " + uuid);
+		return kingdoms.parallelStream()
+				.filter(kingdom -> kingdom.getUniqueId().equals(uuid))
+				.map(kingdom -> {
+					if (kingdom instanceof Kingdom)
+						return (Kingdom) kingdom;
+					if (kingdom.getKing() == null && !(kingdom instanceof BotKingdom))
+						database.delete(uuid + "");
+					return null;
+				})
+				.findAny()
+				.orElse(loadKingdom(uuid));
+	}
+	
+	public Optional<Kingdom> getKingdomByName(String name) {
+		if (name == null)
+			return null;
+		Kingdoms.debugMessage("Fetching info for kingdom: " + name);
+		return kingdoms.parallelStream()
+				.filter(kingdom -> kingdom.getName().equals(name))
+				.map(kingdom -> {
+					if (kingdom instanceof Kingdom)
+						return (Kingdom) kingdom;
+					if (kingdom.getKing() == null && !(kingdom instanceof BotKingdom))
+						database.delete(kingdom.getUniqueId() + "");
+					return null;
+				})
+				.findAny();
+	}
+	
+	private Kingdom loadKingdom(OfflineKingdom kingdom) {
+		return loadKingdom(kingdom.getUniqueId());
+	}
+	
+	private Kingdom loadKingdom(UUID uuid) {
+		Kingdoms.consoleMessage("Loading kingdom: " + uuid);
+		//kingdoms.parallelStream()
+		//		.filter(kingdom -> kingdom.getUniqueId().equals(uuid))
+		//		.forEach(kingdom -> database.save(uuid + "", kingdom)); //TODO This used to save the old kingdom from a map? Figure out why?
+		// This can cause error can't it? Fix later if it does. - Recode.
+		Kingdom kingdom = (Kingdom) database.get(uuid + "");
+		if (kingdom != null) {
+			kingdom.setNeutral(false);
+			long invasionCooldown = kingdom.getInvasionCooldown();
+			if (invasionCooldown > 0) {
+				KingdomCooldown cooldown = new KingdomCooldown(kingdom, "attackcd", invasionCooldown);
+				cooldown.start();
+				kingdom.setInvasionCooldown(0);
+			}
+			checkUpgrades(kingdom);
+			checkMight(kingdom);
+			kingdoms.add(kingdom);
+			Bukkit.getPluginManager().callEvent(new KingdomLoadEvent(kingdom));
+		}
+		return kingdom;
 	}
 
 	public boolean isBotKingdom(Kingdom kingdom) {
-		Kingdoms.logDebug("Checking Kingdom: " + kingdom.getKingdomName());
-		if (kingdom instanceof BotKingdom) return true;
-		Kingdoms.logDebug("Not botking ;-;");
-		if (botKingdoms.contains(kingdom.getKingdomName())) return true;
-
+		if (kingdom instanceof BotKingdom)
+			return true;
+		if (bots.contains(kingdom.getName()))
+			return true;
 		return false;
 	}
 
-	public void registerBotKingdom(BotKingdom bk) {
-		botKingdoms.add(bk.getKingdomName());
-		kingdomList.put(bk.getKingdomUuid(), bk);
-		//Kingdoms.logDebug(kingdomNameList.get(bk.getKingdomName()).getKingdomName());
-		Kingdoms.logInfo("Registered Bot Kingdom, " + bk.getKingdomName());
+	public void registerBotKingdom(BotKingdom kingdom) {
+		bots.add(kingdom);
+		kingdoms.add(kingdom);
+		Kingdoms.debugMessage("Registered Bot Kingdom: " + kingdom.getName());
 	}
 
-	public SQLiteDatabase<OfflineKingdom> createFileDB() {
-		return new SQLiteDatabase<>(plugin.getDataFolder(), "db.db", Config.getConfig().getString("MySql.kingdom-table-name"), Kingdom.class);
+	public boolean renameKingdom(OfflineKingdom kingdom, String name) {
+		return kingdoms.parallelStream()
+				.filter(k -> k.getName().equals(name))
+				.findFirst()
+				.isPresent();
 	}
-
-	public MySqlDatabase<OfflineKingdom> createMysqlDB() {
-		return new MySqlDatabase<>(
-				Config.getConfig().getString("MySql.DBAddr"),
-				Config.getConfig().getString("MySql.DBName"),
-				Config.getConfig().getString("MySql.kingdom-table-name"),
-				Config.getConfig().getString("MySql.DBUser"),
-				Config.getConfig().getString("MySql.DBPassword"),
-				Kingdom.class);
-	}
-
-	public DatabaseTransferTask.TransferPair<OfflineKingdom> getTransferPair(Database<OfflineKingdom> from) {
-		return new DatabaseTransferTask.TransferPair<>(from, db);
-	}
-
-	public void debugDeleteKingdom(String name) {
-		UUID kingdom = kingdomNameList.remove(name);
-		db.save(kingdom.toString(), null);
-		for (UUID uuid : PlayerManager.userList.keySet()) {
-			OfflineKingdomPlayer player = PlayerManager.userList.get(uuid);
-			if (player.getKingdomUuid() != null) {
-				if (player.getKingdomUuid().equals(kingdom)) {
-					player.setKingdomUuid(null);
-					PlayerManager.userList.remove(uuid);
-					PlayerManager.userList.put(uuid, player);
-				}
-			}
-		}
-	}
-
-	private class AutoSaveTask implements Runnable {
-
-		@Override
-		public void run() {
-			while (plugin.isEnabled()) {
-				try {
-					Thread.sleep(5 * 1000L);
-				} catch (InterruptedException e) {
-					Kingdoms.logInfo("Kingdom auto save is interrupted.");
-
-					//2016-08-22
-					return;
-				}
-
-				saveAll();
-			}
-		}
-	}
-
-	// 2016-05-18
-	private synchronized void saveAll() {
-		synchronized (kingdomNameList) {
-			for (Map.Entry<UUID, OfflineKingdom> entry : kingdomList.entrySet()) {
-				UUID kname = entry.getKey();
-
-				if (toBeLoaded.contains(kname)) {
-					Kingdoms.logColor("Did not overwrite " + kname + ", as it was never loaded fully.");
-					continue;
-				}
-
-				OfflineKingdom kingdom = entry.getValue();
-				if (kingdom.getKingdomName().endsWith("_tmp")) {
-					Kingdoms.logColor("Skipped " + kname);
-					kingdomList.remove(kname);
-					kingdomNameList.remove(kingdom.getKingdomName());
-					db.save(kingdom.getKingdomUuid().toString(), null);
-					continue;
-				}
-				Kingdoms.logColor("Saving kingdom, " + kname);
-
-				if (KingdomCooldown.isInCooldown(kname.toString(), "attackcd")) {
-					kingdom.timeLeftToNextInvasion = KingdomCooldown.getTimeLeft(kname.toString(), "attackcd");
-				}
-				//null king means ready to remove
-				if (kingdom.getKing() == null && !(kingdom instanceof BotKingdom)) {
-					db.save(kname.toString(), null);
-					continue;
-				}
-
-				if (kingdom instanceof Kingdom) {
-					Kingdom k = (Kingdom) kingdom;
-					if (k.getNexus_loc() != null && k.getNexus_loc().getWorld() == null) {
-						k.setNexus_loc(null);
-					}
-					if (k.getHome_loc() != null && k.getHome_loc().getWorld() == null) {
-						k.setHome_loc(null);
-					}
-				}
-
-				try {
-					db.save(kname.toString(), kingdom);
-				} catch (Exception e) {
-
-					Bukkit.getLogger().severe("[Kingdoms] Failed autosave for a kingdom!");
-				}
-			}
-		}
-	}
-
-	public boolean renameKingdom(OfflineKingdom kingdom, String newName) {
-		String oldName = kingdom.getKingdomName();
-		if (kingdomNameList.containsKey(newName)) return false;
-		kingdomNameList.remove(oldName);
-		kingdomNameList.put(newName, kingdom.getKingdomUuid());
-		kingdom.setKingdomName(newName);
-		return true;
-	}
-
-	/**
-	 * try to get or load kingdom
-	 *
-	 * @param kingdomName name of the kingdom to load
-	 * @return Kingdom instance; null if the name specified not exist
-	 */
-	public Kingdom getOrLoadKingdom(String kingdomName) {
-		if (kingdomName == null) {
-			return null;
-		}
-		Kingdoms.logColor("Fetching info for kingdom, " + kingdomName);
-
-		Kingdom kingdom = null;
-
-		if (kingdomNameList.containsKey(kingdomName)) {
-			OfflineKingdom temp = kingdomList.get(kingdomNameList.get(kingdomName));
-			if (temp instanceof Kingdom)
-				kingdom = (Kingdom) temp;
-
-			//was pending for deletion so do it immediately
-			if (temp != null && temp.getKing() == null && !(temp instanceof BotKingdom)) {
-				db.save(kingdomName, null);
-				return null;
-			}
-		}
-
-		if (kingdom == null && kingdomNameList.containsKey(kingdomName)) {
-			kingdom = loadKingdom(kingdomNameList.get(kingdomName));
-		}
-
-		return kingdom;
-	}
-
-	public Kingdom getOrLoadKingdom(UUID uuid) {
-		if (uuid == null)
-			return null;
-		Kingdoms.logColor("Fetching info for kingdom, " + uuid);
-
-		Kingdom kingdom = null;
-
-		if (kingdomList.containsKey(uuid)) {
-			OfflineKingdom temp = kingdomList.get(uuid);
-			if (temp instanceof Kingdom)
-				kingdom = (Kingdom) temp;
-
-			//was pending for deletion so do it immediately
-			if (temp != null && temp.getKing() == null && !(temp instanceof BotKingdom)) {
-				db.save(uuid.toString(), null);
-				return null;
-			}
-		}
-
-		if (kingdom == null) {
-			kingdom = loadKingdom(uuid);
-		}
-
-		return kingdom;
-	}
-
-	private synchronized Object databaseLoad(UUID uuid, OfflineKingdom kingdom) {
-		return db.load(uuid.toString(), kingdom);
-	}
-
-	private ArrayList<UUID> toBeLoaded = new ArrayList<>();
-
-	private Kingdom loadKingdom(UUID kingdomUuid) {
-		Kingdom kingdom = null;
-		Kingdoms.logColor("Loading kingdom, " + kingdomUuid);
-		if (kingdomList.containsKey(kingdomUuid) && !toBeLoaded.contains(kingdomUuid)) {
-			db.save(kingdomUuid.toString(), kingdomList.remove(kingdomUuid));
-		}
-
-		kingdom = (Kingdom) databaseLoad(kingdomUuid, null);
-
-		if (kingdom != null) {
-			if (!Config.getConfig().getBoolean("allow-pacifist")) {
-				kingdom.setNeutral(false);
-			}
-			if (kingdom.timeLeftToNextInvasion != 0) {
-				KingdomCooldown cooldown = new KingdomCooldown(kingdomUuid.toString(), "attackcd", kingdom.timeLeftToNextInvasion);
-				cooldown.start();
-				kingdom.timeLeftToNextInvasion = 0;
-			}
-			//kingdom.setLand(0);
-			kingdomNameList.put(kingdom.getKingdomName(), kingdomUuid);
-			kingdomList.put(kingdomUuid, kingdom);
-			plugin.getServer().getPluginManager().callEvent(new KingdomLoadEvent(kingdom));
-
-			if ((kingdom.getHome_loc() != null && kingdom.getHome_loc().getWorld() == null) ||
-					(kingdom.getNexus_loc() != null && kingdom.getNexus_loc().getWorld() == null)) {
-				if (!toBeLoaded.contains(kingdomUuid)) toBeLoaded.add(kingdomUuid);
-			}
-		}
-
-		if (kingdom != null && !Kingdoms.isDisabling()) {
-
-			checkUpgrades(kingdom);
-			checkMight(kingdom);
-		}
-
-		return kingdom;
+	
+	public int getRandomColor() {
+		Random random = new Random();
+		int color = 0;
+		int r = random.nextInt(255);
+		int g = random.nextInt(255);
+		int b = random.nextInt(255);
+		color = (r << 16) + (g << 8) + b;
+		return color;
 	}
 
 	@EventHandler
@@ -402,10 +267,25 @@ public class KingdomManager extends Manager {
 		if (kingdom.getTurretUpgrades().isVoodoo()) might += 530;
 		kingdom.setMight(might);
 	}
+	
+	public void debugDeleteKingdom(String name) {
+		UUID kingdom = kingdomNameList.remove(name);
+		db.save(kingdom.toString(), null);
+		for (UUID uuid : PlayerManager.userList.keySet()) {
+			OfflineKingdomPlayer player = PlayerManager.userList.get(uuid);
+			if (player.getKingdomUuid() != null) {
+				if (player.getKingdomUuid().equals(kingdom)) {
+					player.setKingdomUuid(null);
+					PlayerManager.userList.remove(uuid);
+					PlayerManager.userList.put(uuid, player);
+				}
+			}
+		}
+	}
 
 	public void checkUpgrades(Kingdom kingdom) {
 
-		Bukkit.getScheduler().runTaskAsynchronously(Kingdoms.getInstance(), new Runnable() {
+		Bukkit.getScheduler().runTaskAsynchronously(instance, new Runnable() {
 			@Override
 			public void run() {
 
@@ -791,15 +671,6 @@ public class KingdomManager extends Manager {
 	}
 
 	/**
-	 * get all online kingdoms
-	 *
-	 * @return list of online kingdoms
-	 */
-	public Map<UUID, OfflineKingdom> getKingdomList() {
-		return kingdomList;
-	}
-
-	/**
 	 * check if the kingdom is loaded
 	 *
 	 * @param kingdomName name of kingdom
@@ -1122,74 +993,4 @@ public class KingdomManager extends Manager {
 		kingdomNameList.clear();
 	}
 
-	public static int getRandomColor() {
-		Random random = new Random();
-		int color = 0;
-
-		int r;
-		int g;
-		int b;
-		r = random.nextInt(255);
-		g = random.nextInt(255);
-		b = random.nextInt(255);
-
-		color = (r << 16) + (g << 8) + b;
-
-		return color;
-	}
-
-	public static String serializeUUIDList(List<UUID> list) {
-		String str = "";
-		for (UUID uuid : list) {
-			str += uuid.toString() + ",";
-		}
-
-		return str;
-	}
-
-	public static List<UUID> deserializeUUIDList(String list) {
-		String[] splits = list.split(",");
-
-		List<UUID> uuids = new ArrayList<>();
-		for (String uuid : splits) {
-			if (uuid == null)
-				continue;
-
-			uuids.add(UUID.fromString(uuid));
-		}
-
-		return uuids;
-	}
-
-	public static String serializeStringList(List<String> list) {
-		String str = "";
-		for (String s : list) {
-			str += s + ",";
-		}
-
-		return str;
-	}
-
-	public static List<String> deserializeStringList(String list) {
-		String[] splits = list.split(",");
-
-		List<String> strings = new ArrayList<>();
-		for (String s : splits) {
-			if (s == null)
-				continue;
-
-			strings.add(s);
-		}
-
-		return strings;
-	}
-}
-class CaseInsensitiveComparator implements Comparator<String> {
-	public static final CaseInsensitiveComparator INSTANCE =
-			new CaseInsensitiveComparator();
-
-	public int compare(String first, String second) {
-		// some null checks
-		return first.compareToIgnoreCase(second);
-	}
 }

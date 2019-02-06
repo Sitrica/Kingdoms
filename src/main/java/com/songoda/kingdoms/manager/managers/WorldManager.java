@@ -4,11 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.bukkit.World;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.world.WorldLoadEvent;
 
-import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.Manager;
 
 public class WorldManager extends Manager {
@@ -19,12 +17,10 @@ public class WorldManager extends Manager {
 	
 	private final Set<World> worlds = new HashSet<>();
 	private final Set<String> names = new HashSet<>();
-	private final FileConfiguration configuration;
 	private final boolean whitelist;
 	
 	protected WorldManager() {
 		super(true);
-		this.configuration = Kingdoms.getInstance().getConfig();
 		this.whitelist = configuration.getBoolean("worlds.list-is-whitelist", true);
 		this.names.addAll(configuration.getStringList("worlds.list"));
 	}
@@ -52,6 +48,9 @@ public class WorldManager extends Manager {
 	}
 	
 	@Override
-	public void onDisable() {}
+	public void onDisable() {
+		worlds.clear();
+		names.clear();
+	}
 	
 }

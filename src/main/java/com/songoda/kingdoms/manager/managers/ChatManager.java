@@ -28,14 +28,10 @@ public class ChatManager extends Manager {
 		registerManager("chat", new ChatManager());
 	}
 	
-	private final FileConfiguration configuration;
 	private final WorldManager worldManager;
-	private final Kingdoms instance;
 	
 	protected ChatManager() {
 		super(true);
-		this.instance = Kingdoms.getInstance();
-		this.configuration = instance.getConfig();
 		this.worldManager = instance.getManager("land", WorldManager.class);
 	}
 	

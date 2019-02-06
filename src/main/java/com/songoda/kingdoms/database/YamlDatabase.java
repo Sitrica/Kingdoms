@@ -28,7 +28,7 @@ public class YamlDatabase<T> extends Database<T> {
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public T load(String key, T def) {
+	public T get(String key, T def) {
 		return (T) configuration.get("data." + key, def);
 	}
 

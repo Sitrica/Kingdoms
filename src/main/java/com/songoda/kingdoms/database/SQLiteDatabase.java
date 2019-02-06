@@ -33,7 +33,7 @@ public class SQLiteDatabase<T> extends Database<T> {
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public T load(String key, T def) {
+	public T get(String key, T def) {
 		T result = def;
 		try {
 			PreparedStatement statement = connection.prepareStatement("SELECT `data` FROM %table WHERE `id` = ?;".replace("%table", tablename));

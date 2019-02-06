@@ -96,6 +96,10 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {/
 		this.opponent = opponent;
 	}
 	
+	public KingdomPlayer getKingdomPlayer() {
+		return GameManagement.getPlayerManager().getSession(uuid);
+	}
+	
 	
 	
 	

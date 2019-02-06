@@ -1,6 +1,5 @@
 package com.songoda.kingdoms.manager.managers;
 
-import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
@@ -36,15 +35,11 @@ import java.util.UUID;
 public class PlayerMovementManager extends Manager {
 
 	private long spam = System.currentTimeMillis();
-	private final FileConfiguration configuration;
 	private final WorldManager worldManager;
 	private final LandManager landManager;
-	private final Kingdoms instance;
 	
 	public PlayerMovementManager() {
 		super(true);
-		this.instance = Kingdoms.getInstance();
-		this.configuration = instance.getConfig();
 		this.landManager = instance.getManager("land", LandManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 	}

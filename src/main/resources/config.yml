@@ -154,6 +154,8 @@ structures:
             - "&7Warp Pads allow Kingdom members to teleport to the Kingdom's nexus and outposts."
 # All Kingdom and chunk related configurations.
 kingdoms:
+    # Allow Kingdoms to become passive if they want.
+    allow-pacifist: false
     # If the player keeps going in and out of lands, what should the cooldown time be.
     # Actionbars get excluded from this, so the player will always know where they are.
     # Example:
@@ -329,7 +331,6 @@ Plugin:
     initiatePlayerLoadBeforePlayerJoin: true
     serverName: yourServer
 minutes-per-backup: 43200
-allow-pacifist: false
 pacifist-default-on: false
 ally-pvp: false
 DO-NOT-TOUCH:

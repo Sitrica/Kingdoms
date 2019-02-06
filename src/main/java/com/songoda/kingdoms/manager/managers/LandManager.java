@@ -78,6 +78,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 public class LandManager extends Manager {
 	
@@ -90,65 +91,27 @@ public class LandManager extends Manager {
 	private final FileConfiguration configuration;
 	private final WorldManager worldManager;
 	private static Database<Land> database;
-	private final Thread autoSaveThread;
+	private BukkitTask autoSaveThread;
 	private Kingdoms instance;
 
 	public LandManager() {
 		super(true);
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
-		ConfigurationSection section = configuration.getConfigurationSection("database");
-		int interval = section.getInt("auto-save.interval", 60);
-		if (configuration.getBoolean("database.mysql.enabled", false)) {
-			String address = section.getString("mysql.address", "localhost");
-			String user = section.getString("mysql.user", "root");
-			try {
-				database = createMySQLDatabase();
-				Kingdoms.consoleMessage("MySQL connection " + address + " was a success!");
-				if (configuration.getBoolean("database.transfer.mysql", false)) {
-					TransferPair transfer = new TransferPair(database, createSQLiteDatabase());
-					new Thread(new DatabaseTransferTask(instance, transfer)).start();
+		if (configuration.getBoolean("database.mysql.enabled", false))
+			database = getMySQLDatabase(Land.class);
+		else
+			database = getSQLiteDatabase(Land.class);
+		if (configuration.getBoolean("database.auto-save.enabled")) {
+			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
+			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
+				@Override 
+				public void run() {
+					Kingdoms.debugMessage("Saved [" + save() + "] lands");
 				}
-			} catch (SQLException | ClassNotFoundException exception) {
-				Kingdoms.consoleMessage("&cMySQL connection failed!");
-				Kingdoms.consoleMessage("Address: " + address + " with user: " + user);
-				Kingdoms.consoleMessage("Reason: " + exception.getMessage());
-			} finally {
-				if (database == null) {
-					Kingdoms.consoleMessage("Attempting to use SQLite instead...");
-					try {
-						database = createSQLiteDatabase();
-					} catch (ClassNotFoundException | SQLException e) {
-						Kingdoms.consoleMessage("SQLite failed too...");
-						Kingdoms.consoleMessage("Using Yaml instead.");
-						database = new YamlDatabase();
-					}
-				}
-				lands.clear();
-				initLands();
-				if (section.getBoolean("auto-save.enabled")) {
-					autoSaveThread = new Thread(new AutoSaveTask(interval));
-					autoSaveThread.setPriority(Thread.MIN_PRIORITY);
-					autoSaveThread.start();
-				}
-			}
-		} else {
-			try {
-				database = createSQLiteDatabase();
-				Kingdoms.consoleMessage("Using SQLite database for Land data");
-			} catch (ClassNotFoundException | SQLException e) {
-				Kingdoms.consoleMessage("SQLite failed...");
-				Kingdoms.consoleMessage("Using Yaml instead.");
-				database = new YamlDatabase();
-			}
-			lands.clear();
-			initLands();
-			if (section.getBoolean("auto-save.enabled")) {
-				autoSaveThread = new Thread(new AutoSaveTask(interval));
-				autoSaveThread.setPriority(Thread.MIN_PRIORITY);
-				autoSaveThread.start();
-			}
+			}, 0, IntervalUtils.getInterval(interval) * 20);
 		}
+		initLands();
 		if (configuration.getBoolean("taxes.enabled")) {
 			String timeString = configuration.getString("taxes.interval", "2 hours");
 			long time = IntervalUtils.getInterval(timeString) * 20;
@@ -186,45 +149,6 @@ public class LandManager extends Manager {
 				}
 			}, time, time);
 		}
-	}
-	
-	private class AutoSaveTask implements Runnable {
-
-		private int interval;
-		
-		public AutoSaveTask(int interval) {
-			this.interval = interval;
-		}
-		
-		@Override
-		public void run() {
-			while (!Thread.interrupted()) {
-				try {
-					Thread.sleep((interval * 60) * 1000);
-				} catch (InterruptedException e) {
-					return;
-				}
-				int i = save();
-				Kingdoms.debugMessage("Saved [" + i + "] lands");
-			}
-		}
-
-	}
-	
-	public MySQLDatabase<Land> createMySQLDatabase() throws SQLException {
-		ConfigurationSection section = instance.getConfig().getConfigurationSection("database");
-		String landTable = section.getString("land-table", "Lands");
-		String address = section.getString("mysql.address", "localhost");
-		String password = section.getString("mysql.password", "1234");
-		String name = section.getString("mysql.name", "kingdoms");
-		String user = section.getString("mysql.user", "root");
-		return new MySQLDatabase<>(address, name, landTable, user, password, Land.class);
-	}
-
-	public SQLiteDatabase<Land> createSQLiteDatabase() throws ClassNotFoundException, SQLException {
-		ConfigurationSection section = instance.getConfig().getConfigurationSection("database");
-		String landTable = section.getString("land-table", "Lands");
-		return new SQLiteDatabase<>("db.db", landTable, Land.class);
 	}
 
 	private synchronized Land databaseLoad(String name, Land land) {
@@ -427,9 +351,10 @@ public class LandManager extends Manager {
 		Kingdom kingdom = Kingdoms.getManagers().getKingdomManager().getOrLoadKingdom(land.getOwnerUUID());
 		if (kingdom == null)
 			return false;
-		if (kingdom.getNexus_loc() == null)
+		Location nexusLocation = kingdom.getNexusLocation();
+		if (nexusLocation == null)
 			return false;
-		Land nexus = getOrLoadLand(kingdom.getNexus_loc().getChunk());
+		Land nexus = getOrLoadLand(nexusLocation.getChunk());
 		return getAllConnectingLand(nexus).contains(land);
 	}
 
@@ -440,7 +365,7 @@ public class LandManager extends Manager {
 	 * @return number of lands unclaimed
 	 */
 	public int unclaimDisconnectedLand(Kingdom kingdom) {
-		String name = kingdom.getKingdomName();
+		String name = kingdom.getName();
 		if (unclaiming.contains(name))
 			return -1;
 		unclaiming.add(name);
@@ -449,12 +374,12 @@ public class LandManager extends Manager {
 				.map(chunk -> getOrLoadLand(chunk))
 				.filter(land -> land.getStructure() != null)
 				.filter(land -> land.getOwnerUUID() != null)
-				.filter(land -> land.getOwnerUUID().equals(kingdom.getKingdomUuid()))
+				.filter(land -> land.getOwnerUUID().equals(kingdom.getUniqueId()))
 				.forEach(land -> connected.addAll(getAllConnectingLand(land)));
 		Stream<Land> stream = getLoadedLand().parallelStream()
 				.map(chunk -> getOrLoadLand(chunk))
 				.filter(land -> land.getOwnerUUID() != null)
-				.filter(land -> land.getOwnerUUID().equals(kingdom.getKingdomUuid()))
+				.filter(land -> land.getOwnerUUID().equals(kingdom.getUniqueId()))
 				.filter(land -> !connected.contains(land));
 		long count = stream.count();
 		stream.forEach(land -> unclaimLand(kingdom, land.getChunk()));

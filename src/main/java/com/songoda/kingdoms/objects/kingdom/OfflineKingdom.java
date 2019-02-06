@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import com.songoda.kingdoms.manager.game.GameManagement;
-import com.songoda.kingdoms.manager.game.KingdomManager;
+import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.utils.LocationUtils;
@@ -20,7 +20,7 @@ import org.bukkit.OfflinePlayer;
 
 public class OfflineKingdom {
 
-	private int might = 0, resourcepoints = 0, claims = 0, timeLeftToNextInvasion = 0;
+	private long might = 0, resourcepoints = 0, claims = 0, invasionCooldown = 0;
 	private final HashMap<String, Long> cdTimeNeeded = new HashMap<>();
 	private final Map<String, String> invasionLog = new HashMap<>();
 	private final Map<String, Long> cooldowns = new HashMap<>();
@@ -28,16 +28,19 @@ public class OfflineKingdom {
 	private final List<UUID> enemies= new ArrayList<>();
 	private final List<UUID> allies = new ArrayList<>();
 	private int shieldValue = 0, shieldRadius = 0;
+	private final KingdomManager kingdomManager;
 	private String kingName, kingdomName, lore;
 	private boolean neutral, hasInvaded;
 	private UUID uuid, king;
-	private int dynmapColor = KingdomManager.getRandomColor();
+	private int dynmapColor;
 	
 	protected OfflineKingdom() {
 		this(UUID.randomUUID());
 	}
 	
 	public OfflineKingdom(UUID uuid) {
+		this.kingdomManager = Kingdoms.getInstance().getManager("kingdom", KingdomManager.class);
+		this.dynmapColor = kingdomManager.getRandomColor();
 		this.uuid = uuid;
 	}
 	
@@ -53,7 +56,7 @@ public class OfflineKingdom {
 		return kingdomName;
 	}
 	
-	public int getMight() {
+	public long getMight() {
 		return might;
 	}
 	
@@ -68,12 +71,13 @@ public class OfflineKingdom {
 	public void setNeutral(boolean neutral) {
 		this.neutral = neutral;
 	}
-
-	public void setKingdomName(String kingdomName) {
-		this.kingdomName = kingdomName;
+	
+	public void setName(String kingdomName) {
+		if (kingdomManager.renameKingdom(this, kingdomName))
+			this.kingdomName = kingdomName;
 	}
 	
-	public int getClaims() {
+	public long getClaims() {
 		return claims;
 	}
 	
@@ -89,20 +93,28 @@ public class OfflineKingdom {
 		this.lore = lore;
 	}
 	
-	public UUID getKingdomUUID() {
+	public UUID getUniqueId() {
 		return uuid;
 	}
 	
-	public int getResourcepoints() {
+	public long getResourcepoints() {
 		return resourcepoints;
 	}
 	
-	public boolean isOnline(){
-		return GameManagement.getKingdomManager().isOnline(kingdomName);
+	public boolean isOnline() {
+		return kingdomManager.isOnline(kingdomName);
 	}
 
-	public Kingdom getKingdom(){
-		return GameManagement.getKingdomManager().getOrLoadKingdom(kingdomName);
+	public Kingdom getKingdom() {
+		return kingdomManager.getKingdom(this);
+	}
+	
+	public long getInvasionCooldown() {
+		return invasionCooldown;
+	}
+	
+	public void setInvasionCooldown(long invasionCooldown) {
+		this.invasionCooldown = invasionCooldown;
 	}
 	
 	
