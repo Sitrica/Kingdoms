@@ -55,7 +55,7 @@ public class RankManager extends Manager {
 		public String getPrefix(KingdomPlayer player) {
 			return new MessageBuilder(node + ".prefix").fromConfiguration(configuration)
 					.replace("%player%", player.getPlayer().getName())
-					.setPlaceholderObject(player.getKingdom())
+					.setKingdom(player.getKingdom())
 					.replace("%priority%", priority)
 					.replace("%unicode%", unicode)
 					.replace("%icon%", unicode)
@@ -127,6 +127,10 @@ public class RankManager extends Manager {
 	
 	public Rank getDefaultRank() {
 		return getSortedOrder().get(ranks.size());
+	}
+	
+	public Rank getOwnerRank() {
+		return getSortedOrder().get(0);
 	}
 
 	@Override

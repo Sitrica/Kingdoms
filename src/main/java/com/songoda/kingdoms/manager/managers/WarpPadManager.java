@@ -1,16 +1,9 @@
 package com.songoda.kingdoms.manager.managers;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import org.bukkit.Chunk;
-
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.Manager;
-import com.songoda.kingdoms.manager.ManagerHandler;
 import com.songoda.kingdoms.objects.StructureType;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
@@ -28,7 +21,7 @@ public class WarpPadManager extends Manager {
 		Kingdoms isntance = Kingdoms.getInstance();
 		LandManager landManager = isntance.getManager("land", LandManager.class);
 		landManager.getLoadedLand().parallelStream()
-				.map(chunk -> landManager.getOrLoadLand(chunk))
+				.map(chunk -> landManager.getLand(chunk))
 				.forEach(land -> checkLoad(land));
 	}
 	
@@ -36,8 +29,8 @@ public class WarpPadManager extends Manager {
 		if (land.getStructure() != null) {
 			StructureType type = land.getStructure().getType();
 			if (type == StructureType.OUTPOST || type == StructureType.NEXUS || type == StructureType.WARPPAD) {
-				if (land.getOwnerUUID() != null) {
-					addLand(GameManagement.getKingdomManager().getOfflineKingdom(land.getOwnerUUID()), land);
+				if (land.getKingdomOwner() != null) {
+					addLand(land.getKingdomOwner(), land);
 				}
 			}
 		}
@@ -60,6 +53,11 @@ public class WarpPadManager extends Manager {
 	
 	public List<Land> getOutposts(OfflineKingdom kingdom) {
 		return pads.get(kingdom);
+	}
+
+	@Override
+	public void onDisable() {
+		pads.clear();
 	}
 
 }

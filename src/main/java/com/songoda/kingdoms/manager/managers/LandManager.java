@@ -89,6 +89,7 @@ public class LandManager extends Manager {
 	private final Map<Chunk, Land> lands = new ConcurrentHashMap<>();
 	private final List<String> unclaiming = new ArrayList<>(); //TODO test if this is even requried. It's a queue to avoid claiming and removing at same time.
 	private final FileConfiguration configuration;
+	private final KingdomManager kingdomManager;
 	private final WorldManager worldManager;
 	private static Database<Land> database;
 	private BukkitTask autoSaveThread;
@@ -98,6 +99,7 @@ public class LandManager extends Manager {
 		super(true);
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(Land.class);
 		else
@@ -128,17 +130,18 @@ public class LandManager extends Manager {
 					Map<Chunk, Land> lands = Collections.unmodifiableMap(lands);
 					boolean disband = configuration.getBoolean("taxes.disband-cant-afford", false);
 					for (Land land : lands.values()) {
-						if (land.getOwnerUUID() != null) {
-							Kingdom kingdom = Kingdoms.getManagers().getKingdomManager().getOrLoadKingdom(land.getOwnerUUID());
+						OfflineKingdom kingdom = land.getKingdomOwner();
+						if (kingdom != null) {
+							//Kingdom kingdom = Kingdoms.getManagers().getKingdomManager().getOrLoadKingdom(land.getOwnerUUID());
 							if (kingdom == null)
 								return;
 							if (kingdom.getResourcepoints() < amount && disband) {
 								new MessageBuilder("taxes.disband")
 										.toPlayers(Bukkit.getOnlinePlayers())
-										.replace("%kingdom%", kingdom.getKingdomName())
 										.replace("%amount%", amount)
+										.setKingdom(kingdom)
 										.send();
-								GameManagement.getKingdomManager().deleteKingdom(kingdom.getKingdomName());
+								kingdomManager.deleteKingdom(kingdom);
 								return;
 							}
 							kingdom.setResourcepoints(kingdom.getResourcepoints() - amount);
@@ -149,10 +152,6 @@ public class LandManager extends Manager {
 				}
 			}, time, time);
 		}
-	}
-
-	private synchronized Land databaseLoad(String name, Land land) {
-		return database.load(name, land);
 	}
 
 	//TODO why does this exist.
@@ -166,7 +165,7 @@ public class LandManager extends Manager {
 				continue;
 			Kingdoms.debugMessage("Loading land: " + name);
 			try{
-				Land land = databaseLoad(name, null);
+				Land land = database.get(name);
 				Chunk chunk = LocationUtils.stringToChunk(name);
 				if (chunk == null) {
 					if (!toLoad.containsKey(chunk))
@@ -205,7 +204,7 @@ public class LandManager extends Manager {
 			if (saved.contains(name))
 				continue;
 			Kingdoms.debugMessage("Saving land: " + name);
-			Land land = getOrLoadLand(chunk);
+			Land land = getLand(chunk);
 			if (land.getOwnerUUID() == null && land.getTurrets().size() <= 0 && land.getStructure() == null) {
 				database.save(name, null);
 				saved.add(name);
@@ -235,6 +234,10 @@ public class LandManager extends Manager {
 	public Set<Chunk> getLoadedLand() {
 		return Collections.unmodifiableMap(lands).keySet();
 	}
+	
+	public Land getLandAt(Location location) {
+		return getLand(location.getChunk());
+	}
 
 	/**
 	 * Load land if exist; create if not exist.
@@ -242,7 +245,7 @@ public class LandManager extends Manager {
 	 * @param loc Chunk of land to get from.
 	 * @return Land even if not loaded.
 	 */
-	public Land getOrLoadLand(Chunk chunk) {
+	public Land getLand(Chunk chunk) {
 		if (chunk == null)
 			return null;
 		String name = LocationUtils.chunkToString(chunk);
@@ -265,13 +268,13 @@ public class LandManager extends Manager {
 	 */
 	public void claimLand(Kingdom kingdom, Chunk... chunks) {
 		for (Chunk chunk : chunks) {
-			Land land = getOrLoadLand(chunk);
+			Land land = getLand(chunk);
 			LandClaimEvent event = new LandClaimEvent(land, kingdom);
 			Bukkit.getPluginManager().callEvent(event);
 			if (event.isCancelled())
 				continue;
 			land.setClaimTime(new Date().getTime());
-			land.setOwnerUUID(kingdom.getKingdomUuid());
+			land.setKingdomOwner(kingdom);
 			String name = LocationUtils.chunkToString(land.getChunk());
 			database.save(name, land);
 			//Dynmap object here
@@ -286,10 +289,10 @@ public class LandManager extends Manager {
 	 * @param chunk Chunk to unclaim
 	 * @param kingdom Kingdom whom is unclaiming.
 	 */
-	public void unclaimLand(Kingdom kingdom, Chunk... chunks) {
+	public void unclaimLand(OfflineKingdom kingdom, Chunk... chunks) {
 		for (Chunk chunk : chunks) {
-			Land land = getOrLoadLand(chunk);
-			if (land.getOwnerUUID() == null) {
+			Land land = getLand(chunk);
+			if (land.getKingdomOwner() == null) {
 				continue;
 			}
 			LandUnclaimEvent event = new LandUnclaimEvent(land, kingdom);
@@ -297,7 +300,7 @@ public class LandManager extends Manager {
 			if (event.isCancelled())
 				continue;
 			land.setClaimTime(0L);
-			land.setOwnerUUID(null);
+			land.setKingdomOwner(null);
 			String name = LocationUtils.chunkToString(land.getChunk());
 			database.save(name, null);
 			if (land.getStructure() != null) {
@@ -330,15 +333,15 @@ public class LandManager extends Manager {
 	 * @param kingdom Kingdom owner
 	 * @return number of lands unclaimed
 	 */
-	public int unclaimAllLand(Kingdom kingdom) {
-		String name = kingdom.getKingdomName();
+	public int unclaimAllLand(OfflineKingdom kingdom) {
+		String name = kingdom.getName();
 		if (unclaiming.contains(name))
 			return -1;
 		unclaiming.add(name);
 		Stream<Land> stream = getLoadedLand().parallelStream()
-				.map(chunk -> getOrLoadLand(chunk))
-				.filter(land -> land.getOwnerUUID() != null)
-				.filter(land -> land.getOwnerUUID().equals(kingdom.getKingdomUuid()));
+				.map(chunk -> getLand(chunk))
+				.filter(land -> land.getKingdomOwner() != null)
+				.filter(land -> land.getKingdomOwner().getUniqueId().equals(kingdom.getUniqueId()));
 		long count = stream.count();
 		stream.forEach(land -> unclaimLand(kingdom, land.getChunk()));
 		unclaiming.remove(name);
@@ -354,7 +357,7 @@ public class LandManager extends Manager {
 		Location nexusLocation = kingdom.getNexusLocation();
 		if (nexusLocation == null)
 			return false;
-		Land nexus = getOrLoadLand(nexusLocation.getChunk());
+		Land nexus = getLand(nexusLocation.getChunk());
 		return getAllConnectingLand(nexus).contains(land);
 	}
 
@@ -371,13 +374,13 @@ public class LandManager extends Manager {
 		unclaiming.add(name);
 		Set<Land> connected = new HashSet<>();
 		getLoadedLand().parallelStream()
-				.map(chunk -> getOrLoadLand(chunk))
+				.map(chunk -> getLand(chunk))
 				.filter(land -> land.getStructure() != null)
 				.filter(land -> land.getOwnerUUID() != null)
 				.filter(land -> land.getOwnerUUID().equals(kingdom.getUniqueId()))
 				.forEach(land -> connected.addAll(getAllConnectingLand(land)));
 		Stream<Land> stream = getLoadedLand().parallelStream()
-				.map(chunk -> getOrLoadLand(chunk))
+				.map(chunk -> getLand(chunk))
 				.filter(land -> land.getOwnerUUID() != null)
 				.filter(land -> land.getOwnerUUID().equals(kingdom.getUniqueId()))
 				.filter(land -> !connected.contains(land));
@@ -435,10 +438,6 @@ public class LandManager extends Manager {
 			outwards = getOutwardLands(newOutwards, checked);
 		}
 		return connected;
-	}
-	
-	public Optional<Land> getLandAt(Chunk chunk) {
-		return Optional.ofNullable(lands.get(chunk));
 	}
 
 	@EventHandler
@@ -510,7 +509,7 @@ public class LandManager extends Manager {
 			return;
 		}
 		
-		Land land = GameManagement.getLandManager().getOrLoadLand(kp.getLoc());
+		Land land = GameManagement.getLandManager().getLand(kp.getLoc());
 		if(land.getOwnerUUID() != null){
 			if(land.getOwnerUUID().equals(kingdom.getKingdomUuid())){
 				kp.sendMessage(Kingdoms.getLang().getString("Command_Claim_Land_Owned_Error", kp.getLang()));
@@ -552,7 +551,7 @@ public class LandManager extends Manager {
 					for(int z = -1; z <= 1; z++){
 						if(x == 0 && z == 0) continue;
 						Chunk c = w.getChunkAt(main.getX() + x, main.getZ() + z);
-						Land adj = Kingdoms.getManagers().getLandManager().getOrLoadLand(new SimpleChunkLocation(c));
+						Land adj = Kingdoms.getManagers().getLandManager().getLand(new SimpleChunkLocation(c));
 						if(adj.getOwnerUUID() != null){
 							if(adj.getOwnerUUID().equals(kingdom.getKingdomUuid())){
 								conn = true;
@@ -639,7 +638,7 @@ public class LandManager extends Manager {
 		SimpleLocation loc = new SimpleLocation(bukkitLoc);
 		SimpleChunkLocation chunk = loc.toSimpleChunk();
 
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
+		Land land = GameManagement.getLandManager().getLand(chunk);
 		if(land.getOwnerUUID() == null) return;
 
 		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
@@ -671,7 +670,7 @@ public class LandManager extends Manager {
 		SimpleLocation loc = new SimpleLocation(e.getRightClicked().getLocation());
 		SimpleChunkLocation chunk = loc.toSimpleChunk();
 
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
+		Land land = GameManagement.getLandManager().getLand(chunk);
 		if(land.getOwnerUUID() == null) return;
 		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
 		if(kp.isAdminMode()) return;
@@ -709,7 +708,7 @@ public class LandManager extends Manager {
 			SimpleLocation loc = new SimpleLocation(block.getLocation());
 			SimpleChunkLocation chunk = loc.toSimpleChunk();
 
-			Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
+			Land land = GameManagement.getLandManager().getLand(chunk);
 			if(land.getOwnerUUID() == null) continue;
 
 		}
@@ -724,7 +723,7 @@ public class LandManager extends Manager {
 		SimpleLocation loc = new SimpleLocation(bukkitLoc);
 		SimpleChunkLocation chunk = loc.toSimpleChunk();
 
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
+		Land land = GameManagement.getLandManager().getLand(chunk);
 		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(event.getPlayer());
 		if(land.getOwnerUUID() == null && !kp.isAdminMode()){
 			event.setCancelled(true);
@@ -739,7 +738,7 @@ public class LandManager extends Manager {
 		Location bukkitLoc = event.getBlockClicked().getRelative(event.getBlockFace()).getLocation();
 		SimpleLocation loc = new SimpleLocation(bukkitLoc);
 		SimpleChunkLocation chunk = loc.toSimpleChunk();
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
+		Land land = GameManagement.getLandManager().getLand(chunk);
 		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(event.getPlayer());
 		if(land.getOwnerUUID() == null && !kp.isAdminMode()){
 			event.setCancelled(true);
@@ -759,7 +758,7 @@ public class LandManager extends Manager {
 		SimpleLocation loc = new SimpleLocation(bukkitLoc);
 		SimpleChunkLocation chunk = loc.toSimpleChunk();
 
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
+		Land land = GameManagement.getLandManager().getLand(chunk);
 		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
 		if(land.getOwnerUUID() == null && !kp.isAdminMode()){
 			e.setCancelled(true);
@@ -779,7 +778,7 @@ public class LandManager extends Manager {
 		SimpleLocation loc = new SimpleLocation(bukkitLoc);
 		SimpleChunkLocation chunk = loc.toSimpleChunk();
 
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
+		Land land = GameManagement.getLandManager().getLand(chunk);
 		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
 		if(land.getOwnerUUID() == null && !kp.isAdminMode()){
 			e.setCancelled(true);
@@ -799,7 +798,7 @@ public class LandManager extends Manager {
 		SimpleLocation loc = new SimpleLocation(bukkitLoc);
 		SimpleChunkLocation chunk = loc.toSimpleChunk();
 
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
+		Land land = GameManagement.getLandManager().getLand(chunk);
 		if(land.getOwnerUUID() == null) return;
 
 		KingdomPlayer kp = GameManagement.getPlayerManager().getSession((Player)e.getDamager());
@@ -838,7 +837,7 @@ public class LandManager extends Manager {
 		SimpleLocation loc = new SimpleLocation(bukkitLoc);
 		SimpleChunkLocation chunk = loc.toSimpleChunk();
 
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
+		Land land = GameManagement.getLandManager().getLand(chunk);
 		if(land.getOwnerUUID() == null) return;
 
 		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
@@ -871,7 +870,7 @@ public class LandManager extends Manager {
 		Location bukkitLoc = event.getBlockClicked().getLocation();
 		SimpleLocation loc = new SimpleLocation(bukkitLoc);
 		SimpleChunkLocation chunk = loc.toSimpleChunk();
-		Land land = this.getOrLoadLand(chunk);
+		Land land = this.getLand(chunk);
 		if(land.getOwnerUUID() == null) return;
 
 		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(event.getPlayer());
@@ -892,7 +891,7 @@ public class LandManager extends Manager {
 		Location bukkitLoc = event.getBlockClicked().getLocation();
 		SimpleLocation loc = new SimpleLocation(bukkitLoc);
 		SimpleChunkLocation chunk = loc.toSimpleChunk();
-		Land land = this.getOrLoadLand(chunk);
+		Land land = this.getLand(chunk);
 		if(land.getOwnerUUID() == null) return;
 
 		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(event.getPlayer());
@@ -915,7 +914,7 @@ public class LandManager extends Manager {
 		SimpleLocation loc = new SimpleLocation(bukkitLoc);
 		SimpleChunkLocation chunk = loc.toSimpleChunk();
 
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
+		Land land = GameManagement.getLandManager().getLand(chunk);
 		if(land.getOwnerUUID() == null) return;
 
 		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
@@ -950,8 +949,8 @@ public class LandManager extends Manager {
 		SimpleLocation locFrom = new SimpleLocation(e.getBlock().getLocation());
 		SimpleLocation locTo = new SimpleLocation(e.getToBlock().getLocation());
 
-		Land landFrom = GameManagement.getLandManager().getOrLoadLand(locFrom.toSimpleChunk());
-		Land landTo = GameManagement.getLandManager().getOrLoadLand(locTo.toSimpleChunk());
+		Land landFrom = GameManagement.getLandManager().getLand(locFrom.toSimpleChunk());
+		Land landTo = GameManagement.getLandManager().getLand(locTo.toSimpleChunk());
 
 		if(landFrom.getOwnerUUID() == null){
 			if(landTo.getOwnerUUID() != null){
@@ -963,21 +962,9 @@ public class LandManager extends Manager {
 		}
 	}
 
-
-	public void stopAutoSave(){
-		autoSaveThread.interrupt();
-		// 2016-08-22
-		try {
-			autoSaveThread.join();
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-		}
-	}
-
 	@Override
 	public void onDisable() {
-		//2016-08-11
-		stopAutoSave();
+		autoSaveThread.cancel();
 		Kingdoms.logInfo("Saving lands to db...");
 		try{
 			int i = saveAll();

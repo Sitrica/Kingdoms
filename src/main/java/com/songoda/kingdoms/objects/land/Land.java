@@ -1,52 +1,114 @@
 package com.songoda.kingdoms.objects.land;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.managers.LandManager;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 
 public class Land {
 
 	private final Set<ChestSign> signs = new HashSet<>();
 	private final Set<Turret> turrets = new HashSet<>();
+	private final LandManager landManager;
+	private final Kingdoms instance;
+	private OfflineKingdom kingdom;
 	private Structure structure;
+	private final Chunk chunk;
 	private long claimTime;
-	private Chunk chunk;
-	private UUID owner;
 	
 	public Land(Chunk chunk) {
 		this.chunk = chunk;
+		this.instance = Kingdoms.getInstance();
+		this.landManager = instance.getManager("land", LandManager.class);
+	}
+	
+	public Chunk getChunk() {
+		return chunk;
+	}
+	
+	public Long getClaimTime() {
+		return claimTime;
+	}
+
+	public void setClaimTime(long claimTime) {
+		this.claimTime = claimTime;
+	}
+	
+	public String getOwnerName() {
+		return kingdom.getName();
+	}
+	
+	public Structure getStructure() {
+		return structure;
 	}
 	
 	public void setStructure(Structure structure) {
 		this.structure = structure;
 	}
 	
-	public Structure getStructure() {
-		return structure;
+	public OfflineKingdom getKingdomOwner() {
+		return kingdom;
+	}
+	
+	public void setKingdomOwner(OfflineKingdom kingdom) {
+		this.kingdom = kingdom;
+	}
+	
+	public boolean hasTurret(Turret turret) {
+		return turrets.contains(turret);
 	}
 
-	public Chunk getChunk() {
-		return chunk;
+	public void addTurret(Turret turret) {
+		turrets.add(turret);
+	}
+	
+	public Set<Turret> getTurrets() {
+		return turrets;
+	}
+	
+	public void addChestSign(ChestSign sign) {
+		signs.add(sign);
+	}
+	
+	public ChestSign getChestSign(Location location) {
+		if (location == null)
+			return null;
+		for (ChestSign sign : signs) {
+			Location signLocation = sign.getLocation();
+			if (signLocation.equals(location))
+				return sign;
+			if (signLocation.distance(location) <= 0.9)
+				return sign;
+		}
+		return null;
+	}
+	
+	public void removeChestSign(Location location) {
+		if (location == null)
+			return;
+		for (Iterator<ChestSign> iterator = signs.iterator(); iterator.hasNext();){
+			ChestSign sign = iterator.next();
+			Location signLocation = sign.getLocation();
+			if (signLocation.equals(location))
+				iterator.remove();
+			if (signLocation.distance(location) <= 0.9)
+				iterator.remove();
+		}
 	}
 	
 	public Set<Land> getSurrounding() {
-		Kingdoms instance = Kingdoms.getInstance();
-		Set<Land> lands = new HashSet<Land>();
+		Set<Land> lands = new HashSet<>();
 		for (int x = -1; x <= 1; x++) {
 			for (int z = -1; z <= 1; z++) {
 				if (x == 0 && z == 0)
 					continue;
-				ChunkLocation location = new ChunkLocation(chunk.getWorld(), chunk.getX() + x, chunk.getZ() + z);
-				//TODO
-				lands.add(instance.getManagers().getLandManager().getOrLoadLand(location));
+				Chunk location = chunk.getWorld().getChunkAt(chunk.getX() + x, chunk.getZ() + z);
+				lands.add(landManager.getLand(location));
 			}
 		}
 		return lands;
@@ -56,112 +118,13 @@ public class Land {
 		if (turrets.isEmpty())
 			return null;
 		for (Turret turret : turrets) {
-			if (turret.getLocation().equals(location))
+			Location turretLocation = turret.getLocation();
+			if (turretLocation.equals(location))
+				return turret;
+			if (turretLocation.distance(location) <= 0.9)
 				return turret;
 		}
 		return null;
-	}
-
-	public void addTurret(Turret turret) {
-		//2016-08-11
-		if(turrets == null)
-			turrets = new ArrayList<Turret>();
-		
-		if(turrets.contains(turret)) return;
-		
-		turrets.add(turret);
-		//save();
-	}
-	
-	public boolean hasTurret(Turret turret){
-		//2016-08-11
-		if(turrets == null)
-			turrets = new ArrayList<Turret>();
-		
-		return turrets.contains(turret);
-	}
-	
-	public List<Turret> getTurrets(){
-		return turrets;
-	}
-	
-	/**
-	 * 
-	 * @return Stringname of owning kingdom. Returns null if no owner
-	 * @deprecated use getOwnerUUID() instead
-	 */
-	public String getOwner() {
-		if (owner != null)
-			return GameManagement.getKingdomManager().getOrLoadKingdom(owner).getKingdomName();
-		return null;
-	}
-	
-	public String getOwnerName() {
-		return getOwner();
-	}
-
-	public void setOwner(String owner) {
-		this.owner = GameManagement.getKingdomManager().getOrLoadKingdom(owner).getKingdomUuid();
-		//save();
-	}
-	public UUID getOwnerUUID(){
-		return owner;
-	}
-	public void setOwnerUUID(UUID uuid){
-		this.owner = uuid;
-	}
-
-	public Long getClaimTime() {
-		return claimTime;
-	}
-
-	public void setClaimTime(Long claimTime) {
-		this.claimTime = claimTime;
-		//if(owner != null || turrets.size() != 0) save();
-	}
-	
-/*	public void autoSave(){
-		if(owner == null && turrets.size() == 0) delete();
-		else save();
-	}*/
-
-	public void addChestSign(KChestSign sign){
-		//2016-08-11
-		if(signs == null)
-			signs = new ArrayList<KChestSign>();
-		
-		if(signs.contains(sign)) signs.remove(sign);
-		
-		signs.add(sign);
-	}
-	
-	public KChestSign getChestSign(SimpleLocation loc) {
-		if(loc == null) return null;
-		
-		//2016-08-11
-		if(signs == null)
-			return null;
-		
-		for(KChestSign sign : signs){
-			if(sign.getLoc().equals(loc)) return sign;
-		}
-		return null;
-	}
-	
-	public void removeChestSign(SimpleLocation loc){
-		if(loc == null) return;
-		
-		//2016-08-11
-		if(signs == null)
-			return;
-		
-		for(Iterator<KChestSign> iter = signs.iterator();iter.hasNext();){
-			KChestSign sign = iter.next();
-			if(sign.getLoc().equals(loc)) {
-				iter.remove();
-				return;
-			}
-		}
 	}
 
 }

@@ -4,12 +4,16 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.managers.CooldownManager;
+import com.songoda.kingdoms.manager.managers.CooldownManager.KingdomCooldown;
 import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
@@ -20,40 +24,78 @@ import org.bukkit.OfflinePlayer;
 
 public class OfflineKingdom {
 
-	private long might = 0, resourcepoints = 0, claims = 0, invasionCooldown = 0;
+	private long might = 0, claims = 0, resourcePoints = 0, invasionCooldown = 0;
+	//TODO make sure the members list contains the king.
+	private final Set<OfflineKingdomPlayer> members = new HashSet<>();
+	private final KingdomManager kingdomManager;
+	private final CooldownManager cooldowns;
+	private KingdomCooldown shieldTime;
+	private OfflineKingdomPlayer king;
+	protected final Kingdoms instance;
+	private String name, lore;
+	private final UUID uuid;
+	private int dynmapColor;
+	private boolean neutral;
+	
+	/*
 	private final HashMap<String, Long> cdTimeNeeded = new HashMap<>();
 	private final Map<String, String> invasionLog = new HashMap<>();
 	private final Map<String, Long> cooldowns = new HashMap<>();
-	private final List<UUID> members = new ArrayList<>();
 	private final List<UUID> enemies= new ArrayList<>();
 	private final List<UUID> allies = new ArrayList<>();
 	private int shieldValue = 0, shieldRadius = 0;
-	private final KingdomManager kingdomManager;
-	private String kingName, kingdomName, lore;
-	private boolean neutral, hasInvaded;
-	private UUID uuid, king;
-	private int dynmapColor;
+	private boolean hasInvaded;
+	*/
 	
-	protected OfflineKingdom() {
-		this(UUID.randomUUID());
+	public OfflineKingdom(OfflineKingdomPlayer king) {
+		this(UUID.randomUUID(), king);
 	}
 	
-	public OfflineKingdom(UUID uuid) {
-		this.kingdomManager = Kingdoms.getInstance().getManager("kingdom", KingdomManager.class);
+	public OfflineKingdom(UUID uuid, OfflineKingdomPlayer king) {
+		this(uuid, king, false);
+	}
+	
+	/**
+	 * Creates an OfflineKingdom instance.
+	 * 
+	 * @param uuid UUID to be used for the Kingdom to be traced.
+	 * @param king The owner of this Kingdom.
+	 * @param safeUUID If you know the UUID for the 'uuid' already exists. Set this to true and it won't find a new UUID but use that UUID overriding..
+	 */
+	protected OfflineKingdom(UUID uuid, OfflineKingdomPlayer king, boolean safeUUID) {
+		this.instance = Kingdoms.getInstance();
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.cooldowns = instance.getManager("cooldown", CooldownManager.class);
 		this.dynmapColor = kingdomManager.getRandomColor();
-		this.uuid = uuid;
+		this.members.add(king);
+		this.king = king;
+		if (!kingdomManager.canUse(uuid) && !safeUUID) {
+			while (true) {
+				UUID check = UUID.randomUUID();
+				if (kingdomManager.canUse(check)) {
+					this.uuid = check;
+					break;
+				}
+			}
+		} else {
+			this.uuid = uuid;
+		}
 	}
 	
-	public UUID getKing() {
+	public OfflineKingdomPlayer getKing() {
 		return king;
 	}
 	
-	public void setKing(UUID king) {
+	public void setKing(OfflineKingdomPlayer king) {
 		this.king = king;
 	}
 	
+	public int getDynmapColor() {
+		return dynmapColor;
+	}
+	
 	public String getName() {
-		return kingdomName;
+		return name;
 	}
 	
 	public long getMight() {
@@ -72,9 +114,9 @@ public class OfflineKingdom {
 		this.neutral = neutral;
 	}
 	
-	public void setName(String kingdomName) {
-		if (kingdomManager.renameKingdom(this, kingdomName))
-			this.kingdomName = kingdomName;
+	public void setName(String name) {
+		if (kingdomManager.canRename(name))
+			this.name = name;
 	}
 	
 	public long getClaims() {
@@ -97,12 +139,20 @@ public class OfflineKingdom {
 		return uuid;
 	}
 	
-	public long getResourcepoints() {
-		return resourcepoints;
+	public long getResourcePoints() {
+		return resourcePoints;
+	}
+	
+	public void setResourcePoints(long points) {
+		resourcePoints = points;
+	}
+	
+	public void addResourcePoints(long points) {
+		resourcePoints += points;
 	}
 	
 	public boolean isOnline() {
-		return kingdomManager.isOnline(kingdomName);
+		return kingdomManager.isOnline(this);
 	}
 
 	public Kingdom getKingdom() {
@@ -115,6 +165,14 @@ public class OfflineKingdom {
 	
 	public void setInvasionCooldown(long invasionCooldown) {
 		this.invasionCooldown = invasionCooldown;
+	}
+	
+	public Set<OfflineKingdomPlayer> getMembers() {
+		return members;
+	}
+	
+	public void setShieldTime(long seconds) {
+		this.shieldTime = new KingdomCooldown(this, "SHIELD", seconds);
 	}
 	
 	
@@ -151,15 +209,8 @@ public class OfflineKingdom {
 	public void setShieldRadius(int shieldRadius) {
 		this.shieldRadius = shieldRadius;
 	}
-
-
-	public static final String SHIELD = "SHIELD";
-  
-    public void giveShield(int shieldTimeInMin){
-    	beginCooldown(SHIELD, shieldTimeInMin);
-    }
-    
-    public boolean hasInvaded() {
+	
+	public boolean hasInvaded() {
 		return hasInvaded;
 	}
 
@@ -173,9 +224,9 @@ public class OfflineKingdom {
 	
 	public static final String CAMO = "CAMO";
 
-    public void giveCamo(int camoTimeInMin){
-    	beginCooldown(CAMO, camoTimeInMin);
-    }
+	public void giveCamo(int camoTimeInMin){
+		beginCooldown(CAMO, camoTimeInMin);
+	}
 
 	public boolean isCamoUp(){
 		return getTimeLeft(CAMO) > 0;
@@ -187,19 +238,6 @@ public class OfflineKingdom {
 	
 	public Map<String, String> getInvasionLog() {
 		return invasionLog;
-	}
-	
-	public String getKingName(){
-		if(kingName == null){
-			OfflinePlayer p = Bukkit.getOfflinePlayer(king);
-			if(p != null) kingName = p.getName();
-		}
-		
-		return kingName;
-	}
-	
-	public int getDynmapColor() {
-		return dynmapColor;
 	}
 	
 	public void clearInvasionLog() {
@@ -214,38 +252,6 @@ public class OfflineKingdom {
 		if (!invasionLog.containsKey("[" + invasionLog.size() + "] " +  format)) {
 			invasionLog.put("[" + invasionLog.size() + "] " + format, victim.getKingdomName() + "," + invader.getName() + "," + victorious + "," + LocationUtils.chunkToString(target.getChunk()));
 		}
-	}
-	
-	public List<UUID> getMembersList() {
-		ArrayList<UUID> contained = new ArrayList<UUID>();
-		for(UUID uuid : members) {
-			if(!contained.contains(uuid))contained.add(uuid);
-		}
-		members = contained;
-		return members;
-	}
-	
-	public List<UUID> getEnemies() {
-		return enemies;
-	}
-
-	public List<UUID> getAllies() {
-		return allies;
-	}
-	
-	public boolean isAllianceWith(Kingdom ally){
-		if(ally == null) return false;
-		if(allies.contains(ally.getKingdomUuid())&&
-				ally.getAllies().contains(getKingdomUuid())) return true;
-		
-		return false;
-	}
-	
-	public boolean isEnemyWith(Kingdom enemy){
-		if(enemy == null) return false;
-		if(enemies.contains(enemy.getKingdomUuid())) return true;
-		
-		return false;
 	}
 
 	public void setHasInvaded(boolean hasInvaded) {

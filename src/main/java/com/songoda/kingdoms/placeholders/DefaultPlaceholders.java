@@ -9,7 +9,8 @@ import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.Manager;
-import com.songoda.kingdoms.objects.kingdom.Kingdom;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.utils.LocationUtils;
 
 public class DefaultPlaceholders extends Manager {
@@ -25,23 +26,64 @@ public class DefaultPlaceholders extends Manager {
 				return "&7[&6Kingdoms&7] &r";
 			}
 		});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%points%", "%resourcepoints%") {
+			@Override
+			public String replace(OfflineKingdomPlayer player) {
+				return player.getKingdom().getResourcePoints() + "";
+			}
+		});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%points%", "%resourcepoints%") {
+			@Override
+			public String replace(OfflineKingdom Kingdom) {
+				return Kingdom.getResourcePoints() + "";
+			}
+		});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%kingdom%") {
+			@Override
+			public String replace(OfflineKingdomPlayer player) {
+				return player.getKingdom().getName();
+			}
+		});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%claims%") {
+			@Override
+			public String replace(OfflineKingdomPlayer player) {
+				return player.getKingdom().getClaims() + "";
+			}
+		});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%player%") {
+			@Override
+			public String replace(OfflineKingdomPlayer player) {
+				return player.getName();
+			}
+		});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%rank%") {
+			@Override
+			public String replace(OfflineKingdomPlayer player) {
+				return player.getRank().getName();
+			}
+		});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%claims%") {
+			@Override
+			public String replace(OfflineKingdom kingdom) {
+				return kingdom.getClaims() + "";
+			}
+		});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%might%") {
+			@Override
+			public String replace(OfflineKingdom Kingdom) {
+				return Kingdom.getMight() + "";
+			}
+		});
 		Placeholders.registerPlaceholder(new Placeholder<CommandSender>("%sender%") {
 			@Override
 			public String replace(CommandSender sender) {
 				return sender.getName();
 			}
 		});
-		Placeholders.registerPlaceholder(new Placeholder<Kingdom>("%kingdom%") {
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%lore%") {
 			@Override
-			public String replace(Kingdom Kingdom) {
-				return Kingdom.getKingdomName();
-			}
-		});
-		
-		Placeholders.registerPlaceholder(new Placeholder<Kingdom>("%lore%") {
-			@Override
-			public String replace(Kingdom Kingdom) {
-				return Kingdom.getKingdomLore();
+			public String replace(OfflineKingdom Kingdom) {
+				return Kingdom.getLore();
 			}
 		});
 		Placeholders.registerPlaceholder(new Placeholder<Player>("%player%") {

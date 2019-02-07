@@ -40,6 +40,8 @@ kingdoms:
     invading:
         # Placeholders: %player%, %chunkTo%, %chunkFrom%, %land% and %kingdom%
         invading-deny-chunk-change: "&cYou can not leave the Kingdom while invading!"
+    deleted: "&eYour Kingdom %kingdom% has been disbanded."
+    creation: "&aYou have successfully created a Kingdom with the name %kingdom%!"
 # All messages relating to maps and chunks.
 map:
     # Called when a user walks into an unoccupied chunk of land.
@@ -71,8 +73,9 @@ chat:
 
 
     
-    
 
+# If you're looking for this one, ignore it.
+#Misc_Kingdom_Deleting: Kingdom is disbanding. Please wait a moment...
 Plugin_NotEnabled: Plugin is not enabled.
 Plugin_SetEnableToTrue: Please set Enable option to true in your config.yml file.
 Plugin_WillBeDisabled: This plugin will be disabled.
@@ -447,10 +450,6 @@ Misc_Not_In_Land: '&cYou can only do that in your land'
 Misc_Not_Air: '&cThere is something obstructing the way!'
 Misc_Confirmation_Cancel: '&cConfirmation cancelled.'
 Misc_Previous_Request_Processing: '&cYour command is still processing. If this problem persists, contact an administrator'
-Misc_Kingdom_Creation_Loading: Kingdom creation started, please wait a moment...
-Misc_Kingdom_Creation_Success: You have successfully created a kingdom by the name of %kingdom%!
-Misc_Kingdom_Deleting: Kingdom is disbanding. Please wait a moment...
-Misc_Kingdom_Deleted: Kingdom has been disbanded
 Misc_Cannot_Attack_Own_Member: '&cYou can''t attack your own kingdom members!'
 Misc_Cannot_Attack_Own_Ally: '&cYou can''t attack your own kingdom allies!'
 Misc_Cannot_Trample_Soil: '&bYour kingdom soil cannot be trampled'

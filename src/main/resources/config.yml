@@ -15,6 +15,9 @@ version: "2.0.0"
 # Print additional information in the console. Useful for figuring out errors and issues.
 debug: false
 
+plugin:
+    load-player-before-join: true
+    warzone-free-pvp: false
 # Configure your database settings.
 database:
     mysql:
@@ -156,6 +159,13 @@ structures:
 kingdoms:
     # Allow Kingdoms to become passive if they want.
     allow-pacifist: false
+    # If a Kingdom is a pacifist, should they be hidden from the leaderboard?
+    leaderboard-hide-pacifists: false
+    # If players should respawn in their Kingdom.
+    respawn-at-kingdom: false
+    # When a player joins the server, should they spawn at their Kingdom?
+    join-at-kingdom: false
+    markers-on-by-default: true
     # If the player keeps going in and out of lands, what should the cooldown time be.
     # Actionbars get excluded from this, so the player will always know where they are.
     # Example:
@@ -164,6 +174,10 @@ kingdoms:
     #   Then Kingdoms will not message them again.
     message-spam: false
     message-spam-cooldown: "5 seconds"
+    # The base shield time for newly created Kingdoms.
+    base-shield-time: "5 minutes"
+    # The maximum members for newly created Kingdoms.
+    base-max-members: 10
     # Messages that happen when walking into an unoccupied land chunk.
     # Placeholders: %world%, %player% and %chunk%
     land-enter-unoccupied:
@@ -328,7 +342,6 @@ Plugin:
     allowSpecialCharactersInNamingKingdoms: false
     Lang: eng
     enable-autosave: true
-    initiatePlayerLoadBeforePlayerJoin: true
     serverName: yourServer
 minutes-per-backup: 43200
 pacifist-default-on: false
@@ -343,7 +356,6 @@ enabled-worlds:
 worlds-where-land-is-explosive-vulnerable:
 - VoidWorldd
 no-region-claim: true
-warzone-free-pvp: false
 can-open-storage-blocks-in-other-kingdom-land: false
 siege:
     fire:
@@ -360,7 +372,6 @@ siege:
         base: 1000
         recharge-cost-reset-time-in-min: 720
 canOnlyInvadeDuringMasswar: false
-hidePacifistsFromTop: false
 kingdom-expiry-days: 999
 denied-commands-neutral:
 - /example
@@ -503,14 +514,11 @@ kingdom-create-item-cost:
 - GOLD_INGOT,5
 - IRON_INGOT,5
 kingdom-create-need-item-cost: false
-markers-on-by-default: true
 items-needed-for-one-resource-point: 5
 claim-cost: 5
 invade-cost: 10
 hidewarppadlocations: false
 enable-auto-backup: true
-beginner-shield:
-    duration-in-minutes: 5
 mine:
     reward-delay-in-minutes: 1440
     reward-amount: 100
@@ -519,9 +527,7 @@ regulator:
     allow-toggling-monster-spawn: true
 minimum-members-online-to-be-invaded: 0
 land-per-member: 5
-base-member-count: 10
 maximum-land-claims: 0
-respawn-in-kingdom-home: false
 infinite-claim-worlds:
 - worldThatAllowsYouToClaimInfinitely
 unreplaceableblocks:

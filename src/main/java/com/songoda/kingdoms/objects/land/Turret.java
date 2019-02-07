@@ -26,6 +26,10 @@ public class Turret {
 		this.location = location;
 		this.type = type;
 	}
+	
+	public Location getLocation() {
+		return location;
+	}
 
 	public void setType(TurretType type){
 		this.type = type;
@@ -52,11 +56,6 @@ public class Turret {
 		Location loc = LocationUtils.stringToLocation(split[0]);
 		TurretType type = TurretType.valueOf(split[1]);
 		return new Turret(loc, type);
-	}
-
-	@Override
-	public String toString() {
-		return location.toString() + ":" + type;
 	}
 
 	public void destroy() {

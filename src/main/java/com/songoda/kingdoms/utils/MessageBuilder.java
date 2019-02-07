@@ -3,10 +3,13 @@ package com.songoda.kingdoms.utils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -15,6 +18,8 @@ import org.bukkit.entity.Player;
 import com.google.common.collect.Sets;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.ActionbarManager;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.placeholders.Placeholder;
 import com.songoda.kingdoms.placeholders.Placeholders;
 import com.songoda.kingdoms.placeholders.SimplePlaceholder;
@@ -22,9 +27,11 @@ import com.songoda.kingdoms.placeholders.SimplePlaceholder;
 public class MessageBuilder {
 
 	private Map<Placeholder<?>, Object> placeholders = new HashMap<>();
+	private final Set<KingdomPlayer> kingdomPlayers = new HashSet<>();
 	private final List<CommandSender> senders = new ArrayList<>();
 	private FileConfiguration configuration;
 	private Object defaultPlaceholderObject;
+	private OfflineKingdom kingdom;
 	private String complete;
 	private String[] nodes;
 	private boolean prefix;
@@ -53,11 +60,11 @@ public class MessageBuilder {
 	/**
 	 * Set the players to send this message to.
 	 *
-	 * @param senders The Collection<Player> to send the message to.
+	 * @param senders The Collection<KingdomPlayer> to send the message to.
 	 * @return The MessageBuilder for chaining.
 	 */
-	public MessageBuilder toPlayers(Collection<? extends Player> players) {
-		this.senders.addAll(players);
+	public MessageBuilder toKingdomPlayers(Collection<? extends KingdomPlayer> players) {
+		this.kingdomPlayers.addAll(players);
 		return this;
 	}
 	
@@ -80,6 +87,17 @@ public class MessageBuilder {
 	 */
 	public MessageBuilder toPlayers(Player... players) {
 		this.senders.addAll(Sets.newHashSet(players));
+		return this;
+	}
+	
+	/**
+	 * Set the players to send this message to.
+	 *
+	 * @param senders The Collection<Player> to send the message to.
+	 * @return The MessageBuilder for chaining.
+	 */
+	public MessageBuilder toPlayers(Collection<? extends Player> players) {
+		this.senders.addAll(players);
 		return this;
 	}
 	
@@ -147,6 +165,17 @@ public class MessageBuilder {
 	}
 	
 	/**
+	 * Set the Kingdom option to be used for placeholders later.
+	 * 
+	 * @param kingdom The OfflineKingdom to set as.
+	 * @return The MessageBuilder for chaining.
+	 */
+	public MessageBuilder setKingdom(OfflineKingdom kingdom) {
+		this.kingdom = kingdom;
+		return this;
+	}
+	
+	/**
 	 * Sends the message as an actionbar to the defined players.
 	 * 
 	 * @param players the players to send to
@@ -162,6 +191,13 @@ public class MessageBuilder {
 	 */
 	public void sendTitle(Player... players) {
 		toPlayers(players).sendTitle();
+	}
+	
+	/**
+	 * Sends the final product of the builder.
+	 */
+	public void send(KingdomPlayer... players) {
+		toKingdomPlayers(Sets.newHashSet(players)).send();
 	}
 	
 	/**
@@ -188,8 +224,6 @@ public class MessageBuilder {
 	
 	private String applyPlaceholders(String input) {
 		// Default Placeholders
-		if (defaultPlaceholderObject == null)
-			defaultPlaceholderObject = senders.get(0);
 		for (Placeholder<?> placeholder : Placeholders.getPlaceholders()) {
 			for (String syntax : placeholder.getSyntaxes()) {
 				if (placeholder instanceof SimplePlaceholder) {
@@ -198,6 +232,10 @@ public class MessageBuilder {
 				} else if (defaultPlaceholderObject != null) {
 					if (placeholder.getType().isAssignableFrom(defaultPlaceholderObject.getClass()))
 						input = input.replaceAll(Pattern.quote(syntax), placeholder.replace_i(defaultPlaceholderObject));
+				}
+				if (kingdom != null) {
+					if (placeholder.getType().isAssignableFrom(OfflineKingdom.class))
+						input = input.replaceAll(Pattern.quote(syntax), placeholder.replace_i(kingdom));
 				}
 			}
 		}
@@ -285,7 +323,12 @@ public class MessageBuilder {
 	 */
 	public void send() {
 		get();
-		if (senders != null && senders.size() > 0) {
+		if (!kingdomPlayers.isEmpty()) {
+			senders.addAll(kingdomPlayers.parallelStream()
+					.map(player -> player.getPlayer())
+					.collect(Collectors.toSet()));
+		}
+		if (!senders.isEmpty()) {
 			for (CommandSender sender : senders) {
 				sender.sendMessage(complete);
 			}

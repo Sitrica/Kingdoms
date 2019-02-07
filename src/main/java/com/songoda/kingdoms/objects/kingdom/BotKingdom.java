@@ -13,7 +13,7 @@ import org.bukkit.plugin.Plugin;
 
 public abstract class BotKingdom extends Kingdom {
 
-	private Plugin register;
+	private final Plugin register;
 	
 	public BotKingdom(String kingdomName, Plugin plugin) {
 		super();

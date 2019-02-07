@@ -4,16 +4,21 @@ import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.Database;
 import com.songoda.kingdoms.database.DatabaseTransferTask;
 import com.songoda.kingdoms.database.SQLiteDatabase;
+import com.songoda.kingdoms.events.KingdomCreateEvent;
+import com.songoda.kingdoms.events.KingdomDeleteEvent;
 import com.songoda.kingdoms.events.KingdomLoadEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.CooldownManager.KingdomCooldown;
+import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.kingdom.BotKingdom;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.MiscUpgrade;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.utils.IntervalUtils;
+import com.songoda.kingdoms.utils.MessageBuilder;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -21,6 +26,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -30,6 +36,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
@@ -41,6 +48,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 
 public class KingdomManager extends Manager {
 
@@ -48,15 +57,24 @@ public class KingdomManager extends Manager {
 		registerManager("kingdom", new KingdomManager());
 	}
 	
-	public static Set<OfflineKingdom> kingdoms = new HashSet<>();
+	public static Set<OfflineKingdom> kingdoms = new HashSet<>(); // All Kingdoms contained in this Set that aren't bot kingdoms are actually online kingdoms.
+	private final Set<String> processing = new HashSet<>(); // Names that are currently being created. Can't take these names.
 	private final Set<BotKingdom> bots = new HashSet<>();
 	private final Database<OfflineKingdom> database;
+	private final PlayerManager playerManager;
+	private final WorldManager worldManager;
 	private final CooldownManager cooldowns;
+	private final LandManager landManager;
+	private final RankManager rankManager;
 	private BukkitTask autoSaveThread;
 
 	protected KingdomManager() {
 		super(true);
+		this.landManager = instance.getManager("land", LandManager.class);
+		this.rankManager = instance.getManager("rank", RankManager.class);
+		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.cooldowns = instance.getManager("cooldown", CooldownManager.class);
+		this.playerManager = instance.getManager("player", PlayerManager.class);
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(OfflineKingdom.class);
 		else
@@ -69,12 +87,14 @@ public class KingdomManager extends Manager {
 					for (OfflineKingdom kingdom : kingdoms) {
 						UUID uuid = kingdom.getUniqueId();
 						String name = kingdom.getName();
-						//TODO Add a temp system if it's needed later, this is bad management.
-						/*if (name.endsWith("_tmp")) {
+						// Was an old mistake, this is bad management.
+						// Still around for old database Kingdoms.
+						// TODO make a reader to read all Kingdom names and delete if this ends.
+						if (name.endsWith("_tmp")) {
 							kingdoms.remove(kingdom);
 							database.delete(kingdom.getUniqueId() + "");
 							continue;
-						}*/
+						}
 						Kingdoms.debugMessage("Saving Kingdom: " + name);
 						if (cooldowns.isInCooldown(kingdom, "attackcd"))
 							kingdom.setInvasionCooldown(cooldowns.getTimeLeft(kingdom, "attackcd"));
@@ -100,6 +120,60 @@ public class KingdomManager extends Manager {
 	
 	public Kingdom getKingdom(OfflineKingdom kingdom) {
 		return getKingdom(kingdom.getUniqueId());
+	}
+	
+	/**
+	 * Check if the kingdom exists;
+	 *
+	 * @param kingdom OfflineKingdom to search
+	 * @return true if exist; false if not exist
+	 */
+	public boolean hasKingdom(OfflineKingdom kingdom) {
+		return kingdoms.contains(kingdom);
+	}
+	
+	/**
+	 * Check if the kingdom name exists;
+	 *
+	 * @param kingdom OfflineKingdom to search
+	 * @return true if exist; false if not exist
+	 */
+	public boolean hasKingdom(String name) {
+		return getOfflineKingdom(name).isPresent();
+	}
+	
+	/**
+	 * Checks if the following UUID can be used as it's not taken already.
+	 * 
+	 * @param uuid UUID to check for.
+	 * @return boolean if the uuid is unused.
+	 */
+	public boolean canUse(UUID uuid) {
+		return !kingdoms.parallelStream()
+				.filter(kingdom -> kingdom.getUniqueId().equals(uuid))
+				.findFirst()
+				.isPresent();
+	}
+	
+	public boolean canRename(String name) {
+		return kingdoms.parallelStream()
+				.filter(kingdom -> kingdom.getName().equals(name))
+				.findFirst()
+				.isPresent();
+	}
+	
+	public void registerBotKingdom(BotKingdom kingdom) {
+		bots.add(kingdom);
+		kingdoms.add(kingdom);
+		Kingdoms.debugMessage("Registered Bot Kingdom: " + kingdom.getName());
+	}
+
+	public boolean isBotKingdom(Kingdom kingdom) {
+		if (kingdom instanceof BotKingdom)
+			return true;
+		if (bots.contains(kingdom.getName()))
+			return true;
+		return false;
 	}
 
 	public Kingdom getKingdom(UUID uuid) {
@@ -141,13 +215,8 @@ public class KingdomManager extends Manager {
 	
 	private Kingdom loadKingdom(UUID uuid) {
 		Kingdoms.consoleMessage("Loading kingdom: " + uuid);
-		//kingdoms.parallelStream()
-		//		.filter(kingdom -> kingdom.getUniqueId().equals(uuid))
-		//		.forEach(kingdom -> database.save(uuid + "", kingdom)); //TODO This used to save the old kingdom from a map? Figure out why?
-		// This can cause error can't it? Fix later if it does. - Recode.
 		Kingdom kingdom = (Kingdom) database.get(uuid + "");
 		if (kingdom != null) {
-			kingdom.setNeutral(false);
 			long invasionCooldown = kingdom.getInvasionCooldown();
 			if (invasionCooldown > 0) {
 				KingdomCooldown cooldown = new KingdomCooldown(kingdom, "attackcd", invasionCooldown);
@@ -161,26 +230,50 @@ public class KingdomManager extends Manager {
 		}
 		return kingdom;
 	}
-
-	public boolean isBotKingdom(Kingdom kingdom) {
-		if (kingdom instanceof BotKingdom)
-			return true;
-		if (bots.contains(kingdom.getName()))
-			return true;
-		return false;
+	
+	/**
+	 * get OfflineKingdom. Reading from database directly
+	 *
+	 * @param kingdomName kingdomName
+	 * @return Kingdom instance; null if not exist
+	 */
+	public Optional<OfflineKingdom> getOfflineKingdom(String name) {
+		Kingdoms.debugMessage("Fetching info for offline kingdom: " + name);
+		Optional<OfflineKingdom> optional = kingdoms.parallelStream()
+				.filter(kingdom -> kingdom.getName().equals(name))
+				.findFirst();
+		if (optional.isPresent()) {
+			OfflineKingdom kingdom = optional.get();
+			if (kingdom.getKing() != null)
+				return Optional.of(kingdom);
+			database.delete(name);
+		}
+		return Optional.empty();
 	}
 
-	public void registerBotKingdom(BotKingdom kingdom) {
-		bots.add(kingdom);
-		kingdoms.add(kingdom);
-		Kingdoms.debugMessage("Registered Bot Kingdom: " + kingdom.getName());
+	public Optional<OfflineKingdom> getOfflineKingdom(UUID uuid) {
+		Kingdoms.debugMessage("Fetching info for offline kingdom: " + uuid);
+		OfflineKingdom kingdom = loadKingdom(uuid);
+		if (kingdom != null && kingdom.getKing() == null) {
+			database.save(kingdom.toString(), null);
+			return Optional.empty();
+		}
+		return Optional.of(kingdom);
 	}
-
-	public boolean renameKingdom(OfflineKingdom kingdom, String name) {
-		return kingdoms.parallelStream()
-				.filter(k -> k.getName().equals(name))
-				.findFirst()
-				.isPresent();
+	
+	/**
+	 * Check if a kingdom is online.
+	 *
+	 * @param kingdom OfflineKingdom instance
+	 * @return true if online/loaded; false if not.
+	 */
+	public boolean isOnline(OfflineKingdom kingdom) {
+		Optional<OfflineKingdom> optional = kingdoms.parallelStream()
+				.filter(k -> k == kingdom)
+				.findFirst();
+		if (!optional.isPresent())
+			return false;
+		return optional.get() instanceof Kingdom;
 	}
 	
 	public int getRandomColor() {
@@ -191,6 +284,116 @@ public class KingdomManager extends Manager {
 		int b = random.nextInt(255);
 		color = (r << 16) + (g << 8) + b;
 		return color;
+	}
+	
+	/**
+	 * schedule kingdom delete task
+	 *
+	 * @param kingdomName name of kingdom to delete
+	 * @return true if scheduled; false if kingdom doesn't exist
+	 */
+	public boolean deleteKingdom(OfflineKingdom kingdom) {
+		if (kingdom == null)
+			return false;
+		Bukkit.getScheduler().runTaskAsynchronously(instance, new Runnable() {
+			@Override
+			public void run() {
+				if (kingdom instanceof BotKingdom) {
+					Bukkit.getPluginManager().callEvent(new KingdomDeleteEvent(kingdom));
+					landManager.unclaimAllLand(kingdom);
+					return;
+				}
+				for (OfflineKingdomPlayer player : kingdom.getMembers()) {
+					player.setKingdom(null);
+					player.setRank(rankManager.getDefaultRank());
+					if (player.isOnline()) {
+						if (ExternalManager.getScoreboardManager() != null)
+							ExternalManager.getScoreboardManager().updateScoreboard(player.getKingdomPlayer());
+					}
+				}
+				OfflineKingdomPlayer king = kingdom.getKing();
+				kingdoms.remove(kingdom);
+				database.delete(kingdom.getUniqueId() + "");
+				Bukkit.getPluginManager().callEvent(new KingdomDeleteEvent(kingdom));
+				landManager.unclaimAllLand(kingdom);
+				if (king.isOnline())
+					new MessageBuilder("kingdoms.deleted")
+							.setPlaceholderObject(king)
+							.setKingdom(kingdom)
+							.send(king.getKingdomPlayer());
+			}
+		});
+		return true;
+	}
+	
+	/**
+	 * This method will <b> overwrite existing data! </b> use hasKingdom() to
+	 * check if kingdom already exists
+	 *
+	 * @param kingdomName
+	 * @param king		the king of this kingdom
+	 * @return false - already in progress, true - create task scheduled
+	 */
+	public boolean createNewKingdom(String name, KingdomPlayer king) {
+		if (processing.contains(name))
+			return false;
+		processing.add(name);
+		Bukkit.getScheduler().runTaskAsynchronously(instance, new Runnable() {
+			@Override
+			public void run() {
+				Kingdom kingdom = new Kingdom(king);
+				kingdom.setName(name);
+				String interval = configuration.getString("kingdoms.base-shield-time", "5 minutes");
+				kingdom.setShieldTime(IntervalUtils.getInterval(interval));
+				king.setRank(rankManager.getOwnerRank());
+				king.setKingdom(kingdom);
+				kingdoms.add(kingdom);
+				//TODO start
+				for (ChampionUpgrade upgrade : ChampionUpgrade.values()) {
+					kingdom.getChampionInfo().setUpgradeLevel(upgrade, upgrade.getUpgradeDefault(upgrade));
+				}
+				for (MiscUpgrade upgrade : MiscUpgrade.values()) {
+					kingdom.getMisupgradeInfo().setBought(upgrade, upgrade.isDefaultOn());
+				}
+				//TODO end
+				new MessageBuilder("kingdoms.creation")
+						.replace("%kingdom%", name)
+						.send(king);
+				processing.remove(name);
+				Bukkit.getPluginManager().callEvent(new KingdomCreateEvent(kingdom));
+			}
+		});
+		return true;
+	}
+	
+	public FutureTask<Map<OfflineKingdom, Long>> getTopResourcePoints() {
+		return new FutureTask<Map<OfflineKingdom, Long>>(new ResourcePointsCallable());
+	}
+	
+	private class ResourcePointsCallable implements Callable<Map<OfflineKingdom, Long>> {
+		@Override
+		public Map<OfflineKingdom, Long> call() {
+			Map<OfflineKingdom, Long> points = new HashMap<>();
+			for (String key : database.getKeys()) {
+				UUID uuid = UUID.fromString(key);
+				Kingdom kingdom = getKingdom(uuid);
+				if (kingdom == null) {
+					continue;
+				} else {
+					if (configuration.getBoolean("kingdoms.leaderboard-hide-pacifists", false) && kingdom.isNeutral())
+						continue;
+					points.put(kingdom, kingdom.getResourcePoints());
+				}
+			}
+			return points;
+		}
+	}
+	
+	public void onJoin(KingdomPlayer kingdomPlayer) {
+		kingdomPlayer.getKingdom().onKingdomPlayerLogin(kingdomPlayer);
+	}
+	public void onQuit(KingdomPlayer kingdomPlayer) {
+		kingdomPlayer.getKingdom().onKingdomPlayerLogout(kingdomPlayer);
 	}
 
 	@EventHandler
@@ -255,7 +458,7 @@ public class KingdomManager extends Manager {
 		might += 53 * kingdom.getChampionInfo().getSummon();
 		might += 53 * kingdom.getChampionInfo().getThor();
 		might += 53 * kingdom.getChampionInfo().getWeapon();
-		might += 53 * (kingdom.getChestsize() - 9);
+		might += 53 * (kingdom.getChestSize() - 9);
 		if (kingdom.getTurretUpgrades().isFinalService()) might += 530;
 		if (kingdom.getTurretUpgrades().isConcentratedBlast()) might += 530;
 		if (kingdom.getTurretUpgrades().isFlurry()) might += 530;
@@ -266,21 +469,6 @@ public class KingdomManager extends Manager {
 		if (kingdom.getTurretUpgrades().isUnrelentingGaze()) might += 530;
 		if (kingdom.getTurretUpgrades().isVoodoo()) might += 530;
 		kingdom.setMight(might);
-	}
-	
-	public void debugDeleteKingdom(String name) {
-		UUID kingdom = kingdomNameList.remove(name);
-		db.save(kingdom.toString(), null);
-		for (UUID uuid : PlayerManager.userList.keySet()) {
-			OfflineKingdomPlayer player = PlayerManager.userList.get(uuid);
-			if (player.getKingdomUuid() != null) {
-				if (player.getKingdomUuid().equals(kingdom)) {
-					player.setKingdomUuid(null);
-					PlayerManager.userList.remove(uuid);
-					PlayerManager.userList.put(uuid, player);
-				}
-			}
-		}
 	}
 
 	public void checkUpgrades(Kingdom kingdom) {
@@ -400,340 +588,49 @@ public class KingdomManager extends Manager {
 
 			}
 		});
-
 	}
-
-	/**
-	 * check if the kingdom exist with specified name;
-	 *
-	 * @param kingdomName kingdom name to search
-	 * @return true if exist; false if not exist
-	 */
-	public boolean hasKingdom(String kingdomName) {
-		return kingdomNameList.containsKey(kingdomName);
-	}
-
-	/**
-	 * get OfflineKingdom. Reading from database directly
-	 *
-	 * @param kingdomName kingdomName
-	 * @return Kingdom instance; null if not exist
-	 */
-	public OfflineKingdom getOfflineKingdom(String kingdomName) {
-		Kingdoms.logColor("Fetching info for offline kingdom, " + kingdomName);
-		OfflineKingdom kingdom = loadKingdom(kingdomNameList.get(kingdomName));
-
-		//was pending for deletion so do it immediately
-		if (kingdom != null && kingdom.getKing() == null) {
-			db.save(kingdomName, null);
-			return null;
-		}
-
-		return kingdom;
-	}
-
-	public OfflineKingdom getOfflineKingdom(UUID kingdom) {
-		Kingdoms.logColor("Fetching info for offline kingdom, " + kingdom);
-		OfflineKingdom kingdoms = loadKingdom(kingdom);
-
-		//was pending for deletion so do it immediately
-		if (kingdom != null && kingdoms.getKing() == null) {
-			db.save(kingdom.toString(), null);
-			return null;
-		}
-
-		return kingdoms;
-	}
-
-
-	/**
-	 * <b>NOT THREAD SAFE</b> (use only on startup)
-	 *
-	 * @return list of kingdoms by resource points
-	 */
-	public Map<String, Integer> getAllByResourcePointsFromDB() {
-		Map<String, Integer> points = new HashMap<>();
-
-		Set<String> keys = db.getKeys();
-		if (keys.isEmpty())
-			return points;
-
-		for (String key : keys) {
-			UUID uuid = UUID.fromString(key);
-			Kingdom kingdom = getOrLoadKingdom(uuid);
-			if (kingdom == null) {
-				continue;
-			}else{
-				if (Config.getConfig().getBoolean("hidePacifistsFromTop")&&kingdom.isNeutral())continue;
-			points.put(key, kingdom.getResourcepoints());
-			}
-		}
-
-		return points;
-	}
-
-	/**
-	 * This method will <b> overwrite existing data! </b> use hasKingdom() to
-	 * check if kingdom already exists
-	 *
-	 * @param kingdomName
-	 * @param king		the king of this kingdom
-	 * @return false - already in progress, true - create task scheduled
-	 */
-	public boolean createNewKingdom(String kingdomName, KingdomPlayer king) {
-		if (king.isProcessing())
-			return false;
-
-		king.sendMessage(Kingdoms.getLang().getString("Misc_Kingdom_Creation_Loading", king.getLang()));
-		king.setProcessing(true);
-		new Thread(new NewKingdomCreateTask(kingdomList, kingdomName, king)).start();
-
-		return true;
-	}
-
-	private class NewKingdomCreateTask implements Runnable {
-		Map<UUID, OfflineKingdom> kingdomList;
-		String kingdomName;
-		KingdomPlayer king;
-
-		public NewKingdomCreateTask(Map<UUID, OfflineKingdom> kingdomList2, String kingdomName, KingdomPlayer king) {
-			super();
-			this.kingdomList = kingdomList2;
-			this.kingdomName = kingdomName;
-			this.king = king;
-		}
-
-		@Override
-		public void run() {
-			// create new kingdom instance
-			Kingdom kingdom = new Kingdom();
-			kingdom.setKingdomName(kingdomName);
-			kingdom.setKing(king.getUuid());
-			if (Config.getConfig().getBoolean("pacifist-default-on")) kingdom.setNeutral(true);
-			// add king to kingdom
-			kingdom.addMember(king.getUuid());
-			kingdom.getOnlineMembers().add(king);
-			kingdom.setMaxMember(Config.getConfig().getInt("base-member-count"));
-			// give kingdom shield
-			kingdom.giveShield(Config.getConfig().getInt("beginner-shield.duration-in-minutes"));
-			// set king data
-			king.setRank(Rank.KING);
-			king.setKingdom(kingdom);
-
-			// add this kingdom to list
-			kingdomList.put(kingdom.getKingdomUuid(), kingdom);
-			kingdomNameList.put(kingdom.getKingdomName(), kingdom.getKingdomUuid());
-			for (ChampionUpgrade upgrade : ChampionUpgrade.values()) {
-				kingdom.getChampionInfo().setUpgradeLevel(upgrade, upgrade.getUpgradeDefault(upgrade));
-			}
-
-
-			for (MiscUpgrade upgrade : MiscUpgrade.values()) {
-				kingdom.getMisupgradeInfo().setBought(upgrade, upgrade.isDefaultOn());
-			}
-
-			// change player status
-			king.sendMessage(Kingdoms.getLang().getString("Misc_Kingdom_Creation_Success", king.getLang())
-					.replaceAll("%kingdom%", kingdomName));
-			king.setProcessing(false);
-
-			plugin.getServer().getPluginManager().callEvent(new KingdomCreateEvent(kingdom));
-		}
-
-	}
-
-	/**
-	 * This method will <b> overwrite existing data! </b> Use it carefully
-	 *
-	 * @param kingdomName
-	 * @param king		the king of this kingdom
-	 * @return false - already in progress, true - delete task scheduled
-	 */
-	public boolean deleteKingdom(String kingdomName, KingdomPlayer king) {
-		if (king.isProcessing())
-			return false;
-
-		Kingdom kingdom = getOrLoadKingdom(kingdomName);
-		if (kingdom == null) {
-			king.sendMessage("No kingdom found named [" + kingdomName + "].");
-			king.setProcessing(false);
-			return true;
-		}
-
-		king.sendMessage(Kingdoms.getLang().getString("Misc_Kingdom_Deleting", king.getLang()));
-		king.setProcessing(true);
-		new Thread(new KingdomDeleteTask(kingdomList, kingdom, king)).start();
-		return true;
-	}
-
-	/**
-	 * schedule kingdom delete task
-	 *
-	 * @param kingdomName name of kingdom to delete
-	 * @return true if scheduled; false if kingdom doesn't exist
-	 */
-	public boolean deleteKingdom(String kingdomName) {
-		Kingdom kingdom = getOrLoadKingdom(kingdomName);
-		if (kingdom == null) {
-			return false;
-		}
-
-		new Thread(new KingdomDeleteTask(kingdomList, kingdom)).start();
-		return true;
-	}
-
-	private class KingdomDeleteTask implements Runnable {
-		Map<UUID, OfflineKingdom> kingdomList;
-		Kingdom kingdom;
-		KingdomPlayer king;
-
-		public KingdomDeleteTask(Map<UUID, OfflineKingdom> kingdomList2, Kingdom kingdom, KingdomPlayer king) {
-			super();
-			this.kingdomList = kingdomList2;
-			this.kingdom = kingdom;
-			this.king = king;
-		}
-
-		public KingdomDeleteTask(Map<UUID, OfflineKingdom> kingdomList, Kingdom kingdom) {
-			super();
-			this.kingdomList = kingdomList;
-			this.kingdom = kingdom;
-			this.king = null;
-		}
-
-		@Override
-		public void run() {
-			try {
-				UUID kingdomUUID = kingdom.getKingdomUuid();
-
-				if (kingdom instanceof BotKingdom) {
-					plugin.getServer().getPluginManager().callEvent(new KingdomDeleteEvent(kingdom));
-
-					GameManagement.getLandManager().unclaimAllLand(kingdom);
-					return;
-				}
-				if (king != null) {
-					king.setKingdom(null);
-					king.setRank(Rank.ALL);
-				} else {
-					OfflineKingdomPlayer kingdomking = GameManagement.getPlayerManager()
-							.getOfflineKingdomPlayer(kingdom.getKing());
-					if (kingdomking != null) {
-						if (kingdomking.isOnline()) {// if online
-							kingdomking.getKingdomPlayer().setKingdom(null);
-							kingdomking.getKingdomPlayer().setRank(Rank.ALL);
-
-							if (ExternalManager.getScoreboardManager() != null)
-								ExternalManager.getScoreboardManager().updateScoreboard((KingdomPlayer) kingdomking);
-						} else {// if offline
-							kingdomking.setKingdomName(null);
-							kingdomking.setRank(Rank.ALL);
-						}
-					}
-				}
-
-				// reset user data
-				for (UUID uuid : kingdom.getMembersList()) {
-					OfflineKingdomPlayer kp = GameManagement.getPlayerManager().getSession(uuid);
-					if (kp == null)
-						continue;
-
-					if (kp.isOnline()) {// if online
-						kp.getKingdomPlayer().setKingdom(null);
-						kp.getKingdomPlayer().setRank(Rank.ALL);
-
-						if (ExternalManager.getScoreboardManager() != null)
-							ExternalManager.getScoreboardManager().updateScoreboard(kp.getKingdomPlayer());
-					} else {// if offline
-						kp.setRank(Rank.ALL);
-					}
-				}
-
-				// delete all data
-				kingdomList.remove(kingdomUUID);
-				kingdomNameList.remove(kingdom.getKingdomName());
-				db.save(kingdomUUID.toString(), null);
-				plugin.getServer().getPluginManager().callEvent(new KingdomDeleteEvent(kingdom));
-
-				// check for lands
-				GameManagement.getLandManager().unclaimAllLand(kingdom);
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				// set king processing state
-				if (king != null) {
-					king.sendMessage(Kingdoms.getLang().getString("Misc_Kingdom_Deleted", king.getLang()));
-					king.setProcessing(false);
-				}
-			}
-		}
-	}
-
-	/**
-	 * check if the kingdom is loaded
-	 *
-	 * @param kingdomName name of kingdom
-	 * @return true if loaded; false if not loaded
-	 */
-	public boolean isOnline(String kingdomName) {
-		if (!kingdomNameList.containsKey(kingdomName))
-			return false;
-
-		return kingdomList.get(kingdomNameList.get(kingdomName)) instanceof Kingdom;
-	}
-
 
 	@EventHandler
 	public void onMemberAttacksKingdomMember(EntityDamageByEntityEvent event) {
-		if (!Config.getConfig().getStringList("enabled-worlds").contains(event.getEntity().getWorld().getName())) {
+		Entity victim = event.getEntity();
+		if (!(victim instanceof Player))
 			return;
-		}
+		if (!worldManager.acceptsWorld(victim.getWorld()))
+			return;
+		Entity attacker = event.getDamager();
+		if (attacker.equals(victim))
+			return;
+		if (ExternalManager.isCitizen(victim) || ExternalManager.isCitizen(attacker))
+			return;
 		KingdomPlayer attacked = null;
-		if (!(event.getEntity() instanceof Player))
-			return;
-		GameManagement.getApiManager();
-		if (ExternalManager.isCitizen(event.getEntity())) return;
-		GameManagement.getApiManager();
-		if (ExternalManager.isCitizen(event.getDamager())) return;
-
-		if (event.getDamager().getUniqueId().equals(event.getEntity().getUniqueId()))
-			return;
-		if (event.getDamager() instanceof Projectile) {
-			// skip if ender_pearl
-			if (((Projectile) event.getDamager()).getType() == EntityType.ENDER_PEARL)
+		if (attacker instanceof Projectile) {
+			if (((Projectile) attacker).getType() == EntityType.ENDER_PEARL)
 				return;
-
-			if (((Projectile) event.getDamager()).getShooter() != null) {
-				if (((Projectile) event.getDamager()).getShooter() instanceof Player) {
-					GameManagement.getApiManager();
-					if (ExternalManager.isCitizen((Entity) ((Projectile) event.getDamager()).getShooter())) return;
-
-
-					attacked = GameManagement.getPlayerManager()
-							.getSession((Player) ((Projectile) event.getDamager()).getShooter());
+			ProjectileSource shooter = ((Projectile) attacker).getShooter();
+			if (shooter != null) {
+				if (shooter instanceof Player) {
+					if (ExternalManager.isCitizen(shooter))
+						return;
+					attacked = playerManager.getKingdomPlayer((Player) shooter);
 				}
 			}
 
-		} else if (event.getDamager() instanceof Player) {
-			attacked = GameManagement.getPlayerManager().getSession((Player) event.getDamager());
+		} else if (attacker instanceof Player) {
+			attacked = playerManager.getKingdomPlayer((Player) attacker);
 		}
 		if (attacked == null)
 			return;
-
 		if (attacked.isAdminMode())
 			return;
 		if (attacked.getKingdom() == null)
 			return;
-		KingdomPlayer damaged = GameManagement.getPlayerManager().getSession((Player) event.getEntity());
-
-		if (Config.getConfig().getBoolean("warzone-free-pvp")) {
-			Land att = GameManagement.getLandManager().getOrLoadLand(damaged.getLoc());
-			if (att.getOwnerUUID() != null) {
+		KingdomPlayer damaged = playerManager.getKingdomPlayer((Player) victim);
+		if (configuration.getBoolean("plugin.warzone-free-pvp", false)) {
+			Land land = landManager.getLandAt(damaged.getLocation());
+			if (land.getOwnerUUID() != null) {
 
 			}
 		}
-
 		if (damaged.getKingdom() == null)
 			return;
 		if (attacked.getKingdom().equals(damaged.getKingdom())) {
@@ -908,26 +805,6 @@ public class KingdomManager extends Manager {
 		return false;
 	}
 
-	///////////////////////////////////////////////////////
-	boolean isProcessing = false;
-
-	@EventHandler
-	public void onJoin(KingdomPlayerLoginEvent e) {
-		if (e.getKp().getKingdom() != null) {
-			Kingdoms.logDebug("onJoin? kp received: " + e.getKp());
-			e.getKp().getKingdom().onKingdomPlayerLogin(e.getKp());
-		}
-	}
-
-	@EventHandler
-	public void onQuit(KingdomPlayerLogoffEvent e) {
-		if (e.getKp().getKingdom() != null) {
-			Kingdoms.logDebug("onQuit?");
-			e.getKp().getKingdom().onKingdomPlayerLogout(e.getKp());
-		}
-	}
-	//////////////////////////////////////////////////////////////////////////
-
 	@EventHandler
 	public void onKingdomDelete(KingdomDeleteEvent e) {
 		Kingdoms.logDebug("kdelete event: " + e.getKingdom().getKingdomName());
@@ -936,12 +813,10 @@ public class KingdomManager extends Manager {
 				continue;
 			// String key = entry.getKey();
 			Kingdom value = (Kingdom) entry.getValue();
-
 			value.onKingdomDelete(e.getKingdom());
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////
 	@EventHandler
 	public void onKingdomMemberJoinEvent(KingdomMemberJoinEvent event) {
 		Kingdoms.logDebug("memberjoin");
@@ -966,20 +841,9 @@ public class KingdomManager extends Manager {
 		}
 	}
 
-	public void stopAutoSave() {
-		autoSaveThread.interrupt();
-		// 2016-08-22
-		try {
-			autoSaveThread.join();
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-		}
-	}
-
 	@Override
 	public synchronized void onDisable() {
-		// 2016-08-11
-		stopAutoSave();
+		autoSaveThread.cancel();
 		Kingdoms.logInfo("Saving [" + kingdomNameList.size() + "] loaded kingdoms...");
 		try {
 			saveAll();

@@ -56,6 +56,10 @@ public class OfflineKingdomPlayer {
 		return kingdom;
 	}
 	
+	public boolean isOnline() {
+		return Bukkit.getPlayer(uuid) != null;
+	}
+	
 	public void setKingdom(Kingdom kingdom) {
 		this.kingdom = kingdomManager.getKingdom(kingdom);
 	}

@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import org.bukkit.Bukkit;
@@ -19,15 +20,13 @@ import org.bukkit.entity.Player;
 
 public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	
-	private final Set<KingdomPlayer> onlineMembers = new HashSet<>();
-	private final Set<Kingdom> onlineEnemies = new HashSet<>();
-	private final Set<Kingdom> onlineAllies = new HashSet<>();
+	private final Set<KingdomPlayer> online = new HashSet<>();
 	private Location nexus, spawn;
+	private int max;
 	
 	int chestsize = 9;
 	long timestamp = 0;
 	int maxMember = 10;
-	
 	ChampionInfo championInfo = new ChampionInfo();
 	PermissionsInfo permissionsInfo = new PermissionsInfo();
 	ArmyInfo armyInfo = new ArmyInfo();
@@ -37,9 +36,18 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	PowerUp powerUp = new PowerUp();
 	TurretUpgradeInfo turretUpgrades = new TurretUpgradeInfo();
 	
-	public Kingdom(UUID uuid) {
-		super(uuid);
-		maxMember = Config.getConfig().getInt("base-member-count");
+	public Kingdom(OfflineKingdom kingdom) {
+		super(kingdom.getUniqueId(), kingdom.getKing(), true);
+		this.max = instance.getConfig().getInt("base-max-members", 10);
+	}
+	
+	public Kingdom(KingdomPlayer king) {
+		this(UUID.randomUUID(), king);
+	}
+	
+	public Kingdom(UUID uuid, KingdomPlayer king) {
+		super(uuid, king);
+		this.max = instance.getConfig().getInt("base-max-members", 10);
 	}
 
 	public Location getNexusLocation() {
@@ -56,24 +64,34 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 
 	public void setSpawn(Location spawn) {
 		this.spawn = spawn;
-		
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
-	public int getChestsize() {
+	public int getChestSize() {
 		return chestsize;
 	}
 
-	public void setChestsize(int chestsize) {
+	public void setChestSize(int chestsize) {
 		this.chestsize = chestsize;
 		
-	}
-
-	public List<Kingdom> getOnlineEnemies() {
-		return onlineEnemies;
-	}
-
-	public List<Kingdom> getOnlineAllies() {
-		return onlineAllies;
 	}
 
 	public ChampionInfo getChampionInfo() {
@@ -121,10 +139,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 		this.maxMember = maxMember;
 		
 	}
-	
-//	public int getMight(){
-//		return this.might;
-//	}
 
 	public MisupgradeInfo getMisupgradeInfo() {
 		if(misupgradeInfo == null)
@@ -277,12 +291,12 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	public void addMember(UUID uuid){
 		if(members.contains(uuid)) return;
 		members.add(uuid);
-		
 	}
+	
 	public void removeMember(UUID uuid){
 		members.remove(uuid);
-		
 	}
+	
 /*	public void setmembers(List<UUID> members) {
 		this.members = members;
 		

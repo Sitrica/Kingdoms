@@ -36,7 +36,7 @@ public class CooldownManager extends Manager {
 			if (cooldown != null && kingdom != null) {
 				long now = System.currentTimeMillis();
 				long cooldownTime = cooldown.start;
-				long totalTime = cooldown.time;
+				long totalTime = cooldown.seconds;
 				int r = (int) (now - cooldownTime) / 1000;
 				remaining = (r - totalTime) * (-1);
 			}
@@ -55,14 +55,14 @@ public class CooldownManager extends Manager {
 	public static class KingdomCooldown {
 
 		private final OfflineKingdom kingdom;
+		private final long seconds;
 		private final String name;
-		private final long time;
 		private long start;
 
-		public KingdomCooldown(OfflineKingdom kingdom, String name, long time) {
+		public KingdomCooldown(OfflineKingdom kingdom, String name, long seconds) {
 			this.kingdom = kingdom;
+			this.seconds = seconds;
 			this.name = name;
-			this.time = time;
 		}
 
 		public void start() {

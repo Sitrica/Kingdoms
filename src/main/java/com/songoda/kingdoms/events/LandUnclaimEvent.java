@@ -1,6 +1,6 @@
 package com.songoda.kingdoms.events;
 
-import com.songoda.kingdoms.objects.kingdom.Kingdom;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 
 import org.bukkit.event.Cancellable;
@@ -11,10 +11,10 @@ public class LandUnclaimEvent extends Event implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
 	private boolean cancelled;
-	private Kingdom kingdom;
+	private OfflineKingdom kingdom;
 	private Land land;
 	
-	public LandUnclaimEvent(Land land, Kingdom kingdom) {
+	public LandUnclaimEvent(Land land, OfflineKingdom kingdom) {
 		this.kingdom = kingdom;
 		this.land = land;
 	}
@@ -23,7 +23,7 @@ public class LandUnclaimEvent extends Event implements Cancellable {
 		return land;
 	}
 	
-	public Kingdom getKingdom() {
+	public OfflineKingdom getKingdom() {
 		return kingdom;
 	}
 	
