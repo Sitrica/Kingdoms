@@ -166,6 +166,8 @@ kingdoms:
     # When a player joins the server, should they spawn at their Kingdom?
     join-at-kingdom: false
     markers-on-by-default: true
+    # Allow memebers to attack eachother
+    friendly-fire: false
     # If the player keeps going in and out of lands, what should the cooldown time be.
     # Actionbars get excluded from this, so the player will always know where they are.
     # Example:

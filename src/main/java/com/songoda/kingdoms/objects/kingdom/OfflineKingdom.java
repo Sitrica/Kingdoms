@@ -1,34 +1,18 @@
 package com.songoda.kingdoms.objects.kingdom;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
 import com.songoda.kingdoms.Kingdoms;
-import com.songoda.kingdoms.manager.managers.CooldownManager;
 import com.songoda.kingdoms.manager.managers.CooldownManager.KingdomCooldown;
 import com.songoda.kingdoms.manager.managers.KingdomManager;
-import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
-import com.songoda.kingdoms.utils.LocationUtils;
-
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 
 public class OfflineKingdom {
 
 	private long might = 0, claims = 0, resourcePoints = 0, invasionCooldown = 0;
-	//TODO make sure the members list contains the king.
-	private final Set<OfflineKingdomPlayer> members = new HashSet<>();
+	protected final Set<OfflineKingdomPlayer> members = new HashSet<>();
 	private final KingdomManager kingdomManager;
-	private final CooldownManager cooldowns;
 	private KingdomCooldown shieldTime;
 	private OfflineKingdomPlayer king;
 	protected final Kingdoms instance;
@@ -65,7 +49,6 @@ public class OfflineKingdom {
 	protected OfflineKingdom(UUID uuid, OfflineKingdomPlayer king, boolean safeUUID) {
 		this.instance = Kingdoms.getInstance();
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
-		this.cooldowns = instance.getManager("cooldown", CooldownManager.class);
 		this.dynmapColor = kingdomManager.getRandomColor();
 		this.members.add(king);
 		this.king = king;
@@ -175,6 +158,16 @@ public class OfflineKingdom {
 		this.shieldTime = new KingdomCooldown(this, "SHIELD", seconds);
 	}
 	
+	/**
+	 * Grabs the cooldown instance loader of the Sheild.
+	 * This is not the actual countdown time of the Shield.
+	 * Use this object for getting of time left.
+	 * 
+	 * @return KingdomCooldown
+	 */
+	public KingdomCooldown getShieldTime() {
+		return shieldTime;
+	}
 	
 	
 	
@@ -190,6 +183,7 @@ public class OfflineKingdom {
 	
 	
 	
+	/*
 	public int getShieldValue() {
 		return shieldValue;
 	}
@@ -290,6 +284,6 @@ public class OfflineKingdom {
 	public void cancelCooldown(String name){
 		String key = name.toLowerCase();
 		cdTimeNeeded.put(key, 0L);
-	}
+	}*/
 
 }

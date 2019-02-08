@@ -9,7 +9,7 @@
 #!    ▀                                                                                        
 #!
 # The version is to help determine which version this config is. Please don't modify this value.
-version: "1.0.0"
+version: "2.0.0"
 
 # Information: Placeholders that are available for each message will be commented above it.
 # Default placeholders that exist on every message are %prefix% and %newline%/%nl%
@@ -42,6 +42,7 @@ kingdoms:
         invading-deny-chunk-change: "&cYou can not leave the Kingdom while invading!"
     deleted: "&eYour Kingdom %kingdom% has been disbanded."
     creation: "&aYou have successfully created a Kingdom with the name %kingdom%!"
+    cannot-attack-members: "&cYou can't attack your own kingdom members!"
 # All messages relating to maps and chunks.
 map:
     # Called when a user walks into an unoccupied chunk of land.
@@ -64,10 +65,13 @@ map:
     enemy-land:
         actionbar: "&c&lEnemy's Land - &4(&f%kingdom%&4)"
         message: "&eYou have entered %kingdom%'s kingdom and they're an enemy with you!%newline%&7%lore%"
+# All messages relating to claiming.
 claiming:
     world-disabled: "&cThis command is disabled in this world."
+# All messages relating to chat.
 chat:
-    ally-chat-prefix: "&d[%rank%] %player%: "
+    ally-chat-prefix: "&d[%rank%] %player%: &7"
+    kingdom-chat-prefix: "&a[%rank%] %player%: &7"
     
     
 
@@ -89,7 +93,6 @@ Rank_All_Name: All
 Chat_Prefix_Members: "&8[&a\u265f&8][&7%kingdom%&8]"
 Chat_Prefix_Mods: "&8[&1\u2694&8][&7%kingdom%&8]"
 Chat_Prefix_Generals: "&8[&6\u265b&8][&7%kingdom%&8]"
-Chat_Kingdomchat_Prefix: '&a[%rank%] %player%: '
 PlaceHolders_None: none
 Command_Info_PageTextHeader: '&6Page %currpagenum%'
 Command_Info_NextPageText: '&6Do /k info &7%nextpagenum% &6to see the next page'
@@ -450,7 +453,6 @@ Misc_Not_In_Land: '&cYou can only do that in your land'
 Misc_Not_Air: '&cThere is something obstructing the way!'
 Misc_Confirmation_Cancel: '&cConfirmation cancelled.'
 Misc_Previous_Request_Processing: '&cYour command is still processing. If this problem persists, contact an administrator'
-Misc_Cannot_Attack_Own_Member: '&cYou can''t attack your own kingdom members!'
 Misc_Cannot_Attack_Own_Ally: '&cYou can''t attack your own kingdom allies!'
 Misc_Cannot_Trample_Soil: '&bYour kingdom soil cannot be trampled'
 Misc_Cannot_Trample_Other_Soil: '&cYou cannot trample soil in %kingdom%''s land'

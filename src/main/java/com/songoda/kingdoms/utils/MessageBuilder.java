@@ -196,8 +196,15 @@ public class MessageBuilder {
 	/**
 	 * Sends the final product of the builder.
 	 */
-	public void send(KingdomPlayer... players) {
+	public void send(Collection<KingdomPlayer> players) {
 		toKingdomPlayers(Sets.newHashSet(players)).send();
+	}
+	
+	/**
+	 * Sends the final product of the builder.
+	 */
+	public void send(KingdomPlayer... players) {
+		send(Sets.newHashSet(players));
 	}
 	
 	/**

@@ -114,7 +114,7 @@ public class LandManager extends Manager {
 			}, 0, IntervalUtils.getInterval(interval) * 20);
 		}
 		initLands();
-		if (configuration.getBoolean("taxes.enabled")) {
+		if (configuration.getBoolean("taxes.enabled", false)) {
 			String timeString = configuration.getString("taxes.interval", "2 hours");
 			long time = IntervalUtils.getInterval(timeString) * 20;
 			int amount = configuration.getInt("taxes.amount", 10);
@@ -132,10 +132,8 @@ public class LandManager extends Manager {
 					for (Land land : lands.values()) {
 						OfflineKingdom kingdom = land.getKingdomOwner();
 						if (kingdom != null) {
-							//Kingdom kingdom = Kingdoms.getManagers().getKingdomManager().getOrLoadKingdom(land.getOwnerUUID());
-							if (kingdom == null)
-								return;
-							if (kingdom.getResourcepoints() < amount && disband) {
+							long resourcePoints = kingdom.getResourcePoints();
+							if (resourcePoints < amount && disband) {
 								new MessageBuilder("taxes.disband")
 										.toPlayers(Bukkit.getOnlinePlayers())
 										.replace("%amount%", amount)
@@ -144,9 +142,9 @@ public class LandManager extends Manager {
 								kingdomManager.deleteKingdom(kingdom);
 								return;
 							}
-							kingdom.setResourcepoints(kingdom.getResourcepoints() - amount);
+							kingdom.setResourcePoints(resourcePoints - amount);
 							if (configuration.getBoolean("taxes.reverse", false))
-								kingdom.setResourcepoints(kingdom.getResourcepoints() + (amount * 2));
+								kingdom.setResourcePoints(resourcePoints + (amount * 2));
 						}
 					}
 				}
@@ -197,7 +195,6 @@ public class LandManager extends Manager {
 	private synchronized int save() {
 		Kingdoms.debugMessage("Starting Land Save");
 		int i = 0;
-		Kingdoms.debugMessage("Starting Land Save");
 		Set<String> saved = new HashSet<>();
 		for (Chunk chunk : getLoadedLand()) {
 			String name = LocationUtils.chunkToString(chunk);
@@ -211,11 +208,15 @@ public class LandManager extends Manager {
 				i++;
 				continue;
 			}
-			if (land.getOwnerUUID() != null && Kingdoms.getManagers().getKingdomManager().getOrLoadKingdom(land.getOwnerUUID()) == null) {
-				database.save(name, null);
-				saved.add(name);
-				i++;
-				continue;
+			OfflineKingdom kingdom = land.getKingdomOwner();
+			if (kingdom != null) {
+				// This is questionable, because it shouldn't return null. Find out why this is here.
+				if (Kingdoms.getManagers().getKingdomManager().getOrLoadKingdom(land.getOwnerUUID()) == null) {
+					database.delete(name);
+					saved.add(name);
+					i++;
+					continue;
+				}
 			}
 			try{
 				database.save(name, land);
@@ -349,11 +350,10 @@ public class LandManager extends Manager {
 	}
 	
 	public boolean isConnectedToNexus(Land land) {
-		if (land.getOwnerUUID() == null)
+		OfflineKingdom offlineKingdom = land.getKingdomOwner();
+		if (offlineKingdom == null)
 			return false;
-		Kingdom kingdom = Kingdoms.getManagers().getKingdomManager().getOrLoadKingdom(land.getOwnerUUID());
-		if (kingdom == null)
-			return false;
+		Kingdom kingdom = offlineKingdom.getKingdom();
 		Location nexusLocation = kingdom.getNexusLocation();
 		if (nexusLocation == null)
 			return false;
@@ -376,13 +376,13 @@ public class LandManager extends Manager {
 		getLoadedLand().parallelStream()
 				.map(chunk -> getLand(chunk))
 				.filter(land -> land.getStructure() != null)
-				.filter(land -> land.getOwnerUUID() != null)
-				.filter(land -> land.getOwnerUUID().equals(kingdom.getUniqueId()))
+				.filter(land -> land.getKingdomOwner() != null)
+				.filter(land -> land.getKingdomOwner().getUniqueId().equals(kingdom.getUniqueId()))
 				.forEach(land -> connected.addAll(getAllConnectingLand(land)));
 		Stream<Land> stream = getLoadedLand().parallelStream()
 				.map(chunk -> getLand(chunk))
-				.filter(land -> land.getOwnerUUID() != null)
-				.filter(land -> land.getOwnerUUID().equals(kingdom.getUniqueId()))
+				.filter(land -> land.getKingdomOwner() != null)
+				.filter(land -> land.getKingdomOwner().getUniqueId().equals(kingdom.getUniqueId()))
 				.filter(land -> !connected.contains(land));
 		long count = stream.count();
 		stream.forEach(land -> unclaimLand(kingdom, land.getChunk()));
@@ -392,8 +392,8 @@ public class LandManager extends Manager {
 	
 	public Set<Land> getConnectingLand(Land center, Collection<Land> checked) {
 		return center.getSurrounding().parallelStream()
-				.filter(land -> land.getOwnerUUID() != null)
-				.filter(land -> land.getOwnerUUID().equals(center.getOwnerUUID()))
+				.filter(land -> land.getKingdomOwner() != null)
+				.filter(land -> land.getKingdomOwner().getUniqueId().equals(center.getKingdomOwner().getUniqueId()))
 				.collect(Collectors.toSet());
 	}
 	
@@ -427,9 +427,9 @@ public class LandManager extends Manager {
 				if (checked.contains(land))
 					continue;
 				checked.add(land);
-				if (land.getOwnerUUID() == null)
+				if (land.getKingdomOwner() == null)
 					continue;
-				if (!land.getOwnerUUID().equals(center.getOwnerUUID()))
+				if (!land.getKingdomOwner().getUniqueId().equals(center.getKingdomOwner().getUniqueId()))
 					continue;
 				connected.add(land);
 				newOutwards.add(land);
@@ -443,19 +443,16 @@ public class LandManager extends Manager {
 	@EventHandler
 	public void onWorldLoad(WorldLoadEvent event) {
 		for (Land land : toLoad.values()) {
-			//the land has owner but the owner kingdom doesn't exist
-			if (land.getOwnerUUID() != null) {
-				Kingdom kingdom = GameManagement.getKingdomManager().getOrLoadKingdom(land.getOwnerUUID());
-				if (kingdom == null) {
-					String name = LocationUtils.chunkToString(land.getChunk());
-					Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
-					Kingdoms.consoleMessage("The land owner is [" + land.getOwnerName() + "] but no such kingdom with the name exists");
-				}
+			OfflineKingdom kingdom = land.getKingdomOwner();
+			if (kingdom != null) {
+				String name = LocationUtils.chunkToString(land.getChunk());
+				Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
+				Kingdoms.consoleMessage("The land owner is [" + land.getOwnerName() + "] but no such kingdom with the name exists");
 			}
 			if (!lands.containsKey(land.getChunk()))
 				lands.put(land.getChunk(), land);
 			Bukkit.getPluginManager().callEvent(new LandLoadEvent(land));
-			WarpPadManager warpPadManager = instance.getManager("warp-pad", WarpPadManager.class).orElseCreate();
+			WarpPadManager warpPadManager = instance.getManager("warp-pad", WarpPadManager.class);
 			warpPadManager.checkLoad(land);
 			toLoad.remove(land);
 		}

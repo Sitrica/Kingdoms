@@ -17,6 +17,7 @@ debug: false
 
 plugin:
     load-player-before-join: true
+    warzone-free-pvp: false
 # Configure your database settings.
 database:
     mysql:
@@ -160,6 +161,13 @@ kingdoms:
     allow-pacifist: false
     # If a Kingdom is a pacifist, should they be hidden from the leaderboard?
     leaderboard-hide-pacifists: false
+    # If players should respawn in their Kingdom.
+    respawn-at-kingdom: false
+    # When a player joins the server, should they spawn at their Kingdom?
+    join-at-kingdom: false
+    markers-on-by-default: true
+    # Allow memebers to attack eachother
+    friendly-fire: false
     # If the player keeps going in and out of lands, what should the cooldown time be.
     # Actionbars get excluded from this, so the player will always know where they are.
     # Example:
@@ -350,7 +358,6 @@ enabled-worlds:
 worlds-where-land-is-explosive-vulnerable:
 - VoidWorldd
 no-region-claim: true
-warzone-free-pvp: false
 can-open-storage-blocks-in-other-kingdom-land: false
 siege:
     fire:
@@ -509,7 +516,6 @@ kingdom-create-item-cost:
 - GOLD_INGOT,5
 - IRON_INGOT,5
 kingdom-create-need-item-cost: false
-markers-on-by-default: true
 items-needed-for-one-resource-point: 5
 claim-cost: 5
 invade-cost: 10
@@ -524,7 +530,6 @@ regulator:
 minimum-members-online-to-be-invaded: 0
 land-per-member: 5
 maximum-land-claims: 0
-respawn-in-kingdom-home: false
 infinite-claim-worlds:
 - worldThatAllowsYouToClaimInfinitely
 unreplaceableblocks:

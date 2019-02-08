@@ -633,10 +633,16 @@ public class KingdomManager extends Manager {
 		}
 		if (damaged.getKingdom() == null)
 			return;
-		if (attacked.getKingdom().equals(damaged.getKingdom())) {
-			event.setDamage(0.0D);
-			attacked.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Attack_Own_Member", attacked.getLang()));
-			event.setCancelled(true);
+		Kingdom kingdom = damaged.getKingdom();
+		if (attacked.getKingdom().equals(kingdom)) {
+			if (!configuration.getBoolean("kingdoms.friendly-fire", false)) {
+				event.setDamage(0);
+				event.setCancelled(true);
+				new MessageBuilder("kingdoms.cannot-attack-members")
+						.replace("%player%", attacked.getName())
+						.setKingdom(kingdom)
+						.send(attacked);
+			}
 		}
 	}
 
