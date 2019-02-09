@@ -79,6 +79,10 @@ public class RankManager extends Manager {
 			return configurationName;
 		}
 		
+		public String getConfigurationNode() {
+			return node;
+		}
+		
 		public ChatColor getColor() {
 			return color;
 		}
@@ -123,6 +127,10 @@ public class RankManager extends Manager {
 		return ranks.parallelStream()
 				.sorted(Comparator.comparing(Rank::getPriority))
 				.collect(Collectors.toList());
+	}
+	
+	public List<Rank> getRanks() {
+		return getSortedOrder();
 	}
 	
 	public Rank getDefaultRank() {

@@ -3,8 +3,10 @@ package com.songoda.kingdoms.manager.managers;
 import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.land.Turret;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.utils.LocationUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
@@ -35,6 +37,7 @@ import java.util.UUID;
 public class PlayerMovementManager extends Manager {
 
 	private long spam = System.currentTimeMillis();
+	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
 	private final LandManager landManager;
 	
@@ -42,6 +45,7 @@ public class PlayerMovementManager extends Manager {
 		super(true);
 		this.landManager = instance.getManager("land", LandManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
+		this.playerManager = instance.getManager("player", PlayerManager.class);
 	}
 
 	@EventHandler
@@ -91,47 +95,44 @@ public class PlayerMovementManager extends Manager {
 		for (int x = -1; x <= 1; x++) {
 			for (int z = -1; z <= 1; z++) {
 				Chunk next = world.getChunkAt(centerX + x, centerZ + z);
-				Optional<Land> optional = landManager.getLandAt(next);
-				if (optional.isPresent()) {
-					Land land = optional.get();
-					List<Turret> turrets = land.getTurrets();
-					for (Turret turret : turrets) {
-						//attempt to get the closest player to the turret
-						Location turretLocation = turret.getLocation();
-						Player closest = null;
-						double closestDistance = 0.0;
-						for (Player p : getNearbyPlayers(turretLocation, turret.getType().getRange())) {
-							double distance = p.getLocation().distance(turretLocation);
-							if (distance > closestDistance) {
-								closest = p;
-								closestDistance = distance;
-							}
+				Land optional = landManager.getLand(next);
+				List<Turret> turrets = land.getTurrets();
+				for (Turret turret : turrets) {
+					//attempt to get the closest player to the turret
+					Location turretLocation = turret.getLocation();
+					Player closest = null;
+					double closestDistance = 0.0;
+					for (Player p : getNearbyPlayers(turretLocation, turret.getType().getRange())) {
+						double distance = p.getLocation().distance(turretLocation);
+						if (distance > closestDistance) {
+							closest = p;
+							closestDistance = distance;
 						}
-						if (closest != null)
-							turret.fire(closest);
 					}
+					if (closest != null)
+						turret.fire(closest);
 				}
 			}
 		}
 		if (chunkTo != chunkFrom) {
-			//Check if player is in a fightzone
-			boolean invadingDeny = configuration.getBoolean("invading-deny-chunk-change", true);
-			if (GameManagement.getPlayerManager().getSession(player).getFightZone() != null && invadingDeny) {
-				// Direction from to to.
-				Vector vector = from.toVector().subtract(to.toVector()).normalize().multiply(2);
-				// This used to be teleport to player.getLocation().add(vector)
-				// Changed to velocity because I think pushing them back with an animation looks better.
-				player.setVelocity(vector);
-				player.setFallDistance(0);
-				event.setCancelled(true);
-				new MessageBuilder("kingdoms.invading.invading-deny-chunk-change")
-						.replace("%chunkFrom%", LocationUtils.chunkToString(chunkFrom))
-						.replace("%chunkTo%", LocationUtils.chunkToString(chunkTo))
-						.replace("%kingdom%", kingdom)
-						.replace("%land%", kingdom)
-						.replace("%player%", player.getName())
-						.send(player);
-				return;
+			if (configuration.getBoolean("kingdoms.invading.invading-deny-chunk-change", true)) {
+				KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+				if (kingdomPlayer.isInvading()) {
+					// Direction from to to.
+					Vector vector = from.toVector().subtract(to.toVector()).normalize().multiply(2);
+					// This used to be teleport to player.getLocation().add(vector)
+					// Changed to velocity because I think pushing them back with an animation looks better.
+					player.setVelocity(vector);
+					player.setFallDistance(0);
+					event.setCancelled(true);
+					new MessageBuilder("kingdoms.invading.invading-deny-chunk-change")
+							.replace("%chunkFrom%", LocationUtils.chunkToString(chunkFrom))
+							.replace("%chunkTo%", LocationUtils.chunkToString(chunkTo))
+							.setKingdom(kingdomPlayer.getKingdom())
+							.setPlaceholderObject(kingdomPlayer)
+							.send(kingdomPlayer);
+					return;
+				}
 			}
 			PlayerChangeChunkEvent change = new PlayerChangeChunkEvent(player, chunkFrom, chunkTo);
 			Bukkit.getServer().getPluginManager().callEvent(change);
@@ -151,24 +152,21 @@ public class PlayerMovementManager extends Manager {
 		//TODO add configuration option to ignore or not regions.
 		if (ExternalManager.isInRegion(player.getLocation()))
 			return;
-		KingdomPlayer kingdomPlayer = GameManagement.getPlayerManager().getSession(player);
-		//TODO Should not be possible to get null
-		if (kingdomPlayer == null)
-			return;
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		Chunk chunkFrom = event.getFromChunk();
 		Chunk chunkTo = event.getToChunk();
-		Land landTo = landManager.getOrLoadLand(chunkTo);
+		Land landTo = landManager.getLand(chunkTo);
 		if (chunkFrom != null) {
-			Land landFrom = landManager.getOrLoadLand(chunkFrom);
-			UUID fromOwner = landFrom.getOwnerUUID();
-			UUID toOwner = landTo.getOwnerUUID();
+			Land landFrom = landManager.getLand(chunkFrom);
+			OfflineKingdom fromOwner = landFrom.getKingdomOwner();
+			OfflineKingdom toOwner = landTo.getKingdomOwner();
 			if (fromOwner == null && toOwner == null)
 				return;
-			else if (fromOwner.equals(toOwner))
+			else if (fromOwner.getUniqueId() == toOwner.getUniqueId())
 				return;
 		}
-		//Check if land is unoccupied. 
-		if (landTo.getOwnerUUID() == null) {
+		OfflineKingdom kingdom = landTo.getKingdomOwner();
+		if (kingdom == null) {
 			if (configuration.getBoolean("kingdoms.land-enter-unoccupied.actionbar", true))
 				new MessageBuilder(false, "map.unoccupied-land.actionbar")
 						.setPlaceholderObject(LocationUtils.chunkToString(chunkFrom)) // %string% can be used.
@@ -199,8 +197,6 @@ public class PlayerMovementManager extends Manager {
 			spam = System.currentTimeMillis();
 			return;
 		}
-		//Check status of the land.
-		Kingdom kingdom = GameManagement.getKingdomManager().getOrLoadKingdom(landTo.getOwnerUUID());
 		ChatColor color = ChatColor.WHITE;
 		// Player has no Kingdom, so they have no alliances nor enemies.
 		if (kingdomPlayer.getKingdom() == null)

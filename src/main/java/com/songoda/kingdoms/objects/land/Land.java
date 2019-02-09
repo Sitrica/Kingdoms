@@ -39,10 +39,6 @@ public class Land {
 		this.claimTime = claimTime;
 	}
 	
-	public String getOwnerName() {
-		return kingdom.getName();
-	}
-	
 	public Structure getStructure() {
 		return structure;
 	}

@@ -139,12 +139,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 		return championInfo;
 	}
 
-	public PermissionsInfo getPermissionsInfo() {
-		if(permissionsInfo == null)
-			permissionsInfo = new PermissionsInfo();
-		return permissionsInfo;
-	}
-
 	public ArmyInfo getArmyInfo() {
 		if(armyInfo == null)
 			armyInfo = new ArmyInfo();

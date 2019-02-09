@@ -11,6 +11,8 @@ public interface Challenger {
 	
 	public Chunk getInvadingChunk();
 	
+	public boolean isInvading();
+	
 	public void setInvadingChunk(Chunk chunk);
 
 }

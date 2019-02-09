@@ -1,16 +1,20 @@
 package com.songoda.kingdoms.objects.kingdom;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.CooldownManager.KingdomCooldown;
 import com.songoda.kingdoms.manager.managers.KingdomManager;
+import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 
 public class OfflineKingdom {
 
 	private long might = 0, claims = 0, resourcePoints = 0, invasionCooldown = 0;
+	private final Map<Rank, RankPermissions> permissions = new HashMap<>();
 	protected final Set<OfflineKingdomPlayer> members = new HashSet<>();
 	private final KingdomManager kingdomManager;
 	private KingdomCooldown shieldTime;
@@ -167,6 +171,21 @@ public class OfflineKingdom {
 	 */
 	public KingdomCooldown getShieldTime() {
 		return shieldTime;
+	}
+	
+	/**
+	 * Grabs the rank permissions of a rank for the Kingdom.
+	 * 
+	 * @param rank Rank to grab permissions for.
+	 * @return RankPermissions which is an object for reading all permissions for a rank.
+	 */
+	public RankPermissions getPermissions(Rank rank) {
+		RankPermissions permission = permissions.get(rank);
+		if (permission == null) {
+			permission = new RankPermissions(rank);
+			permissions.put(rank, permission);
+		}
+		return permission;
 	}
 	
 	

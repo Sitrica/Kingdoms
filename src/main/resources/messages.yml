@@ -68,6 +68,7 @@ map:
 # All messages relating to claiming.
 claiming:
     world-disabled: "&cThis command is disabled in this world."
+    no-kingdom: "&cYou need to be in a Kingdom to claim land!"
 # All messages relating to chat.
 chat:
     ally-chat-prefix: "&d[%rank%] %player%: &7"
@@ -436,7 +437,6 @@ Misc_Economy_Trade_Successful: '&bYou have traded &e$%amount% &bfor &e%traded% &
 Misc_Economy_Insufficient_Money: '&cYou specified an amount higher than your balance!'
 Misc_Economy_Trade_Leftover_Return: '&bThe leftover &b$%leftover% &bwas left over from the trade, and will be return to you.'
 Misc_Enonomy_Not_Enabled: '&cEconomy is disabled for kingdoms!'
-Misc_Not_In_Kingdom: '&cYou need to be in a kingdom to do that!'
 Misc_Not_Enough_Permissions: '&cYou don''t have enough permissions!'
 Misc_IllegalGamemode: '&cThis function cannot be used in your current gamemode!'
 Misc_Unknown_Command: '&cUnknown Command'

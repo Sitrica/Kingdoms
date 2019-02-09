@@ -25,23 +25,16 @@ import javax.naming.NamingException;
 
 import com.google.common.collect.Sets;
 import com.songoda.kingdoms.Kingdoms;
-import com.songoda.kingdoms.constants.StructureType;
 import com.songoda.kingdoms.database.Database;
 import com.songoda.kingdoms.database.DatabaseTransferTask;
 import com.songoda.kingdoms.database.DatabaseTransferTask.TransferPair;
 import com.songoda.kingdoms.database.MySQLDatabase;
 import com.songoda.kingdoms.database.SQLiteDatabase;
 import com.songoda.kingdoms.database.YamlDatabase;
-import com.songoda.kingdoms.manager.external.ExternalManager;
-import com.songoda.kingdoms.manager.game.ConquestManager;
-import com.songoda.kingdoms.manager.game.GameManagement;
-import com.songoda.kingdoms.manager.gui.GUIManagement;
-import com.songoda.kingdoms.objects.KingdomPlayer;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
-import com.songoda.kingdoms.objects.land.SimpleChunkLocation;
-import com.songoda.kingdoms.objects.land.SimpleLocation;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.utils.LocationUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
@@ -86,10 +79,11 @@ public class LandManager extends Manager {
 		registerManager("land", new LandManager());
 	}
 	
-	private final Map<Chunk, Land> lands = new ConcurrentHashMap<>();
 	private final List<String> unclaiming = new ArrayList<>(); //TODO test if this is even requried. It's a queue to avoid claiming and removing at same time.
+	private final Map<Chunk, Land> lands = new HashMap<>();
 	private final FileConfiguration configuration;
 	private final KingdomManager kingdomManager;
+	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
 	private static Database<Land> database;
 	private BukkitTask autoSaveThread;
@@ -100,6 +94,8 @@ public class LandManager extends Manager {
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.worldManager = instance.getManager("world", WorldManager.class);
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(Land.class);
 		else
@@ -170,13 +166,10 @@ public class LandManager extends Manager {
 						toLoad.put(chunk, land);
 					continue;
 				}
-				//the land has owner but the owner kingdom doesn't exist
-				if (land.getOwnerUUID() != null) {
-					Kingdom kingdom = GameManagement.getKingdomManager().getOrLoadKingdom(land.getOwnerUUID());
-					if (kingdom == null) {
-						Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
-						Kingdoms.consoleMessage("The land owner is [" + land.getOwnerName() + "] but no such kingdom with the name exists");
-					}
+				OfflineKingdom kingdom = land.getKingdomOwner();
+				if (kingdom != null) {
+					Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
+					Kingdoms.consoleMessage("The land owner is [" + kingdom.getName() + "] but no such kingdom with the name exists");
 				}
 				LandLoadEvent event = new LandLoadEvent(land);
 				Bukkit.getPluginManager().callEvent(new LandLoadEvent(land));
@@ -447,7 +440,7 @@ public class LandManager extends Manager {
 			if (kingdom != null) {
 				String name = LocationUtils.chunkToString(land.getChunk());
 				Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
-				Kingdoms.consoleMessage("The land owner is [" + land.getOwnerName() + "] but no such kingdom with the name exists");
+				Kingdoms.consoleMessage("The land owner is [" + kingdom.getName() + "] but no such kingdom with the name exists");
 			}
 			if (!lands.containsKey(land.getChunk()))
 				lands.put(land.getChunk(), land);
@@ -463,7 +456,7 @@ public class LandManager extends Manager {
 		Player player = event.getPlayer();
 		if (ExternalManager.isCitizen(player))
 			return;
-		KingdomPlayer kingdomPlayer = GameManagement.getPlayerManager().getSession(player);
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		if (kingdomPlayer.isKMapOn()) {
 			Bukkit.getScheduler().scheduleSyncDelayedTask(Kingdoms.getInstance(), new Runnable() {
 				public void run() {
@@ -471,7 +464,7 @@ public class LandManager extends Manager {
 				}
 			}, 1L);
 		}
-		if (kingdomPlayer.isKAutoClaimOn()){
+		if (kingdomPlayer.isAutoClaiming()){
 			Bukkit.getScheduler().scheduleSyncDelayedTask(Kingdoms.getInstance(), new Runnable() {
 				public void run() {
 					attemptNormalLandClaim(kingdomPlayer);
@@ -482,30 +475,28 @@ public class LandManager extends Manager {
 	
 	public void attemptNormalLandClaim(KingdomPlayer kingdomPlayer) {
 		Player player = kingdomPlayer.getPlayer();
-		if (!worldManager.acceptsWorld(player.getWorld().getName())) {
+		if (!worldManager.acceptsWorld(player.getWorld())) {
 			new MessageBuilder("claiming.world-disabled")
 					.replace("%player%", player.getName())
 					.replace("%player%", player.getName())
 					.send(player);
 			return;
 		}
-		
-		Kingdom kingdom = kp.getKingdom();
-		if(kingdom == null){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_In_Kingdom", kp.getLang()));
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null) {
+			new MessageBuilder("claiming.no-kingdom")
+					.setPlaceholderObject(kingdomPlayer)
+					.send(kingdomPlayer);
 			return;
 		}
-		
-		if(!kp.getRank().isHigherOrEqualTo(kingdom.getPermissionsInfo().getClaim())){
+		if (!kingdom.getRank().isHigherOrEqualTo(kingdom.getPermissionsInfo().getClaim())) {
 			kp.sendMessage(Kingdoms.getLang().getString("Misc_Rank_Too_Low", kp.getLang()).replaceAll("%rank%", kingdom.getPermissionsInfo().getClaim().toString()));
 			return;
 		}
-		
-		if (ExternalManager.cannotClaimInRegion(kp.getPlayer().getLocation())) {
+		if (ExternalManager.cannotClaimInRegion(player.getLocation())) {
 			kp.sendMessage(Kingdoms.getLang().getString("Misc_Worldguard_Claim_Off_Limits", kp.getLang()));
 			return;
 		}
-		
 		Land land = GameManagement.getLandManager().getLand(kp.getLoc());
 		if(land.getOwnerUUID() != null){
 			if(land.getOwnerUUID().equals(kingdom.getKingdomUuid())){

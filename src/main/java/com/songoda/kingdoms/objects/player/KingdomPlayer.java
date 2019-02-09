@@ -69,6 +69,11 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {/
 	}
 	
 	@Override
+	public boolean isInvading() {
+		return invading != null;
+	}
+	
+	@Override
 	public Chunk getInvadingChunk() {
 		return invading;
 	}
@@ -111,18 +116,8 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {/
 
 
 
-	/*private transient boolean creatingKingdom = false;
-	@Override
-	public boolean isProcessing() {
-		return creatingKingdom;
-	}
 
-	@Override
-	public void setProcessing(boolean bool) {
-		creatingKingdom = bool;
-	}
-
-	/////////////////////////////////////////////////////////////
+	/*
 	private transient Entity champion = null;
 	@Override
 	public Entity getChampionPlayerFightingWith() {
@@ -134,22 +129,6 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {/
 		this.champion = champion;
 	}
 
-	transient ChunkLocation fightZone = null;
-	@Override
-	public ChunkLocation getFightZone() {
-		return fightZone;
-	}
-
-	public boolean isTemp() {
-		return temp;
-	}
-	public void setTemp(boolean temp) {
-		this.temp = temp;
-	}
-	@Override
-	public void setInvadingChunk(ChunkLocation loc) {
-		this.fightZone = loc;
-	}
 	/////////////////////////////////////////////////////////////
 	private transient Kingdom invited;
 	@Override
@@ -161,21 +140,7 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {/
 	public void setInvited(Kingdom kingdom) {
 		this.invited = kingdom;
 	}
-	/////////////////////////////////////////////////////////////
-	private transient ChatChannel channel = ChatChannel.PUBLIC;
-	@Override
-	public ChatChannel getChannel() {
-		return channel;
-	}
-
-	@Override
-	public void setChannel(ChatChannel channel) {
-		KingdomPlayerChatChannelChangeEvent ev = new KingdomPlayerChatChannelChangeEvent(this, this.channel, channel);
-		Bukkit.getPluginManager().callEvent(ev);
-		if(ev.isCancelled()) return;
-		this.channel = ev.getNewChatChannel();
-	}
-	////////////////////////////////////////////////////////////
+	
 	private transient Queue<Location> blocks = new LinkedList<Location>();
 	@Override
 	public Queue<Location> getLastMarkedChunk() {

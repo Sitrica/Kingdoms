@@ -271,6 +271,51 @@ ranks:
 #        name: "Queen"
 #        # Placeholders: %player%, %kingdom%, %priority%, %name% (rank name), %unicode%/%icon%, %player% and all Kingdom related placeholders.
 #        prefix: "&8[&d%unicode%&8][&7%kingdom%&8]"
+#       default-permissions:
+#            claiming: true
+#            nexus-access: true
+    general:
+        priority: 2
+        color: "GOLD"
+        chat-color: "GRAY"
+        unicode-icon: "\u265b"
+        name: "General"
+        # Placeholders: %player%, %kingdom%, %priority%, %name% (rank name), %unicode%/%icon%, %player% and all Kingdom related placeholders.
+        prefix: "&8[&6%unicode%&8][&7%kingdom%&8]"
+        # Default permissions are the base permission set when a new Kingdom is created.
+        # If the default permissions aren't set they will be assumed true, just like in the King's section.
+        default-permissions:
+            claiming: true
+            nexus-access: false
+    # Knights was previously called moderators.
+    knight:
+        priority: 3
+        color: "BLUE"
+        chat-color: "GRAY"
+        unicode-icon: "\u2694"
+        name: "Knight"
+        # Placeholders: %player%, %kingdom%, %priority%, %name% (rank name), %unicode%/%icon%, %player% and all Kingdom related placeholders.
+        prefix: "&8[&9%unicode%&8][&7%kingdom%&8]"
+        # Default permissions are the base permission set when a new Kingdom is created.
+        # If the default permissions aren't set they will be assumed true, just like in the King's section.
+        default-permissions:
+            claiming: true
+            nexus-access: false
+    member:
+        # Default it's going to be the lowest priority.
+        priority: 99
+        color: "GREEN"
+        chat-color: "GRAY"
+        unicode-icon: "\u265f"
+        name: "Member"
+        # Placeholders: %player%, %kingdom%, %priority%, %name% (rank name), %unicode%/%icon%, %player% and all Kingdom related placeholders.
+        prefix: "&8[&7%kingdom%&8]"
+        # Default permissions are the base permission set when a new Kingdom is created.
+        # If the default permissions aren't set they will be assumed true, just like in the King's section.
+        default-permissions:
+            claiming: false
+            nexus-access: false
+        
         
         
         
