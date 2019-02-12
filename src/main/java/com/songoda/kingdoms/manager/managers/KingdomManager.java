@@ -646,117 +646,55 @@ public class KingdomManager extends Manager {
 		}
 	}
 
-	@EventHandler
-	public void onNeutralMemberAttackOrAttacked(EntityDamageByEntityEvent event) {
-		if (!Config.getConfig().getStringList("enabled-worlds").contains(event.getEntity().getWorld().getName())) {
-			return;
-		}
-		if (!Config.getConfig().getBoolean("allow-pacifist")) return;
-		if (!Config.getConfig().getBoolean("neutralPlayersCannotFightOnOwnLand")) return;
-		KingdomPlayer attacked = null;
-		if (!(event.getEntity() instanceof Player))
-			return;
-		if (ExternalManager.isCitizen(event.getEntity())) return;
-		if (event.getDamager().getUniqueId().equals(event.getEntity().getUniqueId()))
-			return;
-		if (event.getDamager() instanceof Projectile) {
-			if (((Projectile) event.getDamager()).getShooter() != null) {
-				if (((Projectile) event.getDamager()).getShooter() instanceof Player) {
-
-					GameManagement.getApiManager();
-					if (ExternalManager.isCitizen((Entity) ((Projectile) event.getDamager()).getShooter())) return;
-					attacked = GameManagement.getPlayerManager()
-							.getSession((Player) ((Projectile) event.getDamager()).getShooter());
-				}
-			}
-
-		} else if (event.getDamager() instanceof Player) {
-			GameManagement.getApiManager();
-			if (ExternalManager.isCitizen(event.getDamager())) return;
-
-			attacked = GameManagement.getPlayerManager().getSession((Player) event.getDamager());
-		}
-		if (attacked == null)
-			return;
-		if (attacked.isAdminMode())
-			return;
-		KingdomPlayer damaged = GameManagement.getPlayerManager().getSession((Player) event.getEntity());
-
-		Land damagedLand = Kingdoms.getManagers().getLandManager().getOrLoadLand(damaged.getLoc());
-		Land attackerLand = Kingdoms.getManagers().getLandManager().getOrLoadLand(attacked.getLoc());
-
-
-		if (damaged.getKingdom() == null && attacked.getKingdom() == null) return;
-
-		if (attacked.getKingdom() != null &&
-				attacked.getKingdom().isNeutral()) {
-			if (attacked.getKingdomUuid().equals(attackerLand.getOwnerUUID())) {
-				attacked.sendMessage(Kingdoms.getLang().getString("Misc_Neutral_Cannot_Pvp_In_Own_Land", attacked.getLang()));
-				event.setCancelled(true);
-				return;
-			}
-		}
-
-		if (damaged.getKingdom() != null &&
-				damaged.getKingdom().isNeutral()) {
-			if (damaged.getKingdomUuid().equals(damagedLand.getOwnerUUID())) {
-				attacked.sendMessage(Kingdoms.getLang().getString("Misc_Neutral_Cannot_Pvp_In_Neutral_Land", attacked.getLang()));
-				event.setCancelled(true);
-				return;
-			}
-		}
-
-
-	}
-
 	@EventHandler(priority = EventPriority.LOW)
 	public void onMemberAttacksAllyMembers(EntityDamageByEntityEvent event) {
-		if (!Config.getConfig().getStringList("enabled-worlds").contains(event.getEntity().getWorld().getName())||Config.getConfig().getBoolean("ally-pvp")) {
+		if (!worldManager.acceptsWorld(event.getEntity().getWorld()))
 			return;
-		}
-		KingdomPlayer attacked = null;
-		if (!(event.getEntity() instanceof Player))
+		if (configuration.getBoolean("kingdoms.alliance-can-pvp", false))
 			return;
-		GameManagement.getApiManager();
-		if (ExternalManager.isCitizen(event.getEntity())) return;
-		if (event.getDamager().getUniqueId().equals(event.getEntity().getUniqueId()))
+		Entity victim = event.getEntity();
+		if (!(victim instanceof Player))
 			return;
-		if (event.getDamager() instanceof Projectile) {
-			if (((Projectile) event.getDamager()).getShooter() != null) {
-				if (((Projectile) event.getDamager()).getShooter() instanceof Player) {
-
-					GameManagement.getApiManager();
-					if (ExternalManager.isCitizen((Entity) ((Projectile) event.getDamager()).getShooter())) return;
-					attacked = GameManagement.getPlayerManager()
-							.getSession((Player) ((Projectile) event.getDamager()).getShooter());
+		if (ExternalManager.isCitizen(victim))
+			return;
+		Entity attacker = event.getDamager();
+		if (attacker.getUniqueId().equals(victim.getUniqueId()))
+			return;
+		KingdomPlayer kingdomPlayer;
+		if (attacker instanceof Projectile) {
+			Projectile projectile = (Projectile)attacker;
+			Entity shooter = projectile.getShooter();
+			if (shooter != null) {
+				if (shooter instanceof Player) {
+					Player player = (Player)shooter;
+					if (ExternalManager.isCitizen(player))
+						return;
+					kingdomPlayer = playerManager.getKingdomPlayer(player);
 				}
 			}
-
-		} else if (event.getDamager() instanceof Player) {
-			GameManagement.getApiManager();
-			if (ExternalManager.isCitizen(event.getDamager())) return;
-
-			attacked = GameManagement.getPlayerManager().getSession((Player) event.getDamager());
+		} else if (attacker instanceof Player) {
+			if (ExternalManager.isCitizen(attacker))
+				return;
+			kingdomPlayer = playerManager.getKingdomPlayer(attacker);
 		}
-		if (attacked == null)
+		if (kingdomPlayer == null)
 			return;
-		if (attacked.isAdminMode())
+		if (kingdomPlayer.hasAdminMode())
 			return;
-		if (attacked.getKingdom() == null)
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null)
 			return;
-
-		KingdomPlayer damaged = GameManagement.getPlayerManager().getSession((Player) event.getEntity());
+		KingdomPlayer victimKingdomPlayer = playerManager.getKingdomPlayer((Player) victim);
 		if (Config.getConfig().getBoolean("warzone-free-pvp")) {
 			Land att = GameManagement.getLandManager().getOrLoadLand(damaged.getLoc());
 			if (att.getOwnerUUID() != null) {
 
 			}
 		}
-
-		if (damaged.getKingdom() == null)
+		Kingdom victimKingdom = victimKingdomPlayer.getKingdom();
+		if (victimKingdom == null)
 			return;
-
-		if (attacked.getKingdom().isAllianceWith(damaged.getKingdom())) {
+		if (kingdom.isAllianceWith(victimKingdom)) {
 			event.setDamage(0.0D);
 			attacked.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Attack_Own_Ally", attacked.getLang()));
 			event.setCancelled(true);
@@ -845,6 +783,69 @@ public class KingdomManager extends Manager {
 
 			value.onMemberQuitKingdom(e.getKp());
 		}
+	}
+	
+	@EventHandler
+	public void onNeutralMemberAttackOrAttacked(EntityDamageByEntityEvent event) {
+		if (!worldManager.acceptsWorld(event.getEntity().getWorld()))
+			return;
+		if (!configuration.getBoolean("allow-pacifist")) //TODO
+			return;
+		if (!Config.getConfig().getBoolean("neutralPlayersCannotFightOnOwnLand")) return;
+		KingdomPlayer attacked;
+		if (!(event.getEntity() instanceof Player))
+			return;
+		if (ExternalManager.isCitizen(event.getEntity())) return;
+		if (event.getDamager().getUniqueId().equals(event.getEntity().getUniqueId()))
+			return;
+		if (event.getDamager() instanceof Projectile) {
+			if (((Projectile) event.getDamager()).getShooter() != null) {
+				if (((Projectile) event.getDamager()).getShooter() instanceof Player) {
+
+					GameManagement.getApiManager();
+					if (ExternalManager.isCitizen((Entity) ((Projectile) event.getDamager()).getShooter())) return;
+					attacked = GameManagement.getPlayerManager()
+							.getSession((Player) ((Projectile) event.getDamager()).getShooter());
+				}
+			}
+
+		} else if (event.getDamager() instanceof Player) {
+			GameManagement.getApiManager();
+			if (ExternalManager.isCitizen(event.getDamager())) return;
+
+			attacked = GameManagement.getPlayerManager().getSession((Player) event.getDamager());
+		}
+		if (attacked == null)
+			return;
+		if (attacked.isAdminMode())
+			return;
+		KingdomPlayer damaged = GameManagement.getPlayerManager().getSession((Player) event.getEntity());
+
+		Land damagedLand = Kingdoms.getManagers().getLandManager().getOrLoadLand(damaged.getLoc());
+		Land attackerLand = Kingdoms.getManagers().getLandManager().getOrLoadLand(attacked.getLoc());
+
+
+		if (damaged.getKingdom() == null && attacked.getKingdom() == null) return;
+
+		if (attacked.getKingdom() != null &&
+				attacked.getKingdom().isNeutral()) {
+			if (attacked.getKingdomUuid().equals(attackerLand.getOwnerUUID())) {
+				attacked.sendMessage(Kingdoms.getLang().getString("Misc_Neutral_Cannot_Pvp_In_Own_Land", attacked.getLang()));
+				event.setCancelled(true);
+				return;
+			}
+		}
+
+		if (damaged.getKingdom() != null &&
+				damaged.getKingdom().isNeutral()) {
+			if (damaged.getKingdomUuid().equals(damagedLand.getOwnerUUID())) {
+				attacked.sendMessage(Kingdoms.getLang().getString("Misc_Neutral_Cannot_Pvp_In_Neutral_Land", attacked.getLang()));
+				event.setCancelled(true);
+				return;
+			}
+		}
+
+
 	}
 
 	@Override

@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.utils.LocationUtils;
 
@@ -78,6 +79,12 @@ public class DefaultPlaceholders extends Manager {
 			@Override
 			public String replace(CommandSender sender) {
 				return sender.getName();
+			}
+		});
+		Placeholders.registerPlaceholder(new Placeholder<KingdomPlayer>("%world%") {
+			@Override
+			public String replace(KingdomPlayer player) {
+				return player.getPlayer().getWorld().getName();
 			}
 		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%lore%") {

@@ -32,6 +32,10 @@ public class Formatting {
 		return ChatColor.translateAlternateColorCodes('&', input);
 	}
 	
+	public static String colorAndStrip(String input) {
+		return stripColor(color(input));
+	}
+	
 	public static String stripColor(String input) {
 		return ChatColor.stripColor(input);
 	}

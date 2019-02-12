@@ -36,7 +36,7 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {/
 		return player.getLocation();
 	}
 	
-	public boolean isAdminMode() {
+	public boolean hasAdminMode() {
 		return admin;
 	}
 	

@@ -45,6 +45,11 @@ database:
 # All settings for worlds.
 worlds:
     # Change the list below to a blacklist or a whitelist.
+    unoccupied-list-is-whitelist: false
+    # The worlds where users can't build in unoccupied.
+    worlds-with-no-building-in-unoccupied:
+        - "exampleworld"
+    # Change the list below to a blacklist or a whitelist.
     # By default the list will be allowed worlds for Kingdoms to opperate in.
     list-is-whitelist: true
     # This list below will be the either blacklisted worlds or the whitelisted worlds allowed.
@@ -125,6 +130,8 @@ structures:
     siege-engine:
         enabled: true
         cost: 1000
+        # The cooldown it takes per fire shot.
+        cooldown: "60 seconds"
         title: "&bSiege Engine"
         material: "DISPENSER"
         inventory-material: "MUSIC_DISC_11"
@@ -143,6 +150,10 @@ structures:
         cost: 1000
         title: "&bExtractor"
         material: "EMERALD_BLOCK"
+        # This is an extractor option only this and reward-amount.
+        reward-delay: "24 hours"
+        # The amount of resource points to give.
+        reward-amount: 50
         inventory-material: "MUSIC_DISC_CAT"
         description:
             - "&7Extractors produce resource points every set time."
@@ -155,14 +166,54 @@ structures:
         inventory-material: "MUSIC_DISC_STRAD"
         description:
             - "&7Warp Pads allow Kingdom members to teleport to the Kingdom's nexus and outposts."
+# All claiming configurations
+claiming:
+    # When a new member joins, the claims goes up by this amount.
+    claims-given-per-user: 5
+    # Maximum amount of claims a Kingdom can have.
+    maximum-claims: -1
+    # If the land must be connected when claiming new land.
+    land-must-be-connected: false
+    # The amount of resource points it costs to claim a new chunk.
+    cost: 5
+# Blocks that can't be relplaced when placing a structure.
+unreplaceable-blocks:
+    - "BEDROCK"
+    - "OBSIDIAN"
+    - "CHEST"
+    - "ENDER_CHEST"
 # All Kingdom and chunk related configurations.
 kingdoms:
     # Allow Kingdoms to become passive if they want.
     allow-pacifist: false
     # If a Kingdom is a pacifist, should they be hidden from the leaderboard?
     leaderboard-hide-pacifists: false
+    # Set if liquids can flow into the Kingdom or not.
+    disable-liquid-flow-into: true
+    # If ally's can fight or not.
+    alliance-can-pvp: false
     # If players should respawn in their Kingdom.
     respawn-at-kingdom: false
+    # If players are allowed to open chests in other Kingdoms.
+    open-other-kingdom-inventories: false
+    # If a clicked material contains a name within it's name of the following list.
+    # Example: CYAN_SHULKER_BOX and GRAY_SHULKER_BOX will be caught if this is true and list contains SHULKER_BOX
+    forbidden-contains: true
+    # If forbidden-contains is false 
+    forbidden-inventories:
+        - "ENCHANTING_TABLE"
+        - "CRAFTING_TABLE"
+        #- "TRAPPED_CHEST" This will be caught by CHEST when forbidden-contains is true
+        - "SHULKER_BOX"
+        - "DISPENSER"
+        - "FURNACE"
+        - "DROPPER"
+        - "HOPPER"
+        - "BUTTON"
+        - "LEVER"
+        - "CHEST"
+        - "ANVIL"
+        - "DOOR"
     # When a player joins the server, should they spawn at their Kingdom?
     join-at-kingdom: false
     markers-on-by-default: true
@@ -189,7 +240,7 @@ kingdoms:
         title:
             enabled: false
             title: "&2&lUnoccupied Land"
-            subtitle: "&7You have just entered uunoccupied land"
+            subtitle: "&7You have just entered unoccupied land"
             fadeOut: 20
             fadeIn: 20
             stay: 200
@@ -308,6 +359,8 @@ ranks:
             turrets: true
             # If the rank can invite new players.
             invite: true
+            # The maximum amount of claims a rank can claim. Set to -1 to have an infinite amount.
+            max-claims: 5
             # If the rank can initiate an invade on another Kingdom.
             invade: true
             # If the rank can build within the Kingdom.
@@ -338,6 +391,7 @@ ranks:
             claiming: true
             turrets: true
             invite: false
+            max-claims: 5
             invade: true
             build: true
     member:
@@ -366,6 +420,7 @@ ranks:
             claiming: false
             turrets: false
             invite: false
+            max-claims: 3
             invade: true
             #TODO make sure this works in the future and remove this message.
             build: true
@@ -446,7 +501,6 @@ Plugin:
     serverName: yourServer
 minutes-per-backup: 43200
 pacifist-default-on: false
-ally-pvp: false
 DO-NOT-TOUCH:
     grabPlayerFromFileDB: false
     grabLandFromFileDB: false
@@ -457,13 +511,11 @@ enabled-worlds:
 worlds-where-land-is-explosive-vulnerable:
 - VoidWorldd
 no-region-claim: true
-can-open-storage-blocks-in-other-kingdom-land: false
 siege:
     fire:
         cost: 1000
         explosion-radius: 4.0
         shield-damage: 200
-        cooldown: 60
     shield:
         recharge-cost-base: 50
         recharge-cost-exponent: 5.0
@@ -481,7 +533,6 @@ denied-commands-enemy:
 - /sethome
 - /essentials:sethome
 - /derpcommand with any arguments
-disableFlowIntoLand: true
 showLandEnterMessage: true
 nexusMiningAmount: 20
 private-chests:
@@ -499,9 +550,7 @@ useMVdWPlaceHolderAPISupport: true
 useDynmapSupport: true
 useHolographicSupport: true
 protectNeutralLandFromExplosions: false
-neutralPlayersCannotFightOnOwnLand: false
 kingdom-home-stops-working-if-unclaimed: false
-land-must-be-connected: false
 worldguard:
     regions-that-allow-claiming:
     - RegionWherePlayersCanClaimLandIn
@@ -616,26 +665,15 @@ kingdom-create-item-cost:
 - IRON_INGOT,5
 kingdom-create-need-item-cost: false
 items-needed-for-one-resource-point: 5
-claim-cost: 5
 invade-cost: 10
 hidewarppadlocations: false
 enable-auto-backup: true
-mine:
-    reward-delay-in-minutes: 1440
-    reward-amount: 100
 regulator:
     allow-toggling-animal-spawn: true
     allow-toggling-monster-spawn: true
 minimum-members-online-to-be-invaded: 0
-land-per-member: 5
-maximum-land-claims: 0
 infinite-claim-worlds:
 - worldThatAllowsYouToClaimInfinitely
-unreplaceableblocks:
-- BEDROCK
-- OBSIDIAN
-- CHEST
-- ENDER_CHEST
 allowedToUseInOtherKingdomLand:
 - MONSTER_EGG
 - POTION
@@ -817,10 +855,6 @@ enable:
         soldierspawner: true
         hellfire: true
         heatbeam: true
-worlds-with-no-building-in-unoccupied-land:
-- Put
-- Worlds
-- Here
 use-whitelist: false
 disallow-named-or-lored-items-from-rp-trade: false
 resource-point-item-names-that-cannot-be-traded: []

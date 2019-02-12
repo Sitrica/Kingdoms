@@ -1,38 +1,46 @@
 package com.songoda.kingdoms.manager.managers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 
-import com.songoda.kingdoms.main.Config;
-import com.songoda.kingdoms.manager.gui.GUIManagement;
-import com.songoda.kingdoms.objects.KingdomPlayer;
-import com.songoda.kingdoms.objects.StructureType;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
-import com.songoda.kingdoms.objects.land.Extractor;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
-import com.songoda.kingdoms.objects.land.Regulator;
-import com.songoda.kingdoms.objects.land.SiegeEngine;
-import com.songoda.kingdoms.objects.land.SimpleChunkLocation;
-import com.songoda.kingdoms.objects.land.SimpleLocation;
 import com.songoda.kingdoms.objects.land.Structure;
-import com.songoda.kingdoms.objects.land.WarpPadManager;
+import com.songoda.kingdoms.objects.land.StructureType;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
+import com.songoda.kingdoms.objects.structures.Extractor;
+import com.songoda.kingdoms.objects.structures.Regulator;
+import com.songoda.kingdoms.objects.structures.SiegeEngine;
+import com.songoda.kingdoms.placeholders.Placeholder;
+import com.songoda.kingdoms.utils.Formatting;
+import com.songoda.kingdoms.utils.MessageBuilder;
+import com.google.common.collect.Sets;
+import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.LandLoadEvent;
 import com.songoda.kingdoms.events.StructureBreakEvent;
 import com.songoda.kingdoms.events.StructurePlaceEvent;
 import com.songoda.kingdoms.manager.Manager;
-import com.songoda.kingdoms.manager.game.GameManagement;
-import com.songoda.kingdoms.utils.LoreOrganizer;
-import com.songoda.kingdoms.utils.Materials;
+import com.songoda.kingdoms.manager.managers.RankManager.Rank;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -45,222 +53,315 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.AnvilInventory;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
-
-import com.songoda.kingdoms.main.Kingdoms;
+import org.bukkit.scheduler.BukkitTask;
 
 public class StructureManager extends Manager {
 	
+	private final Queue<Land> loadQueue = new LinkedList<Land>();
+	private final WarpPadManager warpPadManager;
+	private final KingdomManager kingdomManager;
+	private final PlayerManager playerManager;
+	private final LandManager landManager;
+	private final BukkitTask task;
+	
 	protected StructureManager() {
 		super(true);
-		new Thread(new SyncLoadTask()).start();
+		this.landManager = instance.getManager("land", LandManager.class);
+		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.warpPadManager = instance.getManager("warppad", WarpPadManager.class);
+		task = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
+			@Override
+			public void run() {
+				if (loadQueue.isEmpty())
+					return;
+				Land land = loadQueue.poll();
+				if (land == null)
+					return;
+				Structure structure = land.getStructure();
+				if (structure == null)
+					return;
+				Location location = structure.getLocation();
+				Block block = location.getBlock();
+				OfflineKingdom kingdom = land.getKingdomOwner();
+				if (kingdom == null) {
+					block.setType(Material.AIR);
+					return;
+				}
+				block.setType(structure.getType().getMaterial());
+				block.setMetadata(structure.getType().getMetaData(), new FixedMetadataValue(instance, kingdom));
+				if (structure.getType() == StructureType.NEXUS) {
+					Location nexus = kingdom.getNexusLocation();
+					if (nexus == null) {
+						block.setType(Material.AIR);
+						land.setStructure(null);
+						return;
+					}
+					if (!nexus.equals(block.getLocation())) {
+						block.setType(Material.AIR);
+						land.setStructure(null);
+						return;
+					}
+					block.setType(Material.BEACON);
+				}
+			}
+		}, 0, 1);
 	}
 	
-	public void breakStructure(Land land){
-		if(land.getStructure() == null) return;
-		
-		Block block = land.getStructure().getLoc().toLocation().getBlock();
-		World world = block.getWorld();
-		
-		block.setType(Material.AIR);
-		StructureType type = land.getStructure().getType();
-		land.setStructure(null);
-		StructureBreakEvent event = new StructureBreakEvent(land, block.getLocation(), type, null, null);
+	public void breakStructureAt(Land land) {
+		Structure structure = land.getStructure();
+		if (structure == null)
+			return;
+		StructureBreakEvent event = new StructureBreakEvent(land, structure, null, null);
 		Bukkit.getPluginManager().callEvent(event);
-		if(type == StructureType.NEXUS){
+		if (event.isCancelled())
+			return;
+		Location location = structure.getLocation();
+		land.setStructure(null);
+		Block block = location.getBlock();
+		block.setType(Material.AIR);
+		StructureType type = structure.getType();
+		if (type == StructureType.NEXUS) {
 			GameManagement.getNexusManager().breakNexus(land);
 			return;
 		}
-
-		world.dropItemNaturally(block.getLocation(), type.getDisk());
+		block.getWorld().dropItemNaturally(location, type.getDisk());
 	}
 	
 	public boolean isInvadeable(KingdomPlayer invader, Chunk chunk) {
-		if(!Config.getConfig().getBoolean("enable.structure.powercell")){
+		if(!Config.getConfig().getBoolean("enable.structure.powercell"))
 			return true;
-		}
-		Land landInvading = GameManagement.getLandManager().getOrLoadLand(chunk);
-		if(landInvading.getStructure() != null){
-			if(landInvading.getStructure().getType() == StructureType.POWERCELL){
-				return true;
-			}
-		}
-		int radius = 1;
-		
-		String world = chunk.getWorld();
+		Land land = landManager.getLand(chunk);
+		Structure structure = land.getStructure();
+		if (structure != null && structure.getType() == StructureType.POWERCELL)
+			return true;
+		World world = chunk.getWorld();
 		int originX = chunk.getX();
 		int originZ = chunk.getZ();
-		
-		for(int x = -radius; x<=radius; x++){
-			for(int z = -radius; z<=radius; z++){
-				if(x == 0 && z == 0) continue;
-				
-				SimpleChunkLocation target = new SimpleChunkLocation(world, originX + x, originZ + z);
-				Land landAround = GameManagement.getLandManager().getOrLoadLand(target);
-				
-				if(landAround.getStructure() == null) continue;
-				if(landAround.getOwnerUUID() == null) continue;
-				
-				if(landInvading.getOwnerUUID().equals(landAround.getOwnerUUID()) &&
-						landAround.getStructure().getType() == StructureType.POWERCELL) 
-					return false;
-			}
-		}
-		
-		return true;
-	}
-	
-	@EventHandler
-	public void onAnvilRenameStructure(InventoryClickEvent event){
-		if(event.getInventory().getType() != InventoryType.ANVIL) return;
-		AnvilInventory inv = (AnvilInventory) event.getInventory();
-		Bukkit.getScheduler().runTaskLater(plugin, new BukkitRunnable(){
-			@Override
-			public void run(){
-				ItemStack renamed = inv.getItem(2);
-				if(renamed == null) return;
-				if(renamed.getItemMeta() == null) return;
-				if(renamed.getItemMeta().getLore() == null) return;
-				if(renamed.getItemMeta().getLore().contains(Kingdoms.getLang().getString("Structures_Placement_Instructions"))){
-					inv.setItem(2, new ItemStack(Material.AIR));
+		int radius = 1;
+		for (int x =- radius; x <= radius; x++) {
+			for (int z = -radius; z<=radius; z++) {
+				if (x == 0 && z == 0)
+					continue;
+				Chunk target = world.getChunkAt(originX + x, originZ + z);
+				Land landAround = landManager.getLand(target);
+				Structure structureAround = landAround.getStructure();
+				if (structureAround == null)
+					continue;
+				if (landAround.getKingdomOwner() == null)
+					continue;
+				if (land.getKingdomOwner().getUniqueId().equals(landAround.getKingdomOwner().getUniqueId())) {
+					if (structureAround.getType() == StructureType.POWERCELL)
+						return false;
 				}
 			}
-		}, 1L);
+		}
+		return true;
+	}
+
+	@EventHandler
+	public void onAnvilRenameStructure(InventoryClickEvent event) {
+		Inventory inventory = event.getInventory();
+		if (inventory.getType() != InventoryType.ANVIL)
+			return;
+		AnvilInventory anvil = (AnvilInventory) inventory;
+		Bukkit.getScheduler().runTaskLater(instance, new Runnable(){
+			@Override
+			public void run(){
+				ItemStack renamed = anvil.getItem(2);
+				if (renamed == null)
+					return;
+				ItemMeta meta = renamed.getItemMeta();
+				if (meta == null)
+					return;
+				List<String> lores = meta.getLore();
+				if (lores == null || lores.isEmpty())
+					return;
+				List<String> list = instance.getConfiguration("messages").get().getStringList("structures.additional-lore");
+				int checks = 0;
+				for (String required : list) {
+					String colored = Formatting.color(required);
+					for (String lore : lores) {
+						if (Formatting.stripColor(lore).contains(Formatting.stripColor(colored))) {
+							checks++;
+						}
+					}
+				}
+				if (checks >= list.size())
+					anvil.setItem(2, new ItemStack(Material.AIR));
+			}
+		}, 1);
 	}
 	
 	@EventHandler
 	public void onSetStructure(PlayerInteractEvent event) {
-		if(event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-		if(event.getPlayer().getItemInHand() == null) return;
-		if(event.getPlayer().getItemInHand().getType() != Materials.MUSIC_DISC_BLOCKS.parseMaterial());
-		if(event.getPlayer().getItemInHand().getItemMeta() == null) return;
-		if(event.getPlayer().getItemInHand().getItemMeta().getDisplayName() == null) return;
-		String displayName = event.getPlayer().getItemInHand().getItemMeta().getDisplayName();
-		StructureType placingType = null;
-		for(StructureType type:StructureType.values()){
-			if(type.getDisk().getItemMeta().getDisplayName().equals(displayName)){
-				placingType = type;
-				break;
+		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
+			return;
+		Player player = event.getPlayer();
+		ItemStack findItem;
+		try {
+			findItem = player.getItemInHand();
+		} catch (Exception e) {
+			findItem = player.getInventory().getItemInMainHand();
+		}
+		if (findItem == null)
+			return;
+		ItemStack item = findItem;
+		ItemMeta meta = item.getItemMeta();
+		if (meta == null)
+			return;
+		String name = meta.getDisplayName();
+		if (name == null)
+			return;
+		Block block = event.getClickedBlock();
+		Optional<StructureType> optional = Arrays.stream(StructureType.values())
+				.filter(type -> item.getType() == type.getMaterial())
+				.filter(type -> !block.hasMetadata(type.getMetaData()))
+				.filter(type -> Formatting.colorAndStrip(type.getTitle()).equals(Formatting.stripColor(name)))
+				.findFirst();
+		if (!optional.isPresent()) {
+			for (String message : configuration.getStringList("structures.additional-lore")) {
+				player.sendMessage(Formatting.color(message));
+			}
+			return;
+		}
+		StructureType type = optional.get(); 
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null) {
+			new MessageBuilder("kingdoms.no-kingdom").send(player);
+			return;
+		}
+		Land land = landManager.getLand(block.getChunk());
+		if (!kingdom.getPermissions(kingdomPlayer.getRank()).canBuildStructures()) {
+			new MessageBuilder("kingdoms.rank-too-low-structure-build")
+				.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canBuildStructures()), new Placeholder<Optional<Rank>>("%rank%") {
+					@Override
+					public String replace(Optional<Rank> rank) {
+						if (rank.isPresent())
+							return rank.get().getName();
+						return "(Not attainable)";
+					}
+				})
+				.setKingdom(kingdom)
+				.send(player);
+		}
+		if (land.getStructure() != null) {
+			for (String message : configuration.getStringList("structures.additional-lore")) {
+				player.sendMessage(Formatting.color(message));
+			}
+			return;
+		}
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (landKingdom == null || !kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+			new MessageBuilder("kingdoms.not-in-land")
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(landKingdom)
+					.send(player);
+			return;
+		}
+		if (configuration.getStringList("unreplaceable-blocks").contains(block.getType().toString())) {
+			new MessageBuilder("kingdoms.nexus-cannot-replace")
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(landKingdom)
+					.send(player);
+			return;
+		}
+		Location location = block.getLocation();
+		Structure structure = new Structure(location, type);
+		//special cases
+		if (type == StructureType.REGULATOR)
+			structure = new Regulator(location, type);
+		if (type == StructureType.EXTRACTOR)
+			structure = new Extractor(location, type);
+		if (type == StructureType.SIEGE_ENGINE)
+			structure = new SiegeEngine(location, type);
+		StructurePlaceEvent placeEvent = new StructurePlaceEvent(land, structure, kingdom, kingdomPlayer);
+		Bukkit.getPluginManager().callEvent(placeEvent);
+		if (placeEvent.isCancelled())
+			return;
+		if (item.getAmount() > 1)
+			item.setAmount(item.getAmount() - 1);
+		else {
+			try {
+				player.setItemInHand(null);
+			} catch (Exception e) {
+				player.getInventory().setItemInMainHand(null);
 			}
 		}
-		if(placingType == null) return;
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(event.getPlayer());
-
-		Kingdom kingdom = kp.getKingdom();
-		if(kingdom == null){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_In_Kingdom", kp.getLang()));
-			return;
-		}
-		Block clickedBlock = event.getClickedBlock();
-		SimpleLocation loc = new SimpleLocation(clickedBlock.getLocation());
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-		
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
-		if(!kp.getRank().isHigherOrEqualTo(kingdom.getPermissionsInfo().getStructures())){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Rank_Too_Low", kp.getLang()).replaceAll("%rank%", kingdom.getPermissionsInfo().getStructures().toString()));
-			return;
-		}
-		if(isStructure(clickedBlock)){
-			kp.sendMessage(Kingdoms.getLang().getString("Structures_Placement_Instructions", kp.getLang()));
-			return;
-		}
-		
-		
-		
-		if(land.getStructure() != null){
-			kp.sendMessage(Kingdoms.getLang().getString("Structures_Placement_Instructions", kp.getLang()));
-			return;
-		}
-		
-		if(land.getOwnerUUID() == null || !land.getOwnerUUID().equals(kp.getKingdom().getKingdomUuid())){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_In_Land", kp.getLang()));
-			return;
-		}
-		
-		if(Config.getConfig().getStringList("unreplaceableblocks").contains(clickedBlock.getType().toString())){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Nexus_Setting_Cannot_Replace", kp.getLang()));
-			return;
-		}
-		
-
-		Structure structure = new Structure(loc, placingType);
-		
-		//special cases
-		if(placingType == StructureType.REGULATOR)
-			structure = new Regulator(loc, placingType);
-		if(placingType == StructureType.EXTRACTOR)
-			structure = new Extractor(loc, placingType);
-		if(placingType == StructureType.SIEGEENGINE)
-			structure = new SiegeEngine(loc, placingType);
-		
-		
-		StructurePlaceEvent ev = new StructurePlaceEvent(land, loc.toLocation(), placingType, kingdom, kp);
-		Bukkit.getPluginManager().callEvent(ev);
-		if(ev.isCancelled()) return;
-		
-		ItemStack IS = kp.getPlayer().getItemInHand();
-		if (IS.getAmount() > 1) IS.setAmount(IS.getAmount() - 1);
-		else kp.getPlayer().setItemInHand(null);
-		
 		land.setStructure(structure);
-		clickedBlock.setType(placingType.getMaterial());
-		clickedBlock.setMetadata(placingType.getMetaData(), new FixedMetadataValue(plugin, kp.getKingdom().getKingdomName()));
-		if(placingType == StructureType.WARPPAD||
-				placingType == StructureType.OUTPOST)
-			WarpPadManager.addLand(kp.getKingdom(), land);
+		block.setType(type.getMaterial());
+		block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
+		if (type == StructureType.WARPPAD || type == StructureType.OUTPOST)
+			warpPadManager.addLand(kingdom, land);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH)
-	public void onStructureBreak(BlockBreakEvent e) {
-		if(e.isCancelled()) return;
-		
-		if(!isStructure(e.getBlock())) return;
-		Land land = GameManagement.getLandManager().getOrLoadLand(new SimpleChunkLocation(e.getBlock().getChunk()));
-		KingdomPlayer player = Kingdoms.getManagers().getPlayerManager().getSession(e.getPlayer());
-		if(land.getOwnerUUID() != null){
-			if(player.getKingdomName() != null){
-				if(player.getKingdomUuid().equals(land.getOwnerUUID())){
-					Kingdom kingdom = player.getKingdom();
-					if(!player.getRank().isHigherOrEqualTo(kingdom.getPermissionsInfo().getStructures())){
-							e.setCancelled(true);
-							player.sendMessage(Kingdoms.getLang().getString("Misc_Rank_Too_Low", player.getLang()).replaceAll("%rank%", kingdom.getPermissionsInfo().getStructures().toString()));
-							return;
-					}
-				}else return;
-			}else return;
-		}
-		if(land.getStructure() == null){
-			e.getBlock().setType(Material.AIR);
+	public void onStructureBreak(BlockBreakEvent event) {
+		if (event.isCancelled())
 			return;
-		}
-
-		StructureBreakEvent event = new StructureBreakEvent(land, e.getBlock().getLocation(), land.getStructure().getType(), player.getKingdom(), player);
-		Bukkit.getPluginManager().callEvent(event);
-		e.getBlock().setType(Material.AIR);
-		
-		for(StructureType type:StructureType.values()){
-			if(e.getBlock().hasMetadata(type.getMetaData())){
-				e.getBlock().removeMetadata(type.getMetaData(), plugin);
-				if (!type.equals(StructureType.NEXUS)){
-				e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), type.getDisk());
-				}
-				land.setStructure(null);
-				WarpPadManager.removeLand(player.getKingdom(), land);
+		Block block = event.getBlock();
+		if (!isStructure(block))
+			return;
+		Land land = landManager.getLand(block.getChunk());
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null)
+			return;
+		if (landKingdom != null) {
+			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId()))
+				return;
+			if (!kingdom.getPermissions(kingdomPlayer.getRank()).canBuildStructures()) {
+				event.setCancelled(true);
+				new MessageBuilder("kingdoms.rank-too-low-structure-build")
+						.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canBuildStructures()), new Placeholder<Optional<Rank>>("%rank%") {
+							@Override
+							public String replace(Optional<Rank> rank) {
+								if (rank.isPresent())
+									return rank.get().getName();
+								return "(Not attainable)";
+							}
+						})
+						.setKingdom(kingdom)
+						.send(kingdomPlayer);
+				return;
 			}
 		}
-		
-		e.setCancelled(true);
+		Structure structure = land.getStructure();
+		if (structure == null) {
+			block.setType(Material.AIR);
+			return;
+		}
+		StructureBreakEvent breakEvent = new StructureBreakEvent(land, structure, kingdom, kingdomPlayer);
+		Bukkit.getPluginManager().callEvent(event);
+		if (breakEvent.isCancelled())
+			return;
+		block.setType(Material.AIR);
+		for (StructureType type : StructureType.values()) {
+			if (block.hasMetadata(type.getMetaData())) {
+				block.removeMetadata(type.getMetaData(), instance);
+				if (!type.equals(StructureType.NEXUS))
+					block.getWorld().dropItemNaturally(block.getLocation(), type.getDisk());
+				land.setStructure(null);
+				warpPadManager.removeLand(kingdom, land);
+			}
+		}
+		event.setCancelled(true);
 	}
 	
 
 	@EventHandler
-	public void onRightClickSiegeEngine(PlayerInteractEvent e){
-		if(e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-		if(!Config.getConfig().getStringList("enabled-worlds").contains(e.getPlayer().getWorld().getName())) return;
+	public void onRightClickSiegeEngine(PlayerInteractEvent event) {
+		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
+			return;
+		if (!Config.getConfig().getStringList("enabled-worlds").contains(e.getPlayer().getWorld().getName())) return;
 		if(!e.getClickedBlock().hasMetadata(StructureType.SIEGEENGINE.getMetaData())) return;
 		e.setCancelled(true);
 		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
@@ -472,13 +573,6 @@ public class StructureManager extends Manager {
 		}
 		extractors.put(kp.getUuid(), (Extractor) land.getStructure());
 	}
-	
-	
-	
-	
-	
-	
-	
 
 	
 	@EventHandler
@@ -536,134 +630,6 @@ public class StructureManager extends Manager {
 		loadQueue.add(e.getLand());
 		
 		
-		
-	}
-	
-	private static Queue<Land> loadQueue = new LinkedList<Land>();
-	private class SyncLoadTask implements Runnable{
-
-		@Override
-		public void run() {
-			Land land = null;
-			while(plugin.isEnabled()){
-				if(Kingdoms.isDisabling()) return;
-				try {
-					Thread.sleep(1L);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				
-				if(loadQueue.isEmpty()) continue;
-				land = loadQueue.poll();
-				if(land == null) continue;
-				
-				initStructure(land);
-			}
-		}
-		
-		private void initStructure(final Land land) {
-			//suspicious2
-			new BukkitRunnable(){
-				@Override
-				public void run() {
-					Structure structure = land.getStructure();
-					if(structure == null) return;
-					if(structure.getLoc() == null) return;
-					if(structure.getLoc().toLocation() == null) return;
-					if(structure.getLoc().toLocation().getWorld() == null) return;
-					if(land.getOwnerUUID() == null){
-						Block block = structure.getLoc().toLocation().getBlock();
-
-						block.setType(Material.AIR);
-						return;
-					}
-					
-					if(structure.getType() == null){
-						Kingdoms.logDebug("WTF? Init structure");
-						return;
-					}
-					if(structure.getType().getMaterial() == null){
-						Kingdoms.logDebug("Well that's totally normal? Init structure");
-						return;
-					}
-					
-					Block block = structure.getLoc().toLocation().getBlock();
-					
-					block.setType(structure.getType().getMaterial());
-					block.setMetadata(structure.getType().getMetaData(), new FixedMetadataValue(plugin, land.getOwnerUUID()));
-						
-					if (structure.getType() == StructureType.NEXUS) {
-						Kingdom kingdom = Kingdoms.getManagers().getKingdomManager().getOrLoadKingdom(land.getOwnerUUID());
-						if(kingdom == null){
-							block.setType(Material.AIR);
-							land.setStructure(null);
-							return;
-						}
-						if(kingdom.getNexus_loc() == null){
-							block.setType(Material.AIR);
-							land.setStructure(null);
-							return;
-						}
-						if(!kingdom.getNexus_loc().equals(block.getLocation())){
-							block.setType(Material.AIR);
-							land.setStructure(null);
-							return;
-						}
-						Kingdoms.logDebug("" + structure.getLoc().toSimpleChunk().toString());
-						
-
-						block.setType(Materials.BEACON.parseMaterial());
-					}
-					
-//						if (structure.getType() == StructureType.OUTPOST) {
-//						Block block = structure.getLoc().toLocation().getBlock();
-//
-//						block.setType(Material.HAY_BLOCK);
-//						block.setMetadata("outpost", new FixedMetadataValue(plugin, land.getOwner()));
-//					} else if (structure.getType() == StructureType.POWERCELL) {
-//						Block block = structure.getLoc().toLocation().getBlock();
-//
-//						block.setType(Material.REDSTONE_LAMP_ON);
-//						block.setMetadata("powercell", new FixedMetadataValue(plugin, land.getOwner()));
-//					} else if (structure.getType() == StructureType.EXTRACTOR) {
-//						Block block = structure.getLoc().toLocation().getBlock();
-//						block.setType(Material.EMERALD_BLOCK);
-//						block.setMetadata("extractor", new FixedMetadataValue(plugin, land.getOwner()));
-//					} else if (structure.getType() == StructureType.WARPPAD) {
-//						Block block = structure.getLoc().toLocation().getBlock();
-//						block.setType(Material.SEA_LANTERN);
-//						block.setMetadata("warppad", new FixedMetadataValue(plugin, land.getOwner()));
-//					} 
-////					else if (structure.getType() == StructureType.LAB) {
-////						Block block = structure.getLoc().toLocation().getBlock();
-////						//block.setType(Material.);
-////						block.setMetadata("lab", new FixedMetadataValue(plugin, land.getOwner()));
-////					} else if (structure.getType() == StructureType.CRYSTAL) {
-////						Block block = structure.getLoc().toLocation().getBlock();
-////						block.setType(Material.LAPIS_BLOCK);
-////						block.setMetadata("crystal", new FixedMetadataValue(plugin, land.getOwner()));
-////					} 
-//					else if (structure.getType() == StructureType.REGULATOR){
-//						Block block = structure.getLoc().toLocation().getBlock();
-//						block.setType(Material.REDSTONE_BLOCK);
-//						Kingdoms.logDebug("Loaded Regulator");
-//						block.setMetadata("regulator", new FixedMetadataValue(plugin, land.getOwner()));
-//					} else if (structure.getType() == StructureType.RADAR){
-//						Block block = structure.getLoc().toLocation().getBlock();
-//						block.setType(Material.STAINED_GLASS);
-//						Kingdoms.logDebug("Loaded Radar");
-//						block.setMetadata("radar", new FixedMetadataValue(plugin, land.getOwner()));
-//					}  else if (structure.getType() == StructureType.SIEGEENGINE){
-//						Block block = structure.getLoc().toLocation().getBlock();
-//						block.setType(Material.FURNACE);
-//						Kingdoms.logDebug("Loaded Siege Engine");
-//						block.setMetadata("siegeengine", new FixedMetadataValue(plugin, land.getOwner()));
-//					} else 
-						
-				}
-			}.runTask(plugin);
-
-		}
 		
 	}
 	

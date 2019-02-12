@@ -3,12 +3,10 @@ package com.songoda.kingdoms.objects.land;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Location;
 
-import com.songoda.kingdoms.objects.StructureType;
-
 public class Structure {
 
-	private final StructureType type;
-	private final Location location;
+	protected final StructureType type;
+	protected final Location location;
 
 	public Structure(Location location, StructureType type) {
 		Validate.notNull(location);

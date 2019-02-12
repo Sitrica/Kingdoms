@@ -34,16 +34,21 @@ import com.songoda.kingdoms.database.YamlDatabase;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
+import com.songoda.kingdoms.objects.land.Structure;
+import com.songoda.kingdoms.objects.land.StructureType;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
+import com.songoda.kingdoms.placeholders.Placeholder;
 import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.utils.LocationUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
+import com.songoda.kingdoms.utils.Utils;
 import com.songoda.kingdoms.events.LandClaimEvent;
 import com.songoda.kingdoms.events.LandLoadEvent;
 import com.songoda.kingdoms.events.LandUnclaimEvent;
 import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.ManagerHandler;
+import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -53,6 +58,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -65,10 +71,12 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -81,21 +89,28 @@ public class LandManager extends Manager {
 	
 	private final List<String> unclaiming = new ArrayList<>(); //TODO test if this is even requried. It's a queue to avoid claiming and removing at same time.
 	private final Map<Chunk, Land> lands = new HashMap<>();
+	private final Set<String> forbidden = new HashSet<>();
 	private final FileConfiguration configuration;
 	private final KingdomManager kingdomManager;
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
+	private final LandManager landManager;
+	private final RankManager rankManager;
 	private static Database<Land> database;
 	private BukkitTask autoSaveThread;
 	private Kingdoms instance;
 
+	@SuppressWarnings("deprecation")
 	public LandManager() {
 		super(true);
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
+		this.forbidden.addAll(configuration.getStringList("kingdoms.forbidden-inventories"));
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
+		this.landManager = instance.getManager("land", LandManager.class);
+		this.rankManager = instance.getManager("rank", RankManager.class);
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(Land.class);
 		else
@@ -105,7 +120,7 @@ public class LandManager extends Manager {
 			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
 				@Override 
 				public void run() {
-					Kingdoms.debugMessage("Saved [" + save() + "] lands");
+					saveTask.run();
 				}
 			}, 0, IntervalUtils.getInterval(interval) * 20);
 		}
@@ -123,9 +138,8 @@ public class LandManager extends Manager {
 							.replace("%interval%", timeString)
 							.replace("%amount%", amount)
 							.send();
-					Map<Chunk, Land> lands = Collections.unmodifiableMap(lands);
 					boolean disband = configuration.getBoolean("taxes.disband-cant-afford", false);
-					for (Land land : lands.values()) {
+					for (Land land : Collections.unmodifiableMap(lands).values()) {
 						OfflineKingdom kingdom = land.getKingdomOwner();
 						if (kingdom != null) {
 							long resourcePoints = kingdom.getResourcePoints();
@@ -147,6 +161,37 @@ public class LandManager extends Manager {
 			}, time, time);
 		}
 	}
+	
+	private final Runnable saveTask = new Runnable() {
+		@Override
+		public void run() {
+			Kingdoms.debugMessage("Starting Land Save");
+			int i = 0;
+			Set<String> saved = new HashSet<>();
+			for (Chunk chunk : getLoadedLand()) {
+				String name = LocationUtils.chunkToString(chunk);
+				if (saved.contains(name))
+					continue;
+				Kingdoms.debugMessage("Saving land: " + name);
+				Land land = getLand(chunk);
+				OfflineKingdom kingdom = land.getKingdomOwner();
+				if (kingdom == null && land.getTurrets().size() <= 0 && land.getStructure() == null) {
+					database.delete(name);
+					saved.add(name);
+					i++;
+					continue;
+				}
+				try{
+					database.save(name, land);
+					saved.add(name);
+					i++;
+				} catch (Exception e) {
+					Bukkit.getLogger().severe("[Kingdoms] Failed autosave for land at: " + name);
+				}
+			}
+			Kingdoms.debugMessage("Saved [" + i + "] lands");
+		}
+	};
 
 	//TODO why does this exist.
 	private HashMap<Chunk, Land> toLoad = new HashMap<>();
@@ -185,43 +230,6 @@ public class LandManager extends Manager {
 		Kingdoms.consoleMessage("Total of [" + getLoadedLand().size() + "] lands are initialized");
 	}
 
-	private synchronized int save() {
-		Kingdoms.debugMessage("Starting Land Save");
-		int i = 0;
-		Set<String> saved = new HashSet<>();
-		for (Chunk chunk : getLoadedLand()) {
-			String name = LocationUtils.chunkToString(chunk);
-			if (saved.contains(name))
-				continue;
-			Kingdoms.debugMessage("Saving land: " + name);
-			Land land = getLand(chunk);
-			if (land.getOwnerUUID() == null && land.getTurrets().size() <= 0 && land.getStructure() == null) {
-				database.save(name, null);
-				saved.add(name);
-				i++;
-				continue;
-			}
-			OfflineKingdom kingdom = land.getKingdomOwner();
-			if (kingdom != null) {
-				// This is questionable, because it shouldn't return null. Find out why this is here.
-				if (Kingdoms.getManagers().getKingdomManager().getOrLoadKingdom(land.getOwnerUUID()) == null) {
-					database.delete(name);
-					saved.add(name);
-					i++;
-					continue;
-				}
-			}
-			try{
-				database.save(name, land);
-				saved.add(name);
-				i++;
-			} catch(Exception e) {
-				Bukkit.getLogger().severe("[Kingdoms] Failed autosave for land at: " + name);
-			}
-		}
-		return i;
-	}
-
 	/**
 	 * @return Set<Chunk> of all loaded land locations.
 	 */
@@ -253,6 +261,140 @@ public class LandManager extends Manager {
 		}
 		return land;
 	}
+	
+	public void playerClaimLand(KingdomPlayer kingdomPlayer) {
+		Player player = kingdomPlayer.getPlayer();
+		if (!worldManager.acceptsWorld(player.getWorld())) {
+			new MessageBuilder("claiming.world-disabled")
+					.setPlaceholderObject(kingdomPlayer)
+					.send(player);
+			return;
+		}
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null) {
+			new MessageBuilder("claiming.no-kingdom")
+					.setPlaceholderObject(kingdomPlayer)
+					.send(player);
+			return;
+		}
+		if (!kingdom.getPermissions(kingdomPlayer.getRank()).canClaim()) {
+			new MessageBuilder("kingdoms.permissions-too-low")
+					.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canClaim()), new Placeholder<Optional<Rank>>("%rank%") {
+						@Override
+						public String replace(Optional<Rank> rank) {
+							if (rank.isPresent())
+								return rank.get().getName();
+							return "(Not attainable)";
+						}
+					})
+					.setKingdom(kingdom)
+					.send(player);
+			return;
+		}
+		if (ExternalManager.cannotClaimInRegion(player.getLocation())) {
+			new MessageBuilder("claiming.worldguard")
+				.send(player);
+			return;
+		}
+		Land land = getLand(player.getLocation().getChunk());
+		Chunk chunk = land.getChunk();
+		String chunkString = LocationUtils.chunkToString(chunk);
+		if (land.getKingdomOwner() != null) {
+			OfflineKingdom landKingdom = land.getKingdomOwner();
+			if (landKingdom.getUniqueId().equals(kingdom.getUniqueId())) {
+				new MessageBuilder("claiming.already-owned")
+						.replace("%chunk%", chunkString)
+						.replace("%kingdom%", landKingdom.getName())
+						.send(player);
+				return;
+			}
+			new MessageBuilder("claiming.already-claimed")
+					.replace("%chunk%", LocationUtils.chunkToString(land.getChunk()))
+					.replace("%kingdom%", landKingdom.getName())
+					.send(player);
+			return;
+		}
+		Set<Land> claims = kingdomPlayer.getClaims();
+		int max = kingdom.getPermissions(kingdomPlayer.getRank()).getMaximumClaims();
+		if (max > 0 && claims.size() >= max) {
+			new MessageBuilder("claiming.max-user-claims")
+					.replace("%amount%", max)
+					.setKingdom(kingdom)
+					.send(player);
+		}
+		int maxClaims = configuration.getInt("claiming.maximum-claims", -1);
+		if (maxClaims > 0 && kingdom.getClaims().size() >= maxClaims) {
+			new MessageBuilder("claiming.max-claims")
+					.setKingdom(kingdom)
+					.replace("%amount%", maxClaims)
+					.send(player);
+			return;
+		}
+		// Check if it's the Kingdoms first claim.
+		if (kingdom.getClaims().isEmpty()) {
+			new MessageBuilder("claiming.first-claim")
+					.replace("%chunk%", chunkString)
+					.setKingdom(kingdom)
+					.send(player);
+			if (kingdom.getSpawn() == null) {
+				Location location = player.getLocation();
+				kingdom.setSpawn(location);
+				kingdom.setUsedFirstClaim(true);
+				new MessageBuilder("commands.spawn-set")
+						.replace("%location%", LocationUtils.locationToString(location))
+						.setKingdom(kingdom)
+						.send(player);
+			}
+		} else {
+			if (configuration.getBoolean("claiming.land-must-be-connected", false)) {
+				boolean connected;
+				World world = player.getWorld();
+				for (int x = -1; x <= 1; x++) {
+					for (int z = -1; z <= 1; z++) {
+						if (x == 0 && z == 0)
+							continue;
+						Chunk c = world.getChunkAt(chunk.getX() + x, chunk.getZ() + z);
+						Land adjustment = getLand(c);
+						OfflineKingdom owner = adjustment.getKingdomOwner();
+						if (owner != null) {
+							if(owner.getUniqueId().equals(kingdom.getUniqueId())){
+								connected = true;
+								break;
+							}
+						}
+					}
+				}
+				if (!connected) {
+					new MessageBuilder("claiming.must-be-connected")
+							.setKingdom(kingdom)
+							.send(player);
+					return;
+				}
+			}
+			int cost = configuration.getInt("claiming.cost", 5);
+			if (!kingdomPlayer.hasAdminMode() && kingdom.getResourcePoints() < cost) {
+				new MessageBuilder("claiming.need-resourcepoints")
+						.replace("%needed%", cost - kingdom.getResourcePoints())
+						.replace("%cost%", cost)
+						.setKingdom(kingdom)
+						.send(player);
+				return;
+			} else if (kingdomPlayer.hasAdminMode())
+				new MessageBuilder("claiming.admin-claim")
+						.replace("%cost%", cost)
+						.setKingdom(kingdom)
+						.send(player);
+			else {
+				kingdom.setResourcePoints(kingdom.getResourcePoints() - cost);
+				new MessageBuilder("claiming.success")
+						.replace("%cost%", cost)
+						.setKingdom(kingdom)
+						.send(player);
+			}
+		}
+		claimLand(kingdom, chunk);
+		GameManagement.getVisualManager().visualizeLand(kingdomPlayer, land);
+	}
 
 	/**
 	 * Claim a new land. This does not check if chunk is already occupied.
@@ -267,6 +409,7 @@ public class LandManager extends Manager {
 			Bukkit.getPluginManager().callEvent(event);
 			if (event.isCancelled())
 				continue;
+			kingdom.addClaim(land);
 			land.setClaimTime(new Date().getTime());
 			land.setKingdomOwner(kingdom);
 			String name = LocationUtils.chunkToString(land.getChunk());
@@ -289,25 +432,28 @@ public class LandManager extends Manager {
 			if (land.getKingdomOwner() == null) {
 				continue;
 			}
-			LandUnclaimEvent event = new LandUnclaimEvent(land, kingdom);
-			Bukkit.getPluginManager().callEvent(event);
-			if (event.isCancelled())
-				continue;
-			land.setClaimTime(0L);
-			land.setKingdomOwner(null);
-			String name = LocationUtils.chunkToString(land.getChunk());
-			database.save(name, null);
-			if (land.getStructure() != null) {
-				Bukkit.getScheduler().runTask(instance, new Runnable() {
-					@Override
-					public void run() {
-						GameManagement.getStructureManager().breakStructure(land);
-					}
-				});
+			if (land.getKingdomOwner().getUniqueId().equals(kingdom.getUniqueId())) {
+				LandUnclaimEvent event = new LandUnclaimEvent(land, kingdom);
+				Bukkit.getPluginManager().callEvent(event);
+				if (event.isCancelled())
+					continue;
+				kingdom.removeClaim(land);
+				land.setClaimTime(0L);
+				land.setKingdomOwner(null);
+				String name = LocationUtils.chunkToString(land.getChunk());
+				database.save(name, null);
+				if (land.getStructure() != null) {
+					Bukkit.getScheduler().runTask(instance, new Runnable() {
+						@Override
+						public void run() {
+							GameManagement.getStructureManager().breakStructure(land);
+						}
+					});
+				}
+				//Dynmap object here
+				if (GameManagement.getDynmapManager() != null)
+					GameManagement.getDynmapManager().updateClaimMarker(chunk);
 			}
-			//Dynmap object here
-			if (GameManagement.getDynmapManager() != null)
-				GameManagement.getDynmapManager().updateClaimMarker(chunk);
 		}
 	}
 
@@ -316,9 +462,7 @@ public class LandManager extends Manager {
 	 * Use at own risk.
 	 */
 	public void unclaimAllExistingLand() {
-		for (OfflineKingdom kingdom : GameManagement.getKingdomManager().getKingdomList().values()) {
-			unclaimAllLand(GameManagement.getKingdomManager().getOrLoadKingdom(kingdom.getKingdomName()));
-		}
+		kingdomManager.getKingdoms().forEach(kingdom -> unclaimAllLand(kingdom));
 	}
 	
 	/**
@@ -337,6 +481,7 @@ public class LandManager extends Manager {
 				.filter(land -> land.getKingdomOwner() != null)
 				.filter(land -> land.getKingdomOwner().getUniqueId().equals(kingdom.getUniqueId()));
 		long count = stream.count();
+		kingdom.getMembers().forEach(player -> player.onKingdomLeave());
 		stream.forEach(land -> unclaimLand(kingdom, land.getChunk()));
 		unclaiming.remove(name);
 		return (int)count;
@@ -432,18 +577,182 @@ public class LandManager extends Manager {
 		}
 		return connected;
 	}
+	
+	private boolean isForbidden(Material material) {
+		boolean contains = configuration.getBoolean("kingdoms.forbidden-contains", true);
+		for (String name : forbidden) {
+			if (contains) {
+				if (material.name().endsWith(name)) {
+					return true;
+				}
+			} else {
+				Material attempt = Utils.materialAttempt(material.name(), "LEGACY_" + material);
+				if (attempt != null && attempt == material) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	@SuppressWarnings("deprecation")
+	@EventHandler(priority = EventPriority.HIGH)
+	public void onKingdomInteract(PlayerInteractEvent event) {
+		if (event.isCancelled())
+			return;
+		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
+			return;
+		Block block = event.getClickedBlock();
+		if (block == null)
+			return;
+		if (configuration.getBoolean("kingdoms.open-other-kingdom-inventories", false))
+			return;
+		Player player = event.getPlayer();
+		// Testing if the player is eating at a block.
+		if (player.isSneaking() && !isForbidden(block.getType())) {
+			ItemStack item;
+			try {
+				item = player.getItemInHand();
+			} catch (Exception e) {
+				item = player.getInventory().getItemInMainHand();
+			}
+			// When the deprecated getItemInHand() method gets removed use this instead of this try and catch.
+			//ItemStack item = player.getInventory().getItemInMainHand();
+			if (item == null)
+				return;
+			if (item.getType() != Material.ARMOR_STAND && item.getType() != Material.ITEM_FRAME) {
+				return;
+			}
+		}
+		Location location = block.getLocation();
+		Land land = getLand(location.getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (landKingdom == null)
+			return;
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		if (kingdomPlayer.hasAdminMode())
+			return;
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null) {
+			event.setCancelled(true);
+			new MessageBuilder("kingdoms.cannot-interact-land-no-kingdom").send(player);
+		} else {
+			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+				event.setCancelled(true);
+				new MessageBuilder("kingdoms.cannot-interact-land")
+						.replace("%playerkingdom%", kingdom.getName())
+						.setKingdom(landKingdom)
+						.send(player);
+				return;
+			}
+			if (!kingdom.getPermissions(kingdomPlayer.getRank()).canBuild()) {
+				event.setCancelled(true);
+				new MessageBuilder("kingdoms.rank-too-low-build")
+						.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canBuild()), new Placeholder<Optional<Rank>>("%rank%") {
+							@Override
+							public String replace(Optional<Rank> rank) {
+								if (rank.isPresent())
+									return rank.get().getName();
+								return "(Not attainable)";
+							}
+						})
+						.setKingdom(kingdom)
+						.send(player);
+				return;
+			}
+			Structure structure = land.getStructure();
+			if (structure != null && structure.getType() == StructureType.NEXUS) {
+				if (!kingdom.getPermissions(kingdomPlayer.getRank()).canBuildInNexus()) {
+					event.setCancelled(true);
+					new MessageBuilder("kingdoms.rank-too-low-nexus-build")
+							.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canBuildInNexus()), new Placeholder<Optional<Rank>>("%rank%") {
+								@Override
+								public String replace(Optional<Rank> rank) {
+									if (rank.isPresent())
+										return rank.get().getName();
+									return "(Not attainable)";
+								}
+							})
+							.setKingdom(kingdom)
+							.send(player);
+					return;
+				}
+			}
+		}
+	}
+	
+	@EventHandler
+	public void onEntityInteract(PlayerInteractAtEntityEvent event) {
+		Location location = event.getRightClicked().getLocation();
+		Land land = getLand(location.getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (landKingdom == null)
+			return;
+		Player player = event.getPlayer();
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		if (kingdomPlayer.hasAdminMode())
+			return;
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null) {
+			event.setCancelled(true);
+			new MessageBuilder("kingdoms.cannot-interact-land-no-kingdom").send(player);
+		} else {
+			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+				event.setCancelled(true);
+				new MessageBuilder("kingdoms.cannot-interact-land")
+						.replace("%playerkingdom%", kingdom.getName())
+						.setKingdom(landKingdom)
+						.send(player);
+				return;
+			}
+			if (!kingdom.getPermissions(kingdomPlayer.getRank()).canBuild()) {
+				event.setCancelled(true);
+				new MessageBuilder("kingdoms.rank-too-low-build")
+						.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canClaim()), new Placeholder<Optional<Rank>>("%rank%") {
+							@Override
+							public String replace(Optional<Rank> rank) {
+								if (rank.isPresent())
+									return rank.get().getName();
+								return "(Not attainable)";
+							}
+						})
+						.setKingdom(kingdom)
+						.send(player);
+				return;
+			}
+			Structure structure = land.getStructure();
+			if (structure != null && structure.getType() == StructureType.NEXUS) {
+				if (!kingdom.getPermissions(kingdomPlayer.getRank()).canBuildInNexus()) {
+					event.setCancelled(true);
+					new MessageBuilder("kingdoms.rank-too-low-nexus-build")
+							.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canBuildInNexus()), new Placeholder<Optional<Rank>>("%rank%") {
+								@Override
+								public String replace(Optional<Rank> rank) {
+									if (rank.isPresent())
+										return rank.get().getName();
+									return "(Not attainable)";
+								}
+							})
+							.setKingdom(kingdom)
+							.send(player);
+					return;
+				}
+			}
+		}
+	}
 
 	@EventHandler
 	public void onWorldLoad(WorldLoadEvent event) {
 		for (Land land : toLoad.values()) {
 			OfflineKingdom kingdom = land.getKingdomOwner();
+			Chunk chunk = land.getChunk();
 			if (kingdom != null) {
-				String name = LocationUtils.chunkToString(land.getChunk());
+				String name = LocationUtils.chunkToString(chunk);
 				Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
 				Kingdoms.consoleMessage("The land owner is [" + kingdom.getName() + "] but no such kingdom with the name exists");
 			}
-			if (!lands.containsKey(land.getChunk()))
-				lands.put(land.getChunk(), land);
+			if (!lands.containsKey(chunk))
+				lands.put(chunk, land);
 			Bukkit.getPluginManager().callEvent(new LandLoadEvent(land));
 			WarpPadManager warpPadManager = instance.getManager("warp-pad", WarpPadManager.class);
 			warpPadManager.checkLoad(land);
@@ -467,507 +776,284 @@ public class LandManager extends Manager {
 		if (kingdomPlayer.isAutoClaiming()){
 			Bukkit.getScheduler().scheduleSyncDelayedTask(Kingdoms.getInstance(), new Runnable() {
 				public void run() {
-					attemptNormalLandClaim(kingdomPlayer);
+					playerClaimLand(kingdomPlayer);
 				}
 			}, 1L);
 		}
 	}
-	
-	public void attemptNormalLandClaim(KingdomPlayer kingdomPlayer) {
-		Player player = kingdomPlayer.getPlayer();
-		if (!worldManager.acceptsWorld(player.getWorld())) {
-			new MessageBuilder("claiming.world-disabled")
-					.replace("%player%", player.getName())
-					.replace("%player%", player.getName())
-					.send(player);
+
+	@EventHandler
+	public void onBucketOnUnoccupied(PlayerBucketEvent event) {
+		Block block = event.getBlockClicked();
+		World world = block.getWorld();
+		if (!worldManager.acceptsWorld(world))
 			return;
+		if (!worldManager.canBuildInUnoccupied(world))
+			return;
+		Location location = block.getRelative(event.getBlockFace()).getLocation();
+		Land land = getLand(location.getChunk());
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
+		OfflineKingdom kingdom = land.getKingdomOwner();
+		if (kingdom == null && !kingdomPlayer.hasAdminMode()) {
+			event.setCancelled(true);
+			new MessageBuilder("kingdoms.cannot-build-unoccupied-land")
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(kingdom)
+					.send(kingdomPlayer);
 		}
+	}
+
+	@EventHandler
+	public void onBreakUnoccupied(BlockBreakEvent event) {
+		if (event.isCancelled())
+			return;
+		Block block = event.getBlock();
+		World world = block.getWorld();
+		if (!worldManager.acceptsWorld(world))
+			return;
+		if (!worldManager.canBuildInUnoccupied(world))
+			return;
+		if (Kingdoms.getManagers().getConquestManager() != null && world.equals(ConquestManager.world))
+			return;
+		Location location = block.getLocation();
+		Land land = getLand(location.getChunk());
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
+		OfflineKingdom kingdom = land.getKingdomOwner();
+		if (kingdom == null && !kingdomPlayer.hasAdminMode()) {
+			event.setCancelled(true);
+			new MessageBuilder("kingdoms.cannot-build-unoccupied-land")
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(kingdom)
+					.send(kingdomPlayer);
+		}
+	}
+
+	@EventHandler
+	public void onBuildUnoccupied(BlockPlaceEvent event) {
+		if (event.isCancelled())
+			return;
+		Block block = event.getBlock();
+		World world = block.getWorld();
+		if (!worldManager.acceptsWorld(world))
+			return;
+		if (!worldManager.canBuildInUnoccupied(world))
+			return;
+		if (Kingdoms.getManagers().getConquestManager() != null && world.equals(ConquestManager.world))
+			return;
+		Location location = block.getLocation();
+		Land land = getLand(location.getChunk());
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
+		OfflineKingdom kingdom = land.getKingdomOwner();
+		if (kingdom == null && !kingdomPlayer.hasAdminMode()) {
+			event.setCancelled(true);
+			new MessageBuilder("kingdoms.cannot-build-unoccupied-land")
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(kingdom)
+					.send(kingdomPlayer);
+		}
+	}
+
+
+	@EventHandler
+	public void onBreakArmorStandOrFrame(EntityDamageByEntityEvent event) {
+		if (event.isCancelled())
+			return;
+		Entity entity = event.getEntity();
+		World world = entity.getWorld();
+		if (!worldManager.acceptsWorld(world))
+			return;
+		EntityType type = entity.getType();
+		if (type != EntityType.ARMOR_STAND && type != EntityType.ITEM_FRAME)
+			return;
+		if (!(event.getDamager() instanceof Player))
+			return;
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer((Player)event.getDamager());
+		if (kingdomPlayer.hasAdminMode())
+			return;
+		Location location = entity.getLocation();
+		Land land = getLand(location.getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (landKingdom == null)
+			return;
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null){
+			event.setCancelled(true);
+			new MessageBuilder("kingdoms.cannot-interact-land-no-kingdom").send(kingdomPlayer);
+		} else {
+			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+				event.setCancelled(true);
+				new MessageBuilder("kingdoms.cannot-interact-land")
+						.replace("%playerkingdom%", kingdom.getName())
+						.setKingdom(landKingdom)
+						.send(kingdomPlayer);
+				return;
+			}
+			Structure structure = land.getStructure();
+			if (structure != null && structure.getType() == StructureType.NEXUS) {
+				if (!kingdom.getPermissions(kingdomPlayer.getRank()).canBuildInNexus()) {
+					event.setCancelled(true);
+					new MessageBuilder("kingdoms.rank-too-low-nexus-build")
+							.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canBuildInNexus()), new Placeholder<Optional<Rank>>("%rank%") {
+								@Override
+								public String replace(Optional<Rank> rank) {
+									if (rank.isPresent())
+										return rank.get().getName();
+									return "(Not attainable)";
+								}
+							})
+							.setKingdom(kingdom)
+							.send(kingdomPlayer);
+					return;
+				}
+			}
+		}
+	}
+
+	@EventHandler
+	public void onBreakInOtherKingdom(BlockBreakEvent event) {
+		if (event.isCancelled())
+			return;
+		Block block = event.getBlock();
+		World world = block.getWorld();
+		if (!worldManager.acceptsWorld(world))
+			return;
+		Location location = block.getLocation();
+		Land land = getLand(location.getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (landKingdom == null)
+			return;
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
+		if (kingdomPlayer.hasAdminMode())
+			return;
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null) {
-			new MessageBuilder("claiming.no-kingdom")
-					.setPlaceholderObject(kingdomPlayer)
-					.send(kingdomPlayer);
-			return;
-		}
-		if (!kingdom.getRank().isHigherOrEqualTo(kingdom.getPermissionsInfo().getClaim())) {
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Rank_Too_Low", kp.getLang()).replaceAll("%rank%", kingdom.getPermissionsInfo().getClaim().toString()));
-			return;
-		}
-		if (ExternalManager.cannotClaimInRegion(player.getLocation())) {
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Worldguard_Claim_Off_Limits", kp.getLang()));
-			return;
-		}
-		Land land = GameManagement.getLandManager().getLand(kp.getLoc());
-		if(land.getOwnerUUID() != null){
-			if(land.getOwnerUUID().equals(kingdom.getKingdomUuid())){
-				kp.sendMessage(Kingdoms.getLang().getString("Command_Claim_Land_Owned_Error", kp.getLang()));
+			event.setCancelled(true);
+			new MessageBuilder("kingdoms.cannot-interact-land-no-kingdom").send(kingdomPlayer);
+		} else {
+			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+				event.setCancelled(true);
+				new MessageBuilder("kingdoms.cannot-interact-land")
+						.replace("%playerkingdom%", kingdom.getName())
+						.setKingdom(landKingdom)
+						.send(kingdomPlayer);
 				return;
 			}
-			
-			kp.sendMessage(Kingdoms.getLang().getString("Command_Claim_Land_Occupied_Error", kp.getLang()).replaceAll("%kingdom%", land.getOwner()));
-			kp.sendMessage("You may conquer this land by invading. (/k invade)");
-			return;
-		}
-		
-		//land amount < land-per-member * kingdomMemberNumb
-		//land amount < maximum-land-claims , maximum-land-claims > 0
-		if((kingdom.getLand() >= (Config.getConfig().getInt("land-per-member")*kingdom.getMembersList().size() + kingdom.getExtraLandClaims()))){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Members_Needed", kp.getLang()).replaceAll("%amount%", Config.getConfig().getInt("land-per-member")*kingdom.getMembersList().size() + "").replaceAll("%members%", kingdom.getMembersList().size() + ""));
-			return;
-		}
-		
-		if(Config.getConfig().getInt("maximum-land-claims") > 0 && (kingdom.getLand() >= Config.getConfig().getInt("maximum-land-claims"))){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Max_Land_Reached", kp.getLang()));
-			return;
-		}
-		
-		if(kingdom.getLand() <= 0){//check if first land
-			kp.sendMessage(Kingdoms.getLang().getString("Command_Claim_FirstTime1", kp.getLang()).replaceAll("%kingdom%", kingdom.getKingdomName()));
-			kp.sendMessage(Kingdoms.getLang().getString("Command_Claim_FirstTime2", kp.getLang()));
-			
-			if(kingdom.getHome_loc() == null){
-				kingdom.setHome_loc(kp.getPlayer().getLocation());
-				kp.sendMessage(Kingdoms.getLang().getString("Command_Sethome_Success", kp.getLang()).replaceAll("%coords%", new SimpleLocation(kingdom.getHome_loc()).toString()));
-			}
-		
-		}else{
-			if(Config.getConfig().getBoolean("land-must-be-connected")){
-				boolean conn = false;
-				Chunk main = kp.getPlayer().getLocation().getChunk();
-				World w = kp.getPlayer().getWorld();
-				for(int x = -1; x <= 1; x++){
-					for(int z = -1; z <= 1; z++){
-						if(x == 0 && z == 0) continue;
-						Chunk c = w.getChunkAt(main.getX() + x, main.getZ() + z);
-						Land adj = Kingdoms.getManagers().getLandManager().getLand(new SimpleChunkLocation(c));
-						if(adj.getOwnerUUID() != null){
-							if(adj.getOwnerUUID().equals(kingdom.getKingdomUuid())){
-								conn = true;
-								break;
-							}
-						}
-					}
-				}
-				if(!conn){
-					kp.sendMessage(Kingdoms.getLang().getString("Misc_Must_Be_Connected", kp.getLang()));
-					return;
-				}
-			}
-			
-			int cost = Config.getConfig().getInt("claim-cost");
-			if(!kp.isAdminMode() && kingdom.getResourcepoints() < cost){
-				kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_Enough_Points", kp.getLang()).replaceAll("%cost%", "" + cost));
-				return;
-			}
-			if(!kp.isAdminMode()){
-				
-				kingdom.setResourcepoints(kingdom.getResourcepoints() - Config.getConfig().getInt("claim-cost"));
-				kp.sendMessage(Kingdoms.getLang().getString("Command_Claim_Success", kp.getLang()).replaceAll("%cost%", "" + Config.getConfig().getInt("claim-cost")));
-			}else{
-				kp.sendMessage(Kingdoms.getLang().getString("Command_Claim_Op", kp.getLang()));
-			}
-		}
-
-		GameManagement.getLandManager().claimLand(kp.getLoc(), kingdom);
-		GameManagement.getVisualManager().visualizeLand(kp, land.getLoc());
-	}
-	
-	private ArrayList<String> forbidden = new ArrayList<String>(){{
-		add(Material.DROPPER.toString());
-		add(Material.DISPENSER.toString());
-		add(Material.HOPPER.toString());
-		add(Material.TRAPPED_CHEST.toString());
-		add(Material.CHEST.toString());
-		add(Material.FURNACE.toString());
-		add("DOOR");
-		add(Material.LEVER.toString());
-		add(Materials.OAK_BUTTON.parseMaterial().toString());
-		add(Material.STONE_BUTTON.toString());
-		add(Material.ANVIL.toString());
-		add(Materials.CRAFTING_TABLE.parseMaterial().toString());
-		add(Materials.ENCHANTING_TABLE.parseMaterial().toString());
-		add(Materials.FURNACE.parseMaterial().toString());
-		add("SHULKER_BOX");
-		add(Material.DROPPER.toString());
-
-	}};
-	
-	private boolean isInForbiddenList(Material mat){
-		if(forbidden.contains(mat.toString())) return true;
-		for(String s:forbidden){
-			if(mat.toString().endsWith(s)){
-				return true;
-			}
-		}
-		return false;
-	}
-
-	@EventHandler(priority = EventPriority.HIGH)
-	public void onInteractOnOtherKingdom(PlayerInteractEvent e){
-		if(e.isCancelled()) return;
-		if(e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-
-		if(e.getClickedBlock() == null) return;
-
-		if(Config.getConfig().getBoolean("can-open-storage-blocks-in-other-kingdom-land")) return;
-		
-		if(e.getPlayer().isSneaking()){
-			if(!isInForbiddenList(e.getClickedBlock().getType())){
-				if(e.getPlayer().getItemInHand() == null) return;
-				if(e.getPlayer().getItemInHand().getType() != Material.ARMOR_STAND
-						&& e.getPlayer().getItemInHand().getType() != Material.ITEM_FRAME){
+			Structure structure = land.getStructure();
+			if (structure != null && structure.getType() == StructureType.NEXUS) {
+				if (!kingdom.getPermissions(kingdomPlayer.getRank()).canBuildInNexus()) {
+					event.setCancelled(true);
+					new MessageBuilder("kingdoms.rank-too-low-nexus-build")
+							.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canBuildInNexus()), new Placeholder<Optional<Rank>>("%rank%") {
+								@Override
+								public String replace(Optional<Rank> rank) {
+									if (rank.isPresent())
+										return rank.get().getName();
+									return "(Not attainable)";
+								}
+							})
+							.setKingdom(kingdom)
+							.send(kingdomPlayer);
 					return;
 				}
 			}
 		}
-
-
-		Location bukkitLoc = e.getClickedBlock().getLocation();
-		SimpleLocation loc = new SimpleLocation(bukkitLoc);
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-
-		Land land = GameManagement.getLandManager().getLand(chunk);
-		if(land.getOwnerUUID() == null) return;
-
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if(kp.isAdminMode()) return;
-		if(kp.getKingdom() == null){//not in kingdom
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Break_In_Other_Land", kp.getLang()));
-
-			e.setCancelled(true);
-		}else{//in kingdom
-			Kingdom kingdom = kp.getKingdom();
-			if(!kingdom.getKingdomUuid().equals(land.getOwnerUUID())){
-				kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Break_In_Other_Land", kp.getLang()));
-
-				e.setCancelled(true);
-				return;
-			}
-			if(land.getStructure() != null &&
-					land.getStructure().getType() == StructureType.NEXUS &&
-					!kp.getRank().isHigherOrEqualTo(kingdom.getPermissionsInfo().getBuildInNexus())){
-				e.setCancelled(true);
-				kp.sendMessage(Kingdoms.getLang().getString("Misc_Rank_Too_Low_NexusBuild", kp.getLang()).replaceAll("%rank%", kingdom.getPermissionsInfo().getBuildInNexus().toString()));
-				return;
-			}
-		}
 	}
 
 	@EventHandler
-	public void onInteractAtEntity(PlayerInteractAtEntityEvent e){
-		SimpleLocation loc = new SimpleLocation(e.getRightClicked().getLocation());
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-
-		Land land = GameManagement.getLandManager().getLand(chunk);
-		if(land.getOwnerUUID() == null) return;
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if(kp.isAdminMode()) return;
-		if(kp.getKingdom() == null){//not in kingdom
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Break_In_Other_Land", kp.getLang()));
-
-			e.setCancelled(true);
-		}else{//in kingdom
-			Kingdom kingdom = kp.getKingdom();
-
-			if(!kingdom.getKingdomUuid().equals(land.getOwnerUUID())){
-				kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Break_In_Other_Land", kp.getLang()));
-
-				e.setCancelled(true);
-				return;
-			}
-
-			if(land.getStructure() != null &&
-					land.getStructure().getType() == StructureType.NEXUS &&
-					!kp.getRank().isHigherOrEqualTo(kingdom.getPermissionsInfo().getBuildInNexus())){
-				e.setCancelled(true);
-				kp.sendMessage(Kingdoms.getLang().getString("Misc_Rank_Too_Low_NexusBuild", kp.getLang()).replaceAll("%rank%", kingdom.getPermissionsInfo().getBuildInNexus().toString()));
-				return;
-			}
-
-		}
-	}
-
-	@EventHandler
-	public void onSpecialLandExplode(EntityExplodeEvent e){
-		for(Iterator<Block> iter = e.blockList().iterator(); iter.hasNext();){
-			Block block = iter.next();
-			if(block == null || block.getType() == Material.AIR) continue;
-
-			SimpleLocation loc = new SimpleLocation(block.getLocation());
-			SimpleChunkLocation chunk = loc.toSimpleChunk();
-
-			Land land = GameManagement.getLandManager().getLand(chunk);
-			if(land.getOwnerUUID() == null) continue;
-
-		}
-
-
-	}
-
-	@EventHandler
-	public void onBucketEmptyOnUnoccupiedLand(PlayerBucketEmptyEvent event) {
-		if(!Config.getConfig().getStringList("enabled-worlds").contains(event.getBlockClicked().getWorld().getName())) return;
-		if(!Config.getConfig().getStringList("worlds-with-no-building-in-unoccupied-land").contains(event.getBlockClicked().getWorld().getName())) return;Location bukkitLoc = event.getBlockClicked().getRelative(event.getBlockFace()).getLocation();
-		SimpleLocation loc = new SimpleLocation(bukkitLoc);
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-
-		Land land = GameManagement.getLandManager().getLand(chunk);
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(event.getPlayer());
-		if(land.getOwnerUUID() == null && !kp.isAdminMode()){
+	public void onBucketInOtherKingdom(PlayerBucketEvent event) {
+		Location location = event.getBlockClicked().getLocation();
+		Land land = getLand(location.getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (landKingdom == null)
+			return;
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
+		if (kingdomPlayer.hasAdminMode())
+			return;
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null) {
 			event.setCancelled(true);
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Build_In_Unoccupied_Land", kp.getLang()));
-		}
-	}
-
-	@EventHandler
-	public void onBucketFillOnUnoccupiedLand(PlayerBucketFillEvent event) {
-		if(!Config.getConfig().getStringList("enabled-worlds").contains(event.getBlockClicked().getWorld().getName())) return;
-		if(!Config.getConfig().getStringList("worlds-with-no-building-in-unoccupied-land").contains(event.getBlockClicked().getWorld().getName())) return;
-		Location bukkitLoc = event.getBlockClicked().getRelative(event.getBlockFace()).getLocation();
-		SimpleLocation loc = new SimpleLocation(bukkitLoc);
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-		Land land = GameManagement.getLandManager().getLand(chunk);
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(event.getPlayer());
-		if(land.getOwnerUUID() == null && !kp.isAdminMode()){
-			event.setCancelled(true);
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Build_In_Unoccupied_Land", kp.getLang()));
-		}
-	}
-
-
-	@EventHandler
-	public void onBreakBlockUnoccupied(BlockBreakEvent e){
-		if(e.isCancelled()) return;
-		if(Config.getConfig().getStringList("enabled-worlds").contains(e.getBlock().getWorld().getName())) return;
-		if(e.getBlock() == null) return;
-		if(!Config.getConfig().getStringList("worlds-with-no-building-in-unoccupied-land").contains(e.getBlock().getWorld().getName())) return;
-		if(Kingdoms.getManagers().getConquestManager() != null && e.getBlock().getWorld().equals(ConquestManager.world)) return;
-		Location bukkitLoc = e.getBlock().getLocation();
-		SimpleLocation loc = new SimpleLocation(bukkitLoc);
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-
-		Land land = GameManagement.getLandManager().getLand(chunk);
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if(land.getOwnerUUID() == null && !kp.isAdminMode()){
-			e.setCancelled(true);
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Build_In_Unoccupied_Land", kp.getLang()));
-		}
-	}
-
-	@EventHandler
-	public void onBuildBlockUnoccupied(BlockPlaceEvent e){
-
-		if(e.isCancelled()) return;
-		if(!Config.getConfig().getStringList("enabled-worlds").contains(e.getBlock().getWorld().getName())) return;
-		if(e.getBlock() == null) return;
-		if(!Config.getConfig().getStringList("worlds-with-no-building-in-unoccupied-land").contains(e.getBlock().getWorld().getName())) return;
-		if(Kingdoms.getManagers().getConquestManager() != null && e.getBlock().getWorld().equals(ConquestManager.world)) return;
-		Location bukkitLoc = e.getBlock().getLocation();
-		SimpleLocation loc = new SimpleLocation(bukkitLoc);
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-
-		Land land = GameManagement.getLandManager().getLand(chunk);
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if(land.getOwnerUUID() == null && !kp.isAdminMode()){
-			e.setCancelled(true);
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Build_In_Unoccupied_Land", kp.getLang()));
-		}
-	}
-
-
-	@EventHandler
-	public void onBreakArmorStandOrFrame(EntityDamageByEntityEvent e){
-		if(e.isCancelled()) return;
-
-		if(!Config.getConfig().getStringList("enabled-worlds").contains(e.getEntity().getWorld().getName())) return;
-		if(e.getEntity().getType() != EntityType.ARMOR_STAND && e.getEntity().getType() != EntityType.ITEM_FRAME) return;
-		if(!(e.getDamager() instanceof Player)) return;
-		Location bukkitLoc = e.getEntity().getLocation();
-		SimpleLocation loc = new SimpleLocation(bukkitLoc);
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-
-		Land land = GameManagement.getLandManager().getLand(chunk);
-		if(land.getOwnerUUID() == null) return;
-
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession((Player)e.getDamager());
-		if(kp.isAdminMode()) return;
-		if(kp.getKingdom() == null){//not in kingdom
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Break_In_Other_Land", kp.getLang()));
-
-			e.setCancelled(true);
-		}else{//in kingdom
-			Kingdom kingdom = kp.getKingdom();
-
-			if(!kingdom.getKingdomUuid().equals(land.getOwnerUUID())){
-				kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Break_In_Other_Land", kp.getLang()));
-
-				e.setCancelled(true);
-				return;
-			}
-			if(land.getStructure() != null &&
-					land.getStructure().getType() == StructureType.NEXUS &&
-					!kp.getRank().isHigherOrEqualTo(kingdom.getPermissionsInfo().getBuildInNexus())){
-				e.setCancelled(true);
-				kp.sendMessage(Kingdoms.getLang().getString("Misc_Rank_Too_Low_NexusBuild", kp.getLang()).replaceAll("%rank%", kingdom.getPermissionsInfo().getBuildInNexus().toString()));
-				return;
-			}
-		}
-	}
-
-	@EventHandler
-	public void onBreakBlockOnOtherKingdom(BlockBreakEvent e){
-		if(e.isCancelled()) return;
-
-		if(!Config.getConfig().getStringList("enabled-worlds").contains(e.getBlock().getWorld().getName())) return;
-		if(e.getBlock() == null) return;
-
-		Location bukkitLoc = e.getBlock().getLocation();
-		SimpleLocation loc = new SimpleLocation(bukkitLoc);
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-
-		Land land = GameManagement.getLandManager().getLand(chunk);
-		if(land.getOwnerUUID() == null) return;
-
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if(kp.isAdminMode()) return;
-		if(kp.getKingdom() == null){//not in kingdom
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Break_In_Other_Land", kp.getLang()));
-
-			e.setCancelled(true);
-		}else{//in kingdom
-			Kingdom kingdom = kp.getKingdom();
-
-			if(!kingdom.getKingdomUuid().equals(land.getOwnerUUID())){
-				kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Break_In_Other_Land", kp.getLang()));
-
-				e.setCancelled(true);
-				return;
-			}
-			if(land.getStructure() != null &&
-					land.getStructure().getType() == StructureType.NEXUS &&
-					!kp.getRank().isHigherOrEqualTo(kingdom.getPermissionsInfo().getBuildInNexus())){
-				e.setCancelled(true);
-				kp.sendMessage(Kingdoms.getLang().getString("Misc_Rank_Too_Low_NexusBuild", kp.getLang()).replaceAll("%rank%", kingdom.getPermissionsInfo().getBuildInNexus().toString()));
-				return;
-			}
-		}
-	}
-
-	@EventHandler
-	public void onBucketEmptyOnOtherKingdom(PlayerBucketEmptyEvent event) {
-		Location bukkitLoc = event.getBlockClicked().getLocation();
-		SimpleLocation loc = new SimpleLocation(bukkitLoc);
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-		Land land = this.getLand(chunk);
-		if(land.getOwnerUUID() == null) return;
-
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(event.getPlayer());
-		if(kp.isAdminMode()) return;
-		if(kp.getKingdom() == null){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Break_In_Other_Land", kp.getLang()));
-			event.setCancelled(true);
-		}else{
-			if(!land.getOwnerUUID().equals(kp.getKingdom().getKingdomUuid())){
-				kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Break_In_Other_Land", kp.getLang()));
+			new MessageBuilder("kingdoms.cannot-interact-land-no-kingdom").send(kingdomPlayer);
+		} else {
+			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
 				event.setCancelled(true);
+				new MessageBuilder("kingdoms.cannot-interact-land")
+						.replace("%playerkingdom%", kingdom.getName())
+						.setKingdom(landKingdom)
+						.send(kingdomPlayer);
+				return;
 			}
 		}
 	}
 
 	@EventHandler
-	public void onBucketFillOnOtherKingdom(PlayerBucketFillEvent event) {
-		Location bukkitLoc = event.getBlockClicked().getLocation();
-		SimpleLocation loc = new SimpleLocation(bukkitLoc);
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-		Land land = this.getLand(chunk);
-		if(land.getOwnerUUID() == null) return;
-
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(event.getPlayer());
-		if(kp.isAdminMode()) return;
-		if(kp.getKingdom() == null){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Break_In_Other_Land", kp.getLang()));
+	public void onPlaceInOtherKingdom(BlockPlaceEvent event) {
+		Location location = event.getBlock().getLocation();
+		Land land = landManager.getLand(location.getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (landKingdom == null)
+			return;
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
+		if (kingdomPlayer.hasAdminMode())
+			return;
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null) {
 			event.setCancelled(true);
-		}else{
-			if(!land.getOwnerUUID().equals(kp.getKingdom().getKingdomUuid())){
-				kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Break_In_Other_Land", kp.getLang()));
+			new MessageBuilder("kingdoms.cannot-interact-land-no-kingdom").send(kingdomPlayer);
+		} else {
+			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
 				event.setCancelled(true);
+				new MessageBuilder("kingdoms.cannot-interact-land")
+						.replace("%playerkingdom%", kingdom.getName())
+						.setKingdom(landKingdom)
+						.send(kingdomPlayer);
+				return;
+			}
+			Structure structure = land.getStructure();
+			if (structure != null && structure.getType() == StructureType.NEXUS) {
+				if (!kingdom.getPermissions(kingdomPlayer.getRank()).canBuildInNexus()) {
+					event.setCancelled(true);
+					new MessageBuilder("kingdoms.rank-too-low-nexus-build")
+							.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canBuildInNexus()), new Placeholder<Optional<Rank>>("%rank%") {
+								@Override
+								public String replace(Optional<Rank> rank) {
+									if (rank.isPresent())
+										return rank.get().getName();
+									return "(Not attainable)";
+								}
+							})
+							.setKingdom(kingdom)
+							.send(kingdomPlayer);
+					return;
+				}
 			}
 		}
 	}
 
 	@EventHandler
-	public void onBlockPlaceOnOtherKingdom(BlockPlaceEvent e) {
-		if(e.getBlock() == null) return;
-		Location bukkitLoc = e.getBlock().getLocation();
-		SimpleLocation loc = new SimpleLocation(bukkitLoc);
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-
-		Land land = GameManagement.getLandManager().getLand(chunk);
-		if(land.getOwnerUUID() == null) return;
-
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if(kp.isAdminMode()) return;
-		if(kp.getKingdom() == null){//not in kingdom
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Break_In_Other_Land", kp.getLang()));
-
-			e.setCancelled(true);
-		}else{//in kingdom
-			Kingdom kingdom = kp.getKingdom();
-
-			if(!kingdom.getKingdomUuid().equals(land.getOwnerUUID())){
-				kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Break_In_Other_Land", kp.getLang()));
-
-				e.setCancelled(true);
-				return;
-			}
-			if(land.getStructure() != null &&
-					land.getStructure().getType() == StructureType.NEXUS &&
-					!kp.getRank().isHigherOrEqualTo(kingdom.getPermissionsInfo().getBuildInNexus())){
-				e.setCancelled(true);
-				kp.sendMessage(Kingdoms.getLang().getString("Misc_Rank_Too_Low_NexusBuild", kp.getLang()).replaceAll("%rank%", kingdom.getPermissionsInfo().getBuildInNexus().toString()));
-				return;
-			}
-		}
-	}
-
-	@EventHandler
-	public void onFlowIntoKingdomLand(BlockFromToEvent e){
-		if(!Config.getConfig().getBoolean("disableFlowIntoLand")) return;
-
-		SimpleLocation locFrom = new SimpleLocation(e.getBlock().getLocation());
-		SimpleLocation locTo = new SimpleLocation(e.getToBlock().getLocation());
-
-		Land landFrom = GameManagement.getLandManager().getLand(locFrom.toSimpleChunk());
-		Land landTo = GameManagement.getLandManager().getLand(locTo.toSimpleChunk());
-
-		if(landFrom.getOwnerUUID() == null){
-			if(landTo.getOwnerUUID() != null){
-				e.setCancelled(true);
-			}
-		}else if(landFrom.getOwnerUUID().equals(landTo.getOwnerUUID())){
-		}else{
-			e.setCancelled(true);
+	public void onFlowIntoKingdom(BlockFromToEvent event) {
+		if (!configuration.getBoolean("kingdoms.disable-liquid-flow-into", false))
+			return;
+		OfflineKingdom from = getLand(event.getBlock().getLocation().getChunk()).getKingdomOwner();
+		OfflineKingdom to = getLand(event.getToBlock().getLocation().getChunk()).getKingdomOwner();
+		if (from.getUniqueId() == null && to.getUniqueId() != null) {
+			event.setCancelled(true);
+		} else if (!from.getUniqueId().equals(to.getUniqueId())) {
+			event.setCancelled(true);
 		}
 	}
 
 	@Override
 	public void onDisable() {
 		autoSaveThread.cancel();
-		Kingdoms.logInfo("Saving lands to db...");
-		try{
-			int i = saveAll();
-			Kingdoms.logInfo("[" + i + "] lands saved!");
-		}catch(Exception e){
-			Kingdoms.logInfo("SQL connection failed! Saving to file DB");
-			db = createFileDB();
-			try {
-				int i = saveAll();
-				Kingdoms.logInfo("[" + i + "] lands saved offline. Files will be saved to SQL server when connection is restored in future");
-			} catch (InterruptedException e1) {
-			}
-			Config.getConfig().set("DO-NOT-TOUCH.grabLandFromFileDB",true);
+		Kingdoms.debugMessage("Saving lands to database...");
+		try {
+			saveTask.run();
+		} catch (Exception e) {
+			Kingdoms.consoleMessage("MySQL connection failed! Saving to file database");
+			database = getMySQLDatabase(Land.class);
+			saveTask.run();
 		}
-		landList.clear();
+		lands.clear();
 	}
 
 }

@@ -11,12 +11,14 @@ public class RankPermissions {
 	private final FileConfiguration configuration;
 	private final String node;
 	private final Rank rank;
+	private int max;
 	
 	public RankPermissions(Rank rank) {
 		this.rank = rank;
 		this.configuration = Kingdoms.getInstance().getConfig();
 		this.node = rank.getConfigurationNode() + ".default-permissions";
 		this.regulator = getDefaultValue(node + ".override-regulator");
+		this.max = configuration.getInt(node + ".max-claims", -1);
 		this.nexusBuild = getDefaultValue(node + ".nexus-build");
 		this.structures = getDefaultValue(node + ".structures");
 		this.unclaiming = getDefaultValue(node + ".unclaiming");
@@ -147,6 +149,14 @@ public class RankPermissions {
 	
 	public void setInvite(boolean invite) {
 		this.invite = invite;
+	}
+	
+	public int getMaximumClaims() {
+		return max;
+	}
+	
+	public void setMaximumClaims(int max) {
+		this.max = max;
 	}
 	
 	public boolean canInvade() {

@@ -8,10 +8,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.PlayerManager;
+import com.songoda.kingdoms.manager.managers.RankManager;
+import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.manager.managers.WorldManager;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
@@ -26,14 +29,12 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	private final Set<KingdomPlayer> online = new HashSet<>();
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
-	private Location nexus, spawn;
 	private int max;
 	
 	int chestsize = 9;
 	long timestamp = 0;
 	int maxMember = 10;
 	ChampionInfo championInfo = new ChampionInfo();
-	PermissionsInfo permissionsInfo = new PermissionsInfo();
 	ArmyInfo armyInfo = new ArmyInfo();
 	AggressorInfo aggressorInfo = new AggressorInfo();
 	MisupgradeInfo misupgradeInfo = new MisupgradeInfo();
@@ -60,23 +61,8 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	public Kingdom(UUID uuid, KingdomPlayer king) {
 		super(uuid, king);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.max = instance.getConfig().getInt("base-max-members", 10);
-	}
-
-	public Location getNexusLocation() {
-		return nexus;
-	}
-
-	public void setNexusLocation(Location nexus) {
-		this.nexus = nexus;
-	}
-
-	public Location getSpawn() {
-		return spawn;
-	}
-
-	public void setSpawn(Location spawn) {
-		this.spawn = spawn;
 	}
 	
 	public Set<KingdomPlayer> getOnlinePlayers() {
@@ -93,7 +79,7 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 				.forEach(world -> {
 					for (Player player : world.getPlayers()) {
 						KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-						if (kingdomPlayer.isAdminMode()) {
+						if (kingdomPlayer.hasAdminMode()) {
 							allies.add(kingdomPlayer);
 							continue;
 						}

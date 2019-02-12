@@ -1,13 +1,17 @@
 package com.songoda.kingdoms.manager.managers;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.bukkit.configuration.ConfigurationSection;
 import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.objects.kingdom.RankPermissions;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
@@ -103,6 +107,14 @@ public class RankManager extends Manager {
 			return name;
 		}
 		
+	}
+	
+	public Optional<Rank> getLowestFor(OfflineKingdom kingdom, Predicate<RankPermissions> predicate) {
+		List<Rank> sorted = getSortedOrder();
+		Collections.reverse(sorted);
+		return sorted.parallelStream()
+				.filter(rank -> predicate.test(kingdom.getPermissions(rank)))
+				.findFirst();
 	}
 	
 	public Optional<Rank> getRankByColor(ChatColor color) {

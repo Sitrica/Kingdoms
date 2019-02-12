@@ -35,14 +35,34 @@ taxes:
     take: "&6Taxes have been applied. Tax amount was: %amount%"
     # Placeholders: %kingdom% and %amount%
     disband: "&6The Kingdom &e%kingdom% has been disbanded because it can't pay it's taxes"
+structures:
+    # Placeholders: All Kingdom related placeholders.
+    extractor-collection: '&a%player% collected %amount% resource points from an extractor.'
 # All messages relating to Kingdoms.
 kingdoms:
     invading:
         # Placeholders: %player%, %chunkTo%, %chunkFrom%, %land% and %kingdom%
         invading-deny-chunk-change: "&cYou can not leave the Kingdom while invading!"
     deleted: "&eYour Kingdom %kingdom% has been disbanded."
+    no-kingdom: "&cYou are not apart of any Kingdom!"
     creation: "&aYou have successfully created a Kingdom with the name %kingdom%!"
     cannot-attack-members: "&cYou can't attack your own kingdom members!"
+    permissions-too-low: "&cYour rank is too low to use this function! Only %rank% and up can use this function!"
+    # This message has no placeholders other than player related placeholders. The user has no Kingdom.
+    cannot-interact-land-no-kingdom: "&cYou cannot interact with, break or place blocks in another Kingdom's land!"
+    # Placeholders: %playerkingdom% and all Kingdom related placeholders are for the Kingdom at the land, the playerkingdom placeholder is the player's Kingdom.
+    cannot-interact-land: "&cYou cannot interact with, break or place blocks in %kingdom%'s land!"
+    # Placeholders: %rank% and all Kingdom related placeholders.
+    rank-too-low-build: "&cYour rank is too low to build in the Kingdom! Only rank %rank% can build!"
+    # Placeholders: %rank% and all Kingdom related placeholders.
+    rank-too-low-nexus-build: "&cYour rank is too low to build in the nexus chunk! Only rank %rank% can build here!"
+    # Placeholders: %rank% and all Kingdom related placeholders.
+    rank-too-low-structure-build: "&cYour rank is too low to place a structure! Only rank %rank% can place structures!"
+    # Placeholders: All Kingdom and KingdomPlayer placeholders.
+    cannot-build-unoccupied-land: "&cYou need to claim this land to build on it!"
+    not-in-land: "&cYou can only do that in your land."
+    # Placeholders: Kingdom and Player placeholders. This is called when replacing a block to the Nexus.
+    nexus-cannot-replace: "&cYou cannot replace this block!"
 # All messages relating to maps and chunks.
 map:
     # Called when a user walks into an unoccupied chunk of land.
@@ -69,10 +89,33 @@ map:
 claiming:
     world-disabled: "&cThis command is disabled in this world."
     no-kingdom: "&cYou need to be in a Kingdom to claim land!"
+    worldguard: "&cYou cannot claim in guarded regions!"
+    #Placeholders: %amount% and %chunk%
+    already-owned: "&cYour Kingdom already owns this land!"
+    #Placeholders: %amount% and %chunk%
+    already-claimed: "&cThis land is claimed by %kingdom%. Use &l/k invade &cto attack this land!"
+    #Placeholders: %amount% and all Kingdom related placeholders.
+    max-user-claims: "&cYour Kingdom permissions are only allowed to claim %amount% land chunks."
+    #Placeholders: %amount% and all Kingdom related placeholders.
+    max-claims: "&cMaximum land claims reached for %kingdom%!"
+    # Placeholders: %chunk% and all Kingdom related placeholders.
+    first-claim: "&aGreetings member of newly made Kingdom %kingdom%!%newline%&aWe presented one free claim to you! good luck!"
+    # Placeholders: all Kingdom related placeholders.
+    must-be-connected: "&cThe claiming land must be connected to the Kingdom's land!"
+    # Placeholders: %cost%, %needed% and all Kingdom related placeholders. - needed is how many resource points are needed.
+    need-resourcepoints: "&cYour Kingdom doesn't have enough resource points to claim this land. (%cost% resource points needed!)"
+    # Placeholders: %cost% and all Kingdom related placeholders.
+    admin-claim: "&bYou are in Admin mode, this claim was free."
+    # Placeholders: %cost% and all Kingdom related placeholders.
+    success: "&aLand claimed. %cost% resource points taken."
 # All messages relating to chat.
 chat:
     ally-chat-prefix: "&d[%rank%] %player%: &7"
     kingdom-chat-prefix: "&a[%rank%] %player%: &7"
+# All command releated messages
+commands:
+    # Placeholders: %location% and all Kingdom releated placeholders.
+    spawn-set: '&aKingdom spawn has been set at: %location%'
     
     
 
@@ -85,15 +128,6 @@ Plugin_NotEnabled: Plugin is not enabled.
 Plugin_SetEnableToTrue: Please set Enable option to true in your config.yml file.
 Plugin_WillBeDisabled: This plugin will be disabled.
 Plugin_OreRegeneratorNotFound: No OreRegenerator plugin found, disabling kingdom ore regeneration after land expiry
-Rank_Mods: "\u2694"
-Rank_Generals: "\u265b"
-Rank_All: "\u265f"
-Rank_Mods_Name: Mods
-Rank_Generals_Name: Generals
-Rank_All_Name: All
-Chat_Prefix_Members: "&8[&a\u265f&8][&7%kingdom%&8]"
-Chat_Prefix_Mods: "&8[&1\u2694&8][&7%kingdom%&8]"
-Chat_Prefix_Generals: "&8[&6\u265b&8][&7%kingdom%&8]"
 PlaceHolders_None: none
 Command_Info_PageTextHeader: '&6Page %currpagenum%'
 Command_Info_NextPageText: '&6Do /k info &7%nextpagenum% &6to see the next page'
@@ -237,14 +271,8 @@ Command_Chat_Help_Kingdom: '&a/k chat k  Switches to Kingdom chat'
 Command_Chat_Help_Ally: '&d/k chat a  Switches to Ally chat'
 Command_Chat_Help_Public: '&1/k chat p  Switches to Public chat'
 Command_Chat_Switched: '&aCurrent Channel: %channel%'
-Command_Claim_Land_Owned_Error: '&cYour kingdom already owns this land'
-Command_Claim_Land_Occupied_Error: This land is occupied by %kingdom%. Use /k invade to attack this land
-Command_Claim_Success: '&aLand claimed. %cost% resourcepoints taken'
-Command_Claim_FirstTime1: '&aGreetings member of new kingdom %kingdom%!.'
-Command_Claim_Op: '&bAdmin mode detected, claim is free'
 Command_Claim_Auto_On: '&aAutoclaiming on.'
 Command_Claim_Auto_Off: '&cAutoclaiming off.'
-Command_Claim_FirstTime2: '&aWe presented one free claim to you! good luck!'
 Command_Create_Already_In_Kingdom_Error: '&cYou are already in %kingdom%. You must leave in order to create a kingdom'
 Command_Create_Invalid_Name_Error: '&cThe name you''ve entered is invalid!'
 Command_Create_Name_Too_Long_Error: '&cYour kingdom name can only be up to 12 characters long!'
@@ -338,7 +366,6 @@ Command_Demote_Broadcast: '%player% is no longer a kingdom mod/general'
 Command_Nexus_Land_Not_Owned_Error: '&cYou can only place the nexus in your own land!'
 Command_Nexus_Setting_Activated: '&6Right click a block in your land to place your nexus. Leaving your current land will cancel the placement'
 Command_Sethome_Not_On_Land: '&cYou can only set your home in your own land!'
-Command_Sethome_Success: '&aHome set at: %coords%'
 Command_Setlore_Lore_Too_Long: '&cThe lore you want is too long. Maximum: 30 characters'
 Command_Setlore_Invalid_Word: '&cThe lore contains an invalid word'
 Command_Setlore_Success: '&aKingdom lore has been set to &e%lore%'
@@ -443,13 +470,9 @@ Misc_Unknown_Command: '&cUnknown Command'
 Misc_Turret_No_Fence_Error: '&cTurrets need a fence underneath to function!'
 Misc_Anti_Claim_World: '&cLand claiming is disabled in this world'
 Misc_Members_Needed: '&cYou can only claim %amount% land with %members% members'
-Misc_Max_Land_Reached: '&cMaximum land claims reached'
-Misc_Must_Be_Connected: '&cYour land must be connected to your other land!'
-Misc_Not_Enough_Points: '&cYou need %cost% resourcepoints!'
 Misc_Invalid_Command: '&cInvalid command, do /k for help'
 Misc_Preparing_Info: '&cPreparing your new player data...'
 Misc_Preparing_Info_Finished: '&aData loaded! Enjoy!'
-Misc_Not_In_Land: '&cYou can only do that in your land'
 Misc_Not_Air: '&cThere is something obstructing the way!'
 Misc_Confirmation_Cancel: '&cConfirmation cancelled.'
 Misc_Previous_Request_Processing: '&cYour command is still processing. If this problem persists, contact an administrator'
@@ -458,11 +481,8 @@ Misc_Cannot_Trample_Soil: '&bYour kingdom soil cannot be trampled'
 Misc_Cannot_Trample_Other_Soil: '&cYou cannot trample soil in %kingdom%''s land'
 Misc_Nexus_Setting_Disabled: '&cNexus Placing mode disabled!'
 Misc_Nexus_Setting_Different_Land: '&cYou moved into another piece of land!'
-Misc_Nexus_Setting_Cannot_Replace: '&cYou cannot replace this block!'
 Misc_Nexus_Setting_Not_In_Land: '&cThe land you''re trying to place your nexus in is not owned by your kingdom'
 Misc_Nexus_Setting_Success: '&aNexus successfully placed!'
-Misc_Cannot_Build_In_Unoccupied_Land: '&cYou need to claim this land to build in it!'
-Misc_Cannot_Break_In_Other_Land: '&cYou cannot interact with, break or place blocks in another kingdom''s land'
 Misc_Regulator_Cannot_Build: '&cYou cannot build in this land! Ask a higher ranked member to change regulator settings for this land.'
 Misc_Regulator_Cannot_Interact: '&cYou cannot interact in this land! Ask a higher ranked member to change regulator settings for this land.'
 Misc_Cannot_Use_Other_Nexus: '&cYou cannot use another kingdom''s nexus'
@@ -480,9 +500,6 @@ Misc_Kingdom_Tag_Too_Long: '&cYour kingdom tag cannot be longer than %maxchar% c
 Misc_Kingdom_Rename_Broadcast: '&c%player% has renamed %oldtag% to %newtag%'
 Misc_Kingdom_Invite_Message: '&a%player% has invite you to %kingdom%. Do /k join %kingdom% to accept the invitation'
 Misc_Kingdom_Too_Many_Members: '&cYou can only have %amount% members. Upgrade the max members upgrade in the nexus'
-Misc_Rank_Too_Low: '&cYour rank is too low to use this function! Only %rank% can use this function!'
-Misc_Rank_Too_Low_NexusBuild: '&cYour rank is too low to build in the nexus chunk! Only %rank% can do so!'
-Misc_Worldguard_Claim_Off_Limits: '&cYou cannot claim in server regions!'
 Misc_Max_Level_Reached: '&cMaximum level reached'
 Misc_Inventory_Full: '&cPlease have at least one empty slot in your inventory'
 Misc_Invasion_Victory: We have conquered [%chunk%] from %kingdom%
@@ -769,7 +786,6 @@ Guis_Regulator_CanMonstersSpawn_Title: '&bMonster spawning in this land'
 Guis_Regulator_CanAnimalsSpawn_Title: '&bAnimal spawning in this land'
 Guis_WarpPad_Click_To_Tp: '&aClick to teleport to the location above'
 Guis_WarpPad_You_Are_Here: '&cYou are here'
-Extractor_Collection_Announcement: '&a%amount% resourcepoints have been collected from an Extractor'
 Guis_Outpost_Buy1XpPotion_Title: '&bBuy 1 xp bottle'
 Guis_Outpost_Buy1XpPotion_Desc: '&aBuy 1 xp bottle for %cost% resourcepoints.'
 Guis_Outpost_Buy64XpPotion_Title: '&bBuy 64 xp bottles'

@@ -3,27 +3,37 @@ package com.songoda.kingdoms.objects.kingdom;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
+
+import org.bukkit.Location;
+
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.CooldownManager.KingdomCooldown;
 import com.songoda.kingdoms.manager.managers.KingdomManager;
+import com.songoda.kingdoms.manager.managers.RankManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
+import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 
 public class OfflineKingdom {
 
-	private long might = 0, claims = 0, resourcePoints = 0, invasionCooldown = 0;
 	private final Map<Rank, RankPermissions> permissions = new HashMap<>();
 	protected final Set<OfflineKingdomPlayer> members = new HashSet<>();
+	protected final Set<Land> claims = new HashSet<>();
+	private long might = 0, resourcePoints = 0, invasionCooldown = 0;
 	private final KingdomManager kingdomManager;
+	private final RankManager rankManager;
 	private KingdomCooldown shieldTime;
 	private OfflineKingdomPlayer king;
 	protected final Kingdoms instance;
+	private boolean neutral, first;
+	private Location nexus, spawn;
 	private String name, lore;
 	private final UUID uuid;
 	private int dynmapColor;
-	private boolean neutral;
 	
 	/*
 	private final HashMap<String, Long> cdTimeNeeded = new HashMap<>();
@@ -53,6 +63,7 @@ public class OfflineKingdom {
 	protected OfflineKingdom(UUID uuid, OfflineKingdomPlayer king, boolean safeUUID) {
 		this.instance = Kingdoms.getInstance();
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.rankManager = instance.getManager("rank", RankManager.class);
 		this.dynmapColor = kingdomManager.getRandomColor();
 		this.members.add(king);
 		this.king = king;
@@ -106,12 +117,16 @@ public class OfflineKingdom {
 			this.name = name;
 	}
 	
-	public long getClaims() {
+	public Set<Land> getClaims() {
 		return claims;
 	}
 	
-	public void setClaims(int claims) {
-		this.claims = claims;
+	public void addClaim(Land land) {
+		claims.add(land);
+	}
+	
+	public void removeClaim(Land land) {
+		claims.remove(land);
 	}
 	
 	public String getLore() {
@@ -124,6 +139,14 @@ public class OfflineKingdom {
 	
 	public UUID getUniqueId() {
 		return uuid;
+	}
+
+	public Location getSpawn() {
+		return spawn;
+	}
+
+	public void setSpawn(Location spawn) {
+		this.spawn = spawn;
 	}
 	
 	public long getResourcePoints() {
@@ -138,12 +161,28 @@ public class OfflineKingdom {
 		resourcePoints += points;
 	}
 	
+	public Location getNexusLocation() {
+		return nexus;
+	}
+
+	public void setNexusLocation(Location nexus) {
+		this.nexus = nexus;
+	}
+	
 	public boolean isOnline() {
 		return kingdomManager.isOnline(this);
 	}
 
 	public Kingdom getKingdom() {
 		return kingdomManager.getKingdom(this);
+	}
+	
+	public boolean hasUsedFirstClaim() {
+		return first;
+	}
+	
+	public void setUsedFirstClaim(boolean first) {
+		this.first = first;
 	}
 	
 	public long getInvasionCooldown() {
@@ -162,6 +201,10 @@ public class OfflineKingdom {
 		this.shieldTime = new KingdomCooldown(this, "SHIELD", seconds);
 	}
 	
+	public Map<Rank, RankPermissions> getPermissions() {
+		return permissions;
+	}
+	
 	/**
 	 * Grabs the cooldown instance loader of the Sheild.
 	 * This is not the actual countdown time of the Shield.
@@ -171,6 +214,16 @@ public class OfflineKingdom {
 	 */
 	public KingdomCooldown getShieldTime() {
 		return shieldTime;
+	}
+	
+	/**
+	 * Grabs the lowest priority rank for the RankPermissions predicate.
+	 * 
+	 * @param predicate The RankPermissions predicate to check all ranks for.
+	 * @return Optional<Rank> Which is the returned value if any are present.
+	 */
+	public Optional<Rank> getLowestRankFor(Predicate<RankPermissions> predicate) {
+		return rankManager.getLowestFor(this, predicate);
 	}
 	
 	/**

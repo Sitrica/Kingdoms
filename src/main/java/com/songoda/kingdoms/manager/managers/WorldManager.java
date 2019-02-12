@@ -15,22 +15,38 @@ public class WorldManager extends Manager {
 		registerManager("world", new WorldManager());
 	}
 	
+	private final Set<String> unoccupied = new HashSet<>();
+	private final boolean whitelist, whitelistUnoccupied;
 	private final Set<World> worlds = new HashSet<>();
 	private final Set<String> names = new HashSet<>();
-	private final boolean whitelist;
 	
 	protected WorldManager() {
 		super(true);
+		this.unoccupied.addAll(configuration.getStringList("worlds.worlds-with-no-building-in-unoccupied"));
+		this.whitelistUnoccupied = configuration.getBoolean("worlds.unoccupied-list-is-whitelist", true);
 		this.whitelist = configuration.getBoolean("worlds.list-is-whitelist", true);
 		this.names.addAll(configuration.getStringList("worlds.list"));
 	}
 	
 	public boolean acceptsWorld(World world) {
+		String name = world.getName();
 		if (whitelist) {
-			if (!names.contains(world.getName()))
+			if (!names.contains(name))
 				return false;
 		} else {
-			if (names.contains(world.getName()))
+			if (names.contains(name))
+				return false;
+		}
+		return true;
+	}
+	
+	public boolean canBuildInUnoccupied(World world) {
+		String name = world.getName();
+		if (whitelistUnoccupied) {
+			if (!unoccupied.contains(name))
+				return false;
+		} else {
+			if (unoccupied.contains(name))
 				return false;
 		}
 		return true;

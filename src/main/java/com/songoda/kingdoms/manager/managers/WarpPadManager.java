@@ -4,9 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.Manager;
-import com.songoda.kingdoms.objects.StructureType;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
+import com.songoda.kingdoms.objects.land.StructureType;
 
 public class WarpPadManager extends Manager {
 	

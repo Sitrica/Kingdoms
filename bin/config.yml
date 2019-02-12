@@ -45,6 +45,11 @@ database:
 # All settings for worlds.
 worlds:
     # Change the list below to a blacklist or a whitelist.
+    unoccupied-list-is-whitelist: false
+    # The worlds where users can't build in unoccupied.
+    worlds-with-no-building-in-unoccupied:
+        - "exampleworld"
+    # Change the list below to a blacklist or a whitelist.
     # By default the list will be allowed worlds for Kingdoms to opperate in.
     list-is-whitelist: true
     # This list below will be the either blacklisted worlds or the whitelisted worlds allowed.
@@ -155,14 +160,46 @@ structures:
         inventory-material: "MUSIC_DISC_STRAD"
         description:
             - "&7Warp Pads allow Kingdom members to teleport to the Kingdom's nexus and outposts."
+# All claiming configurations
+claiming:
+    # When a new member joins, the claims goes up by this amount.
+    claims-given-per-user: 5
+    # Maximum amount of claims a Kingdom can have.
+    maximum-claims: -1
+    # If the land must be connected when claiming new land.
+    land-must-be-connected: false
+    # The amount of resource points it costs to claim a new chunk.
+    cost: 5
 # All Kingdom and chunk related configurations.
 kingdoms:
     # Allow Kingdoms to become passive if they want.
     allow-pacifist: false
     # If a Kingdom is a pacifist, should they be hidden from the leaderboard?
     leaderboard-hide-pacifists: false
+    # Set if liquids can flow into the Kingdom or not.
+    disable-liquid-flow-into: true
     # If players should respawn in their Kingdom.
     respawn-at-kingdom: false
+    # If players are allowed to open chests in other Kingdoms.
+    open-other-kingdom-inventories: false
+    # If a clicked material contains a name within it's name of the following list.
+    # Example: CYAN_SHULKER_BOX and GRAY_SHULKER_BOX will be caught if this is true and list contains SHULKER_BOX
+    forbidden-contains: true
+    # If forbidden-contains is false 
+    forbidden-inventories:
+        - "ENCHANTING_TABLE"
+        - "CRAFTING_TABLE"
+        #- "TRAPPED_CHEST" This will be caught by CHEST when forbidden-contains is true
+        - "SHULKER_BOX"
+        - "DISPENSER"
+        - "FURNACE"
+        - "DROPPER"
+        - "HOPPER"
+        - "BUTTON"
+        - "LEVER"
+        - "CHEST"
+        - "ANVIL"
+        - "DOOR"
     # When a player joins the server, should they spawn at their Kingdom?
     join-at-kingdom: false
     markers-on-by-default: true
@@ -189,7 +226,7 @@ kingdoms:
         title:
             enabled: false
             title: "&2&lUnoccupied Land"
-            subtitle: "&7You have just entered uunoccupied land"
+            subtitle: "&7You have just entered unoccupied land"
             fadeOut: 20
             fadeIn: 20
             stay: 200
@@ -247,6 +284,7 @@ kingdoms:
 ranks-use-prefix: true
 # Use the chat-color option.
 ranks-use-chat-color: true
+# All rank configurations, you may add new ranks aswell. Just copy the general and rename and configure it.
 ranks:
     # The king is usally the owner.
     king:
@@ -271,9 +309,6 @@ ranks:
 #        name: "Queen"
 #        # Placeholders: %player%, %kingdom%, %priority%, %name% (rank name), %unicode%/%icon%, %player% and all Kingdom related placeholders.
 #        prefix: "&8[&d%unicode%&8][&7%kingdom%&8]"
-#       default-permissions:
-#            claiming: true
-#            nexus-access: true
     general:
         priority: 2
         color: "GOLD"
@@ -284,9 +319,38 @@ ranks:
         prefix: "&8[&6%unicode%&8][&7%kingdom%&8]"
         # Default permissions are the base permission set when a new Kingdom is created.
         # If the default permissions aren't set they will be assumed true, just like in the King's section.
+        # All permissions can be changed via the Kingdom permissions manager.
         default-permissions:
-            claiming: true
+            # If the rank can access protected chests.
+            protected-chests: false
             nexus-access: false
+            # If the rank can build in the nexus chunk.
+            nexus-build: true
+            chest-access: true
+            unclaiming: true
+            # If the rank can go into an outpost and transfer resource points into experience botttles.
+            xp-bottles: true
+            # If the rank can break and place structures.
+            structures: true
+            # If the rank can set the spawn location of the Kingdom
+            set-spawn: false
+            # If the rank can use the spawn of the Kingdom.
+            use-spawn: true
+            # If the rank can use the broadcast command for the Kingdom.
+            broadcast: true
+            # If the rank can set alliance state with other Kingdoms.
+            alliance: true
+            claiming: true
+            # If the rank can use the turrets.
+            turrets: true
+            # If the rank can invite new players.
+            invite: true
+            # The maximum amount of claims a rank can claim. Set to -1 to have an infinite amount.
+            max-claims: 5
+            # If the rank can initiate an invade on another Kingdom.
+            invade: true
+            # If the rank can build within the Kingdom.
+            build: true
     # Knights was previously called moderators.
     knight:
         priority: 3
@@ -299,8 +363,23 @@ ranks:
         # Default permissions are the base permission set when a new Kingdom is created.
         # If the default permissions aren't set they will be assumed true, just like in the King's section.
         default-permissions:
-            claiming: true
+            protected-chests: false
             nexus-access: false
+            nexus-build: false
+            chest-access: true
+            xp-bottles: false
+            unclaiming: true
+            structures: true
+            set-spawn: false
+            use-spawn: true
+            broadcast: false
+            alliance: true
+            claiming: true
+            turrets: true
+            invite: false
+            max-claims: 5
+            invade: true
+            build: true
     member:
         # Default it's going to be the lowest priority.
         priority: 99
@@ -313,8 +392,24 @@ ranks:
         # Default permissions are the base permission set when a new Kingdom is created.
         # If the default permissions aren't set they will be assumed true, just like in the King's section.
         default-permissions:
-            claiming: false
+            protected-chests: false
             nexus-access: false
+            nexus-build: false
+            chest-access: false
+            xp-bottles: false
+            unclaiming: false
+            structures: false
+            set-spawn: false
+            use-spawn: true
+            broadcast: false
+            alliance: false
+            claiming: false
+            turrets: false
+            invite: false
+            max-claims: 3
+            invade: true
+            #TODO make sure this works in the future and remove this message.
+            build: true
         
         
         
@@ -403,7 +498,6 @@ enabled-worlds:
 worlds-where-land-is-explosive-vulnerable:
 - VoidWorldd
 no-region-claim: true
-can-open-storage-blocks-in-other-kingdom-land: false
 siege:
     fire:
         cost: 1000
@@ -427,7 +521,6 @@ denied-commands-enemy:
 - /sethome
 - /essentials:sethome
 - /derpcommand with any arguments
-disableFlowIntoLand: true
 showLandEnterMessage: true
 nexusMiningAmount: 20
 private-chests:
@@ -447,7 +540,6 @@ useHolographicSupport: true
 protectNeutralLandFromExplosions: false
 neutralPlayersCannotFightOnOwnLand: false
 kingdom-home-stops-working-if-unclaimed: false
-land-must-be-connected: false
 worldguard:
     regions-that-allow-claiming:
     - RegionWherePlayersCanClaimLandIn
@@ -562,7 +654,6 @@ kingdom-create-item-cost:
 - IRON_INGOT,5
 kingdom-create-need-item-cost: false
 items-needed-for-one-resource-point: 5
-claim-cost: 5
 invade-cost: 10
 hidewarppadlocations: false
 enable-auto-backup: true
@@ -573,8 +664,6 @@ regulator:
     allow-toggling-animal-spawn: true
     allow-toggling-monster-spawn: true
 minimum-members-online-to-be-invaded: 0
-land-per-member: 5
-maximum-land-claims: 0
 infinite-claim-worlds:
 - worldThatAllowsYouToClaimInfinitely
 unreplaceableblocks:
@@ -763,10 +852,6 @@ enable:
         soldierspawner: true
         hellfire: true
         heatbeam: true
-worlds-with-no-building-in-unoccupied-land:
-- Put
-- Worlds
-- Here
 use-whitelist: false
 disallow-named-or-lored-items-from-rp-trade: false
 resource-point-item-names-that-cannot-be-traded: []

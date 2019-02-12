@@ -1,4 +1,4 @@
-package com.songoda.kingdoms.objects;
+package com.songoda.kingdoms.objects.land;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.utils.Utils;
@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
 public enum StructureType {
+	
 	SHIELD_BATTERY("shield-battery"),
 	SIEGE_ENGINE("siege-engine"),
 	POWERCELL("powercell"),

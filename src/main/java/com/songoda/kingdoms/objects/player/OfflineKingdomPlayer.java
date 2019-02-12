@@ -1,5 +1,7 @@
 package com.songoda.kingdoms.objects.player;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -11,9 +13,11 @@ import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.manager.managers.RankManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
+import com.songoda.kingdoms.objects.land.Land;
 
 public class OfflineKingdomPlayer {
 
+	private final Set<Land> claims = new HashSet<>(); // Kingdom claims that this user has claimed.
 	protected final KingdomManager kingdomManager;
 	protected final PlayerManager playerManager;
 	protected transient Kingdom kingdom;
@@ -65,7 +69,25 @@ public class OfflineKingdomPlayer {
 	}
 	
 	public KingdomPlayer getKingdomPlayer() {
-		return playerManager.getSession(uuid);
+		return playerManager.getKingdomPlayer(uuid);
+	}
+	
+	public Set<Land> getClaims() {
+		return claims;
+	}
+	
+	public void addClaim(Land land) {
+		claims.add(land);
+	}
+	
+	private void resetClaims() {
+		claims.clear();
+	}
+	
+	public void onKingdomLeave() {
+		resetClaims();
+		kingdom = null;
+		rank = null;
 	}
 
 }
