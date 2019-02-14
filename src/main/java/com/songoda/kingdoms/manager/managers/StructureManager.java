@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -65,16 +66,18 @@ public class StructureManager extends Manager {
 	
 	private final Queue<Land> loadQueue = new LinkedList<Land>();
 	private final WarpPadManager warpPadManager;
-	private final KingdomManager kingdomManager;
 	private final PlayerManager playerManager;
+	private final WorldManager worldManager;
+	private final NexusManager nexusManager;
 	private final LandManager landManager;
 	private final BukkitTask task;
 	
 	protected StructureManager() {
 		super(true);
 		this.landManager = instance.getManager("land", LandManager.class);
+		this.nexusManager = instance.getManager("neuxs", NexusManager.class);
+		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.warpPadManager = instance.getManager("warppad", WarpPadManager.class);
 		task = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
 			@Override
@@ -94,7 +97,7 @@ public class StructureManager extends Manager {
 					block.setType(Material.AIR);
 					return;
 				}
-				block.setType(structure.getType().getMaterial());
+				block.setType(structure.getType().getBlockMaterial());
 				block.setMetadata(structure.getType().getMetaData(), new FixedMetadataValue(instance, kingdom));
 				if (structure.getType() == StructureType.NEXUS) {
 					Location nexus = kingdom.getNexusLocation();
@@ -128,14 +131,14 @@ public class StructureManager extends Manager {
 		block.setType(Material.AIR);
 		StructureType type = structure.getType();
 		if (type == StructureType.NEXUS) {
-			GameManagement.getNexusManager().breakNexus(land);
+			nexusManager.breakNexus(land);
 			return;
 		}
-		block.getWorld().dropItemNaturally(location, type.getDisk());
+		block.getWorld().dropItemNaturally(location, type.build());
 	}
 	
 	public boolean isInvadeable(KingdomPlayer invader, Chunk chunk) {
-		if(!Config.getConfig().getBoolean("enable.structure.powercell"))
+		if (!StructureType.POWERCELL.isEnabled())
 			return true;
 		Land land = landManager.getLand(chunk);
 		Structure structure = land.getStructure();
@@ -199,8 +202,9 @@ public class StructureManager extends Manager {
 		}, 1);
 	}
 	
-	@EventHandler
-	public void onSetStructure(PlayerInteractEvent event) {
+	@SuppressWarnings("deprecation")
+	@EventHandler(priority = EventPriority.HIGH)
+	public void onStructurePlace(PlayerInteractEvent event) {
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
 			return;
 		Player player = event.getPlayer();
@@ -221,7 +225,7 @@ public class StructureManager extends Manager {
 			return;
 		Block block = event.getClickedBlock();
 		Optional<StructureType> optional = Arrays.stream(StructureType.values())
-				.filter(type -> item.getType() == type.getMaterial())
+				.filter(type -> item.getType() == type.getItemMaterial())
 				.filter(type -> !block.hasMetadata(type.getMetaData()))
 				.filter(type -> Formatting.colorAndStrip(type.getTitle()).equals(Formatting.stripColor(name)))
 				.findFirst();
@@ -231,7 +235,7 @@ public class StructureManager extends Manager {
 			}
 			return;
 		}
-		StructureType type = optional.get(); 
+		StructureType type = optional.get();
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null) {
@@ -239,6 +243,25 @@ public class StructureManager extends Manager {
 			return;
 		}
 		Land land = landManager.getLand(block.getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (landKingdom == null || !kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+			new MessageBuilder("kingdoms.not-in-land")
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(landKingdom)
+					.send(player);
+			return;
+		}
+		if (configuration.getStringList("unreplaceable-blocks").contains(block.getType().toString())) {
+			new MessageBuilder("kingdoms.nexus-cannot-replace")
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(landKingdom)
+					.send(player);
+			return;
+		}
+		if (type == StructureType.NEXUS) { // This is handled in the NexusManager since it signifies the start of a Kingdom.
+			nexusManager.onNexusPlace(event, block, player, kingdom, land);
+			return;
+		}
 		if (!kingdom.getPermissions(kingdomPlayer.getRank()).canBuildStructures()) {
 			new MessageBuilder("kingdoms.rank-too-low-structure-build")
 				.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canBuildStructures()), new Placeholder<Optional<Rank>>("%rank%") {
@@ -258,30 +281,15 @@ public class StructureManager extends Manager {
 			}
 			return;
 		}
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (landKingdom == null || !kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
-			new MessageBuilder("kingdoms.not-in-land")
-					.setPlaceholderObject(kingdomPlayer)
-					.setKingdom(landKingdom)
-					.send(player);
-			return;
-		}
-		if (configuration.getStringList("unreplaceable-blocks").contains(block.getType().toString())) {
-			new MessageBuilder("kingdoms.nexus-cannot-replace")
-					.setPlaceholderObject(kingdomPlayer)
-					.setKingdom(landKingdom)
-					.send(player);
-			return;
-		}
 		Location location = block.getLocation();
 		Structure structure = new Structure(location, type);
 		//special cases
 		if (type == StructureType.REGULATOR)
-			structure = new Regulator(location, type);
+			structure = new Regulator(location);
 		if (type == StructureType.EXTRACTOR)
-			structure = new Extractor(location, type);
+			structure = new Extractor(location);
 		if (type == StructureType.SIEGE_ENGINE)
-			structure = new SiegeEngine(location, type);
+			structure = new SiegeEngine(location);
 		StructurePlaceEvent placeEvent = new StructurePlaceEvent(land, structure, kingdom, kingdomPlayer);
 		Bukkit.getPluginManager().callEvent(placeEvent);
 		if (placeEvent.isCancelled())
@@ -296,7 +304,7 @@ public class StructureManager extends Manager {
 			}
 		}
 		land.setStructure(structure);
-		block.setType(type.getMaterial());
+		block.setType(type.getBlockMaterial());
 		block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
 		if (type == StructureType.WARPPAD || type == StructureType.OUTPOST)
 			warpPadManager.addLand(kingdom, land);
@@ -348,7 +356,7 @@ public class StructureManager extends Manager {
 			if (block.hasMetadata(type.getMetaData())) {
 				block.removeMetadata(type.getMetaData(), instance);
 				if (!type.equals(StructureType.NEXUS))
-					block.getWorld().dropItemNaturally(block.getLocation(), type.getDisk());
+					block.getWorld().dropItemNaturally(block.getLocation(), type.build());
 				land.setStructure(null);
 				warpPadManager.removeLand(kingdom, land);
 			}
@@ -356,287 +364,178 @@ public class StructureManager extends Manager {
 		event.setCancelled(true);
 	}
 	
-
+	private final Map<KingdomPlayer, Extractor> extractors = new HashMap<>();
+	private final Map<KingdomPlayer, Land> selected = new HashMap<>();
+	
 	@EventHandler
-	public void onRightClickSiegeEngine(PlayerInteractEvent event) {
+	public void onRightClickStructure(PlayerInteractEvent event) {
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
 			return;
-		if (!Config.getConfig().getStringList("enabled-worlds").contains(e.getPlayer().getWorld().getName())) return;
-		if(!e.getClickedBlock().hasMetadata(StructureType.SIEGEENGINE.getMetaData())) return;
-		e.setCancelled(true);
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if(kp.getKingdom() == null) return;
-		if(!Config.getConfig().getBoolean("enable.siegeengine")){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Structure_Disabled", kp.getLang()));
+		Player player = event.getPlayer();
+		if (!worldManager.acceptsWorld(player.getWorld()))
+			return;
+		Block block = event.getClickedBlock();
+		Optional<StructureType> optional = Arrays.stream(StructureType.values())
+				.filter(type -> block.hasMetadata(type.getMetaData()))
+				.findFirst();
+		if (!optional.isPresent())
+			return;
+		StructureType type = optional.get();
+		event.setCancelled(true);
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null)
+			return;
+		if (!type.isEnabled()) {
+			new MessageBuilder("structures.structure-disabled")
+					.setKingdom(kingdom)
+					.send(kingdomPlayer);
 			return;
 		}
-		SimpleLocation loc = new SimpleLocation(e.getClickedBlock().getLocation());
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-		
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
-		if(land.getOwnerUUID() == null){
-			kp.sendMessage(ChatColor.RED+"The siege engine is at ["+chunk.toString()+"] but no kingdom owns the land.");
-			kp.sendMessage(ChatColor.RED+"Please report this glitch.");
+		Land land = landManager.getLand(block.getLocation().getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (landKingdom == null) {
+			breakStructureAt(land);
 			return;
 		}
-		
-		if(!land.getOwnerUUID().equals(kp.getKingdom().getKingdomUuid())){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_In_Land", kp.getLang()));
+		if (!landKingdom.getUniqueId().equals(kingdom.getUniqueId())) {
+			new MessageBuilder("kingdoms.not-in-land")
+					.setKingdom(landKingdom)
+					.send(kingdomPlayer);
 			return;
 		}
-		if(land.getStructure().getType() == StructureType.SIEGEENGINE){
-			if(land.getStructure() instanceof SiegeEngine){
-			}else{
-				
-				SiegeEngine structure = new SiegeEngine(loc, StructureType.EXTRACTOR);
-				land.setStructure(structure);
-				e.getClickedBlock().setType(Material.DISPENSER);
-				e.getClickedBlock().setMetadata(StructureType.SIEGEENGINE.getMetaData(), new FixedMetadataValue(plugin, kp.getKingdom().getKingdomName()));
-			}
-		}else return;
-		GUIManagement.getSiegeEngineGUIManager().openMenu(kp, land);
-	}
-
-	@EventHandler
-	public void onRightClickArsenal(PlayerInteractEvent e){
-		if(e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-		if(!Config.getConfig().getStringList("enabled-worlds").contains(e.getPlayer().getWorld().getName())) return;
-		if(!e.getClickedBlock().hasMetadata(StructureType.ARSENAL.getMetaData())) return;
-		e.setCancelled(true);
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if(kp.getKingdom() == null) return;
-		if(!Config.getConfig().getBoolean("enable.structure.arsenal")){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Structure_Disabled", kp.getLang()));
+		Structure structure = land.getStructure();
+		if (structure.getType() != type)
 			return;
-		}
-		SimpleLocation loc = new SimpleLocation(e.getClickedBlock().getLocation());
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-		
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
-		if(land.getOwnerUUID() == null){
-			kp.sendMessage(ChatColor.RED+"The arsenal is at ["+chunk.toString()+"] but no kingdom owns the land.");
-			kp.sendMessage(ChatColor.RED+"Please report this glitch.");
-			return;
-		}
-		
-		if(!land.getOwnerUUID().equals(kp.getKingdom().getKingdomUuid())){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_In_Land", kp.getLang()));
-			return;
-		}
-		GUIManagement.getArsenalGUIManager().openMenu(kp);
-	}
-	
-	@EventHandler
-	public void onRightClickOutpost(PlayerInteractEvent e){
-		if(e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-		if(!Config.getConfig().getStringList("enabled-worlds").contains(e.getPlayer().getWorld().getName())) return;
-		if(!e.getClickedBlock().hasMetadata(StructureType.OUTPOST.getMetaData())) return;
-		
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if(kp.getKingdom() == null) return;
-		if(!Config.getConfig().getBoolean("enable.structure.outpost")){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Structure_Disabled", kp.getLang()));
-			return;
-		}
-		SimpleLocation loc = new SimpleLocation(e.getClickedBlock().getLocation());
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-		
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
-		if(land.getOwnerUUID() == null){
-			kp.sendMessage(ChatColor.RED+"The outpost is at ["+chunk.toString()+"] but no kingdom owns the land.");
-			kp.sendMessage(ChatColor.RED+"Please report this glitch.");
-			return;
-		}
-		
-		if(!land.getOwnerUUID().equals(kp.getKingdom().getKingdomUuid())){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_In_Land", kp.getLang()));
-			return;
-		}
-		selected.put(kp, land);
-		GUIManagement.getOutpostGUIManager().openMenu(kp);
-	}
-	
-	@EventHandler
-	public void onRightClickRegulator(PlayerInteractEvent e){
-		if(e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-		if(!Config.getConfig().getStringList("enabled-worlds").contains(e.getPlayer().getWorld().getName())) return;
-		if(!e.getClickedBlock().hasMetadata(StructureType.REGULATOR.getMetaData())) return;
-		
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if(kp.getKingdom() == null) return;
-
-		if(!Config.getConfig().getBoolean("enable.structure.powercell")){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Structure_Disabled", kp.getLang()));
-			return;
-		}
-		SimpleLocation loc = new SimpleLocation(e.getClickedBlock().getLocation());
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-		
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
-		if(land.getOwnerUUID() == null){
-			kp.sendMessage(ChatColor.RED+"The regulator is at ["+chunk.toString()+"] but no kingdom owns the land.");
-			kp.sendMessage(ChatColor.RED+"Please report this glitch.");
-			return;
-		}
-		
-		if(!land.getOwnerUUID().equals(kp.getKingdom().getKingdomUuid())){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_In_Land", kp.getLang()));
-			return;
-		}
-		
-		if(!kp.getRank().isHigherOrEqualTo(kp.getKingdom().getPermissionsInfo().getOverrideRegulator())){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Rank_Too_Low", kp.getLang()).replaceAll("%rank%", kp.getKingdom().getPermissionsInfo().getOverrideRegulator().toString()));
-			return;
-		}
-		
-		GUIManagement.getRegulatorGUIManager().openRegulatorMenu(kp, land);
-	}
-	
-	public static HashMap<KingdomPlayer,Land> selected = new HashMap<KingdomPlayer,Land>();
-	@EventHandler
-	public void onRightClickWarpPad(PlayerInteractEvent e){
-		if(e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-		if(!Config.getConfig().getStringList("enabled-worlds").contains(e.getPlayer().getWorld().getName())) return;
-		if(!e.getClickedBlock().hasMetadata(StructureType.WARPPAD.getMetaData())) return;
-		
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if(kp.getKingdom() == null) return;
-
-		if(!Config.getConfig().getBoolean("enable.structure.warppad")){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Structure_Disabled", kp.getLang()));
-			return;
-		}
-		SimpleLocation loc = new SimpleLocation(e.getClickedBlock().getLocation());
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-		
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
-		if(land.getOwnerUUID() == null){
-			kp.sendMessage(ChatColor.RED+"The warp pad is at ["+chunk.toString()+"] but no kingdom owns the land.");
-			kp.sendMessage(ChatColor.RED+"Please report this glitch.");
-			return;
-		}
-		
-		if(!land.getOwnerUUID().equals(kp.getKingdom().getKingdomUuid())){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_In_Land", kp.getLang()));
-			return;
-		}
-		if(land.getStructure().getType() == StructureType.WARPPAD){
-			selected.put(kp, land);
-			GUIManagement.getWarppadGUIManager().openMenu(kp);
-			
+		switch (type) {
+			case ARSENAL:
+				GUIManagement.getArsenalGUIManager().openMenu(kingdomPlayer);
+				break;
+			case EXTRACTOR:
+				Extractor extractor;
+				if (structure instanceof Extractor) {
+					extractor = (Extractor) structure;
+				} else {
+					extractor = new Extractor(structure.getLocation());
+					land.setStructure(extractor);
+					block.setType(type.getBlockMaterial());
+					block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
+				}
+				GUIManagement.getExtractorGUIManager().openExtractorMenu(extractor, kingdomPlayer);
+				extractors.put(kingdomPlayer, extractor);
+				break;
+			case NEXUS:
+				if (kingdom.getUniqueId() == landKingdom.getUniqueId()) {
+					GUIManagement.getNexusGUIManager().openNexusGui(player);
+				} else if (kingdom.isAllianceWith(landKingdom)) {
+					Inventory inventory = Bukkit.createInventory(null, 54, Formatting.color("&1Donate to &2" + kingdom.getName()));
+					player.openInventory(inventory);
+				} else {
+					new MessageBuilder("kingdoms.cannot-access-nexus")
+							.setKingdom(landKingdom)
+							.send(player);
+					return;
+				}
+				break;
+			case OUTPOST:
+				selected.put(kingdomPlayer, land);
+				GUIManagement.getOutpostGUIManager().openMenu(kingdomPlayer);
+				break;
+			case POWERCELL:
+				break;
+			case RADAR:
+				break;
+			case REGULATOR:
+				if (!kingdom.getPermissions(kingdomPlayer.getRank()).canOverrideRegulator()) {
+					new MessageBuilder("kingdoms.rank-too-low-regulator-override")
+							.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canOverrideRegulator()), new Placeholder<Optional<Rank>>("%rank%") {
+								@Override
+								public String replace(Optional<Rank> rank) {
+									if (rank.isPresent())
+										return rank.get().getName();
+									return "(Not attainable)";
+								}
+							})
+							.setKingdom(kingdom)
+							.send(kingdomPlayer);
+					return;
+				}
+				GUIManagement.getRegulatorGUIManager().openRegulatorMenu(kingdomPlayer, land);
+				break;
+			case SHIELD_BATTERY:
+				break;
+			case SIEGE_ENGINE:
+				if (!(structure instanceof SiegeEngine)) {
+					land.setStructure(new SiegeEngine(structure.getLocation()));
+					block.setType(type.getBlockMaterial());
+					block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
+				}
+				GUIManagement.getSiegeEngineGUIManager().openMenu(kingdomPlayer, land);
+				break;
+			case WARPPAD:
+				selected.put(kingdomPlayer, land);
+				GUIManagement.getWarppadGUIManager().openMenu(kingdomPlayer);
+				break;
 		}
 	}
 	
-	public static HashMap<UUID, Extractor> extractors = new HashMap<UUID, Extractor>();
 	@EventHandler
-	public void onRightClickExtractor(PlayerInteractEvent e){
-		if(e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-		if(!Config.getConfig().getStringList("enabled-worlds").contains(e.getPlayer().getWorld().getName())) return;
-		if(!e.getClickedBlock().hasMetadata(StructureType.EXTRACTOR.getMetaData())) return;
-		
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if(kp.getKingdom() == null) return;
-
-		if(!Config.getConfig().getBoolean("enable.structure.extractor")){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Structure_Disabled", kp.getLang()));
-			return;
-		}
-		SimpleLocation loc = new SimpleLocation(e.getClickedBlock().getLocation());
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-		
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
-		if(land.getOwnerUUID() == null){
-			kp.sendMessage(ChatColor.RED+"The extractor is at ["+chunk.toString()+"] but no kingdom owns the land.");
-			kp.sendMessage(ChatColor.RED+"Please report this glitch.");
-			return;
-		}
-		
-		if(!land.getOwnerUUID().equals(kp.getKingdom().getKingdomUuid())){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_In_Land", kp.getLang()));
-			return;
-		}
-		if(land.getStructure().getType() == StructureType.EXTRACTOR){
-			if(land.getStructure() instanceof Extractor){
-				
-				GUIManagement.getExtractorGUIManager().openExtractorMenu((Extractor) land.getStructure(), kp);
-			}else{
-				
-				Extractor structure = new Extractor(loc, StructureType.EXTRACTOR);
-				
-				land.setStructure(structure);
-				e.getClickedBlock().setType(Material.EMERALD_BLOCK);
-				e.getClickedBlock().setMetadata("extractor", new FixedMetadataValue(plugin, kp.getKingdom().getKingdomName()));
-				GUIManagement.getExtractorGUIManager().openExtractorMenu((Extractor) land.getStructure(), kp);
-				
-			}
-			
-		}
-		extractors.put(kp.getUuid(), (Extractor) land.getStructure());
-	}
-
-	
-	@EventHandler
-	public void onPistonPushTurret(BlockPistonExtendEvent e){
-		for(Iterator<Block> iter = e.getBlocks().iterator(); iter.hasNext();){
+	public void onPistonPush(BlockPistonExtendEvent event) {
+		for (Iterator<Block> iter = event.getBlocks().iterator(); iter.hasNext();) {
 			Block block = iter.next();
-			if(block == null || block.getType() == Material.AIR) continue;
-
-			if(!isStructure(block)) continue;
-
-			e.setCancelled(true);
+			if (block == null || block.getType() == Material.AIR)
+				continue;
+			if (!isStructure(block))
+				continue;
+			event.setCancelled(true);
 			return;
 		}
 	}
 
 	@EventHandler
-	public void onPistonPullTurret(BlockPistonRetractEvent e){
-		for(Iterator<Block> iter = e.getBlocks().iterator(); iter.hasNext();){
+	public void onPistonPull(BlockPistonRetractEvent event) {
+		for (Iterator<Block> iter = event.getBlocks().iterator(); iter.hasNext();) {
 			Block block = iter.next();
-			if(block == null || block.getType() == Material.AIR) continue;
-
-			if(!isStructure(block)) continue;
-
-			e.setCancelled(true);
+			if (block == null || block.getType() == Material.AIR)
+				continue;
+			if (!isStructure(block))
+				continue;
+			event.setCancelled(true);
 			return;
 		}
 	}
 	
 	@EventHandler
-	public void onEntityExplodeStructure(EntityExplodeEvent e){
-		for(Iterator<Block> iter = e.blockList().iterator(); iter.hasNext();){
+	public void onEntityExplodeStructure(EntityExplodeEvent event) {
+		for (Iterator<Block> iter = event.blockList().iterator(); iter.hasNext();) {
 			Block block = iter.next();
-			if(block == null || block.getType() == Material.AIR) continue;
-			
-//			if(block.getType() != Material.REDSTONE_LAMP_ON 
-//					&& block.getType() != Material.HAY_BLOCK
-//					&& block.getType() != Materials.BEACON.parseMaterial()) continue;
-
-			if(!isStructure(block)) continue;
+			if (block == null || block.getType() == Material.AIR)
+				continue;
+			if (!isStructure(block))
+				continue;
 			iter.remove();
 		}
 	}
 	
-	public boolean isStructure(Block block){
-		for(StructureType type:StructureType.values()){
-			if(block.hasMetadata(type.getMetaData())) return true;
+	public boolean isStructure(Block block) {
+		for (StructureType type:StructureType.values()) {
+			if (block.hasMetadata(type.getMetaData()))
+				return true;
 		}
 		return false;
 	}
 	
 	@EventHandler
-	public void onLandLoad(LandLoadEvent e){
-		Kingdoms.logDebug("structure manager land load event");
-		/*initStructure(e.getLand());*/
-		loadQueue.add(e.getLand());
-		
-		
-		
+	public void onLandLoad(LandLoadEvent event) {
+		loadQueue.add(event.getLand());
 	}
 	
 	@Override
 	public void onDisable() {
-		// TODO Auto-generated method stub
-
+		extractors.clear();
+		loadQueue.clear();
+		selected.clear();
+		task.cancel();
 	}
 
 }

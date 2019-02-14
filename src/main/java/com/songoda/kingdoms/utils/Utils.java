@@ -7,11 +7,28 @@ import java.lang.reflect.Method;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.TropicalFish.Pattern;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BannerMeta;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.meta.SpawnEggMeta;
+import org.bukkit.inventory.meta.TropicalFishBucketMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 
 import com.songoda.kingdoms.Kingdoms;
 
@@ -27,6 +44,113 @@ public class Utils {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	@SuppressWarnings("deprecation")
+	public static OfflinePlayer getSkullOwner(String input) {
+		if (isUUID(input))
+			return Bukkit.getOfflinePlayer(getUniqueId(input));
+		else
+			return Bukkit.getOfflinePlayer(input);
+	}
+	
+	public static boolean isUUID(String uuid) {
+		try {
+			UUID.fromString(uuid);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
+	public static UUID getUniqueId(String uuid) {
+		try {
+			return UUID.fromString(uuid);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	public static ItemStack setupItemMeta(ItemStack itemstack, String meta) {
+		ItemMeta itemMeta = itemstack.getItemMeta();
+		if (itemMeta instanceof PotionMeta) {
+			PotionMeta potionMeta = (PotionMeta) itemMeta;
+			PotionType type;
+			try {
+				type = PotionType.valueOf(meta);
+			} catch (Exception e) {
+				type = PotionType.SPEED;
+			}
+			potionMeta.setBasePotionData(new PotionData(type));
+			itemstack.setItemMeta(potionMeta);
+		}
+		if (itemMeta instanceof SkullMeta) {
+			SkullMeta skullMeta = (SkullMeta) itemMeta;
+			skullMeta.setOwningPlayer(getSkullOwner(meta));
+			itemstack.setItemMeta(skullMeta);
+		}
+		if (itemMeta instanceof TropicalFishBucketMeta) {
+			TropicalFishBucketMeta fishMeta = (TropicalFishBucketMeta) itemMeta;
+			String[] metas = meta.split(":");
+			if (metas.length < 2)
+				return itemstack;
+			Pattern pattern;
+			try {
+				pattern = Pattern.valueOf(metas[1]);
+			} catch (Exception e) {
+				pattern = Pattern.BETTY;
+			}
+			fishMeta.setPattern(pattern);
+			DyeColor color;
+			try {
+				color = DyeColor.valueOf(metas[0]);
+			} catch (Exception e) {
+				color = DyeColor.GREEN;
+			}
+			fishMeta.setBodyColor(color);
+			itemstack.setItemMeta(fishMeta);
+		}
+		if (itemMeta instanceof SpawnEggMeta) {
+			SpawnEggMeta eggMeta = (SpawnEggMeta) itemMeta;
+			EntityType entity;
+			try {
+				entity = EntityType.valueOf(meta);
+			} catch (Exception e) {
+				entity = EntityType.ZOMBIE;
+			}
+			eggMeta.setSpawnedType(entity);
+			itemstack.setItemMeta(eggMeta);
+		}
+		if (itemMeta instanceof LeatherArmorMeta) {
+			LeatherArmorMeta leatherMeta = (LeatherArmorMeta) itemMeta;
+			Color color;
+			String[] colors = meta.split(":");
+			if (colors.length < 3)
+				return itemstack;
+			int r = Integer.parseInt(colors[0]);
+			int g = Integer.parseInt(colors[1]);
+			int b = Integer.parseInt(colors[2]);
+			try {
+				color = Color.fromBGR(r, g, b);
+			} catch (Exception e) {
+				color = Color.RED;
+			}
+			leatherMeta.setColor(color);
+			itemstack.setItemMeta(leatherMeta);
+		}
+		if (itemMeta instanceof BannerMeta) {
+			BannerMeta bannerMeta = (BannerMeta) itemMeta;
+			DyeColor color;
+			try {
+				color = DyeColor.valueOf(meta);
+			} catch (Exception e) {
+				color = DyeColor.RED;
+			}
+			bannerMeta.setBaseColor(color);
+			itemstack.setItemMeta(bannerMeta);
+		}
+		return itemstack;
 	}
 	
 	public static void loadClasses(Kingdoms instance, String basePackage, String... subPackages) {
@@ -121,6 +245,20 @@ public class Utils {
 		} catch (NoSuchMethodException | SecurityException e) {
 			return false;
 		}
+	}
+	
+	public static EntityType entityAttempt(String attempt, String fallback) {
+		EntityType entity = null;
+		try {
+			entity = EntityType.valueOf(attempt);
+		} catch (Exception e) {
+			try {
+				entity = EntityType.valueOf(fallback);
+			} catch (Exception e1) {}
+		}
+		if (entity == null)
+			entity = EntityType.ARROW;
+		return entity;
 	}
 	
 	public static Material materialAttempt(String attempt, String fallback) {

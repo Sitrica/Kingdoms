@@ -19,12 +19,12 @@ public class Extractor extends Structure {
 	private final long delay, reward;
 	private long next;
 
-	public Extractor(Location location, StructureType type) {
-		this(location, type, System.currentTimeMillis());
+	public Extractor(Location location) {
+		this(location, System.currentTimeMillis());
 	}
 	
-	public Extractor(Location location, StructureType type, long next) {
-		super(location, type);
+	public Extractor(Location location, long next) {
+		super(location, StructureType.EXTRACTOR);
 		Kingdoms instance = Kingdoms.getInstance();
 		FileConfiguration configuration = instance.getConfig();
 		String interval = configuration.getString("structures.extractor.reward-delay", "24 hours");

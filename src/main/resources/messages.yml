@@ -37,7 +37,14 @@ taxes:
     disband: "&6The Kingdom &e%kingdom% has been disbanded because it can't pay it's taxes"
 structures:
     # Placeholders: All Kingdom related placeholders.
-    extractor-collection: '&a%player% collected %amount% resource points from an extractor.'
+    extractor-collection: "&a%player% collected %amount% resource points from an extractor."
+    # Placeholders: All Kingdom placeholders.
+    structure-disabled: "&cThis type of structure has been disabled and can no longer be used."
+    # Placeholders: All Kingdom related placeholders.
+    nexus-placed: "&aNexus successfully placed!"
+    # This is only ever called if the Kingdoms API event NexusMoveEvent is cancelled.
+    # The message can be changed within the event methods aswell.
+    nexus-move-cancelled: "&cYou're not allowed to move the nexus."
 # All messages relating to Kingdoms.
 kingdoms:
     invading:
@@ -55,14 +62,24 @@ kingdoms:
     # Placeholders: %rank% and all Kingdom related placeholders.
     rank-too-low-build: "&cYour rank is too low to build in the Kingdom! Only rank %rank% can build!"
     # Placeholders: %rank% and all Kingdom related placeholders.
-    rank-too-low-nexus-build: "&cYour rank is too low to build in the nexus chunk! Only rank %rank% can build here!"
+    rank-too-low-nexus-build: "&cYour rank is too low to build in the nexus chunk! Only rank %rank% may build here!"
     # Placeholders: %rank% and all Kingdom related placeholders.
-    rank-too-low-structure-build: "&cYour rank is too low to place a structure! Only rank %rank% can place structures!"
+    rank-too-low-structure-build: "&cYour rank is too low to place a structure! Only rank %rank% may place structures!"
+    # Placeholders: %rank% and all Kingdom related placeholders.
+    rank-too-low-regulator-override: "&cYour rank is too low to override the regulator! Only rank %rank% may override regulators!"
     # Placeholders: All Kingdom and KingdomPlayer placeholders.
     cannot-build-unoccupied-land: "&cYou need to claim this land to build on it!"
     not-in-land: "&cYou can only do that in your land."
     # Placeholders: Kingdom and Player placeholders. This is called when replacing a block to the Nexus.
     nexus-cannot-replace: "&cYou cannot replace this block!"
+    # Placeholders: All Kingdom related placeholders.
+    cannot-access-nexus: "&cYou are not allowed to access %kingdom%'s nexus."
+    # Placeholders: All Kingdom related placeholders.
+    cannot-break-own-nexus: "&cYou can't mine your own nexus, use the nexus GUI or place a new one elsewhere."
+     # Placeholders: %playerkingdom% and All Kingdom related placeholders which will be for the alliances'
+    cannot-break-alliance-nexus: "&cYou can't break your alliance's nexus!"
+    nexus-setting-cancelled: "&cNexus placing mode was cancelled!"
+    nexus-setting-cancelled-moved: "&cYou moved into another chunk of land!"
 # All messages relating to maps and chunks.
 map:
     # Called when a user walks into an unoccupied chunk of land.
@@ -116,15 +133,44 @@ chat:
 commands:
     # Placeholders: %location% and all Kingdom releated placeholders.
     spawn-set: '&aKingdom spawn has been set at: %location%'
+invading:
+    # Placeholders: %progress%, %amount%, %playerkingdom% and all Kingdom placeholders relating to the Kingdom being invaded.
+    break-nexus: "&eYou have taken %amount% resource points away from %kingdom%'s Kingdom.%newline%&eYou're &l%progress%% percent &eof the way there!"
+    # Placeholders: %progress%, %amount%, %playerkingdom% and all Kingdom placeholders relating to the Kingdom being invaded.
+    break-nexus-add: "&aYour Kingdom has earned %amount% resource points for mining the enemys' nexus!"
     
     
 
 
-    
 
+Turrets_AttackSpeed: '&9Attack Speed: '
+Turrets_Target_Random_In_Range: '&9Targets one random non-ally in range'
+Turrets_Target_Random_Player_Range: '&9Targets one random non-ally player in range'
+Turrets_Target_All_Player_Range: '&9All targets in blast range'
+Turrets_Target_Single: '&9Single Target'
+Turrets_Psi_Attack: '&c&lYou were hit by a Psionic Strike!'
+Turrets_Heatbeam_Attack: '&c&lYou were hit by a Heatbeam Attack!'
+Turrets_Must_Be_On_Fence: '&cTurrets can only be set on fences!'
+Turrets_Fence_Already_Occupied: '&cThere is something on the fence.'
 # If you're looking for this one, ignore it.
 #Misc_Kingdom_Deleting: Kingdom is disbanding. Please wait a moment...
-Plugin_NotEnabled: Plugin is not enabled.
+Guis_Turret_Healing: '&bHealing Station'
+Guis_Turret_Healing_Desc: '&aA turret which heals nearby allies'
+Guis_Turret_Flame: '&bFlame Turret'
+Guis_Turret_Flame_Desc: '&aFast firing turret that sets targets ablaze.'
+Guis_Turret_Hellfire: '&bHellfire Turret'
+Guis_Turret_Hellfire_Desc: '&aPowerful turret which fires quickly and with high damage'
+Guis_Turret_Heatbeam: '&bHeatbeam Turret'
+Guis_Turret_Heatbeam_Desc: '&aPowerful turret which targets singular targets and deals high damage'
+Guis_Turret_Soldier: '&bSoldier Spawner'
+Guis_Turret_Soldier_Desc: '&aSpawns soldier zombies on player targets'
+Guis_Turret_Psionic: '&bPsionic Totem'
+Guis_Turret_Psionic_Desc: '&aTurret which pierces player armor to cause damage and slow the target. Can never deal killing damage.'
+Guis_Turret_ChemicalMine: '&bChemical Mine'
+Guis_Turret_ChemicalMine_Desc: '&aA mine which gives the triggering player potent poison and blindness'
+Guis_Turret_PressureMine: '&bPressure Mine'
+Guis_Turret_PressureMine_Desc: '&aA mine that explodes when stepped on by players, damaging any nearby player'
+Guis_Turret_Title: '&bTurret Shop'
 Plugin_SetEnableToTrue: Please set Enable option to true in your config.yml file.
 Plugin_WillBeDisabled: This plugin will be disabled.
 Plugin_OreRegeneratorNotFound: No OreRegenerator plugin found, disabling kingdom ore regeneration after land expiry
@@ -454,7 +500,6 @@ Misc_Announcer_King_Online: King [%player%] is now &aOnline!
 Misc_Announcer_Online: '[%player%] is now &aOnline!'
 Misc_Announcer_Offline: '[%player%] is now &cOffline!'
 Misc_Announcer_Left_Kingdom: '[%player%] has left the kingdom!'
-Misc_Structure_Disabled: '&cThis type of structure has been disabled and can no longer be used.'
 Misc_Turret_Limit: '&cYou can only place %number% %type% turrets in one land.'
 Misc_Resourceplot_Reward_Message: Your kingdom received %amount% from resourceplot %plot%
 Misc_Resourceplot_Reset_Broadcast: ALL RESOURCE PLOTS HAVE BEEN RESET!
@@ -479,13 +524,9 @@ Misc_Previous_Request_Processing: '&cYour command is still processing. If this p
 Misc_Cannot_Attack_Own_Ally: '&cYou can''t attack your own kingdom allies!'
 Misc_Cannot_Trample_Soil: '&bYour kingdom soil cannot be trampled'
 Misc_Cannot_Trample_Other_Soil: '&cYou cannot trample soil in %kingdom%''s land'
-Misc_Nexus_Setting_Disabled: '&cNexus Placing mode disabled!'
-Misc_Nexus_Setting_Different_Land: '&cYou moved into another piece of land!'
 Misc_Nexus_Setting_Not_In_Land: '&cThe land you''re trying to place your nexus in is not owned by your kingdom'
-Misc_Nexus_Setting_Success: '&aNexus successfully placed!'
 Misc_Regulator_Cannot_Build: '&cYou cannot build in this land! Ask a higher ranked member to change regulator settings for this land.'
 Misc_Regulator_Cannot_Interact: '&cYou cannot interact in this land! Ask a higher ranked member to change regulator settings for this land.'
-Misc_Cannot_Use_Other_Nexus: '&cYou cannot use another kingdom''s nexus'
 Misc_Cannot_Use_Nexus_In_GMC: '&cYou can''t use the nexus while in creative mode!'
 Misc_Cannot_Claim_In_WG: '&cYou cannot claim in worldguard regions'
 Misc_PrivateSigns_Wrong_Land_Error: You can only place chest protection signs on your own kingdom land!
@@ -553,25 +594,6 @@ Guis_Log_Invader: 'Invader: '
 Guis_Log_Defending: 'Defending Kingdom: '
 Guis_Log_Land: '&bAt Chunk: '
 Guis_Log_DeleteAll: '&cClear All Logs'
-Guis_Turret_Arrow: '&bArrow Turret'
-Guis_Turret_Arrow_Desc: '&aSimple turret that fires plain arrows at enemies at a moderate rate.'
-Guis_Turret_Healing: '&bHealing Station'
-Guis_Turret_Healing_Desc: '&aA turret which heals nearby allies'
-Guis_Turret_Flame: '&bFlame Turret'
-Guis_Turret_Flame_Desc: '&aFast firing turret that sets targets ablaze.'
-Guis_Turret_Hellfire: '&bHellfire Turret'
-Guis_Turret_Hellfire_Desc: '&aPowerful turret which fires quickly and with high damage'
-Guis_Turret_Heatbeam: '&bHeatbeam Turret'
-Guis_Turret_Heatbeam_Desc: '&aPowerful turret which targets singular targets and deals high damage'
-Guis_Turret_Soldier: '&bSoldier Spawner'
-Guis_Turret_Soldier_Desc: '&aSpawns soldier zombies on player targets'
-Guis_Turret_Psionic: '&bPsionic Totem'
-Guis_Turret_Psionic_Desc: '&aTurret which pierces player armor to cause damage and slow the target. Can never deal killing damage.'
-Guis_Turret_ChemicalMine: '&bChemical Mine'
-Guis_Turret_ChemicalMine_Desc: '&aA mine which gives the triggering player potent poison and blindness'
-Guis_Turret_PressureMine: '&bPressure Mine'
-Guis_Turret_PressureMine_Desc: '&aA mine that explodes when stepped on by players, damaging any nearby player'
-Guis_Turret_Title: '&bTurret Shop'
 Guis_TurretUpgrades_SimplifiedModel_Title: '&bSimplified Model'
 Guis_TurretUpgrades_SimplifiedModel_Lore: '&aArrow turrets will be simplified, and will cost less'
 Guis_TurretUpgrades_SimplifiedModel_Changes: '&6Arrow Turret Cost reduced by 30%'
@@ -865,9 +887,6 @@ Guis_Permissions_Desc_OverrideRegulator: '&aManage who can use Regulators, and o
 Guis_Permissions_Title_BuyXpBottles: '&bOutpost XP Bottles'
 Guis_Permissions_Desc_BuyXpBottles: '&aManage who can purchase xp bottles from Outpost'
 Guis_Permissions_Desc_Nexusbuild: '&aManage who can build in the Nexus Land'
-Nexus_Mining_EarnedRP: '&aYour kingdom earned %amount% rp for mining nexus!'
-Nexus_Mining_isAlliance: '&aYou cannot steal rp from your alliance!'
-Nexus_Mining_isOwn: '&cYou can''t mine your own nexus!'
 Nexus_GUI_Returned_Resources: '&6%amount% &cresources are returned.'
 Nexus_GUI_Require_ResourcePerPoint: '&cat least &6%amount% &cresources are needed for one rp!'
 Nexus_GUI_Donated_RP: '&a%amount% rp is added to your kingdom!'
@@ -895,17 +914,6 @@ Kingdom_Command_Denied_Enemy: '&cThis command is cannot be used in kingdom who a
 EventManager_Masswar_NotOn: '&cNot On.'
 Guis_Misc_Enabled: '&aEnabled'
 Guis_Misc_Disabled: '&cDisabled'
-Turrets_Range: '&9Range: '
-Turrets_Damage: '&9Damage: '
-Turrets_AttackSpeed: '&9Attack Speed: '
-Turrets_Target_Random_In_Range: '&9Targets one random non-ally in range'
-Turrets_Target_Random_Player_Range: '&9Targets one random non-ally player in range'
-Turrets_Target_All_Player_Range: '&9All targets in blast range'
-Turrets_Target_Single: '&9Single Target'
-Turrets_Psi_Attack: '&c&lYou were hit by a Psionic Strike!'
-Turrets_Heatbeam_Attack: '&c&lYou were hit by a Heatbeam Attack!'
-Turrets_Must_Be_On_Fence: '&cTurrets can only be set on fences!'
-Turrets_Fence_Already_Occupied: '&cThere is something on the fence.'
 Siege_Success: '&a&lSiege cannon hit %kingdom%.'
 Siege_Success_Shielded: '&b&l[&c&l%value%&b&l/&c&lmax&b&l]&a&lSiege cannon damaged %kingdom%''s shields.'
 Siege_Warning: '&c&lOur land at %chunk% was sieged by %kingdom%!'

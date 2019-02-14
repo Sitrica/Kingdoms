@@ -35,12 +35,18 @@ taxes:
     take: "&6Taxes have been applied. Tax amount was: %amount%"
     # Placeholders: %kingdom% and %amount%
     disband: "&6The Kingdom &e%kingdom% has been disbanded because it can't pay it's taxes"
+structures:
+    # Placeholders: All Kingdom related placeholders.
+    extractor-collection: "&a%player% collected %amount% resource points from an extractor."
+    # Placeholders: All Kingdom placeholders.
+    structure-disabled: "&cThis type of structure has been disabled and can no longer be used."
 # All messages relating to Kingdoms.
 kingdoms:
     invading:
         # Placeholders: %player%, %chunkTo%, %chunkFrom%, %land% and %kingdom%
         invading-deny-chunk-change: "&cYou can not leave the Kingdom while invading!"
     deleted: "&eYour Kingdom %kingdom% has been disbanded."
+    no-kingdom: "&cYou are not apart of any Kingdom!"
     creation: "&aYou have successfully created a Kingdom with the name %kingdom%!"
     cannot-attack-members: "&cYou can't attack your own kingdom members!"
     permissions-too-low: "&cYour rank is too low to use this function! Only %rank% and up can use this function!"
@@ -52,8 +58,13 @@ kingdoms:
     rank-too-low-build: "&cYour rank is too low to build in the Kingdom! Only rank %rank% can build!"
     # Placeholders: %rank% and all Kingdom related placeholders.
     rank-too-low-nexus-build: "&cYour rank is too low to build in the nexus chunk! Only rank %rank% can build here!"
+    # Placeholders: %rank% and all Kingdom related placeholders.
+    rank-too-low-structure-build: "&cYour rank is too low to place a structure! Only rank %rank% can place structures!"
     # Placeholders: All Kingdom and KingdomPlayer placeholders.
     cannot-build-unoccupied-land: "&cYou need to claim this land to build on it!"
+    not-in-land: "&cYou can only do that in your land."
+    # Placeholders: Kingdom and Player placeholders. This is called when replacing a block to the Nexus.
+    nexus-cannot-replace: "&cYou cannot replace this block!"
 # All messages relating to maps and chunks.
 map:
     # Called when a user walks into an unoccupied chunk of land.
@@ -445,7 +456,6 @@ Misc_Announcer_King_Online: King [%player%] is now &aOnline!
 Misc_Announcer_Online: '[%player%] is now &aOnline!'
 Misc_Announcer_Offline: '[%player%] is now &cOffline!'
 Misc_Announcer_Left_Kingdom: '[%player%] has left the kingdom!'
-Misc_Structure_Disabled: '&cThis type of structure has been disabled and can no longer be used.'
 Misc_Turret_Limit: '&cYou can only place %number% %type% turrets in one land.'
 Misc_Resourceplot_Reward_Message: Your kingdom received %amount% from resourceplot %plot%
 Misc_Resourceplot_Reset_Broadcast: ALL RESOURCE PLOTS HAVE BEEN RESET!
@@ -464,7 +474,6 @@ Misc_Members_Needed: '&cYou can only claim %amount% land with %members% members'
 Misc_Invalid_Command: '&cInvalid command, do /k for help'
 Misc_Preparing_Info: '&cPreparing your new player data...'
 Misc_Preparing_Info_Finished: '&aData loaded! Enjoy!'
-Misc_Not_In_Land: '&cYou can only do that in your land'
 Misc_Not_Air: '&cThere is something obstructing the way!'
 Misc_Confirmation_Cancel: '&cConfirmation cancelled.'
 Misc_Previous_Request_Processing: '&cYour command is still processing. If this problem persists, contact an administrator'
@@ -473,7 +482,6 @@ Misc_Cannot_Trample_Soil: '&bYour kingdom soil cannot be trampled'
 Misc_Cannot_Trample_Other_Soil: '&cYou cannot trample soil in %kingdom%''s land'
 Misc_Nexus_Setting_Disabled: '&cNexus Placing mode disabled!'
 Misc_Nexus_Setting_Different_Land: '&cYou moved into another piece of land!'
-Misc_Nexus_Setting_Cannot_Replace: '&cYou cannot replace this block!'
 Misc_Nexus_Setting_Not_In_Land: '&cThe land you''re trying to place your nexus in is not owned by your kingdom'
 Misc_Nexus_Setting_Success: '&aNexus successfully placed!'
 Misc_Regulator_Cannot_Build: '&cYou cannot build in this land! Ask a higher ranked member to change regulator settings for this land.'
@@ -779,7 +787,6 @@ Guis_Regulator_CanMonstersSpawn_Title: '&bMonster spawning in this land'
 Guis_Regulator_CanAnimalsSpawn_Title: '&bAnimal spawning in this land'
 Guis_WarpPad_Click_To_Tp: '&aClick to teleport to the location above'
 Guis_WarpPad_You_Are_Here: '&cYou are here'
-Extractor_Collection_Announcement: '&a%amount% resourcepoints have been collected from an Extractor'
 Guis_Outpost_Buy1XpPotion_Title: '&bBuy 1 xp bottle'
 Guis_Outpost_Buy1XpPotion_Desc: '&aBuy 1 xp bottle for %cost% resourcepoints.'
 Guis_Outpost_Buy64XpPotion_Title: '&bBuy 64 xp bottles'

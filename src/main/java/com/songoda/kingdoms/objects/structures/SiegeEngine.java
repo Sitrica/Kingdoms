@@ -13,12 +13,12 @@ public class SiegeEngine extends Structure {
 	private final long cooldown;
 	private long time;
 	
-	public SiegeEngine(Location location, StructureType type) {
-		this(location, type, System.currentTimeMillis());
+	public SiegeEngine(Location location) {
+		this(location, System.currentTimeMillis());
 	}
 	
-	public SiegeEngine(Location location, StructureType type, long time) {
-		super(location, type);
+	public SiegeEngine(Location location, long time) {
+		super(location, StructureType.SIEGE_ENGINE);
 		FileConfiguration configuration = Kingdoms.getInstance().getConfig();
 		String interval = configuration.getString("structures.siege-engine.cooldown", "60 seconds");
 		this.cooldown = IntervalUtils.getInterval(interval);

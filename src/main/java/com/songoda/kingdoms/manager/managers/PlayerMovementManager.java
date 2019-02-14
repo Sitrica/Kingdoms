@@ -1,6 +1,8 @@
 package com.songoda.kingdoms.manager.managers;
 
 import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
+import com.songoda.kingdoms.events.PlayerUnwaterlogEvent;
+import com.songoda.kingdoms.events.PlayerWaterlogEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
@@ -15,14 +17,21 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -47,7 +56,7 @@ public class PlayerMovementManager extends Manager {
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 	}
-
+	
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
@@ -62,6 +71,41 @@ public class PlayerMovementManager extends Manager {
 				Bukkit.getPluginManager().callEvent(event);
 			}
 		}, 5);
+	}
+
+	@SuppressWarnings("deprecation")
+	@EventHandler
+	public void onWaterlog(PlayerInteractEvent event) {
+		if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			Player player = event.getPlayer();
+			ItemStack bucket;
+			try {
+				bucket = player.getItemInHand();
+			} catch (Exception e) {
+				bucket = player.getInventory().getItemInMainHand();
+			}
+			if (bucket != null) {
+				Material type = bucket.getType();
+				if (type == Material.WATER_BUCKET) {
+					Block block = event.getClickedBlock();
+					BlockData data = block.getBlockData();
+					if (data instanceof Waterlogged) {
+						Waterlogged waterlogged = (Waterlogged) data;
+						if (waterlogged.isWaterlogged()) {
+							PlayerUnwaterlogEvent waterlog = new PlayerUnwaterlogEvent(player, block, event.getBlockFace(), type, new ItemStack(Material.WATER_BUCKET));
+							Bukkit.getPluginManager().callEvent(waterlog);
+							if (waterlog.isCancelled())
+								event.setCancelled(true);
+						} else {
+							PlayerWaterlogEvent waterlog = new PlayerWaterlogEvent(player, block, event.getBlockFace(), type, new ItemStack(Material.BUCKET));
+							Bukkit.getPluginManager().callEvent(waterlog);
+							if (waterlog.isCancelled())
+								event.setCancelled(true);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	@EventHandler

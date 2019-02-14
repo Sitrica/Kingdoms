@@ -161,6 +161,10 @@ public class OfflineKingdom {
 		resourcePoints += points;
 	}
 	
+	public void subtractResourcePoints(long points) {
+		resourcePoints -= points;
+	}
+	
 	public Location getNexusLocation() {
 		return nexus;
 	}

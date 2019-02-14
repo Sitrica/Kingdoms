@@ -2,28 +2,24 @@ package com.songoda.kingdoms.events;
 
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.land.Land;
-import com.songoda.kingdoms.objects.land.Structure;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 
+import org.bukkit.Location;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public class StructureBreakEvent extends Event implements Cancellable {
+public class NexusPlaceEvent extends Event implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
 	private final KingdomPlayer player;
-	private final Structure structure;
+	private final Location location;
 	private final Kingdom kingdom;
 	private boolean cancelled;
 	private final Land land;
 
-	public StructureBreakEvent(Land land, Structure structure, Kingdom kingdom) {
-		this(land, structure, kingdom, null);
-	}
-	
-	public StructureBreakEvent(Land land, Structure structure, Kingdom kingdom, KingdomPlayer player) {
-		this.structure = structure;
+	public NexusPlaceEvent(KingdomPlayer player, Kingdom kingdom, Location location, Land land) {
+		this.location = location;
 		this.kingdom = kingdom;
 		this.player = player;
 		this.land = land;
@@ -37,14 +33,14 @@ public class StructureBreakEvent extends Event implements Cancellable {
 		return kingdom;
 	}
 
-	public Structure getStructure() {
-		return structure;
+	public Location getPlaceLocation() {
+		return location;
 	}
 
 	public KingdomPlayer getKingdomPlayer() {
 		return player;
 	}
-
+	
 	@Override
 	public boolean isCancelled() {
 		return cancelled;
@@ -55,13 +51,12 @@ public class StructureBreakEvent extends Event implements Cancellable {
 		this.cancelled = cancelled;
 	}
 
-	@Override
 	public HandlerList getHandlers() {
 		return handlers;
 	}
 
 	public static HandlerList getHandlerList() {
-        return handlers;
-    }
+		return handlers;
+	}
 
 }

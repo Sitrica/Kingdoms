@@ -15,8 +15,8 @@ public class Regulator extends Structure {
 	private boolean monsters = true;
 	private boolean animals = true;
 
-	public Regulator(Location location, StructureType type) {
-		super(location, type);
+	public Regulator(Location location) {
+		super(location, StructureType.REGULATOR);
 	}
 	
 	//TODO come back to this unused

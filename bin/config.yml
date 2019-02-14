@@ -130,6 +130,8 @@ structures:
     siege-engine:
         enabled: true
         cost: 1000
+        # The cooldown it takes per fire shot.
+        cooldown: "60 seconds"
         title: "&bSiege Engine"
         material: "DISPENSER"
         inventory-material: "MUSIC_DISC_11"
@@ -148,6 +150,10 @@ structures:
         cost: 1000
         title: "&bExtractor"
         material: "EMERALD_BLOCK"
+        # This is an extractor option only this and reward-amount.
+        reward-delay: "24 hours"
+        # The amount of resource points to give.
+        reward-amount: 50
         inventory-material: "MUSIC_DISC_CAT"
         description:
             - "&7Extractors produce resource points every set time."
@@ -170,6 +176,12 @@ claiming:
     land-must-be-connected: false
     # The amount of resource points it costs to claim a new chunk.
     cost: 5
+# Blocks that can't be relplaced when placing a structure.
+unreplaceable-blocks:
+    - "BEDROCK"
+    - "OBSIDIAN"
+    - "CHEST"
+    - "ENDER_CHEST"
 # All Kingdom and chunk related configurations.
 kingdoms:
     # Allow Kingdoms to become passive if they want.
@@ -178,6 +190,8 @@ kingdoms:
     leaderboard-hide-pacifists: false
     # Set if liquids can flow into the Kingdom or not.
     disable-liquid-flow-into: true
+    # If ally's can fight or not.
+    alliance-can-pvp: false
     # If players should respawn in their Kingdom.
     respawn-at-kingdom: false
     # If players are allowed to open chests in other Kingdoms.
@@ -487,7 +501,6 @@ Plugin:
     serverName: yourServer
 minutes-per-backup: 43200
 pacifist-default-on: false
-ally-pvp: false
 DO-NOT-TOUCH:
     grabPlayerFromFileDB: false
     grabLandFromFileDB: false
@@ -503,7 +516,6 @@ siege:
         cost: 1000
         explosion-radius: 4.0
         shield-damage: 200
-        cooldown: 60
     shield:
         recharge-cost-base: 50
         recharge-cost-exponent: 5.0
@@ -538,7 +550,6 @@ useMVdWPlaceHolderAPISupport: true
 useDynmapSupport: true
 useHolographicSupport: true
 protectNeutralLandFromExplosions: false
-neutralPlayersCannotFightOnOwnLand: false
 kingdom-home-stops-working-if-unclaimed: false
 worldguard:
     regions-that-allow-claiming:
@@ -657,20 +668,12 @@ items-needed-for-one-resource-point: 5
 invade-cost: 10
 hidewarppadlocations: false
 enable-auto-backup: true
-mine:
-    reward-delay-in-minutes: 1440
-    reward-amount: 100
 regulator:
     allow-toggling-animal-spawn: true
     allow-toggling-monster-spawn: true
 minimum-members-online-to-be-invaded: 0
 infinite-claim-worlds:
 - worldThatAllowsYouToClaimInfinitely
-unreplaceableblocks:
-- BEDROCK
-- OBSIDIAN
-- CHEST
-- ENDER_CHEST
 allowedToUseInOtherKingdomLand:
 - MONSTER_EGG
 - POTION
