@@ -20,22 +20,42 @@ public class Turret {
 
 	private final Location location;
 	private long cooldown = 0;
+	private final boolean post;
 	private TurretType type;
 
 	public Turret(Location location, TurretType type) {
+		this(location, type, false);
+	}
+	
+	public Turret(Location location, TurretType type, boolean post) {
 		this.location = location;
 		this.type = type;
+		this.post = post;
+	}
+	
+	/**
+	 * If this is set to true, then a fence or cobblestone wall by default was generated
+	 * It's generated when the user clicks the ground and there was no fence post to begin with.
+	 * 
+	 * @return
+	 */
+	public boolean hasCreatedPost() {
+		return post;
 	}
 	
 	public Location getLocation() {
 		return location;
 	}
+	
+	public TurretType getType() {
+		return type;
+	}
 
-	public void setType(TurretType type){
+	public void setType(TurretType type) {
 		this.type = type;
 	}
 
-	public boolean isValid(){
+	public boolean isValid() {
 		if (type == null)
 			return false;
 		if (location == null)
@@ -56,18 +76,6 @@ public class Turret {
 		Location loc = LocationUtils.stringToLocation(split[0]);
 		TurretType type = TurretType.valueOf(split[1]);
 		return new Turret(loc, type);
-	}
-
-	public void destroy() {
-		Chunk chunk = location.getWorld().getChunkAt((int)location.getX(), (int)location.getZ());
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
-		location.getBlock().setType(Material.AIR);
-		land.getTurrets().remove(this);
-	}
-	
-	public void breakTurret(){
-		location.getWorld().dropItem(location, type.getTurretDisk());
-		destroy();
 	}
 
 	public void fireAt(Player target) {

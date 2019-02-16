@@ -14,7 +14,7 @@ public class KingdomsCommand extends AbstractCommand {
 	}
 	
 	public KingdomsCommand() {
-		super("kingdoms", null, false);
+		super("kingdoms", true);
 	}
 
 	@Override
@@ -25,7 +25,7 @@ public class KingdomsCommand extends AbstractCommand {
 				.send(sender);
 		for (AbstractCommand command : instance.getCommandHandler().getCommands()) {
 			if (command.getPermissionNode() == null || sender.hasPermission(command.getPermissionNode())) {
-				sender.sendMessage(Formatting.color("&8 - &6" + command.getSyntax() + "&7 - " + command.getDescription()));
+				sender.sendMessage(Formatting.color("&8 - &6" + command.getSyntax(sender) + "&7 - " + command.getDescription(sender)));
 			}
 		}
 		sender.sendMessage("");
@@ -38,13 +38,8 @@ public class KingdomsCommand extends AbstractCommand {
 	}
 
 	@Override
-	public String getDescription() {
-		return "display the main page.";
-	}
-
-	@Override
-	public String getSyntax() {
-		return "/k";
+	protected String getConfigurationNode() {
+		return "kingdoms";
 	}
 
 }

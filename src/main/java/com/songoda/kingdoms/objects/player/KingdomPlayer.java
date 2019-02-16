@@ -6,6 +6,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.manager.managers.ChatManager.ChatChannel;
+import com.songoda.kingdoms.objects.kingdom.Kingdom;
 
 public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {//Pioneer, Member, PrivateChat, Confirmable {
 	
@@ -62,6 +63,11 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {/
 	
 	public boolean isAutoClaiming() {
 		return autoClaiming;
+	}
+	
+	@Override
+	public Kingdom getKingdom() {
+		return kingdom.getKingdom();
 	}
 	
 	public void setAutoClaiming(boolean autoClaiming) {

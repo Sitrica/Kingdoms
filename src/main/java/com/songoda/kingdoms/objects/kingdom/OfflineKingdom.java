@@ -209,6 +209,10 @@ public class OfflineKingdom {
 		return permissions;
 	}
 	
+	public boolean equals(OfflineKingdom other) {
+		return other.getUniqueId() == uuid;
+	}
+	
 	/**
 	 * Grabs the cooldown instance loader of the Sheild.
 	 * This is not the actual countdown time of the Shield.

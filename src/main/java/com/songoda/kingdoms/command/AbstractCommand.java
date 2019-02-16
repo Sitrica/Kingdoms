@@ -1,49 +1,69 @@
 package com.songoda.kingdoms.command;
 
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.managers.KingdomManager;
+import com.songoda.kingdoms.manager.managers.PlayerManager;
+import com.songoda.kingdoms.utils.MessageBuilder;
 
 public abstract class AbstractCommand {
 
-	private final AbstractCommand parent;
-	private final boolean noConsole;
+	protected final FileConfiguration configuration;
+	protected final KingdomManager kingdomManager;
+	protected final PlayerManager playerManager;
+	protected final Kingdoms instance;
+	private final boolean console;
 	private final String command;
 
-	protected AbstractCommand(String command, AbstractCommand parent, boolean noConsole) {
-		this.noConsole = noConsole;
+	protected AbstractCommand(String command, boolean console) {
+		this.console = console;
 		this.command = command;
-		this.parent = parent;
+		this.instance = Kingdoms.getInstance();
+		this.configuration = instance.getConfig();
+		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 	}
 	
 	protected static void registerCommand(AbstractCommand command) {
 		Kingdoms.getInstance().getCommandHandler().registerCommand(command);
 	}
 	
-	public enum ReturnType {
+	protected enum ReturnType {
 		SUCCESS,
 		FAILURE,
 		SYNTAX_ERROR
 	}
-
-	public AbstractCommand getParent() {
-		return parent;
-	}
 	
-	public boolean allowConsole() {
-		return noConsole;
+	protected boolean isConsoleAllowed() {
+		return console;
 	}
 
-	public String getCommand() {
+	protected String getCommand() {
 		return command;
 	}
 
-	protected abstract ReturnType runCommand(Kingdoms instance, CommandSender sender, String... args);
+	protected abstract ReturnType runCommand(Kingdoms instance, CommandSender sender, String... arguments);
 
-	public abstract String getPermissionNode();
-
-	public abstract String getDescription();
+	protected abstract String getConfigurationNode();
 	
-	public abstract String getSyntax();
+	public abstract String getPermissionNode();
+	
+	public String getDescription(CommandSender player) {
+		return new MessageBuilder("commands." + getConfigurationNode() + ".description")
+				.replace("%permission%", getPermissionNode())
+				.replace("%syntax%", getSyntax(player))
+				.setPlaceholderObject(player)
+				.get();
+	}
+	
+	public String getSyntax(CommandSender player) {
+		return new MessageBuilder("commands." + getConfigurationNode() + ".description")
+				.replace("%permission%", getPermissionNode())
+				.replace("%description%", getDescription(player))
+				.setPlaceholderObject(player)
+				.get();
+	}
 
 }

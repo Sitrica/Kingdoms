@@ -4,6 +4,7 @@ import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
 import com.songoda.kingdoms.events.PlayerUnwaterlogEvent;
 import com.songoda.kingdoms.events.PlayerWaterlogEvent;
 import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
@@ -46,6 +47,7 @@ import java.util.UUID;
 public class PlayerMovementManager extends Manager {
 
 	private long spam = System.currentTimeMillis();
+	private final CitizensManager citizensManager;
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
 	private final LandManager landManager;
@@ -55,12 +57,13 @@ public class PlayerMovementManager extends Manager {
 		this.landManager = instance.getManager("land", LandManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 	}
 	
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
-		if (ExternalManager.isCitizen(player))
+		if (citizensManager.isCitizen(player))
 			return;
 		Bukkit.getScheduler().runTaskLater(instance, new Runnable() {
 			@Override
@@ -111,7 +114,7 @@ public class PlayerMovementManager extends Manager {
 	@EventHandler
 	public void onTeleport(PlayerTeleportEvent event) {
 		Player player = event.getPlayer();
-		if (ExternalManager.isCitizen(player))
+		if (citizensManager.isCitizen(player))
 			return;
 		Location from = event.getFrom();
 		Location to = event.getTo();
@@ -129,7 +132,7 @@ public class PlayerMovementManager extends Manager {
 		World world = player.getWorld();
 		if (worldManager.acceptsWorld(world))
 			return;
-		if (ExternalManager.isCitizen(player))
+		if (citizensManager.isCitizen(player))
 			return;
 		Location from = event.getFrom();
 		Location to = event.getTo();
@@ -139,9 +142,8 @@ public class PlayerMovementManager extends Manager {
 		for (int x = -1; x <= 1; x++) {
 			for (int z = -1; z <= 1; z++) {
 				Chunk next = world.getChunkAt(centerX + x, centerZ + z);
-				Land optional = landManager.getLand(next);
-				List<Turret> turrets = land.getTurrets();
-				for (Turret turret : turrets) {
+				Land land = landManager.getLand(next);
+				for (Turret turret : land.getTurrets()) {
 					//attempt to get the closest player to the turret
 					Location turretLocation = turret.getLocation();
 					Player closest = null;
@@ -154,7 +156,7 @@ public class PlayerMovementManager extends Manager {
 						}
 					}
 					if (closest != null)
-						turret.fire(closest);
+						turret.fireAt(closest);
 				}
 			}
 		}

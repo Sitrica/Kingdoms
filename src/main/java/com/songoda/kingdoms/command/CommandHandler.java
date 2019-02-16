@@ -1,5 +1,6 @@
 package com.songoda.kingdoms.command;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -10,6 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.command.AbstractCommand.ReturnType;
 import com.songoda.kingdoms.utils.MessageBuilder;
 import com.songoda.kingdoms.utils.Utils;
 
@@ -21,7 +23,7 @@ public class CommandHandler implements CommandExecutor {
 	public CommandHandler(Kingdoms instance) {
 		this.instance = instance;
 		instance.getCommand("Kingdoms").setExecutor(this);
-		Utils.loadClasses(instance, instance.getPackageName() + ".commands", "commands");
+		Utils.loadClasses(instance, instance.getPackageName() + ".command", "commands");
 	}
 
 	protected void registerCommand(AbstractCommand abstractCommand) {
@@ -29,17 +31,16 @@ public class CommandHandler implements CommandExecutor {
 	}
 
 	@Override
-	public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
+	public boolean onCommand(CommandSender sender, Command command, String label, String[] arguments) {
 		for (AbstractCommand abstractCommand : commands) {
 			if (abstractCommand.getCommand().equalsIgnoreCase(command.getName())) {
-				if (strings.length == 0) {
-					processRequirements(abstractCommand, sender, strings);
+				if (arguments.length == 0) {
+					processRequirements(abstractCommand, sender, arguments);
 					return true;
 				}
-			} else if (strings.length != 0 && abstractCommand.getParent() != null && abstractCommand.getParent().getCommand().equalsIgnoreCase(command.getName())) {
-				String cmd = strings[0];
-				if (cmd.equalsIgnoreCase(abstractCommand.getCommand())) {
-					processRequirements(abstractCommand, sender, strings);
+			} else if (command.getName().equalsIgnoreCase("kingdoms") || command.getName().equalsIgnoreCase("k")) {
+				if (arguments.length > 0 && arguments[0].equalsIgnoreCase(abstractCommand.getCommand())) {
+					processRequirements(abstractCommand, sender, arguments);
 					return true;
 				}
 			}
@@ -48,16 +49,16 @@ public class CommandHandler implements CommandExecutor {
 		return true;
 	}
 
-	private void processRequirements(AbstractCommand command, CommandSender sender, String[] strings) {
-		if (!(sender instanceof Player) && !command.allowConsole()) {
+	private void processRequirements(AbstractCommand command, CommandSender sender, String[] arguments) {
+		if (!(sender instanceof Player) && !command.isConsoleAllowed()) {
 			sender.sendMessage("You must be a player to use this command.");
 			return;
 		}
 		if (command.getPermissionNode() == null || sender.hasPermission(command.getPermissionNode())) {
-			AbstractCommand.ReturnType returnType = command.runCommand(instance, sender, strings);
+			ReturnType returnType = command.runCommand(instance, sender, Arrays.copyOfRange(arguments, 1, arguments.length));
 			if (returnType == AbstractCommand.ReturnType.SYNTAX_ERROR) {
 				 new MessageBuilder("messages.invalid-command", "messages.invalid-command-correction")
-				 		.replace("%command%", command.getSyntax())
+				 		.replace("%command%", command.getSyntax(sender))
 				 		.setPlaceholderObject(sender)
 				 		.send(sender);
 			}

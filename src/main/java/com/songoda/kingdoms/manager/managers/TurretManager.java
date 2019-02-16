@@ -1,22 +1,52 @@
 package com.songoda.kingdoms.manager.managers;
 
+import com.google.common.collect.Sets;
+import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.LandLoadEvent;
+import com.songoda.kingdoms.events.TurretBreakEvent;
+import com.songoda.kingdoms.events.TurretPlaceEvent;
 import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.managers.RankManager.Rank;
+import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.land.Turret;
 import com.songoda.kingdoms.objects.land.TurretType;
+import com.songoda.kingdoms.objects.land.TurretType.TargetType;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
+import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
+import com.songoda.kingdoms.placeholders.Placeholder;
+import com.songoda.kingdoms.utils.DeprecationUtils;
+import com.songoda.kingdoms.utils.Formatting;
+import com.songoda.kingdoms.utils.MessageBuilder;
+import com.songoda.kingdoms.utils.SoundPlayer;
 import com.songoda.kingdoms.utils.TurretUtil;
+import com.songoda.kingdoms.utils.Utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.*;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Dispenser;
+import org.bukkit.block.Skull;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Wolf;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.block.*;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDispenseEvent;
+import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
@@ -26,7 +56,11 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.AnvilInventory;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.MetadataValue;
+import org.bukkit.metadata.Metadatable;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -37,7 +71,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 public class TurretManager extends Manager {
 	
@@ -45,13 +81,307 @@ public class TurretManager extends Manager {
 		registerManager("turret", new TurretManager());
 	}
 	
+	private final String METADATA_CONQUEST = "conquest-arrow";
+	private final String METADATA_KINGDOM = "turret-kingdom";
+	private final String METADATA_DAMAGE = "turret-damage";
+	private final Set<TurretType> types = new HashSet<>();
+	private final CitizensManager citizensManager;
+	private final KingdomManager kingdomManager;
+	private final PlayerManager playerManager;
 	private final LandManager landManager;
+	private final Kingdoms instance;
 	
 	protected TurretManager() {
 		super(true);
+		this.instance = Kingdoms.getInstance();
 		this.landManager = instance.getManager("land", LandManager.class);
+		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+		for (String turret : configuration.getConfigurationSection("turrets.turrets").getKeys(false)) {
+			types.add(new TurretType(turret));
+		}
+	}
+	
+	public Optional<Double> getProjectileDamage(Metadatable metadatable) {
+		return metadatable.getMetadata(METADATA_DAMAGE).parallelStream()
+				.filter(metadata -> metadata.getOwningPlugin().equals(instance))
+				.map(metadata -> metadata.asDouble())
+				.findFirst();
+	}
+	
+	public Optional<OfflineKingdom> getProjectileKingdom(Metadatable metadatable) {
+		return metadatable.getMetadata(METADATA_KINGDOM).parallelStream()
+				.filter(metadata -> metadata.getOwningPlugin().equals(instance))
+				.map(metadata -> metadata.asString())
+				.map(string -> UUID.fromString(string))
+				.map(uuid -> kingdomManager.getOfflineKingdom(uuid))
+				.filter(kingdom -> kingdom.isPresent())
+				.map(optional -> optional.get())
+				.findFirst();
+	}
+	
+	public long getTurretCount(Land land, TurretType type) {
+		return land.getTurrets().parallelStream()
+				.filter(turret -> turret.getType() != null)
+				.filter(turret -> turret.getType().equals(type))
+				.count();
+	}
+	
+	boolean isTurret(Block block) {
+		Location location = block.getLocation();
+		Land land = landManager.getLand(location.getChunk());
+		return land.getTurret(location) != null;
+	}
+	
+	public void breakTurret(Turret turret) {
+		Location location = turret.getLocation();
+		Land land = landManager.getLand(location.getChunk());
+		World world = location.getWorld();
+		TurretType type = turret.getType();
+		world.dropItem(location, type.build(land.getKingdomOwner(), false));
+		location.getBlock().setType(Material.AIR);
+		land.removeTurret(turret);
+	}
+	
+	public TurretType getTurretTypeFrom(ItemStack item) {
+		if (item == null)
+			return null;
+		ItemMeta meta = item.getItemMeta();
+		if (meta == null)
+			return null;
+		List<String> lores = meta.getLore();
+		if (lores == null || lores.isEmpty())
+			return null;
+		for (TurretType type : types) {
+			if (type.getMaterial() == item.getType()) {
+				if (Formatting.stripColor(meta.getDisplayName()).equalsIgnoreCase(Formatting.colorAndStrip(type.getTitle()))) {
+					return type;
+				}
+			}
+		}
+		return null;
+	}
+	
+	public boolean canBeTargeteded(Turret turret, Player target) {
+		if (target.isDead() || !target.isValid())
+			return false;
+		if (GameManagement.getChampionManager().isChampion(target))
+			return false;
+		Location location = turret.getLocation();
+		if (!location.getWorld().equals(target.getWorld()))
+			return false;
+		if (target.getLocation().distanceSquared(location) > Math.pow(turret.getType().getRange(), 2))
+			return false;
+		TurretType type = turret.getType();
+		KingdomPlayer kingdomPLayer = playerManager.getKingdomPlayer(target);
+		if (kingdomPLayer.hasAdminMode() || kingdomPLayer.isVanished())
+			return false;
+		Land land = landManager.getLand(location.getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		Kingdom kingdom = kingdomPLayer.getKingdom();
+		GameMode gamemode = target.getGameMode();
+		if (gamemode != GameMode.SURVIVAL && gamemode != GameMode.ADVENTURE)
+			return false;
+		if (type.getTargets().contains(TargetType.ALLIANCE)) {
+			if (kingdom == null)
+				return false;
+			if (landKingdom.equals(kingdom))
+				return true;
+			return landKingdom.isAllianceWith(kingdom);
+		} else if (type.getTargets().contains(TargetType.ENEMIES)) {
+			if (kingdom == null)
+				return true;
+			if (landKingdom.equals(kingdom))
+				return false;
+			return !landKingdom.isAllianceWith(kingdom);
+		}
+		return false;
 	}
 
+	public boolean canBeTargeted(OfflineKingdom kingdom, Entity target) {
+		if (!(target instanceof LivingEntity))
+			return false;
+		if (target.isDead() || !target.isValid())
+			return false;
+		if (citizensManager.isCitizen(target))
+			return false;
+		if (GameManagement.getChampionManager().isChampion(target))
+			return false;
+		OfflineKingdom playerKingdom;
+		if (target instanceof Player) {
+			Player player = (Player) target;
+			KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+			playerKingdom = kingdomPlayer.getKingdom();
+			if (kingdomPlayer.hasAdminMode() || kingdomPlayer.isVanished())
+				return false;
+			GameMode gamemode = player.getGameMode();
+			if (gamemode != GameMode.SURVIVAL && gamemode != GameMode.ADVENTURE)
+				return false;
+		} else if (target instanceof Wolf) {
+			Wolf wolf = (Wolf) target;
+			AnimalTamer owner = wolf.getOwner();
+			if (owner != null) {
+				OfflineKingdomPlayer kingdomPlayer = playerManager.getOfflineKingdomPlayer(owner.getUniqueId());
+				playerKingdom = kingdomPlayer.getKingdom();
+			}
+		}
+		if (playerKingdom == null)
+			return true;
+		if (kingdom.equals(playerKingdom))
+			return false;
+		return !kingdom.isAllianceWith(playerKingdom);
+	}
+	
+	@EventHandler
+	public void onTurretBreak(BlockBreakEvent event) {
+		Block block = event.getBlock();
+		if (isTurret(block)) {
+			Player player = event.getPlayer();
+			Location location = block.getLocation();
+			Land land = landManager.getLand(location.getChunk());
+			Turret turret = land.getTurret(location);
+			if (turret == null)
+				return;
+			KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+			OfflineKingdom landKingdom = land.getKingdomOwner();
+			if (landKingdom == null) {
+				TurretBreakEvent breakEvent = new TurretBreakEvent(land, turret, kingdomPlayer);
+				Bukkit.getPluginManager().callEvent(breakEvent);
+				if (!breakEvent.isCancelled())
+					breakTurret(turret);
+			}
+			Kingdom kingdom = kingdomPlayer.getKingdom();
+			if (kingdomPlayer.hasAdminMode())
+				return;
+			event.setCancelled(true);
+			if (kingdom == null) {
+				new MessageBuilder("kingdoms.no-kingdom").send(player);
+				return;
+			}
+			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+				new MessageBuilder("kingdoms.not-in-land")
+						.setKingdom(kingdom)
+						.send(player);
+				return;
+			}
+			if (!kingdom.getPermissions(kingdomPlayer.getRank()).canBuildStructures()) {
+				new MessageBuilder("kingdoms.rank-too-low-structure-build")
+						.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canBuildStructures()), new Placeholder<Optional<Rank>>("%rank%") {
+							@Override
+							public String replace(Optional<Rank> rank) {
+								if (rank.isPresent())
+									return rank.get().getName();
+								return "(Not attainable)";
+							}
+						})
+						.setKingdom(kingdom)
+						.send(player);
+				return;
+			}
+			TurretBreakEvent breakEvent = new TurretBreakEvent(land, turret, kingdomPlayer, kingdom);
+			Bukkit.getPluginManager().callEvent(breakEvent);
+			if (!breakEvent.isCancelled())
+				breakTurret(turret);
+		}
+	}
+
+	@EventHandler
+	public void onPlaceTurret(PlayerInteractEvent event) {
+		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
+			return;
+		if (event.getBlockFace() != BlockFace.UP)
+			return;
+		Player player = event.getPlayer();
+		TurretType type = getTurretTypeFrom(DeprecationUtils.getItemInMainHand(player));
+		if (type == null)
+			return;
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (!kingdomPlayer.hasAdminMode() && kingdom == null) {
+			new MessageBuilder("kingdoms.no-kingdom").send(player);
+			return;
+		}
+		Block block = event.getClickedBlock();
+		Material material = block.getType();
+		Block turretBlock = block.getRelative(0, 1, 0);
+		boolean postCreated = false;
+		if (!material.name().contains("FENCE") && !material.name().contains("COBBLESTONE_WALL")) {
+			if (!material.isSolid())
+				return;
+			if (!material.isOccluding())
+				return;
+			if (configuration.getStringList("turrets.illegal-placements").contains(material.name())) {
+				new MessageBuilder("turrets.illegal-placement")
+						.replace("%material%", material.name().toLowerCase())
+						.setPlaceholderObject(kingdomPlayer)
+						.send(player);
+				event.setCancelled(true);
+				return;
+			}
+			if (turretBlock.getType() != Material.AIR || turretBlock.getRelative(0, 1, 0).getType() != Material.AIR) {
+				new MessageBuilder("turrets.already-occupied")
+						.setKingdom(kingdom)
+						.send(player);
+				return;
+			}
+			Material post = Utils.materialAttempt(configuration.getString("turrets.default-post", "FENCE"), "FENCE");
+			turretBlock.setType(post);
+			turretBlock = turretBlock.getRelative(0, 1, 0);
+			postCreated = true;
+		} else if (turretBlock.getType() != Material.AIR) {
+			new MessageBuilder("turrets.already-occupied")
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(kingdom)
+					.send(player);
+			return;
+		}	
+		Land land = landManager.getLand(turretBlock.getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (!kingdomPlayer.hasAdminMode() && landKingdom == null || !kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+			new MessageBuilder("kingdoms.not-in-land")
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(landKingdom)
+					.send(player);
+			return;
+		}
+		if (getTurretCount(land, type) >= type.getMaximum()) {
+			new MessageBuilder("turrets.turret-limit")
+					.replace("%type%", Formatting.color(type.getTitle()))
+					.replace("%amount%", type.getMaximum())
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(landKingdom)
+					.send(player);
+			return;
+		}
+		Turret turret = new Turret(turretBlock.getLocation(), type, postCreated);
+		TurretPlaceEvent placeEvent = new TurretPlaceEvent(land, turret, kingdomPlayer, kingdom);
+		Bukkit.getPluginManager().callEvent(placeEvent);
+		if (placeEvent.isCancelled())
+			return;
+		ItemStack item = DeprecationUtils.getItemInMainHand(player);
+		int amount = item.getAmount();
+		if (amount > 1)
+			item.setAmount(amount - 1);
+		else
+			DeprecationUtils.setItemInMainHand(player, null);
+		land.addTurret(turret);
+		Material head = Utils.materialAttempt("SKELETON_SKULL", "SKULL");
+		turretBlock.setType(head);
+		BlockState state = turretBlock.getState();
+		// 1.8 users...
+		if (head.name().equalsIgnoreCase("SKULL"))
+			DeprecationUtils.setupOldSkull(state);
+		if (state instanceof Skull) {
+			Skull skull = (Skull) state;
+			skull.setOwningPlayer(type.getSkullOwner());
+			state.update(true);
+		}
+		ConfigurationSection section = configuration.getConfigurationSection("turrets.turrets." + type.getName());
+		if (section.getBoolean("use-place-sound", false))
+			new SoundPlayer(section.getConfigurationSection("place-sound"));
+	}
+	
 	@EventHandler
 	public void onDispense(BlockDispenseEvent event) {
 		Block block = event.getBlock();
@@ -64,18 +394,8 @@ public class TurretManager extends Manager {
 			event.setCancelled(true);
 	}
 
-	@EventHandler
-	public void onBlockUnderPressurePlateBreak(BlockBreakEvent event) {
-		Block block = event.getBlock().getRelative(0, 1, 0);
-		if (block.getType().toString().contains("PLATE") && isTurret(block)) {
-			Location location = block.getLocation();
-			Land land = landManager.getLand(location.getChunk());
-			Turret turret = land.getTurret(location);
-			turret.breakTurret();
-		}
-	}
-
-	// Fixes heads not being removed from 
+	// Fixes heads not being removed from water
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onBucketPlace(PlayerInteractEvent event) {
 		if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
@@ -98,419 +418,156 @@ public class TurretManager extends Manager {
 	}
 
 	@EventHandler
-	public void onWaterPassThrough(BlockFromToEvent event){
-	if(isTurret(event.getToBlock()))
-		event.setCancelled(true);
+	public void onWaterPassThrough(BlockFromToEvent event) {
+		if (isTurret(event.getToBlock()))
+			event.setCancelled(true);
 	}
 
 	@EventHandler
-	public void onAnvilRenameTurret(InventoryClickEvent event){
-	if(event.getInventory().getType() != InventoryType.ANVIL) return;
-	AnvilInventory inv = (AnvilInventory) event.getInventory();
-	Bukkit.getScheduler().runTaskLater(plugin, new BukkitRunnable() {
-		@Override
-		public void run(){
-		ItemStack renamed = inv.getItem(2);
-		if(renamed == null) return;
-		if(renamed.getItemMeta() == null) return;
-		if(renamed.getItemMeta().getLore() == null) return;
-		for(TurretType type : TurretType.values()){
-			if(!(renamed.getItemMeta().getLore().contains(type.getTypeDecal()))) continue;
-			inv.setItem(2, new ItemStack(Material.AIR));
-			break;
+	public void onProjectileLand(ProjectileHitEvent event) {
+		Entity projectile = event.getEntity();
+		if (projectile.hasMetadata(METADATA_KINGDOM) || projectile.hasMetadata(METADATA_CONQUEST)) {
+			Bukkit.getScheduler().runTaskLater(instance, new Runnable() {
+			@Override
+				public void run() {
+					projectile.remove();
+				}
+			}, 1);
 		}
-
-		}
-	}, 1L);
 	}
 
-
 	@EventHandler
-	public void onTurretBreak(BlockBreakEvent e){
-	if(isTurret(e.getBlock())){
-		e.setCancelled(true);
-		SimpleLocation loc = new SimpleLocation(e.getBlock().getLocation());
-		SimpleChunkLocation chunk = loc.toSimpleChunk();
-		Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
-		Turret turret = land.getTurret(loc);
-		if (land.getOwnerUUID()==null){
-			KingdomTurretBreakEvent event = new KingdomTurretBreakEvent(loc.toLocation(), turret.getType(), null);
-			Bukkit.getPluginManager().callEvent(event);
-			if(!event.isCancelled()){
-				turret.breakTurret();
+	public void onTurretHit(EntityDamageByEntityEvent event) {
+		Entity attacker = event.getDamager();
+		Optional<OfflineKingdom> kingdom = getProjectileKingdom(attacker);
+		Optional<Double> damage = getProjectileDamage(attacker);
+		if (damage.isPresent() && kingdom.isPresent()) {
+			if (canBeTargeted(kingdom.get(), event.getEntity())) {
+				event.setDamage(damage.get());
+			} else {
+				event.setCancelled(true);
 			}
 		}
-		if(land.getTurret(loc) == null) return;
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-
-		Kingdom kingdom = GameManagement.getKingdomManager().getOrLoadKingdom(land.getOwnerUUID());
-		if(!kp.isAdminMode() && kp.getKingdom() == null){
-		kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_In_Kingdom", kp.getLang()));
-		return;
-		}
-		if(!kp.isAdminMode() &&
-			(kingdom == null || !kingdom.equals(kp.getKingdom()))){
-		kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_In_Land", kp.getLang()));
-		return;
-		}
-		if(!kp.isAdminMode() && !kp.getRank().isHigherOrEqualTo(kingdom.getPermissionsInfo().getTurret())){
-		kp.sendMessage(Kingdoms.getLang().getString("Misc_Rank_Too_Low", kp.getLang()).replaceAll("%rank%", kingdom.getPermissionsInfo().getTurret().toString()));
-		return;
-		}
-
-		KingdomTurretBreakEvent event = new KingdomTurretBreakEvent(loc.toLocation(), turret.getType(), kingdom);
-		Bukkit.getPluginManager().callEvent(event);
-		if(!event.isCancelled()){
-		turret.breakTurret();
-		}
-	}
-	}
-
-	public int getNumberOfTurretsInLand(Land land, TurretType type){
-	int i = 0;
-	for(Turret t : land.getTurrets()){
-		if(t.getType() == null) continue;
-		if(t.getType().equals(type)) i++;
-	}
-	return i;
-	}
-
-	public boolean isMaxHitInLand(Land land, TurretType type){
-	return getNumberOfTurretsInLand(land, type) >= type.getPerLandMaxLimit();
-	}
-
-	public boolean isOverHitInLand(Land land, TurretType type){
-	return getNumberOfTurretsInLand(land, type) > type.getPerLandMaxLimit();
-	}
-
-	private Collection<Material> illegal = new ArrayList<Material>() {{
-	add(Material.JUKEBOX);
-	add(Material.NOTE_BLOCK);
-	add(Materials.PISTON.parseMaterial());
-	add(Materials.PISTON_HEAD.parseMaterial());
-	add(Materials.STICKY_PISTON.parseMaterial());
-	add(Materials.MOVING_PISTON.parseMaterial());
-	add(Material.FURNACE);
-	add(Material.CHEST);
-	add(Materials.CRAFTING_TABLE.parseMaterial());
-	add(Material.ENDER_CHEST);
-	add(Material.DISPENSER);
-	add(Material.GLOWSTONE);
-	add(Material.SEA_LANTERN);
-	add(Materials.ENCHANTING_TABLE.parseMaterial());
-	add(Material.ANVIL);
-	add(Material.BREWING_STAND);
-
-	}};
-
-	@EventHandler
-	public void onPlaceTurret(PlayerInteractEvent event){
-	if(event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-
-	if(event.getBlockFace() != BlockFace.UP) return;
-	TurretType type = TurretType.identifyTurret(event.getPlayer().getItemInHand());
-	if(type == null) return;
-	if(!event.getClickedBlock().getType().isSolid()) return;
-	if(event.getClickedBlock().getType().isTransparent()) return;
-	if(event.getClickedBlock().getType().toString().endsWith("PLATE") ||
-		illegal.contains(event.getClickedBlock().getType())){
-		event.setCancelled(true);
-		return;
-	}
-	KingdomPlayer kp = GameManagement.getPlayerManager().getSession(event.getPlayer());
-	if(kp.getKingdom() == null){
-		kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_In_Kingdom", kp.getLang()));
-		return;
-	}
-	Kingdom kingdom = kp.getKingdom();
-	if(!event.getClickedBlock().getType().toString().endsWith("FENCE") &&
-		type != TurretType.MINE_CHEMICAL &&
-		type != TurretType.MINE_PRESSURE){
-		kp.sendMessage(Kingdoms.getLang().getString("Turrets_Must_Be_On_Fence", kp.getLang()));
-		return;
-	}
-
-	Block turretBlock = event.getClickedBlock().getRelative(0, 1, 0);
-	if(turretBlock.getType() != Material.AIR){
-		kp.sendMessage(Kingdoms.getLang().getString("Turrets_Fence_Already_Occupied", kp.getLang()));
-		return;
-	}
-
-	SimpleLocation loc = new SimpleLocation(turretBlock.getLocation());
-	SimpleChunkLocation chunk = loc.toSimpleChunk();
-
-	Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
-	if(land.getOwnerUUID() == null || (!land.getOwnerUUID().equals(kingdom.getKingdomUuid()) && !kp.isAdminMode())){
-		kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_In_Land", kp.getLang()));
-		return;
-	}
-
-	if(isMaxHitInLand(land, type)){
-		kp.sendMessage(Kingdoms.getLang().getString("Misc_Turret_Limit", kp.getLang())
-			.replaceAll("%type%", type.getTurretDisk().getItemMeta().getDisplayName())
-			.replaceAll("%number%", "" + type.getPerLandMaxLimit()));
-		return;
-	}
-
-	TurretPlaceEvent ev = new TurretPlaceEvent(land, loc.toLocation(), type, kingdom, kp);
-	Bukkit.getPluginManager().callEvent(ev);
-
-	if(ev.isCancelled()) return;
-	int amount = event.getPlayer().getItemInHand().getAmount();
-	if(amount > 1)
-		event.getPlayer().getItemInHand().setAmount(amount - 1);
-	else
-		event.getPlayer().setItemInHand(null);
-
-	Turret turret = new Turret(loc, type);//
-
-	land.addTurret(turret);
-	if(type == TurretType.MINE_CHEMICAL){
-		turretBlock.setType(Materials.OAK_PRESSURE_PLATE.parseMaterial());
-	}
-	else if(type == TurretType.MINE_PRESSURE){
-		turretBlock.setType(Materials.STONE_PRESSURE_PLATE.parseMaterial());
-	}
-	else{
-
-//			ItemStack temp = new ItemStack(Material.SKULL_ITEM);
-//			SkullMeta meta = (SkullMeta) temp.getItemMeta();
-//			meta.setOwner(type.getSkin());
-//			temp.setItemMeta(meta);
-		turretBlock.setType(Materials.SKELETON_SKULL.parseMaterial());
-		BlockState state = turretBlock.getState();
-		//turretBlock.setData((byte) 1);
-		MaterialData data = state.getData();
-		data.setData((byte) 1);
-		state.setData(data);
-		state.update();
-		Skull s = (Skull) turretBlock.getState();
-		s.setOwner(type.getSkin());
-		s.update();
-	}
-
-	}
-//	private int i = 0;
-//	/**
-//	 * @Deprecated causes severe performance issues despite working
-//	 * @param turret
-//	 */
-//	private void setTurretHeadBlock(Turret turret){
-//				Block turretBlock = turret.getLoc().toLocation().getBlock();
-//				if(!(turretBlock.getState() instanceof Skull)) return;
-//				i++;
-//				Skull s = (Skull) turretBlock.getState();
-//				if(s.getOwner() != null) return;
-//				s.setOwner(turret.getType().getSkin());
-//				s.update();
-//				Kingdoms.logDebug("SkullUpdate: " + i);
-//				Bukkit.getScheduler().runTaskLater(plugin, new Runnable(){
-//						@Override
-//						public void run() {setTurretHeadBlock(turret);}
-//				}, 1L);
-//		}
-
-	@EventHandler
-	public void onPlayerInteract(PlayerInteractEvent event){
-	if(event.getClickedBlock() == null) return;
-	if(event.getClickedBlock().getType() != Materials.SKELETON_SKULL.parseMaterial()) return;
-	Skull s = (Skull) event.getClickedBlock().getState();
-	Kingdoms.logDebug("SkullSkin: " + s.getOwner());
 	}
 
 	@EventHandler
-	public void onArrowLand(ProjectileHitEvent event){
-	if(event.getEntity().hasMetadata(TurretUtil.META_SHOOTER) ||
-		event.getEntity().hasMetadata("CONQUESTARROW")){
-		Bukkit.getScheduler().runTaskLater(plugin, new BukkitRunnable() {
-		@Override
-		public void run(){
-			event.getEntity().remove();
+	public void onTurretProjectileBurn(EntityCombustByEntityEvent event) {
+		Entity combuster = event.getCombuster();
+		Optional<OfflineKingdom> kingdom = getProjectileKingdom(combuster);
+		if (kingdom.isPresent()) {
+			if (!canBeTargeted(kingdom.get(), event.getEntity())) {
+				event.setCancelled(true);
+			}
 		}
-		}, 1L);
 	}
-	}
-
+	
 	@EventHandler
-	public void onTurretArrowHit(EntityDamageByEntityEvent event){
-	if(event.getDamager().hasMetadata(TurretUtil.META_DAMAGE)&&event.getDamager().hasMetadata(TurretUtil.META_SHOOTER)){
-		if(TurretUtil.canBeTarget(GameManagement.getKingdomManager()
-				.getOrLoadKingdom(event.getDamager()
-					.getMetadata(TurretUtil.META_SHOOTER).get(0).asString()),
-			event.getEntity())){
-		event.setDamage(event.getDamager().getMetadata(TurretUtil.META_DAMAGE).get(0).asDouble());
-		}
-		else{
-		event.setCancelled(true);
+	public void onLandLoad(LandLoadEvent event) {
+		for (Turret turret : event.getLand().getTurrets()) {
+			Block block = turret.getLocation().getBlock();
+			if (block.getType() != Utils.materialAttempt("SKELETON_SKULL", "SKULL")) {
+				breakTurret(turret);				
+			}
 		}
 	}
+	
+	@Override
+	public void onDisable() {
+		types.clear();
 	}
 
+	/*
 	@EventHandler
-	public void onTurretFireHit(EntityCombustByEntityEvent event){
-	if(event.getCombuster().hasMetadata(TurretUtil.META_DAMAGE)){
-		if(!TurretUtil.canBeTarget(GameManagement.getKingdomManager()
-				.getOrLoadKingdom(event.getCombuster()
-					.getMetadata(TurretUtil.META_SHOOTER).get(0).asString()),
-			event.getEntity())){
-		event.setCancelled(true);
+	public void onLandLoadOld(LandLoadEvent event) {
+		Iterator<Turret> iter = e.getLand().getTurrets().iterator();
+		Turret turret = null;
+		ArrayList<Turret> remove = new ArrayList();
+		while(iter.hasNext()){
+			turret = iter.next();
+			if(turret == null) continue;
+	
+			if(remove != null && remove.size() > 0){
+				remove.addAll(initTurret(e.getLand(), turret));
+			}
 		}
-	}
-	}
-
-	@EventHandler
-	public void onMineTrigger(PlayerInteractEvent event){
-	if(event.getAction() != Action.PHYSICAL)
-		return;
-	SimpleLocation loc = new SimpleLocation(event.getClickedBlock().getLocation());
-	Land land = GameManagement.getLandManager().getOrLoadLand(loc.toSimpleChunk());
-	if(land.getOwnerUUID() == null) return;
-	Turret turret = land.getTurret(loc);
-	if(turret == null) return;
-	Kingdom defender = GameManagement.getKingdomManager().getOrLoadKingdom(land.getOwnerUUID());
-	if(!TurretUtil.canBeTarget(defender, event.getPlayer())) return;
-	event.setCancelled(true);
-	if(!turret.getType().isEnabled()) return;
-	if(turret.getType() == TurretType.MINE_CHEMICAL){
-		turret.destroy();
-		int dur = 100;
-		if(defender.getTurretUpgrades().isVirulentPlague()) dur = 200;
-		event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, 1));
-		event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 200, 1));
-		event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.POISON, dur, Config.getConfig().getInt("turret-specs.chemicalmine.poison-potency")));
-
-	}
-	else if(turret.getType() == TurretType.MINE_PRESSURE){
-		turret.destroy();
-		event.getClickedBlock().getWorld().createExplosion(loc.getX(), loc.getY(), loc.getZ(), turret.getType().getDamage(), false, false);
-		if(defender.getTurretUpgrades().isConcentratedBlast())
-		event.getClickedBlock().getWorld().createExplosion(loc.getX(), loc.getY(), loc.getZ(), (float) turret.getType().getDamage(), false, false);
-	}
-
-	}
-
-	boolean isTurret(Block block){
-	SimpleLocation loc = new SimpleLocation(block.getLocation());
-	Land land = GameManagement.getLandManager().getOrLoadLand(loc.toSimpleChunk());
-	return land.getTurret(loc) != null;
-	}
-
-	private boolean isWithinViewDistance(Player p, Chunk c){
-	int manhattan = (int) (Bukkit.getViewDistance() * 1.5);
-	int mdist = Math.abs(p.getLocation().getChunk().getX() - c.getX()) + Math.abs(p.getLocation().getChunk().getZ() - c.getZ());
-
-	return mdist <= manhattan;
-	}
-
-	private boolean canChunkBeUnloaded(Chunk c){
-	for(Player i : c.getWorld().getPlayers()){
-		if(isWithinViewDistance(i, c)){
-		return false;
+		for(Turret t : remove){
+			t.destroy();
 		}
+		//2016-08-11
+		//loadQueue.add(e.getLand());
 	}
 
-	return true;
-	}
-
-	@EventHandler
-	public void onLandLoad(LandLoadEvent e){
-	Iterator<Turret> iter = e.getLand().getTurrets().iterator();
-	Turret turret = null;
-	ArrayList<Turret> remove = new ArrayList();
-	while(iter.hasNext()){
-		turret = iter.next();
-		if(turret == null) continue;
-
-		if(remove != null && remove.size() > 0){
-		remove.addAll(initTurret(e.getLand(), turret));
-		}
-	}
-	for(Turret t : remove){
-		t.destroy();
-	}
-	//2016-08-11
-	//loadQueue.add(e.getLand());
-	}
-
-	private ArrayList<Turret> initTurret(Land land, Turret turret){
-	if(land.getTurrets().size() == 0) return null;
-	ArrayList<Turret> toBeRemoved = new ArrayList();
-	for(Turret t : land.getTurrets()){
-
-		TurretType type = t.getType();
-		if(type == null){
-		toBeRemoved.add(t);
-		continue;
-		}
-		if(Config.getConfig().getBoolean("destroy-extra-turrets-to-enforce-max"))
-		if(isOverHitInLand(land, type)){
-			toBeRemoved.add(t);
-			continue;
-		}
-		Block turretBlock = t.getLoc().toLocation().getBlock();
-		if(turretBlock.getType().isSolid() &&
-			turretBlock.getType() != Materials.SKELETON_SKULL.parseMaterial() &&
-			turretBlock.getType() != Materials.OAK_PRESSURE_PLATE.parseMaterial() &&
-			turretBlock.getType() != Materials.STONE_PRESSURE_PLATE.parseMaterial()){
-		toBeRemoved.add(t);
-		Kingdoms.logInfo("A turret at " + t.getLoc().toString() + " is not a skull or a pressure plate! Removing.");
-		continue;
-		}
-		if(type == TurretType.MINE_CHEMICAL){
-		turretBlock.setType(Materials.OAK_PRESSURE_PLATE.parseMaterial());
-		}
-		else if(type == TurretType.MINE_PRESSURE){
-		turretBlock.setType(Materials.STONE_PRESSURE_PLATE.parseMaterial());
-		}
-		else{
-		if(turretBlock.getType() != Materials.SKELETON_SKULL.parseMaterial()){
-			turretBlock.setType(Materials.SKELETON_SKULL.parseMaterial());
-			//turretBlock.setData((byte) 1);
-		}
-		}
-
-	}
-	return toBeRemoved;
-	}
-
-	/**
-	 * @param event
-	 * @Deprecated now using onLandLoad
-	 */
-	public void onChunkLoad(ChunkLoadEvent event){
-
-	Bukkit.getScheduler().runTaskLater(plugin, new BukkitRunnable() {
-		@Override
-		public void run(){
-
-		Land land = GameManagement.getLandManager().getOrLoadLand(new SimpleChunkLocation(event.getChunk()));
-		if(land.getTurrets().size() == 0) return;
-		for(Turret t : land.getTurrets()){
+	private ArrayList<Turret> initTurret(Land land, Turret turret) {
+		Set<Turret> turrets = land.getTurrets();
+		if (turrets.isEmpty())
+			return null;
+		Set<Turret> remove = new HashSet<>();
+		for(Turret t : turrets) {
 			TurretType type = t.getType();
+			if (type == null) {
+				remove.add(t);
+				continue;
+			}
+			if (Config.getConfig().getBoolean("destroy-extra-turrets-to-enforce-max")) {
+				if (isOverHitInLand(land, type)) {
+					toBeRemoved.add(t);
+					continue;
+				}
+			}
 			Block turretBlock = t.getLoc().toLocation().getBlock();
-			if(type != TurretType.MINE_CHEMICAL &&
-				type != TurretType.MINE_PRESSURE){
-
-
-			if(!(turretBlock.getState() instanceof Skull)){
+			if(turretBlock.getType().isSolid() &&
+				turretBlock.getType() != Materials.SKELETON_SKULL.parseMaterial() &&
+				turretBlock.getType() != Materials.OAK_PRESSURE_PLATE.parseMaterial() &&
+				turretBlock.getType() != Materials.STONE_PRESSURE_PLATE.parseMaterial()){
+			toBeRemoved.add(t);
+			Kingdoms.logInfo("A turret at " + t.getLoc().toString() + " is not a skull or a pressure plate! Removing.");
+			continue;
+			}
+			if(type == TurretType.MINE_CHEMICAL){
+			turretBlock.setType(Materials.OAK_PRESSURE_PLATE.parseMaterial());
+			}
+			else if(type == TurretType.MINE_PRESSURE){
+			turretBlock.setType(Materials.STONE_PRESSURE_PLATE.parseMaterial());
+			}
+			else{
+			if(turretBlock.getType() != Materials.SKELETON_SKULL.parseMaterial()){
 				turretBlock.setType(Materials.SKELETON_SKULL.parseMaterial());
 				//turretBlock.setData((byte) 1);
 			}
-			Skull s = (Skull) turretBlock.getState();
-			if(s == null) continue;
-			if(type.getSkin() == null) continue;
-			//s.setOwner(type.getSkin());
-			//s.update();
-
 			}
+	
 		}
+		return toBeRemoved;
+	}
 
-		}
-	}, 1L);
-
+	public void onChunkLoad(ChunkLoadEvent event) {
+		Bukkit.getScheduler().runTaskLater(instance, new Runnable() {
+			@Override
+			public void run() {
+				Land land = GameManagement.getLandManager().getLand(new SimpleChunkLocation(event.getChunk()));
+				if (land.getTurrets().isEmpty())
+					return;
+				for (Turret t : land.getTurrets()) {
+					TurretType type = t.getType();
+					Block turretBlock = t.getLoc().toLocation().getBlock();
+					if (type != TurretType.MINE_CHEMICAL && type != TurretType.MINE_PRESSURE) {
+						if (!(turretBlock.getState() instanceof Skull)) {
+							turretBlock.setType(Materials.SKELETON_SKULL.parseMaterial());
+							//turretBlock.setData((byte) 1);
+						}
+						Skull s = (Skull) turretBlock.getState();
+						if (s == null)
+							continue;
+						if (type.getSkin() == null)
+							continue;
+						//s.setOwner(type.getSkin());
+						//s.update();
+					}
+				}
+			}
+		}, 1L);
 	}
 	
-	/*
 	plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
 		@Override
 		public void run(){
@@ -586,11 +643,54 @@ public class TurretManager extends Manager {
 		}
 		return entities;
 	}
-	*/
-
-	@Override
-	public void onDisable() {
-		
+	
+	@EventHandler
+	public void onBlockUnderPressurePlateBreak(BlockBreakEvent event) {
+		Block block = event.getBlock().getRelative(0, 1, 0);
+		if (block.getType().toString().contains("PLATE") && isTurret(block)) {
+			Location location = block.getLocation();
+			Land land = landManager.getLand(location.getChunk());
+			Turret turret = land.getTurret(location);
+			turret.breakTurret();
+		}
 	}
+	
+	@EventHandler
+	public void onMineTrigger(PlayerInteractEvent event){
+		if (event.getAction() != Action.PHYSICAL)
+			return;
+		Block mine = event.getClickedBlock();
+		Location location = mine.getLocation();
+		Land land = landManager.getLand(location.getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (landKingdom == null)
+			return;
+		Turret turret = land.getTurret(location);
+		if (turret == null)
+			return;
+		if (!canBeTargeted(landKingdom, event.getPlayer()))
+			return;
+		event.setCancelled(true);
+		TurretType type = turret.getType();
+		if (!type.isEnabled())
+			return;
+		Player player = event.getPlayer();
+		if (type is a chemical mine) {
+			int dur = 100;
+			if (landKingdom.getTurretUpgrades().isVirulentPlague())
+				dur = 200;
+			player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, 1));
+			player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 200, 1));
+			player.addPotionEffect(new PotionEffect(PotionEffectType.POISON, dur, Config.getConfig().getInt("turret-specs.chemicalmine.poison-potency")));
+	
+		} else if (type is a regular mine) {
+			World world = mine.getWorld();
+			world.createExplosion(location, type.getDamage(), false);
+			if (landKingdom.getTurretUpgrades().isConcentratedBlast())
+				world.createExplosion(location, type.getDamage(), false);
+		}
+		breakTurret(turret);
+	}
+	*/
 
 }

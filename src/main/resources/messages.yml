@@ -29,12 +29,17 @@ messages:
     #reloaded: "&7Configurations have been reloaded."
     version: "&7Version &e%version%"
     #no-player: "&cThere was no player found under the name &l%name%&c."
+    # Placeholders: %name% and All Kingdom and KingdomPlayer placeholders. The name is the Kingdom name.
+    processing: "&cYour command is still processing. If this problem persists, contact an administrator."
+
 # All messages related to taxes.
 taxes:
     # Placeholders: %interval% and %amount%
     take: "&6Taxes have been applied. Tax amount was: %amount%"
     # Placeholders: %kingdom% and %amount%
     disband: "&6The Kingdom &e%kingdom% has been disbanded because it can't pay it's taxes"
+
+# All messages related to structures.
 structures:
     # Placeholders: All Kingdom related placeholders.
     extractor-collection: "&a%player% collected %amount% resource points from an extractor."
@@ -45,8 +50,10 @@ structures:
     # This is only ever called if the Kingdoms API event NexusMoveEvent is cancelled.
     # The message can be changed within the event methods aswell.
     nexus-move-cancelled: "&cYou're not allowed to move the nexus."
+
 # All messages relating to Kingdoms.
 kingdoms:
+    # TODO move this into the invading area not here.
     invading:
         # Placeholders: %player%, %chunkTo%, %chunkFrom%, %land% and %kingdom%
         invading-deny-chunk-change: "&cYou can not leave the Kingdom while invading!"
@@ -64,7 +71,7 @@ kingdoms:
     # Placeholders: %rank% and all Kingdom related placeholders.
     rank-too-low-nexus-build: "&cYour rank is too low to build in the nexus chunk! Only rank %rank% may build here!"
     # Placeholders: %rank% and all Kingdom related placeholders.
-    rank-too-low-structure-build: "&cYour rank is too low to place a structure! Only rank %rank% may place structures!"
+    rank-too-low-structure-build: "&cYour rank is too low to place/break a structure! Only rank %rank% may place/break structures!"
     # Placeholders: %rank% and all Kingdom related placeholders.
     rank-too-low-regulator-override: "&cYour rank is too low to override the regulator! Only rank %rank% may override regulators!"
     # Placeholders: All Kingdom and KingdomPlayer placeholders.
@@ -80,6 +87,7 @@ kingdoms:
     cannot-break-alliance-nexus: "&cYou can't break your alliance's nexus!"
     nexus-setting-cancelled: "&cNexus placing mode was cancelled!"
     nexus-setting-cancelled-moved: "&cYou moved into another chunk of land!"
+
 # All messages relating to maps and chunks.
 map:
     # Called when a user walks into an unoccupied chunk of land.
@@ -102,6 +110,7 @@ map:
     enemy-land:
         actionbar: "&c&lEnemy's Land - &4(&f%kingdom%&4)"
         message: "&eYou have entered %kingdom%'s kingdom and they're an enemy with you!%newline%&7%lore%"
+
 # All messages relating to claiming.
 claiming:
     world-disabled: "&cThis command is disabled in this world."
@@ -125,14 +134,54 @@ claiming:
     admin-claim: "&bYou are in Admin mode, this claim was free."
     # Placeholders: %cost% and all Kingdom related placeholders.
     success: "&aLand claimed. %cost% resource points taken."
+
+# All messages relating to turrets.
+turrets:
+    # Placeholders: %player% and %material%
+    illegal-placement: "&cYou cannot place a turret ontop of a %material%."
+    # Placeholders: All Kingdom placeholders.
+    already-occupied: "&cTurrets need to either be placed on a fence, or have a two block open height to be placed!"
+    # Placeholders %amount%, %type% and all Kingdom related
+    turret-limit: "&cYou can only place %amount% %type% turrets in one land chunk."
+
 # All messages relating to chat.
 chat:
     ally-chat-prefix: "&d[%rank%] %player%: &7"
     kingdom-chat-prefix: "&a[%rank%] %player%: &7"
+
 # All command releated messages
 commands:
     # Placeholders: %location% and all Kingdom releated placeholders.
     spawn-set: '&aKingdom spawn has been set at: %location%'
+    kingdoms:
+        description: "Display the main page."
+        syntax: "/k"
+    create-kingdom:
+        # Placeholders: All KingdomPlayer placeholders.
+        description: "Create a kingdom with the specified name"
+        # Placeholders: All KingdomPlayer placeholders.
+        syntax: "/k create <name>"
+        # Placeholders: All Kingdom and KingdomPlayer placeholders.
+        already-in-kingdom: "&cYou are already in %kingdom%. You must leave in order to create a new Kingdom."
+        # Placeholders: %name% and All Kingdom and KingdomPlayer placeholders.
+        invalid-name: "&cThe name you've entered is invalid!"
+        # Placeholders: %name% and All Kingdom and KingdomPlayer placeholders.
+        banned-name: "&cYou cannot name your Kingdom Safezone or Warzone!"
+        # Placeholders: %name% and All Kingdom and KingdomPlayer placeholders.
+        name-too-long: "&cThe Kingdom name %name% can only be up to 16 characters long!"
+        # Placeholders: %name% and All Kingdom and KingdomPlayer placeholders.
+        blacklisted: "&cThe name %name% has been blacklisted by the server!"
+        # Placeholders: %cost% and All Kingdom and KingdomPlayer placeholders.
+        economy-not-enough: "&cYou need at least %cost%$ to create a Kingdom!"
+        # Placeholders: All Kingdom and KingdomPlayer placeholders.
+        need-more-items: "&cYou still need the following items to create a Kingdom: "
+        need-more-items-color: "&7"
+        # Placeholders: %name% and All Kingdom and KingdomPlayer placeholders.
+        name-exists: "&cAnother Kingdom with the name %name% already exists!"
+        # Placeholders: All Kingdom and KingdomPlayer placeholders.
+        create-success: "&aKingdom with name %name% was created!"
+
+# All messages relating to invading.
 invading:
     # Placeholders: %progress%, %amount%, %playerkingdom% and all Kingdom placeholders relating to the Kingdom being invaded.
     break-nexus: "&eYou have taken %amount% resource points away from %kingdom%'s Kingdom.%newline%&eYou're &l%progress%% percent &eof the way there!"
@@ -150,8 +199,6 @@ Turrets_Target_All_Player_Range: '&9All targets in blast range'
 Turrets_Target_Single: '&9Single Target'
 Turrets_Psi_Attack: '&c&lYou were hit by a Psionic Strike!'
 Turrets_Heatbeam_Attack: '&c&lYou were hit by a Heatbeam Attack!'
-Turrets_Must_Be_On_Fence: '&cTurrets can only be set on fences!'
-Turrets_Fence_Already_Occupied: '&cThere is something on the fence.'
 # If you're looking for this one, ignore it.
 #Misc_Kingdom_Deleting: Kingdom is disbanding. Please wait a moment...
 Guis_Turret_Healing: '&bHealing Station'
@@ -217,7 +264,6 @@ Command_Help_Help: Shows all commands
 Command_Help_Accept: Accept an invite from a kingdom
 Command_Help_Decline: Decline an invite from a kingdom
 Command_Help_Broadcast: Broadcast a message to kingdom members
-Command_Help_Create: Creates a kingdom
 Command_Help_Tradable: Shows what items you can or cannot trade for RP
 Command_Help_Sethome: Sets the home of your kingdom
 Command_Help_List: Displays the top ten richest kingdoms
@@ -292,7 +338,6 @@ Command_Usage_Accept: /k accept when you have a pending invite from another King
 Command_Usage_Claim: /k claim to claim the chunk you're standing on for your Kingdom
 Command_Usage_ClaimAuto: /k claim auto to toggle automatic claiming while walking.
 Command_Usage_Broadcast: /k broad [message] | Sends a message to all Kingdom members
-Command_Usage_Create: /k create [name] | Create a kingdom with the specified name
 Command_Usage_Decline: /k decline when you have a pending invite from another Kingdom to decline it
 Command_Usage_Defend: /k defend to teleport to the area of your Kingdom getting invaded
 Command_Usage_Deposit: /k deposit [amount] | Donate the specified amount of money to your Kingdom for Resource Points | Cannot be undone.
@@ -319,15 +364,6 @@ Command_Chat_Help_Public: '&1/k chat p  Switches to Public chat'
 Command_Chat_Switched: '&aCurrent Channel: %channel%'
 Command_Claim_Auto_On: '&aAutoclaiming on.'
 Command_Claim_Auto_Off: '&cAutoclaiming off.'
-Command_Create_Already_In_Kingdom_Error: '&cYou are already in %kingdom%. You must leave in order to create a kingdom'
-Command_Create_Invalid_Name_Error: '&cThe name you''ve entered is invalid!'
-Command_Create_Name_Too_Long_Error: '&cYour kingdom name can only be up to 12 characters long!'
-Command_Create_Name_Blacklisted: '&cThat name has been blacklisted by the server!'
-Command_Create_Need_More_Money: '&cYou need at least $%cost% to create a kingdom!'
-Command_Create_Need_More_Items: '&cYou still need the following items to create a kingdom: '
-Command_Create_Name_Exists: '&cAnother kingdom with the name specified already exists!'
-Command_Create_Success: '&aKingdom created!'
-Command_Create_Banned_Name: '&cYou cannot name your kingdom safezone or warzone!'
 Command_Decline_Success: '&aDeclined invitation from %kingdom%'
 Command_Disband_Success: '&cYou have disbanded %kingdom%!'
 Command_Disband_DoNotMove: '&6Do not move! you are about to disband your kingdom.'
@@ -500,7 +536,6 @@ Misc_Announcer_King_Online: King [%player%] is now &aOnline!
 Misc_Announcer_Online: '[%player%] is now &aOnline!'
 Misc_Announcer_Offline: '[%player%] is now &cOffline!'
 Misc_Announcer_Left_Kingdom: '[%player%] has left the kingdom!'
-Misc_Turret_Limit: '&cYou can only place %number% %type% turrets in one land.'
 Misc_Resourceplot_Reward_Message: Your kingdom received %amount% from resourceplot %plot%
 Misc_Resourceplot_Reset_Broadcast: ALL RESOURCE PLOTS HAVE BEEN RESET!
 Misc_Resourceplot_Reset_Private_Notification: Your kingdom's resourceplot at %location% has been reset
@@ -520,7 +555,6 @@ Misc_Preparing_Info: '&cPreparing your new player data...'
 Misc_Preparing_Info_Finished: '&aData loaded! Enjoy!'
 Misc_Not_Air: '&cThere is something obstructing the way!'
 Misc_Confirmation_Cancel: '&cConfirmation cancelled.'
-Misc_Previous_Request_Processing: '&cYour command is still processing. If this problem persists, contact an administrator'
 Misc_Cannot_Attack_Own_Ally: '&cYou can''t attack your own kingdom allies!'
 Misc_Cannot_Trample_Soil: '&bYour kingdom soil cannot be trampled'
 Misc_Cannot_Trample_Other_Soil: '&cYou cannot trample soil in %kingdom%''s land'

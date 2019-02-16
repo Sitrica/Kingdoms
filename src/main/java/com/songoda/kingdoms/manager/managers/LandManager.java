@@ -49,6 +49,7 @@ import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.ManagerHandler;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
+import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -91,11 +92,11 @@ public class LandManager extends Manager {
 	private final Map<Chunk, Land> lands = new HashMap<>();
 	private final Set<String> forbidden = new HashSet<>();
 	private final FileConfiguration configuration;
+	private final CitizensManager citizensManager;
 	private final KingdomManager kingdomManager;
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
 	private final LandManager landManager;
-	private final RankManager rankManager;
 	private static Database<Land> database;
 	private BukkitTask autoSaveThread;
 	private Kingdoms instance;
@@ -106,11 +107,12 @@ public class LandManager extends Manager {
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
 		this.forbidden.addAll(configuration.getStringList("kingdoms.forbidden-inventories"));
+		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
-		this.rankManager = instance.getManager("rank", RankManager.class);
+		instance.getManager("rank", RankManager.class);
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(Land.class);
 		else
@@ -763,7 +765,7 @@ public class LandManager extends Manager {
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onChunkChange(PlayerChangeChunkEvent event) {
 		Player player = event.getPlayer();
-		if (ExternalManager.isCitizen(player))
+		if (citizensManager.isCitizen(player))
 			return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		if (kingdomPlayer.isKMapOn()) {

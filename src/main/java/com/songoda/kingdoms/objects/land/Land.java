@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Set;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.World;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.LandManager;
@@ -29,6 +30,10 @@ public class Land {
 	
 	public Chunk getChunk() {
 		return chunk;
+	}
+	
+	public World getWorld() {
+		return chunk.getWorld();
 	}
 	
 	public Long getClaimTime() {
@@ -61,6 +66,10 @@ public class Land {
 
 	public void addTurret(Turret turret) {
 		turrets.add(turret);
+	}
+	
+	public void removeTurret(Turret turret) {
+		turrets.remove(turret);
 	}
 	
 	public Set<Turret> getTurrets() {

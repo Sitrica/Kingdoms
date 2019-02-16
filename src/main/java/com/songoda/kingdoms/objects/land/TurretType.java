@@ -2,6 +2,7 @@ package com.songoda.kingdoms.objects.land;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
@@ -11,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,9 +20,8 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-public enum TurretType {
+public class TurretType {
 	
-	ARROW("arrow");
 	/*FLAME(Kingdoms.getLang().getString("Guis_Turret_Flame"),
 		Kingdoms.getLang().getString("Guis_Turret_Flame_Desc"),
 		ChatColor.RED + "=-=-=-=-=",
@@ -73,23 +72,25 @@ public enum TurretType {
 		TurretTargetType.ENEMY_PLAYERS);
 	*/
 
+	private final String node, title, decal, skin, meta, reloading;
 	private final List<String> description = new ArrayList<>();
 	private final Set<TargetType> targets = new HashSet<>();
-	private final String node, title, decal, skin, meta;
+	private final int cost, damage, range, max, ammo;
 	private final FileConfiguration configuration;
-	private final int cost, damage, range, max;
 	private final boolean enabled, natural;
+	private final long cooldown, firerate;
 	private final EntityType projectile;
 	private final Material material;
-	private final long cooldown;
 	
-	private TurretType(String node) {
+	public TurretType(String node) {
 		configuration = Kingdoms.getInstance().getConfig();
 		ConfigurationSection section = configuration.getConfigurationSection("turrets.turrets" + node);
 		ConfigurationSection item = section.getConfigurationSection("item");
 		this.material = Utils.materialAttempt(item.getString("material", "MUSIC_DISC_STAL"), "GOLD_RECORD");
 		this.projectile = Utils.entityAttempt(section.getString("projectile", "ARROW"), "ARROW");
+		this.firerate = IntervalUtils.getInterval(section.getString("fire-rate", "1 second"));
 		this.cooldown = IntervalUtils.getInterval(section.getString("cooldown", "5 seconds"));
+		this.reloading = section.getString("reloading-skull-skin", "Redstone");
 		this.description.addAll(item.getStringList("description"));
 		this.natural = section.getBoolean("natural-damage", false);
 		this.skin = section.getString("skull-skin", "MHF_Zombie");
@@ -99,6 +100,7 @@ public enum TurretType {
 		this.damage = section.getInt("damage", 4);
 		this.range = section.getInt("range", 8);
 		this.cost = section.getInt("cost", 300);
+		this.ammo = section.getInt("ammo", 1);
 		this.title = item.getString("title");
 		this.meta = item.getString("meta");
 		this.node = node;
@@ -116,7 +118,7 @@ public enum TurretType {
 		return projectile;
 	}
 	
-	public long getFiringCooldown() {
+	public long getReloadCooldown() {
 		return cooldown;
 	}
 	
@@ -131,6 +133,10 @@ public enum TurretType {
 	public boolean isEnabled() {
 		return enabled;
 	}
+	
+	public long getFirerate() {
+		return firerate;
+	}
 
 	public String getTitle() {
 		return title;
@@ -140,12 +146,8 @@ public enum TurretType {
 		return decal;
 	}
 
-	public String getNode() {
+	public String getName() {
 		return node;
-	}
-
-	public String getSkin() {
-		return skin;
 	}
 	
 	public int getMaximum() {
@@ -164,12 +166,16 @@ public enum TurretType {
 		return cost;
 	}
 	
-	@SuppressWarnings("deprecation")
+	public int getAmmo() {
+		return ammo;
+	}
+	
 	public OfflinePlayer getSkullOwner() {
-		if (Utils.isUUID(skin))
-			return Bukkit.getOfflinePlayer(Utils.getUniqueId(skin));
-		else
-			return Bukkit.getOfflinePlayer(skin);
+		return DeprecationUtils.getSkullOwner(skin);
+	}
+	
+	public OfflinePlayer getReloadingSkullOwner() {
+		return DeprecationUtils.getSkullOwner(reloading);
 	}
 
 	public enum TargetType {
@@ -220,26 +226,7 @@ public enum TurretType {
 			lores.add(Formatting.colorAndStrip(decal));
 		itemmeta.setLore(lores);
 		itemstack.setItemMeta(itemmeta);
-		return Utils.setupItemMeta(itemstack, meta);
-	}
-
-	public static TurretType getFromItem(ItemStack item) {
-		if (item == null)
-			return null;
-		ItemMeta meta = item.getItemMeta();
-		if (meta == null)
-			return null;
-		List<String> lores = meta.getLore();
-		if (lores == null || lores.isEmpty())
-			return null;
-		for (TurretType type : TurretType.values()) {
-			if (type.getMaterial() == item.getType()) {
-				if (Formatting.stripColor(meta.getDisplayName()).equalsIgnoreCase(Formatting.colorAndStrip(type.getTitle()))) {
-					return type;
-				}
-			}
-		}
-		return null;
+		return DeprecationUtils.setupItemMeta(itemstack, meta);
 	}
 
 }

@@ -24,8 +24,10 @@ import com.songoda.kingdoms.objects.structures.Extractor;
 import com.songoda.kingdoms.objects.structures.Regulator;
 import com.songoda.kingdoms.objects.structures.SiegeEngine;
 import com.songoda.kingdoms.placeholders.Placeholder;
+import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.MessageBuilder;
+import com.songoda.kingdoms.utils.Utils;
 import com.google.common.collect.Sets;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.LandLoadEvent;
@@ -33,6 +35,7 @@ import com.songoda.kingdoms.events.StructureBreakEvent;
 import com.songoda.kingdoms.events.StructurePlaceEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
+import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -208,12 +211,7 @@ public class StructureManager extends Manager {
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
 			return;
 		Player player = event.getPlayer();
-		ItemStack findItem;
-		try {
-			findItem = player.getItemInHand();
-		} catch (Exception e) {
-			findItem = player.getInventory().getItemInMainHand();
-		}
+		ItemStack findItem = DeprecationUtils.getItemInMainHand(player);
 		if (findItem == null)
 			return;
 		ItemStack item = findItem;
@@ -238,20 +236,20 @@ public class StructureManager extends Manager {
 		StructureType type = optional.get();
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
-		if (kingdom == null) {
+		if (kingdom == null && !kingdomPlayer.hasAdminMode()) {
 			new MessageBuilder("kingdoms.no-kingdom").send(player);
 			return;
 		}
 		Land land = landManager.getLand(block.getChunk());
 		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (landKingdom == null || !kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+		if (!kingdomPlayer.hasAdminMode() && landKingdom == null || !kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
 			new MessageBuilder("kingdoms.not-in-land")
 					.setPlaceholderObject(kingdomPlayer)
 					.setKingdom(landKingdom)
 					.send(player);
 			return;
 		}
-		if (configuration.getStringList("unreplaceable-blocks").contains(block.getType().toString())) {
+		if (!kingdomPlayer.hasAdminMode() && configuration.getStringList("unreplaceable-blocks").contains(block.getType().toString())) {
 			new MessageBuilder("kingdoms.nexus-cannot-replace")
 					.setPlaceholderObject(kingdomPlayer)
 					.setKingdom(landKingdom)
@@ -262,7 +260,7 @@ public class StructureManager extends Manager {
 			nexusManager.onNexusPlace(event, block, player, kingdom, land);
 			return;
 		}
-		if (!kingdom.getPermissions(kingdomPlayer.getRank()).canBuildStructures()) {
+		if (!kingdomPlayer.hasAdminMode() && !kingdom.getPermissions(kingdomPlayer.getRank()).canBuildStructures()) {
 			new MessageBuilder("kingdoms.rank-too-low-structure-build")
 				.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canBuildStructures()), new Placeholder<Optional<Rank>>("%rank%") {
 					@Override
@@ -317,17 +315,22 @@ public class StructureManager extends Manager {
 		Block block = event.getBlock();
 		if (!isStructure(block))
 			return;
+		event.setCancelled(true);
 		Land land = landManager.getLand(block.getChunk());
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
 		OfflineKingdom landKingdom = land.getKingdomOwner();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
-		if (kingdom == null)
+		if (kingdom == null && !kingdomPlayer.hasAdminMode())
 			return;
-		if (landKingdom != null) {
-			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId()))
+		if (!kingdomPlayer.hasAdminMode() && landKingdom != null) {
+			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+				new MessageBuilder("kingdoms.not-in-land")
+						.setPlaceholderObject(kingdomPlayer)
+						.setKingdom(landKingdom)
+						.send(kingdomPlayer);
 				return;
+			}
 			if (!kingdom.getPermissions(kingdomPlayer.getRank()).canBuildStructures()) {
-				event.setCancelled(true);
 				new MessageBuilder("kingdoms.rank-too-low-structure-build")
 						.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canBuildStructures()), new Placeholder<Optional<Rank>>("%rank%") {
 							@Override
@@ -361,7 +364,6 @@ public class StructureManager extends Manager {
 				warpPadManager.removeLand(kingdom, land);
 			}
 		}
-		event.setCancelled(true);
 	}
 	
 	private final Map<KingdomPlayer, Extractor> extractors = new HashMap<>();

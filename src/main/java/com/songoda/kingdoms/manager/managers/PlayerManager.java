@@ -26,6 +26,7 @@ import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -53,12 +54,14 @@ public class PlayerManager extends Manager {
 	
 	private final Set<OfflineKingdomPlayer> users = new HashSet<>();
 	private Database<OfflineKingdomPlayer> database;
+	private final CitizensManager citizensManager;
 	private final KingdomManager kingdomManager;
 	private final WorldManager worldManager;
 	private BukkitTask autoSaveThread;
 
 	protected PlayerManager() {
 		super(true);
+		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		if (configuration.getBoolean("database.mysql.enabled", false))
@@ -84,7 +87,7 @@ public class PlayerManager extends Manager {
 	public KingdomPlayer getKingdomPlayer(Player player) {
 		if (player == null)
 			return null;
-		if (ExternalManager.isCitizen(player))
+		if (citizensManager.isCitizen(player))
 			return null;
 		return getKingdomPlayer(player.getUniqueId());
 	}

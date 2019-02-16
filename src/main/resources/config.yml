@@ -15,10 +15,31 @@ version: "2.0.0"
 # Print additional information in the console. Useful for figuring out errors and issues.
 debug: false
 
+# Every update configurations will be reset to the new configurations of the version.
+# This is better to have enabled as it keeps configurations up to date.
+# If the new update adds more configuration nodes they will be present.
+# We will usally tell you which configuration nodes were added.
+# The downside is that it resets the values and saves them in their own folder.
+# which you would then have to copy and paste old nodes back into.
+disable-configurations-reset: false
+
 # All configurations relating to the actual plugin.
 plugin:
     load-player-before-join: true
     warzone-free-pvp: false
+    # If special characters can be used in the Kingdom names.
+    allow-special-characters: false
+
+# All configurations relating to economy (Vault)
+economy:
+    enabled: false
+    kingdom-create-cost: 0
+    kingdom-create-item-cost: false
+    # https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+    items:
+        5: "DIAMOND"
+        10: "GOLD_INGOT"
+        15: "IRON_INGOT"
 
 # Configure your database settings.
 database:
@@ -304,6 +325,128 @@ kingdoms:
         # Should players not be allowed to leave a Kingdoms land if they're invading?
         invading-deny-chunk-change: true
 
+# Names that aren't allowed.
+# Supports Regex if you want.
+# By default any words that contain anything in this list are blocked.
+disallowed-kingdom-names:
+- 2 ?g(irls)? ?1 ?c(up)?
+- autoerotic
+- anal
+- anilingus
+- anus
+- arse
+- asian
+- ass
+- ball
+- bang
+- barely ?legal
+- bastard
+- bbw
+- bdsm
+- biatch
+- bimbo
+- bitch
+- black
+- bloody
+- blond
+- blow ?job
+- blue ?waffle
+- blumpkin
+- blyat
+- bollock
+- bondage
+- bollock
+- bollok
+- boner
+- boob
+- booty
+- brunette
+- bugger
+- bukkake
+- bulldyke
+- bullet ?vibe
+- bull ?shit
+- bungy? ?hole
+- busty
+- butt
+- cam ?girl
+- carpet ?muncher
+- cleveland ?steamer
+- clover ?clamps
+- clit
+- cock
+- coprolagnia
+- coprophilia
+- cornhole
+- coon
+- crap
+- cream
+- cumming?
+- cunt
+- cunnilingus
+- cyka
+- dad
+- damn
+- dick
+- dildo
+- dingle
+- dirty
+- dogg(ie|y)
+- dolcett
+- dominatrix
+- dommes
+- donkey
+- dong
+- dyke
+- fag
+- feck
+- fellate
+- fellatio
+- felching
+- fuck
+- fudge ?packer
+- flange
+- god ?damn?
+- hell
+- homo
+- hump
+- jerk
+- jizz
+- knob
+- labia
+- lesbian
+- lundmark
+- muff
+- nigger
+- nigga
+- nig
+- nipple
+- penis
+- piss
+- poop
+- prick
+- pube
+- pussy?
+- queer
+- racist
+- retard
+- scrotum
+- sex
+- shit
+- slut
+- smegma
+- spunk
+- sperm
+- tit
+- tosser
+- turd
+- twat
+- vagina
+- wank
+- white
+- whore
+- wtf
+
 # All configurations related to invading.
 invading:
     # Everytime the nexus is broken, the Kingdom will lose this amount of resource points.
@@ -373,6 +516,31 @@ turrets:
     spacing: true
     # Spacing before the cost to make the costs stand out.
     spacing-costs: true
+    # Blocks that turrets aren't allowed to be placed on.
+    # The block list must only be blocks that are occluding and solid.
+    # 1.13+ Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+    # 1.8 and lower materials: https://github.com/Attano/Spigot-1.8/blob/master/org/bukkit/Material.java
+    illegal-placements:
+        - "ENCHANTING_TABLE"
+        - "CRAFTING_TABLE"
+        - "BREWING_STAND"
+        - "STICKY_PISTON"
+        - "MOVING_PISTON"
+        - "PISTON_HEAD"
+        - "ENDER_CHEST"
+        - "SEA_LANTERN"
+        - "NOTE_BLOCK"
+        - "DISPENSER"
+        - "GLOWSTONE"
+        - "JUKEBOX"
+        - "FURNACE"
+        - "PISTON"
+        - "CHEST"
+        - "ANVIL"
+    # The post that is created if the user just clicks the ground.
+    default-post: "COBBLESTONE_WALL"
+    # When breaking a turret, if the post was placed by the plugin, should it drop or not?
+    avoid-post-duplication: true
     formats:
         range: "&6Range: &e%range%"
         damage: "&6Damage: &e%damage%"
@@ -386,23 +554,89 @@ turrets:
             max-per-land: 50
             # The skull skin owner of the turret when it's placed.
             skull-skin: "_LifeBlood_"
+            # The skull skin owner of the turret when it's reloading.
+            reloading-skull-skin: "Redstone"
             # Projectile types: ARROW, DROPPED_ITEM, DRAGON_FIREBALL, EGG, ENDER_PEARL, FIREBALL, FISHING_HOOK, LLAMA_SPIT, PRIMED_TNT, SHULKER_BULLET, SMALL_FIREBALL, SNOWBALL, SPECTRAL_ARROW, SPLASH_POTION, TIPPED_ARROW, TRIDENT and WITHER_SKULL
             projectile: "ARROW"
             # If the projectile node is set to DROPPED_ITEM, then you can set the material name here
-            # 1.13+ Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+            # Latest Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
             # If the projectile is a SPLASH_POTION or TIPPED_ARROW you can set this option as 
             # https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionType.html
             # Otherwise if it's not one of those three, this option will be ignored.
             projectile-meta: "STONE"
             # Decal is a fancy little additional part of the lore in the turret shop.
             decal: "&e=-=-=-=-="
-            # The firing cooldown
+            # The firing reload cooldown
             cooldown: "1 second"
+            # The time in between each shot of ammo.
+            fire-rate: "1 second"
+            # The amount of ammo the turret has before reloading.
+            ammo: 1
+            # The sound effect player when placing the block.
+            # You can add delays and multiple different sound effects here.
+            # 1.8 and lower sound: https://github.com/Attano/Spigot-1.8/blob/master/org/bukkit/Sound.java
+            # Latest sounds: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html
+            use-place-sound: true
+            place-sounds:
+                # You can add more by copying this section and changing the 1 to anything. They will be sorted by their delay, and the node name is irrelevent to the sound.
+                1:
+                    sound: "BLOCK_IRON_DOOR_OPEN"
+                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                    volume: 1
+                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                    pitch: 1
+                    # Delay is in ticks, 20 ticks per second.
+                    delay: 0
+            use-shoot-sound: true
+            shoot-sounds:
+                fire:
+                    sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR"
+                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                    volume: 0.6
+                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                    pitch: 0
+                    # Delay is in ticks, 20 ticks per second.
+                    delay: 0
+            # The reload sound will be played when the 
+            use-reload-sound: true
+            reload-sounds:
+                reload-1:
+                    sound: "BLOCK_IRON_DOOR_OPEN"
+                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                    volume: 1
+                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                    pitch: 1
+                    # Delay is in ticks, 20 ticks per second.
+                    delay: 0
+                reload-2:
+                    sound: "BLOCK_IRON_DOOR_OPEN"
+                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                    volume: 1
+                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                    pitch: 1
+                    # Delay is in ticks, 20 ticks per second.
+                    delay: 5
+                reload-3:
+                    sound: "BLOCK_IRON_DOOR_CLOSE"
+                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                    volume: 1
+                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                    pitch: 1
+                    # Delay is in ticks, 20 ticks per second.
+                    delay: 10
+                reload-4:
+                    sound: "BLOCK_IRON_DOOR_CLOSE"
+                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                    volume: 1
+                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                    pitch: 1
+                    # Delay is in ticks, 20 ticks per second.
+                    delay: 15
             # The item that will represent this turret in inventories.
             item:
                 title: "&bArrow Turret"
                 # If this is set to SKELETON_SKULL you can set the skull-skin to a UUID and the item will be the skull head.
-                # 1.13+ Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+                # Latest Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
                 material: "ARROW"
                 # The meta option allows for items to be used with ItemMeta https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/meta/ItemMeta.html
                 # SpawnEggs are possible, FishBucket types, Colors and literally everything.
@@ -675,78 +909,6 @@ kingdom-home-stops-working-if-unclaimed: false
 worldguard:
     regions-that-allow-claiming:
     - RegionWherePlayersCanClaimLandIn
-disallowed-kingdom-names:
-- anal
-- anus
-- arse
-- ass
-- ballsack
-- balls
-- bastard
-- bitch
-- biatch
-- bloody
-- blowjob
-- blow job
-- bollock
-- bollok
-- boner
-- boob
-- bugger
-- bum
-- butt
-- buttplug
-- clitoris
-- cock
-- coon
-- crap
-- cunt
-- damn
-- dick
-- dildo
-- dyke
-- fag
-- feck
-- fellate
-- fellatio
-- felching
-- fuck
-- fudgepacker
-- fudge packer
-- flange
-- Goddamn
-- God damn
-- hell
-- homo
-- jerk
-- jizz
-- knobend
-- knob end
-- labia
-- muff
-- nigger
-- nigga
-- penis
-- piss
-- poop
-- prick
-- pube
-- pussy
-- queer
-- scrotum
-- sex
-- shit
-- slut
-- smegma
-- spunk
-- tit
-- tosser
-- turd
-- twat
-- vagina
-- wank
-- whore
-- wtf
 disable-join-messages: false
 #Deprecaded due to changes in worldedit API
 #conquests:
@@ -777,14 +939,7 @@ champion-specs:
     drag-min-range: 7.0
     invader-lose-on-champion-void-damage: true
 economy:
-    enabled: false
-    kingdom-create-cost: 0
     money-needed-for-one-rp: 10
-kingdom-create-item-cost:
-- DIAMOND,5
-- GOLD_INGOT,5
-- IRON_INGOT,5
-kingdom-create-need-item-cost: false
 items-needed-for-one-resource-point: 5
 invade-cost: 10
 hidewarppadlocations: false

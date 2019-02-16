@@ -10,6 +10,7 @@ import com.songoda.kingdoms.events.KingdomLoadEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.CooldownManager.KingdomCooldown;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
+import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 import com.songoda.kingdoms.objects.kingdom.BotKingdom;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.MiscUpgrade;
@@ -61,6 +62,7 @@ public class KingdomManager extends Manager {
 	private final Set<String> processing = new HashSet<>(); // Names that are currently being created. Can't take these names.
 	private final Set<BotKingdom> bots = new HashSet<>();
 	private final Database<OfflineKingdom> database;
+	private final CitizensManager citizensManager;
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
 	private final CooldownManager cooldowns;
@@ -75,6 +77,7 @@ public class KingdomManager extends Manager {
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.cooldowns = instance.getManager("cooldown", CooldownManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(OfflineKingdom.class);
 		else
@@ -100,7 +103,7 @@ public class KingdomManager extends Manager {
 							kingdom.setInvasionCooldown(cooldowns.getTimeLeft(kingdom, "attackcd"));
 						//null king means ready to remove
 						if (kingdom.getKing() == null && !(kingdom instanceof BotKingdom)) {
-							database.save(uuid + "", null);
+							database.delete(uuid + "");
 							continue;
 						}
 						database.save(uuid + "", kingdom);
@@ -232,7 +235,7 @@ public class KingdomManager extends Manager {
 	}
 	
 	/**
-	 * get OfflineKingdom. Reading from database directly
+	 * Get OfflineKingdom. Only cached OfflineKingdoms will be searched.
 	 *
 	 * @param kingdomName kingdomName
 	 * @return Kingdom instance; null if not exist
@@ -251,11 +254,17 @@ public class KingdomManager extends Manager {
 		return Optional.empty();
 	}
 
+	/**
+	 * Get OfflineKingdom. Reading from database directly.
+	 *
+	 * @param kingdomName Kingdom name.
+	 * @return Kingdom instance; null if not exist
+	 */
 	public Optional<OfflineKingdom> getOfflineKingdom(UUID uuid) {
 		Kingdoms.debugMessage("Fetching info for offline kingdom: " + uuid);
 		OfflineKingdom kingdom = loadKingdom(uuid);
 		if (kingdom != null && kingdom.getKing() == null) {
-			database.save(kingdom.toString(), null);
+			database.delete(kingdom.toString());
 			return Optional.empty();
 		}
 		return Optional.of(kingdom);
@@ -348,16 +357,14 @@ public class KingdomManager extends Manager {
 				king.setRank(rankManager.getOwnerRank());
 				king.setKingdom(kingdom);
 				kingdoms.add(kingdom);
-				//TODO start
 				for (ChampionUpgrade upgrade : ChampionUpgrade.values()) {
 					kingdom.getChampionInfo().setUpgradeLevel(upgrade, upgrade.getUpgradeDefault(upgrade));
 				}
 				for (MiscUpgrade upgrade : MiscUpgrade.values()) {
 					kingdom.getMisupgradeInfo().setBought(upgrade, upgrade.isDefaultOn());
 				}
-				//TODO end
 				new MessageBuilder("kingdoms.creation")
-						.replace("%kingdom%", name)
+						.setKingdom(kingdom)
 						.send(king);
 				processing.remove(name);
 				Bukkit.getPluginManager().callEvent(new KingdomCreateEvent(kingdom));
@@ -422,6 +429,262 @@ public class KingdomManager extends Manager {
 		}
 	}
 
+	@EventHandler
+	public void onMemberAttacksKingdomMember(EntityDamageByEntityEvent event) {
+		Entity victim = event.getEntity();
+		if (!(victim instanceof Player))
+			return;
+		if (!worldManager.acceptsWorld(victim.getWorld()))
+			return;
+		Entity attacker = event.getDamager();
+		if (attacker.equals(victim))
+			return;
+		if (citizensManager.isCitizen(victim) || citizensManager.isCitizen(attacker))
+			return;
+		KingdomPlayer attacked = null;
+		if (attacker instanceof Projectile) {
+			if (((Projectile) attacker).getType() == EntityType.ENDER_PEARL)
+				return;
+			ProjectileSource shooter = ((Projectile) attacker).getShooter();
+			if (shooter != null) {
+				if (shooter instanceof Player) {
+					if (citizensManager.isCitizen((Player) shooter))
+						return;
+					attacked = playerManager.getKingdomPlayer((Player) shooter);
+				}
+			}
+
+		} else if (attacker instanceof Player) {
+			attacked = playerManager.getKingdomPlayer((Player) attacker);
+		}
+		if (attacked == null)
+			return;
+		if (attacked.hasAdminMode())
+			return;
+		if (attacked.getKingdom() == null)
+			return;
+		KingdomPlayer damaged = playerManager.getKingdomPlayer((Player) victim);
+		if (configuration.getBoolean("plugin.warzone-free-pvp", false)) {
+			Land land = landManager.getLandAt(damaged.getLocation());
+			if (land.getOwnerUUID() != null) {
+
+			}
+		}
+		if (damaged.getKingdom() == null)
+			return;
+		Kingdom kingdom = damaged.getKingdom();
+		if (attacked.getKingdom().equals(kingdom)) {
+			if (!configuration.getBoolean("kingdoms.friendly-fire", false)) {
+				event.setDamage(0);
+				event.setCancelled(true);
+				new MessageBuilder("kingdoms.cannot-attack-members")
+						.replace("%player%", attacked.getName())
+						.setKingdom(kingdom)
+						.send(attacked);
+			}
+		}
+	}
+
+	@EventHandler(priority = EventPriority.LOW)
+	public void onMemberAttacksAllyMembers(EntityDamageByEntityEvent event) {
+		if (!worldManager.acceptsWorld(event.getEntity().getWorld()))
+			return;
+		if (configuration.getBoolean("kingdoms.alliance-can-pvp", false))
+			return;
+		Entity victim = event.getEntity();
+		if (!(victim instanceof Player))
+			return;
+		if (citizensManager.isCitizen(victim))
+			return;
+		Entity attacker = event.getDamager();
+		if (attacker.getUniqueId().equals(victim.getUniqueId()))
+			return;
+		KingdomPlayer kingdomPlayer;
+		if (attacker instanceof Projectile) {
+			Projectile projectile = (Projectile)attacker;
+			Entity shooter = projectile.getShooter();
+			if (shooter != null) {
+				if (shooter instanceof Player) {
+					Player player = (Player)shooter;
+					if (citizensManager.isCitizen(player))
+						return;
+					kingdomPlayer = playerManager.getKingdomPlayer(player);
+				}
+			}
+		} else if (attacker instanceof Player) {
+			if (citizensManager.isCitizen(attacker))
+				return;
+			kingdomPlayer = playerManager.getKingdomPlayer((Player)attacker);
+		}
+		if (kingdomPlayer == null)
+			return;
+		if (kingdomPlayer.hasAdminMode())
+			return;
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null)
+			return;
+		KingdomPlayer victimKingdomPlayer = playerManager.getKingdomPlayer((Player) victim);
+		if (Config.getConfig().getBoolean("warzone-free-pvp")) {
+			Land att = GameManagement.getLandManager().getOrLoadLand(damaged.getLoc());
+			if (att.getOwnerUUID() != null) {
+
+			}
+		}
+		Kingdom victimKingdom = victimKingdomPlayer.getKingdom();
+		if (victimKingdom == null)
+			return;
+		if (kingdom.isAllianceWith(victimKingdom)) {
+			event.setDamage(0.0D);
+			attacked.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Attack_Own_Ally", attacked.getLang()));
+			event.setCancelled(true);
+		}
+	}
+
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void onKingdomPlayerCommand(PlayerCommandPreprocessEvent e) {
+		if (!Config.getConfig().getStringList("enabled-worlds").contains(e.getPlayer().getWorld().getName())) {
+			return;
+		}
+		Kingdoms.logDebug("command: " + e.getMessage());
+		if (e.isCancelled())
+			return;
+
+		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
+		if (kp == null)
+			return;
+
+		Land land = GameManagement.getLandManager().getOrLoadLand(kp.getLoc());
+		if (land.getOwnerUUID() == null)
+			return;
+
+		Kingdom kingdom = getOrLoadKingdom(land.getOwnerUUID());
+		if (kingdom == null)
+			return;// Warzone or Safezone
+
+		if (kp.getKingdom() == null) {
+
+			if (isCommandDisabled(e.getMessage(), Config.getConfig().getStringList("denied-commands-neutral"))) {
+				kp.sendMessage(Kingdoms.getLang().getString("Kingdom_Command_Denied_Other", kp.getLang()));
+				e.setCancelled(true);
+			}
+		} else if (kingdom.isEnemyMember(kp) || kp.getKingdom().isEnemyWith(kingdom)) {
+			if (isCommandDisabled(e.getMessage(), Config.getConfig().getStringList("denied-commands-enemy"))) {
+				kp.sendMessage(Kingdoms.getLang().getString("Kingdom_Command_Denied_Enemy", kp.getLang()));
+				e.setCancelled(true);
+			}
+		} else if (kingdom.isMember(kp) || kingdom.isAllyMember(kp)) {
+		} else {
+			if (isCommandDisabled(e.getMessage(), Config.getConfig().getStringList("denied-commands-neutral"))) {
+				kp.sendMessage(Kingdoms.getLang().getString("Kingdom_Command_Denied_Other", kp.getLang()));
+				e.setCancelled(true);
+			}
+		}
+	}
+
+	private boolean isCommandDisabled(String message, List<String> list) {
+		for (String entry : list) {
+			if (entry.equalsIgnoreCase(message)) return true;
+		}
+		return false;
+	}
+
+	@EventHandler
+	public void onKingdomDelete(KingdomDeleteEvent e) {
+		Kingdoms.logDebug("kdelete event: " + e.getKingdom().getKingdomName());
+		for (Entry<UUID, OfflineKingdom> entry : kingdomList.entrySet()) {
+			if (!(entry.getValue() instanceof Kingdom))
+				continue;
+			// String key = entry.getKey();
+			Kingdom value = (Kingdom) entry.getValue();
+			value.onKingdomDelete(e.getKingdom());
+		}
+	}
+
+	@EventHandler
+	public void onKingdomMemberJoinEvent(KingdomMemberJoinEvent event) {
+		Kingdoms.logDebug("memberjoin");
+		for (Entry<UUID, OfflineKingdom> entry : kingdomList.entrySet()) {
+			if (!(entry.getValue() instanceof Kingdom))
+				continue;
+			Kingdom value = (Kingdom) entry.getValue();
+
+			value.onMemberJoinKingdom(event.getKp());
+		}
+	}
+
+	@EventHandler
+	public void onKingdomMemberQuitEvent(KingdomMemberLeaveEvent e) {
+		Kingdoms.logDebug("memberquit");
+		for (Entry<UUID, OfflineKingdom> entry : kingdomList.entrySet()) {
+			if (!(entry.getValue() instanceof Kingdom))
+				continue;
+			Kingdom value = (Kingdom) entry.getValue();
+
+			value.onMemberQuitKingdom(e.getKp());
+		}
+	}
+	
+	@EventHandler
+	public void onNeutralMemberAttackOrAttacked(EntityDamageByEntityEvent event) {
+		if (!worldManager.acceptsWorld(event.getEntity().getWorld()))
+			return;
+		if (!configuration.getBoolean("allow-pacifist")) //TODO
+			return;
+		if (!Config.getConfig().getBoolean("neutralPlayersCannotFightOnOwnLand")) return;
+		KingdomPlayer attacked;
+		if (!(event.getEntity() instanceof Player))
+			return;
+		if (citizensManager.isCitizen(event.getEntity())) return;
+		if (event.getDamager().getUniqueId().equals(event.getEntity().getUniqueId()))
+			return;
+		if (event.getDamager() instanceof Projectile) {
+			if (((Projectile) event.getDamager()).getShooter() != null) {
+				if (((Projectile) event.getDamager()).getShooter() instanceof Player) {
+
+					GameManagement.getApiManager();
+					if (citizensManager.isCitizen((Entity) ((Projectile) event.getDamager()).getShooter())) return;
+					attacked = GameManagement.getPlayerManager()
+							.getSession((Player) ((Projectile) event.getDamager()).getShooter());
+				}
+			}
+
+		} else if (event.getDamager() instanceof Player) {
+			GameManagement.getApiManager();
+			if (citizensManager.isCitizen(event.getDamager())) return;
+
+			attacked = GameManagement.getPlayerManager().getSession((Player) event.getDamager());
+		}
+		if (attacked == null)
+			return;
+		if (attacked.isAdminMode())
+			return;
+		KingdomPlayer damaged = GameManagement.getPlayerManager().getSession((Player) event.getEntity());
+
+		Land damagedLand = Kingdoms.getManagers().getLandManager().getOrLoadLand(damaged.getLoc());
+		Land attackerLand = Kingdoms.getManagers().getLandManager().getOrLoadLand(attacked.getLoc());
+
+
+		if (damaged.getKingdom() == null && attacked.getKingdom() == null) return;
+
+		if (attacked.getKingdom() != null &&
+				attacked.getKingdom().isNeutral()) {
+			if (attacked.getKingdomUuid().equals(attackerLand.getOwnerUUID())) {
+				attacked.sendMessage(Kingdoms.getLang().getString("Misc_Neutral_Cannot_Pvp_In_Own_Land", attacked.getLang()));
+				event.setCancelled(true);
+				return;
+			}
+		}
+
+		if (damaged.getKingdom() != null &&
+				damaged.getKingdom().isNeutral()) {
+			if (damaged.getKingdomUuid().equals(damagedLand.getOwnerUUID())) {
+				attacked.sendMessage(Kingdoms.getLang().getString("Misc_Neutral_Cannot_Pvp_In_Neutral_Land", attacked.getLang()));
+				event.setCancelled(true);
+				return;
+			}
+		}
+	}
+	
 	public void checkMight(Kingdom kingdom) {
 		if (kingdom == null) return;
 		int might = 0;
@@ -588,264 +851,6 @@ public class KingdomManager extends Manager {
 
 			}
 		});
-	}
-
-	@EventHandler
-	public void onMemberAttacksKingdomMember(EntityDamageByEntityEvent event) {
-		Entity victim = event.getEntity();
-		if (!(victim instanceof Player))
-			return;
-		if (!worldManager.acceptsWorld(victim.getWorld()))
-			return;
-		Entity attacker = event.getDamager();
-		if (attacker.equals(victim))
-			return;
-		if (ExternalManager.isCitizen(victim) || ExternalManager.isCitizen(attacker))
-			return;
-		KingdomPlayer attacked = null;
-		if (attacker instanceof Projectile) {
-			if (((Projectile) attacker).getType() == EntityType.ENDER_PEARL)
-				return;
-			ProjectileSource shooter = ((Projectile) attacker).getShooter();
-			if (shooter != null) {
-				if (shooter instanceof Player) {
-					if (ExternalManager.isCitizen(shooter))
-						return;
-					attacked = playerManager.getKingdomPlayer((Player) shooter);
-				}
-			}
-
-		} else if (attacker instanceof Player) {
-			attacked = playerManager.getKingdomPlayer((Player) attacker);
-		}
-		if (attacked == null)
-			return;
-		if (attacked.isAdminMode())
-			return;
-		if (attacked.getKingdom() == null)
-			return;
-		KingdomPlayer damaged = playerManager.getKingdomPlayer((Player) victim);
-		if (configuration.getBoolean("plugin.warzone-free-pvp", false)) {
-			Land land = landManager.getLandAt(damaged.getLocation());
-			if (land.getOwnerUUID() != null) {
-
-			}
-		}
-		if (damaged.getKingdom() == null)
-			return;
-		Kingdom kingdom = damaged.getKingdom();
-		if (attacked.getKingdom().equals(kingdom)) {
-			if (!configuration.getBoolean("kingdoms.friendly-fire", false)) {
-				event.setDamage(0);
-				event.setCancelled(true);
-				new MessageBuilder("kingdoms.cannot-attack-members")
-						.replace("%player%", attacked.getName())
-						.setKingdom(kingdom)
-						.send(attacked);
-			}
-		}
-	}
-
-	@EventHandler(priority = EventPriority.LOW)
-	public void onMemberAttacksAllyMembers(EntityDamageByEntityEvent event) {
-		if (!worldManager.acceptsWorld(event.getEntity().getWorld()))
-			return;
-		if (configuration.getBoolean("kingdoms.alliance-can-pvp", false))
-			return;
-		Entity victim = event.getEntity();
-		if (!(victim instanceof Player))
-			return;
-		if (ExternalManager.isCitizen(victim))
-			return;
-		Entity attacker = event.getDamager();
-		if (attacker.getUniqueId().equals(victim.getUniqueId()))
-			return;
-		KingdomPlayer kingdomPlayer;
-		if (attacker instanceof Projectile) {
-			Projectile projectile = (Projectile)attacker;
-			Entity shooter = projectile.getShooter();
-			if (shooter != null) {
-				if (shooter instanceof Player) {
-					Player player = (Player)shooter;
-					if (ExternalManager.isCitizen(player))
-						return;
-					kingdomPlayer = playerManager.getKingdomPlayer(player);
-				}
-			}
-		} else if (attacker instanceof Player) {
-			if (ExternalManager.isCitizen(attacker))
-				return;
-			kingdomPlayer = playerManager.getKingdomPlayer(attacker);
-		}
-		if (kingdomPlayer == null)
-			return;
-		if (kingdomPlayer.hasAdminMode())
-			return;
-		Kingdom kingdom = kingdomPlayer.getKingdom();
-		if (kingdom == null)
-			return;
-		KingdomPlayer victimKingdomPlayer = playerManager.getKingdomPlayer((Player) victim);
-		if (Config.getConfig().getBoolean("warzone-free-pvp")) {
-			Land att = GameManagement.getLandManager().getOrLoadLand(damaged.getLoc());
-			if (att.getOwnerUUID() != null) {
-
-			}
-		}
-		Kingdom victimKingdom = victimKingdomPlayer.getKingdom();
-		if (victimKingdom == null)
-			return;
-		if (kingdom.isAllianceWith(victimKingdom)) {
-			event.setDamage(0.0D);
-			attacked.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Attack_Own_Ally", attacked.getLang()));
-			event.setCancelled(true);
-		}
-	}
-
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void onKingdomPlayerCommand(PlayerCommandPreprocessEvent e) {
-		if (!Config.getConfig().getStringList("enabled-worlds").contains(e.getPlayer().getWorld().getName())) {
-			return;
-		}
-		Kingdoms.logDebug("command: " + e.getMessage());
-		if (e.isCancelled())
-			return;
-
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if (kp == null)
-			return;
-
-		Land land = GameManagement.getLandManager().getOrLoadLand(kp.getLoc());
-		if (land.getOwnerUUID() == null)
-			return;
-
-		Kingdom kingdom = getOrLoadKingdom(land.getOwnerUUID());
-		if (kingdom == null)
-			return;// Warzone or Safezone
-
-		if (kp.getKingdom() == null) {
-
-			if (isCommandDisabled(e.getMessage(), Config.getConfig().getStringList("denied-commands-neutral"))) {
-				kp.sendMessage(Kingdoms.getLang().getString("Kingdom_Command_Denied_Other", kp.getLang()));
-				e.setCancelled(true);
-			}
-		} else if (kingdom.isEnemyMember(kp) || kp.getKingdom().isEnemyWith(kingdom)) {
-			if (isCommandDisabled(e.getMessage(), Config.getConfig().getStringList("denied-commands-enemy"))) {
-				kp.sendMessage(Kingdoms.getLang().getString("Kingdom_Command_Denied_Enemy", kp.getLang()));
-				e.setCancelled(true);
-			}
-		} else if (kingdom.isMember(kp) || kingdom.isAllyMember(kp)) {
-		} else {
-			if (isCommandDisabled(e.getMessage(), Config.getConfig().getStringList("denied-commands-neutral"))) {
-				kp.sendMessage(Kingdoms.getLang().getString("Kingdom_Command_Denied_Other", kp.getLang()));
-				e.setCancelled(true);
-			}
-		}
-	}
-
-	private boolean isCommandDisabled(String message, List<String> list) {
-		for (String entry : list) {
-			if (entry.equalsIgnoreCase(message)) return true;
-		}
-		return false;
-	}
-
-	@EventHandler
-	public void onKingdomDelete(KingdomDeleteEvent e) {
-		Kingdoms.logDebug("kdelete event: " + e.getKingdom().getKingdomName());
-		for (Entry<UUID, OfflineKingdom> entry : kingdomList.entrySet()) {
-			if (!(entry.getValue() instanceof Kingdom))
-				continue;
-			// String key = entry.getKey();
-			Kingdom value = (Kingdom) entry.getValue();
-			value.onKingdomDelete(e.getKingdom());
-		}
-	}
-
-	@EventHandler
-	public void onKingdomMemberJoinEvent(KingdomMemberJoinEvent event) {
-		Kingdoms.logDebug("memberjoin");
-		for (Entry<UUID, OfflineKingdom> entry : kingdomList.entrySet()) {
-			if (!(entry.getValue() instanceof Kingdom))
-				continue;
-			Kingdom value = (Kingdom) entry.getValue();
-
-			value.onMemberJoinKingdom(event.getKp());
-		}
-	}
-
-	@EventHandler
-	public void onKingdomMemberQuitEvent(KingdomMemberLeaveEvent e) {
-		Kingdoms.logDebug("memberquit");
-		for (Entry<UUID, OfflineKingdom> entry : kingdomList.entrySet()) {
-			if (!(entry.getValue() instanceof Kingdom))
-				continue;
-			Kingdom value = (Kingdom) entry.getValue();
-
-			value.onMemberQuitKingdom(e.getKp());
-		}
-	}
-	
-	@EventHandler
-	public void onNeutralMemberAttackOrAttacked(EntityDamageByEntityEvent event) {
-		if (!worldManager.acceptsWorld(event.getEntity().getWorld()))
-			return;
-		if (!configuration.getBoolean("allow-pacifist")) //TODO
-			return;
-		if (!Config.getConfig().getBoolean("neutralPlayersCannotFightOnOwnLand")) return;
-		KingdomPlayer attacked;
-		if (!(event.getEntity() instanceof Player))
-			return;
-		if (ExternalManager.isCitizen(event.getEntity())) return;
-		if (event.getDamager().getUniqueId().equals(event.getEntity().getUniqueId()))
-			return;
-		if (event.getDamager() instanceof Projectile) {
-			if (((Projectile) event.getDamager()).getShooter() != null) {
-				if (((Projectile) event.getDamager()).getShooter() instanceof Player) {
-
-					GameManagement.getApiManager();
-					if (ExternalManager.isCitizen((Entity) ((Projectile) event.getDamager()).getShooter())) return;
-					attacked = GameManagement.getPlayerManager()
-							.getSession((Player) ((Projectile) event.getDamager()).getShooter());
-				}
-			}
-
-		} else if (event.getDamager() instanceof Player) {
-			GameManagement.getApiManager();
-			if (ExternalManager.isCitizen(event.getDamager())) return;
-
-			attacked = GameManagement.getPlayerManager().getSession((Player) event.getDamager());
-		}
-		if (attacked == null)
-			return;
-		if (attacked.isAdminMode())
-			return;
-		KingdomPlayer damaged = GameManagement.getPlayerManager().getSession((Player) event.getEntity());
-
-		Land damagedLand = Kingdoms.getManagers().getLandManager().getOrLoadLand(damaged.getLoc());
-		Land attackerLand = Kingdoms.getManagers().getLandManager().getOrLoadLand(attacked.getLoc());
-
-
-		if (damaged.getKingdom() == null && attacked.getKingdom() == null) return;
-
-		if (attacked.getKingdom() != null &&
-				attacked.getKingdom().isNeutral()) {
-			if (attacked.getKingdomUuid().equals(attackerLand.getOwnerUUID())) {
-				attacked.sendMessage(Kingdoms.getLang().getString("Misc_Neutral_Cannot_Pvp_In_Own_Land", attacked.getLang()));
-				event.setCancelled(true);
-				return;
-			}
-		}
-
-		if (damaged.getKingdom() != null &&
-				damaged.getKingdom().isNeutral()) {
-			if (damaged.getKingdomUuid().equals(damagedLand.getOwnerUUID())) {
-				attacked.sendMessage(Kingdoms.getLang().getString("Misc_Neutral_Cannot_Pvp_In_Neutral_Land", attacked.getLang()));
-				event.setCancelled(true);
-				return;
-			}
-		}
-
-
 	}
 
 	@Override
