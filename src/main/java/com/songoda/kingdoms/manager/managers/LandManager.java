@@ -91,6 +91,8 @@ public class LandManager extends Manager {
 	private final List<String> unclaiming = new ArrayList<>(); //TODO test if this is even requried. It's a queue to avoid claiming and removing at same time.
 	private final Map<Chunk, Land> lands = new HashMap<>();
 	private final Set<String> forbidden = new HashSet<>();
+	private final VisualizerManager visualizerManager;
+	private final StructureManager structureManager;
 	private final FileConfiguration configuration;
 	private final CitizensManager citizensManager;
 	private final KingdomManager kingdomManager;
@@ -107,6 +109,8 @@ public class LandManager extends Manager {
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
 		this.forbidden.addAll(configuration.getStringList("kingdoms.forbidden-inventories"));
+		this.visualizerManager = instance.getManager("visualizer", VisualizerManager.class);
+		this.structureManager = instance.getManager("structure", StructureManager.class);
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
@@ -395,7 +399,7 @@ public class LandManager extends Manager {
 			}
 		}
 		claimLand(kingdom, chunk);
-		GameManagement.getVisualManager().visualizeLand(kingdomPlayer, land);
+		visualizerManager.visualizeLand(kingdomPlayer, chunk);
 	}
 
 	/**
@@ -434,7 +438,7 @@ public class LandManager extends Manager {
 			if (land.getKingdomOwner() == null) {
 				continue;
 			}
-			if (land.getKingdomOwner().getUniqueId().equals(kingdom.getUniqueId())) {
+			if (land.getKingdomOwner().equals(kingdom)) {
 				LandUnclaimEvent event = new LandUnclaimEvent(land, kingdom);
 				Bukkit.getPluginManager().callEvent(event);
 				if (event.isCancelled())
@@ -445,10 +449,11 @@ public class LandManager extends Manager {
 				String name = LocationUtils.chunkToString(land.getChunk());
 				database.save(name, null);
 				if (land.getStructure() != null) {
+					// Sync back to server.
 					Bukkit.getScheduler().runTask(instance, new Runnable() {
 						@Override
 						public void run() {
-							GameManagement.getStructureManager().breakStructure(land);
+							structureManager.breakStructureAt(land);
 						}
 					});
 				}
@@ -481,7 +486,7 @@ public class LandManager extends Manager {
 		Stream<Land> stream = getLoadedLand().parallelStream()
 				.map(chunk -> getLand(chunk))
 				.filter(land -> land.getKingdomOwner() != null)
-				.filter(land -> land.getKingdomOwner().getUniqueId().equals(kingdom.getUniqueId()));
+				.filter(land -> land.getKingdomOwner().equals(kingdom));
 		long count = stream.count();
 		kingdom.getMembers().forEach(player -> player.onKingdomLeave());
 		stream.forEach(land -> unclaimLand(kingdom, land.getChunk()));

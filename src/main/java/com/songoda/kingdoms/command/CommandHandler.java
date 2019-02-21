@@ -55,10 +55,13 @@ public class CommandHandler implements CommandExecutor {
 			return;
 		}
 		if (command.getPermissionNode() == null || sender.hasPermission(command.getPermissionNode())) {
-			ReturnType returnType = command.runCommand(instance, sender, Arrays.copyOfRange(arguments, 1, arguments.length));
+			String[] array = arguments;
+			if (arguments.length > 0)
+				array = Arrays.copyOfRange(arguments, 1, arguments.length);
+			ReturnType returnType = command.runCommand(instance, sender, array);
 			if (returnType == AbstractCommand.ReturnType.SYNTAX_ERROR) {
 				 new MessageBuilder("messages.invalid-command", "messages.invalid-command-correction")
-				 		.replace("%command%", command.getSyntax(sender))
+				 		.replace("%command%", Arrays.toString(command.getSyntax(sender)))
 				 		.setPlaceholderObject(sender)
 				 		.send(sender);
 			}

@@ -22,6 +22,8 @@ public class OfflineKingdom {
 
 	private final Map<Rank, RankPermissions> permissions = new HashMap<>();
 	protected final Set<OfflineKingdomPlayer> members = new HashSet<>();
+	private final Set<OfflineKingdom> enemies = new HashSet<>();
+	private final Set<OfflineKingdom> allies = new HashSet<>();
 	protected final Set<Land> claims = new HashSet<>();
 	private long might = 0, resourcePoints = 0, invasionCooldown = 0;
 	private final KingdomManager kingdomManager;
@@ -232,6 +234,38 @@ public class OfflineKingdom {
 	 */
 	public Optional<Rank> getLowestRankFor(Predicate<RankPermissions> predicate) {
 		return rankManager.getLowestFor(this, predicate);
+	}
+	
+	public Set<OfflineKingdom> getAllies() {
+		return allies;
+	}
+	
+	public void addAlliance(OfflineKingdom kingdom) {
+		allies.add(kingdom);
+	}
+	
+	public boolean isAllianceWith(OfflineKingdom kingdom) {
+		return allies.contains(kingdom);
+	}
+	
+	public void removeAlliance(OfflineKingdom kingdom) {
+		allies.remove(kingdom);
+	}
+	
+	public Set<OfflineKingdom> getEnemies() {
+		return enemies;
+	}
+	
+	public void addEnemy(OfflineKingdom kingdom) {
+		enemies.add(kingdom);
+	}
+	
+	public boolean isEnemyWith(OfflineKingdom kingdom) {
+		return enemies.contains(kingdom);
+	}
+	
+	public void removeEnemy(OfflineKingdom kingdom) {
+		enemies.remove(kingdom);
 	}
 	
 	/**

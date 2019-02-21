@@ -7,13 +7,14 @@ import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.manager.managers.ChatManager.ChatChannel;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
+import com.songoda.kingdoms.objects.land.Land;
 
 public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {//Pioneer, Member, PrivateChat, Confirmable {
 	
 	private boolean autoClaiming, autoMapping, vanished, admin;
 	public ChatChannel channel = ChatChannel.PUBLIC;
 	private transient LivingEntity opponent;
-	private transient Chunk invading;
+	private transient Land invading;
 	private final Player player;
 	
 	public KingdomPlayer(Player player) {
@@ -80,12 +81,12 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {/
 	}
 	
 	@Override
-	public Chunk getInvadingChunk() {
+	public Land getInvadingLand() {
 		return invading;
 	}
 
 	@Override
-	public void setInvadingChunk(Chunk invading) {
+	public void setInvadingLand(Land invading) {
 		this.invading = invading;
 	}
 	

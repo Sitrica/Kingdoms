@@ -33,6 +33,12 @@ public class DefaultPlaceholders extends Manager {
 				return Kingdom.getResourcePoints() + "";
 			}
 		});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%playerkingdom%") {
+			@Override
+			public String replace(OfflineKingdomPlayer player) {
+				return player.getKingdom().getName();
+			}
+		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%player%") {
 			@Override
 			public String replace(OfflineKingdomPlayer player) {

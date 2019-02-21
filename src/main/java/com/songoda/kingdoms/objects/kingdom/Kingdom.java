@@ -26,7 +26,6 @@ import org.bukkit.entity.Player;
 
 public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	
-	private final Set<KingdomPlayer> online = new HashSet<>();
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
 	private int max;
@@ -34,7 +33,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	int chestsize = 9;
 	long timestamp = 0;
 	int maxMember = 10;
-	ChampionInfo championInfo = new ChampionInfo();
 	ArmyInfo armyInfo = new ArmyInfo();
 	AggressorInfo aggressorInfo = new AggressorInfo();
 	MisupgradeInfo misupgradeInfo = new MisupgradeInfo();
@@ -79,14 +77,10 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 				.forEach(world -> {
 					for (Player player : world.getPlayers()) {
 						KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-						if (kingdomPlayer.hasAdminMode()) {
-							allies.add(kingdomPlayer);
-							continue;
-						}
 						Kingdom playerKingdom = kingdomPlayer.getKingdom();
-						if (!kingdom.isMember(kingdomPlayer))
+						if (playerKingdom == null)
 							continue;
-						if (kingdom.isAllianceWith(playerKingdom) && playerKingdom.isAllianceWith(kingdom))
+						if (this.isAllianceWith(playerKingdom) && playerKingdom.isAllianceWith(this))
 							allies.add(kingdomPlayer);
 					}
 				});

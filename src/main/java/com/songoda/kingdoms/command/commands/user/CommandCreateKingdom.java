@@ -19,6 +19,7 @@ import com.songoda.kingdoms.command.AbstractCommand;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.Formatting;
+import com.songoda.kingdoms.utils.InventoryUtil;
 import com.songoda.kingdoms.utils.MessageBuilder;
 import com.songoda.kingdoms.utils.Utils;
 
@@ -118,7 +119,7 @@ public class CommandCreateKingdom extends AbstractCommand {
 				}
 				return ReturnType.FAILURE;
 			}
-			items.entrySet().forEach(entry -> InventoryUtil.removeMaterial(player, entry.getKey(), entry.getValue()));
+			items.entrySet().forEach(entry -> InventoryUtil.removeMaterial(player, entry.getKey(), entry.getValue().intValue()));
 		}
 		if (ExternalManager.getVaultManager() != null && configuration.getBoolean("economy.enabled") && cost > 0) {
 			ExternalManager.withdrawPlayer(player, cost);

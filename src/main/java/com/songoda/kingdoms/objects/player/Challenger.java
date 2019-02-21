@@ -1,7 +1,8 @@
 package com.songoda.kingdoms.objects.player;
 
-import org.bukkit.Chunk;
 import org.bukkit.entity.LivingEntity;
+
+import com.songoda.kingdoms.objects.land.Land;
 
 public interface Challenger {
 	
@@ -9,10 +10,10 @@ public interface Challenger {
 	
 	public void setOpponent(LivingEntity opponent);
 	
-	public Chunk getInvadingChunk();
+	public Land getInvadingLand();
 	
 	public boolean isInvading();
 	
-	public void setInvadingChunk(Chunk chunk);
+	public void setInvadingLand(Land land);
 
 }
