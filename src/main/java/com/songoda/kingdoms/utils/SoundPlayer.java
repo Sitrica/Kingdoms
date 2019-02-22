@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -40,15 +41,23 @@ public class SoundPlayer {
 	public void play(Collection<KingdomPlayer> players) {
 		players.parallelStream()
 				.map(player -> player.getPlayer())
-				.forEach(player -> play(player));
+				.forEach(player -> playTo(player));
 	}
 	
-	public void play(Player... players) {
-		for (Player player : players)
-			play(player);
+	public void playAt(Location... locations) {
+		if (sounds.isEmpty())
+			return;
+		for (KingdomSound sound : getSorted()) {
+			Bukkit.getScheduler().scheduleSyncDelayedTask(instance, new Runnable() {
+				@Override
+				public void run() {
+					sound.playAt(locations);
+				}
+			}, sound.getDelay());
+		}
 	}
 	
-	public void play(Player player) {
+	public void playTo(Player... player) {
 		if (sounds.isEmpty())
 			return;
 		for (KingdomSound sound : getSorted()) {

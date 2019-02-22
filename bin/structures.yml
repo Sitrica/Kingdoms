@@ -1,0 +1,115 @@
+#!
+#!     ▄█   ▄█▄  ▄█  ███▄▄▄▄      ▄██████▄  ████████▄   ▄██████▄    ▄▄▄▄███▄▄▄▄      ▄████████ 
+#!    ███ ▄███▀ ███  ███▀▀▀██▄   ███    ███ ███   ▀███ ███    ███ ▄██▀▀▀███▀▀▀██▄   ███    ███ 
+#!    ███▐██▀   ███▌ ███   ███   ███    █▀  ███    ███ ███    ███ ███   ███   ███   ███    █▀  
+#!   ▄█████▀    ███▌ ███   ███  ▄███        ███    ███ ███    ███ ███   ███   ███   ███        
+#!  ▀▀█████▄    ███▌ ███   ███ ▀▀███ ████▄  ███    ███ ███    ███ ███   ███   ███ ▀███████████ 
+#!    ███▐██▄   ███  ███   ███   ███    ███ ███    ███ ███    ███ ███   ███   ███          ███ 
+#!    ███ ▀███▄ ███  ███   ███   ███    ███ ███   ▄███ ███    ███ ███   ███   ███    ▄█    ███ 
+#!    ███   ▀█▀ █▀    ▀█   █▀    ████████▀  ████████▀   ▀██████▀   ▀█   ███   █▀   ▄████████▀  
+#!    ▀                                                                                        
+#!
+# The version is to help determine which version this config is. Please don't modify this value.
+version: "2.0.0"
+
+# All configurations relating to structures.
+structures:
+    # Adds placement instructions by default to the bottom lore.
+    additional-lore:
+        - "&6Right click the ground with the disk item given to build."
+        - "&cOnly one structure is allowed per land."
+    nexus:
+        title: "&bNexus"
+        # The block material that will be used.
+        material: "BEACON"
+        # The item given to the player that they have to click the ground with to build the structure.
+        inventory-material: "MUSIC_DISC_WAIT"
+        description:
+            - "&7The Nexus executes most Kingdom actions."
+    regulator:
+        enabled: true
+        cost: 50
+        title: "&bRegulator"
+        material: "REDSTONE_BLOCK"
+        inventory-material: "MUSIC_DISC_CHIRP"
+        description:
+            - "&7Regulators can allow ranked players to change who can build, who can interact in each chunk of land,"
+            - "&7if monsters can spawn, if animals can spawn, and other similar functions in each chunk of land."
+    radar:
+        enabled: true
+        cost: 150
+        title: "&bRadar"
+        material: "NOTE_BLOCK"
+        inventory-material: "MUSIC_DISC_MELLOHI"
+        description:
+            - "&7Executing '/k map' while standing on land with a radar will reveal all structures."
+            - "&7A radar will also start ticking sound if enemies are near."
+    output:
+        enabled: true
+        # How much resource points this structure costs to aquire.
+        cost: 250
+        title: "&bOutpost"
+        # The block material that will be used.
+        material: "HAY_BLOCK"
+        # The item given to the player that they have to click the ground with to build the structure.
+        inventory-material: "MUSIC_DISC_13"
+        description:
+            - "&7The Outpost allows direct access to your Nexus."
+            - "&7It enables you to access turrets, upgrades, and unlockable structures."
+            - "&7Outposts can produce exp bottles from resource points aswell."
+    powercell:
+        enabled: true
+        cost: 250
+        title: "&bPowercell"
+        material: "REDSTONE_TORCH"
+        inventory-material: "MUSIC_DISC_BLOCKS"
+        description:
+            - "&7Chunks next to a chunk with a power cell cannot be invaded without invading the power cell first."
+            - "&cDoes not work on other power cell lands."
+    arsenal:
+        enabled: true
+        cost: 500
+        title: "&bArsenal"
+        material: "FURNACE"
+        inventory-material: "MUSIC_DISC_STAL"
+        description:
+            - "&7Purchase special consumable items."
+    siege-engine:
+        enabled: true
+        cost: 1000
+        # The cooldown it takes per fire shot.
+        cooldown: "60 seconds"
+        title: "&bSiege Engine"
+        material: "DISPENSER"
+        inventory-material: "MUSIC_DISC_11"
+        description:
+            - "&7Siege structure. Place next to target land, and fire from the GUI. Siege Engines have."
+    shield-battery:
+        enabled: true
+        cost: 1000
+        title: "&bShield Battery"
+        material: "PRISMARINE"
+        inventory-material: "MUSIC_DISC_MALL"
+        description:
+            - "&7When placed in land connected to your nexus land, your nexus' shield limit and recharge will increase."
+    extractor:
+        enabled: true
+        cost: 1000
+        title: "&bExtractor"
+        material: "EMERALD_BLOCK"
+        # This is an extractor option only this and reward-amount.
+        reward-delay: "24 hours"
+        # The amount of resource points to give.
+        reward-amount: 50
+        inventory-material: "MUSIC_DISC_CAT"
+        description:
+            - "&7Extractors produce resource points every set time."
+            - "&7Resource points must be manually collected from the extractor."
+    warp-pad:
+        enabled: true
+        cost: 5000
+        title: "&bWarp Pad"
+        material: "SEA_LANTERN"
+        inventory-material: "MUSIC_DISC_STRAD"
+        description:
+            - "&7Warp Pads allow Kingdom members to teleport to the Kingdom's nexus and outposts."

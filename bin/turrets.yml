@@ -1,0 +1,222 @@
+#!
+#!     ▄█   ▄█▄  ▄█  ███▄▄▄▄      ▄██████▄  ████████▄   ▄██████▄    ▄▄▄▄███▄▄▄▄      ▄████████ 
+#!    ███ ▄███▀ ███  ███▀▀▀██▄   ███    ███ ███   ▀███ ███    ███ ▄██▀▀▀███▀▀▀██▄   ███    ███ 
+#!    ███▐██▀   ███▌ ███   ███   ███    █▀  ███    ███ ███    ███ ███   ███   ███   ███    █▀  
+#!   ▄█████▀    ███▌ ███   ███  ▄███        ███    ███ ███    ███ ███   ███   ███   ███        
+#!  ▀▀█████▄    ███▌ ███   ███ ▀▀███ ████▄  ███    ███ ███    ███ ███   ███   ███ ▀███████████ 
+#!    ███▐██▄   ███  ███   ███   ███    ███ ███    ███ ███    ███ ███   ███   ███          ███ 
+#!    ███ ▀███▄ ███  ███   ███   ███    ███ ███   ▄███ ███    ███ ███   ███   ███    ▄█    ███ 
+#!    ███   ▀█▀ █▀    ▀█   █▀    ████████▀  ████████▀   ▀██████▀   ▀█   ███   █▀   ▄████████▀  
+#!    ▀                                                                                        
+#!
+# The version is to help determine which version this config is. Please don't modify this value.
+version: "2.0.0"
+
+#turrets:
+    nexustower: 300
+    flameturret: 150
+    pressuremine: 2
+    chemicalmine: 1
+    healingstation: 100
+    psionictotem: 250
+    soldierspawner: 500
+    hellfireturret: 300
+    heatbeamturret: 200
+turret-specs:
+    attack-mobs: true
+    nexustower:
+        range: 8
+        damage: 0
+    flameturret:
+        range: 8
+        skin: MHF_WSkeleton
+        damage: 3
+    healingstation:
+        range: 8
+        skin: MHF_Zombie
+        damage: 1
+    psionictotem:
+        range: 8
+        skin: MHF_Creeper
+        damage: 6
+    soldierspawner:
+        range: 8
+        skin: CybermanAC
+        strength-level: -1
+    hellfireturret:
+        range: 8
+        skin: BadLuck
+        damage: 7
+    heatbeamturret:
+        range: 8
+        skin: MHF_Guardian
+        damage: 3
+    pressuremine:
+        blast: 2
+    chemicalmine:
+        poison-potency: 1
+max-per-land:
+    turrets:
+        arrowturret: 1000
+        flameturret: 1000
+        pressuremine: 1000
+        chemicalmine: 1000
+        healingstation: 1000
+        psionictotem: 1000
+        soldierspawner: 1000
+        hellfireturret: 1000
+        heatbeamturret: 1000
+
+# All configurations for the turrets.
+turrets:
+    decals: true
+    # Adds some spaces between certain values for looks.
+    spacing: true
+    # Spacing before the cost to make the costs stand out.
+    spacing-costs: true
+    # Blocks that turrets aren't allowed to be placed on.
+    # The block list must only be blocks that are occluding and solid.
+    # 1.13+ Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+    # 1.8 and lower materials: https://github.com/Attano/Spigot-1.8/blob/master/org/bukkit/Material.java
+    illegal-placements:
+        - "ENCHANTING_TABLE"
+        - "CRAFTING_TABLE"
+        - "BREWING_STAND"
+        - "STICKY_PISTON"
+        - "MOVING_PISTON"
+        - "PISTON_HEAD"
+        - "ENDER_CHEST"
+        - "SEA_LANTERN"
+        - "NOTE_BLOCK"
+        - "DISPENSER"
+        - "GLOWSTONE"
+        - "JUKEBOX"
+        - "FURNACE"
+        - "PISTON"
+        - "CHEST"
+        - "ANVIL"
+    # The post that is created if the user just clicks the ground.
+    default-post: "COBBLESTONE_WALL"
+    # When breaking a turret, if the post was placed by the plugin, should it drop or not?
+    avoid-post-duplication: true
+    formats:
+        range: "&6Range: &e%range%"
+        damage: "&6Damage: &e%damage%"
+        rate: "&6Fire rate: &e%rate%/s"
+        cost: "&6Cost: &f%cost% &6resource points"
+        kingdom-rp: "&6Your Kingdom currently has &f%amount% &6resource points"
+    turrets:
+        arrow:
+            enabled: true
+            # The maximum amount of these turrets that can be placed on a single land chunk.
+            max-per-land: 50
+            # The skull skin owner of the turret when it's placed.
+            skull-skin: "_LifeBlood_"
+            # The skull skin owner of the turret when it's reloading.
+            reloading-skull-skin: "Redstone"
+            # Projectile types: ARROW, DROPPED_ITEM, DRAGON_FIREBALL, EGG, ENDER_PEARL, FIREBALL, FISHING_HOOK, LLAMA_SPIT, PRIMED_TNT, SHULKER_BULLET, SMALL_FIREBALL, SNOWBALL, SPECTRAL_ARROW, SPLASH_POTION, TIPPED_ARROW, TRIDENT and WITHER_SKULL
+            projectile: "ARROW"
+            # If the projectile node is set to DROPPED_ITEM, then you can set the material name here
+            # Latest Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+            # If the projectile is a SPLASH_POTION or TIPPED_ARROW you can set this option as 
+            # https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionType.html
+            # Otherwise if it's not one of those three, this option will be ignored.
+            projectile-meta: "STONE"
+            # Decal is a fancy little additional part of the lore in the turret shop.
+            decal: "&e=-=-=-=-="
+            # The firing reload cooldown
+            cooldown: "1 second"
+            # The time in between each shot of ammo.
+            fire-rate: "1 second"
+            # The amount of ammo the turret has before reloading.
+            ammo: 1
+            # The sound effect player when placing the block.
+            # You can add delays and multiple different sound effects here.
+            # 1.8 and lower sound: https://github.com/Attano/Spigot-1.8/blob/master/org/bukkit/Sound.java
+            # Latest sounds: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html
+            use-place-sound: true
+            place-sounds:
+                # You can add more by copying this section and changing the 1 to anything. They will be sorted by their delay, and the node name is irrelevent to the sound.
+                1:
+                    sound: "BLOCK_IRON_DOOR_OPEN"
+                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                    volume: 1
+                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                    pitch: 1
+                    # Delay is in ticks, 20 ticks per second.
+                    delay: 0
+            use-shoot-sound: true
+            shoot-sounds:
+                fire:
+                    sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR"
+                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                    volume: 0.6
+                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                    pitch: 0
+                    # Delay is in ticks, 20 ticks per second.
+                    delay: 0
+            # The reload sound will be played when the 
+            use-reload-sound: true
+            reload-sounds:
+                reload-1:
+                    sound: "BLOCK_IRON_DOOR_OPEN"
+                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                    volume: 1
+                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                    pitch: 1
+                    # Delay is in ticks, 20 ticks per second.
+                    delay: 0
+                reload-2:
+                    sound: "BLOCK_IRON_DOOR_OPEN"
+                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                    volume: 1
+                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                    pitch: 1
+                    # Delay is in ticks, 20 ticks per second.
+                    delay: 5
+                reload-3:
+                    sound: "BLOCK_IRON_DOOR_CLOSE"
+                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                    volume: 1
+                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                    pitch: 1
+                    # Delay is in ticks, 20 ticks per second.
+                    delay: 10
+                reload-4:
+                    sound: "BLOCK_IRON_DOOR_CLOSE"
+                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                    volume: 1
+                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                    pitch: 1
+                    # Delay is in ticks, 20 ticks per second.
+                    delay: 15
+            # The item that will represent this turret in inventories.
+            item:
+                title: "&bArrow Turret"
+                # If this is set to SKELETON_SKULL you can set the skull-skin to a UUID and the item will be the skull head.
+                # Latest Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+                material: "ARROW"
+                # The meta option allows for items to be used with ItemMeta https://hub.spigotmc.org/javadocs/spigot/org/bukkit/inventory/meta/ItemMeta.html
+                # SpawnEggs are possible, FishBucket types, Colors and literally everything.
+                # If you need help getting an item with meta, feel free to contact the Kingdoms developers, making a ticket or our discussion page.
+                # Potion type is used by default and only used when the material is "TIPPED_ARROW" which will be in the ones below.
+                # Types can be found here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionType.html
+                # Keep in mind that if you're using 1.8 the TIPPED_ARROW will not work.
+                # We suggest upgrading to latest Spigot version and have a pvp reverter if that's the only reason you're using 1.8.
+                meta: "AWKWARD"
+                description:
+                    - "&7Simple turret that fires plain arrows at enemies at a moderate rate."
+            # If natural damage is true, it will not modify the damage of the projectile from the turret.
+            # If this option is true, the damage node below will be ignored.
+            natural-damage: true
+            # The amount of damage the turret will deal to the enemy.
+            damage: 3
+            # The range at which the turret can shoot.
+            range: 8
+            # Targets will allow you to define what the turrets will shoot at
+            # The types are MONSTERS, ENEMIES, and ALLIANCE
+            targets:
+                - "MONSTERS"
+                - "ENEMIES"
+            # How many resource points it costs to buy this turret.
+            cost: 100

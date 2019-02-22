@@ -189,7 +189,7 @@ public class StructureManager extends Manager {
 				List<String> lores = meta.getLore();
 				if (lores == null || lores.isEmpty())
 					return;
-				List<String> list = instance.getConfiguration("messages").get().getStringList("structures.additional-lore");
+				List<String> list = instance.getConfiguration("turrets").get().getStringList("structures.additional-lore");
 				int checks = 0;
 				for (String required : list) {
 					String colored = Formatting.color(required);
@@ -228,7 +228,7 @@ public class StructureManager extends Manager {
 				.filter(type -> Formatting.colorAndStrip(type.getTitle()).equals(Formatting.stripColor(name)))
 				.findFirst();
 		if (!optional.isPresent()) {
-			for (String message : configuration.getStringList("structures.additional-lore")) {
+			for (String message : instance.getConfiguration("turrets").get().getStringList("structures.additional-lore")) {
 				player.sendMessage(Formatting.color(message));
 			}
 			return;
@@ -274,7 +274,7 @@ public class StructureManager extends Manager {
 				.send(player);
 		}
 		if (land.getStructure() != null) {
-			for (String message : configuration.getStringList("structures.additional-lore")) {
+			for (String message : instance.getConfiguration("turrets").get().getStringList("structures.additional-lore")) {
 				player.sendMessage(Formatting.color(message));
 			}
 			return;

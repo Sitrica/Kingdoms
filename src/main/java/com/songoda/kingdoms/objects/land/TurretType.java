@@ -6,6 +6,7 @@ import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
+import com.songoda.kingdoms.utils.SoundPlayer;
 import com.songoda.kingdoms.utils.Utils;
 
 import java.util.ArrayList;
@@ -72,9 +73,10 @@ public class TurretType {
 		TurretTargetType.ENEMY_PLAYERS);
 	*/
 
-	private final String node, title, decal, skin, meta, reloading;
+	private final String node, title, decal, skin, meta, reload;
 	private final List<String> description = new ArrayList<>();
 	private final Set<TargetType> targets = new HashSet<>();
+	private SoundPlayer placing, reloading, shooting;
 	private final int cost, damage, range, max, ammo;
 	private final FileConfiguration configuration;
 	private final boolean enabled, natural;
@@ -83,14 +85,20 @@ public class TurretType {
 	private final Material material;
 	
 	public TurretType(String node) {
-		configuration = Kingdoms.getInstance().getConfig();
+		configuration = Kingdoms.getInstance().getConfiguration("turrets").get();
 		ConfigurationSection section = configuration.getConfigurationSection("turrets.turrets" + node);
 		ConfigurationSection item = section.getConfigurationSection("item");
+		if (section.getBoolean("use-place-sound", false))
+			this.placing = new SoundPlayer(section.getConfigurationSection("place-sounds"));
+		if (section.getBoolean("use-shoot-sound", false))
+			this.shooting = new SoundPlayer(section.getConfigurationSection("shoot-sound"));
+		if (section.getBoolean("use-reload-sound", false))
+			this.reloading = new SoundPlayer(section.getConfigurationSection("reload-sounds"));
 		this.material = Utils.materialAttempt(item.getString("material", "MUSIC_DISC_STAL"), "GOLD_RECORD");
 		this.projectile = Utils.entityAttempt(section.getString("projectile", "ARROW"), "ARROW");
 		this.firerate = IntervalUtils.getInterval(section.getString("fire-rate", "1 second"));
 		this.cooldown = IntervalUtils.getInterval(section.getString("cooldown", "5 seconds"));
-		this.reloading = section.getString("reloading-skull-skin", "Redstone");
+		this.reload = section.getString("reloading-skull-skin", "Redstone");
 		this.description.addAll(item.getStringList("description"));
 		this.natural = section.getBoolean("natural-damage", false);
 		this.skin = section.getString("skull-skin", "MHF_Zombie");
@@ -104,6 +112,18 @@ public class TurretType {
 		this.title = item.getString("title");
 		this.meta = item.getString("meta");
 		this.node = node;
+	}
+	
+	public SoundPlayer getReloadingSounds() {
+		return reloading;
+	}
+	
+	public SoundPlayer getShootingSounds() {
+		return shooting;
+	}
+	
+	public SoundPlayer getPlacingSounds() {
+		return placing;
 	}
 	
 	public List<String> getDescription() {
@@ -175,7 +195,7 @@ public class TurretType {
 	}
 	
 	public OfflinePlayer getReloadingSkullOwner() {
-		return DeprecationUtils.getSkullOwner(reloading);
+		return DeprecationUtils.getSkullOwner(reload);
 	}
 
 	public enum TargetType {

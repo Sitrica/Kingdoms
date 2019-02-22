@@ -377,9 +377,7 @@ public class TurretManager extends Manager {
 			skull.setOwningPlayer(type.getSkullOwner());
 			state.update(true);
 		}
-		ConfigurationSection section = configuration.getConfigurationSection("turrets.turrets." + type.getName());
-		if (section.getBoolean("use-place-sound", false))
-			new SoundPlayer(section.getConfigurationSection("place-sound"));
+		type.getPlacingSounds().playAt(block.getLocation());
 	}
 	
 	@EventHandler

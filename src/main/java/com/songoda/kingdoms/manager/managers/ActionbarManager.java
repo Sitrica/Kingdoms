@@ -7,7 +7,6 @@ import com.songoda.kingdoms.utils.Utils;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
-import org.bukkit.Server.Spigot;
 import org.bukkit.entity.Player;
 
 public class ActionbarManager extends Manager {
@@ -26,7 +25,7 @@ public class ActionbarManager extends Manager {
 			method = false;
 			return;
 		}
-		this.method = Utils.methodExists(Spigot.class, "sendMessage", ChatMessageType.class, TextComponent.class);
+		this.method = Utils.methodExists(Player.Spigot.class, "sendMessage", ChatMessageType.class, TextComponent.class);
 	}
 	
 	public void sendActionBar(Player player, String... messages) {

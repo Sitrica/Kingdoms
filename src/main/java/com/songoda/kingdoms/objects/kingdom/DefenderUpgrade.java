@@ -1,10 +1,17 @@
 package com.songoda.kingdoms.objects.kingdom;
 
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 
-public enum ChampionUpgrade {
+import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.utils.Utils;
+
+public enum DefenderUpgrade {
 	
-	WEAPON(Kingdoms.getLang().getString("Guis_ChampionUpgrades_Weapon_Curr"),
+	WEAPON("weapon");
+	
+	/*WEAPON(Kingdoms.getLang().getString("Guis_ChampionUpgrades_Weapon_Curr"),
 			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Weapon_Desc"),
 			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Weapon_Title"),
 			Material.IRON_SWORD, 1),
@@ -90,20 +97,28 @@ public enum ChampionUpgrade {
 			Kingdoms.getLang().getString("Guis_ChampionUpgrades_DeterminationII_Title"),
 			Materials.GOLDEN_CHESTPLATE.parseMaterial(),
             Config.getConfig().getInt("magnitude.champion.determinationII"));
+    */
 	
-	private String curr;
-	private String desc;
-	private String title;
+	private String node;
 	private Material display;
-	private boolean isToggle = false;
-	private int levels = 1;
-	ChampionUpgrade(String curr, String desc, String title, Material display, int levels){
-		this.curr = curr;
-		this.desc = desc;
-		this.title = title;
-		this.display = display;
-		this.levels = levels;
+	
+	private DefenderUpgrade(String node) {
+		FileConfiguration configuration = Kingdoms.getInstance().getConfiguration("defender-upgrades").get();
+		ConfigurationSection section = configuration.getConfigurationSection("upgrades." + node);
+		this.item = Utils.materialAttempt(section.getString("inventory-material"), "RECORD_3");
+		this.material = Utils.materialAttempt(section.getString("material"), "REDSTONE_BLOCK");
+		this.additional.addAll(configuration.getStringList("structures.additional-lore"));
+		this.description = section.getString("description");
+		this.enabled = section.getBoolean("enabled", true);
+		this.cost = section.getLong("cost", 0);
+		this.title = section.getString("name");
+		if (metadata == null) { 
+			this.metadata = node;
+			return;
+		}
+		this.metadata = metadata;
 	}
+	
 	ChampionUpgrade(String curr, String desc, String title, Material display, int levels, boolean isToggle){
 		this.curr = curr;
 		this.desc = desc;

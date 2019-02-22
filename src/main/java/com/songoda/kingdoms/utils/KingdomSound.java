@@ -1,5 +1,6 @@
 package com.songoda.kingdoms.utils;
 
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -48,6 +49,14 @@ public class KingdomSound {
 		if (enabled) {
 			for (Player player : players) {
 				player.playSound(player.getLocation(), sound, volume, pitch);
+			}
+		}
+	}
+	
+	public void playAt(Location... locations) {
+		if (enabled) {
+			for (Location location : locations) {
+				location.getWorld().playSound(location, sound, volume, pitch);
 			}
 		}
 	}

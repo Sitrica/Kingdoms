@@ -38,7 +38,7 @@ public enum StructureType {
 	}
 	
 	private StructureType(String node, String metadata) {
-		FileConfiguration configuration = Kingdoms.getInstance().getConfig();
+		FileConfiguration configuration = Kingdoms.getInstance().getConfiguration("structures").get();
 		ConfigurationSection section = configuration.getConfigurationSection("structures." + node);
 		this.item = Utils.materialAttempt(section.getString("inventory-material"), "RECORD_3");
 		this.material = Utils.materialAttempt(section.getString("material"), "REDSTONE_BLOCK");
