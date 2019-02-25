@@ -10,7 +10,7 @@ public class BotKingdom extends Kingdom {
 	
 	public BotKingdom(String name, Plugin plugin) {
 		super();
-		setKingdomName(name);
+		setName(name);
 		this.register = plugin;
 	}
 	
@@ -18,7 +18,6 @@ public class BotKingdom extends Kingdom {
 		return register;
 	}
 	
-	@Override
 	public Map<String, String> getInfo(){
 		Map<String, String> info = new HashMap<String, String>();
 		info.put("kingdom", getName());
@@ -30,7 +29,6 @@ public class BotKingdom extends Kingdom {
 		return info;
 	}
 	
-	@Override
 	public boolean isShieldUp() {
 		return false;
 	}

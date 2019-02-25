@@ -1,22 +1,8 @@
 package com.songoda.kingdoms.objects.kingdom;
 
-import java.util.HashMap;
-import java.util.Map;
+public class TurretUpgradeInfo {
 
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
-
-public class TurretUpgradeInfo{
-	boolean simplifiedModel = false;
-	boolean flurry = false;
-	boolean concentratedBlast = false;
-	boolean virulentPlague = false;
-	boolean improvedHeal = false;
-	boolean voodoo = false;
-	boolean finalService = false;
-	boolean hellstorm = false;
-	boolean unrelentingGaze = false;
-	
-	public TurretUpgradeInfo() {}
+	private boolean simplifiedModel, flurry, concentratedBlast, virulentPlague, improvedHeal, voodoo, finalService, hellstorm, unrelentingGaze;
 
 	public boolean isSimplifiedModel() {
 		return simplifiedModel;
@@ -89,10 +75,5 @@ public class TurretUpgradeInfo{
 	public void setUnrelentingGaze(boolean unrelentingGaze) {
 		this.unrelentingGaze = unrelentingGaze;
 	}
-	
-	
-
-	
-	
 
 }

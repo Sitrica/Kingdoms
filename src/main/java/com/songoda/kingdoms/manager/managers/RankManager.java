@@ -28,7 +28,7 @@ public class RankManager extends Manager {
 	
 	protected RankManager() {
 		super(false);
-		this.section = configuration.getConfigurationSection("ranks");
+		this.section = instance.getConfiguration("ranks").get().getConfigurationSection("ranks");
 		for (String rank : section.getKeys(false)) {
 			ChatColor chat = ChatColor.valueOf(section.getString(rank + ".chat-color", "WHITE"));
 			ChatColor color = ChatColor.valueOf(section.getString(rank + ".color", "WHITE"));

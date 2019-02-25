@@ -2,12 +2,10 @@ package com.songoda.kingdoms.command.commands.user;
 
 import java.util.HashSet;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.command.AbstractCommand;
-import com.songoda.kingdoms.command.AbstractCommand.ReturnType;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
@@ -20,7 +18,6 @@ import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -91,9 +88,11 @@ public class CommandUnclaim extends AbstractCommand {
 					if (nexus == null)
 						return ReturnType.FAILURE;
 					Land nexusLand = landManager.getLand(nexus.getChunk());
-					if (Kingdoms.getManagers().getChampionManager().isChunkInvaded(nexusLand)) {
-						kp.sendMessage(Kingdoms.getLang().getString("Command_Unclaim_All_Nexus", kp.getLang()));
-					}
+					if (invadingManager.isBeingInvaded(nexusLand))
+						new MessageBuilder("commands.unclaim.unclaim-all-nexus")
+								.setPlaceholderObject(kingdomPlayer)
+								.setKingdom(kingdom)
+								.send(player);
 					String interval = configuration.getString("claiming.unclaim-all-confirmation-delay", "25 seconds");
 					Bukkit.getScheduler().runTaskLaterAsynchronously(instance, new Runnable() {
 						@Override
@@ -148,6 +147,7 @@ public class CommandUnclaim extends AbstractCommand {
 					.setKingdom(landKingdom)
 					.send(player);
 		}
+		return ReturnType.SUCCESS;
 	}
 
 	@Override

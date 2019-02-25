@@ -89,6 +89,7 @@ kingdoms:
     cannot-break-alliance-nexus: "&cYou can't break your alliance's nexus!"
     nexus-setting-cancelled: "&cNexus placing mode was cancelled!"
     nexus-setting-cancelled-moved: "&cYou moved into another chunk of land!"
+    cannot-attack-ally: "&cYou can't attack your own Kingdom allies!"
 
 # All messages relating to maps and chunks.
 map:
@@ -206,6 +207,7 @@ commands:
         confirmation-expired: "&cThe confirmation request for unclaiming all land has expired."
          # Placeholders: All Kingdom and KingdomPlayer placeholders.
         processing: "&cLand is still unclaiming. Please wait."
+        unclaim-all-nexus: "&c&o&l[WARNING] UNCLAIMING NEXUS LAND WHILE IT IS BEING INVADED WILL RESULT IN AN INSTANT DEFEAT"
 
 # All messages relating to invading.
 invading:
@@ -579,7 +581,6 @@ Misc_Preparing_Info: '&cPreparing your new player data...'
 Misc_Preparing_Info_Finished: '&aData loaded! Enjoy!'
 Misc_Not_Air: '&cThere is something obstructing the way!'
 Misc_Confirmation_Cancel: '&cConfirmation cancelled.'
-Misc_Cannot_Attack_Own_Ally: '&cYou can''t attack your own kingdom allies!'
 Misc_Cannot_Trample_Soil: '&bYour kingdom soil cannot be trampled'
 Misc_Cannot_Trample_Other_Soil: '&cYou cannot trample soil in %kingdom%''s land'
 Misc_Nexus_Setting_Not_In_Land: '&cThe land you''re trying to place your nexus in is not owned by your kingdom'
@@ -948,7 +949,6 @@ Guis_Permissions_Desc_Nexusbuild: '&aManage who can build in the Nexus Land'
 Nexus_GUI_Returned_Resources: '&6%amount% &cresources are returned.'
 Nexus_GUI_Require_ResourcePerPoint: '&cat least &6%amount% &cresources are needed for one rp!'
 Nexus_GUI_Donated_RP: '&a%amount% rp is added to your kingdom!'
-Command_Unclaim_All_Nexus: '&c&o&l[WARNING] UNCLAIMING NEXUS LAND WHILE IT IS BEING INVADED WILL RESULT IN AN INSTANT LOSS.'
 Command_Unclaim_All_Nexus_Lost: '&c&lYour nexus has been destroyed by invaders.'
 Command_Unclaim_Invaded: '&cLand unclaimed, and lost to invaders'
 Command_Unclaim_All_Usage: '&d/k unclaim all &7&funclaim all your kingdom lands'

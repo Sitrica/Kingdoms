@@ -8,16 +8,20 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.managers.InvadingManager;
 import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.manager.managers.PlayerManager;
+import com.songoda.kingdoms.manager.managers.external.VaultManager;
 import com.songoda.kingdoms.utils.Formatting;
 
 public abstract class AbstractCommand {
 
 	protected final FileConfiguration configuration;
+	protected final InvadingManager invadingManager;
 	protected final KingdomManager kingdomManager;
 	protected final PlayerManager playerManager;
+	protected final VaultManager vaultManager;
 	protected final LandManager landManager;
 	protected final Kingdoms instance;
 	private final boolean console;
@@ -29,8 +33,10 @@ public abstract class AbstractCommand {
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
 		this.landManager = instance.getManager("land", LandManager.class);
+		this.vaultManager = instance.getManager("vault", VaultManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.invadingManager = instance.getManager("invading", InvadingManager.class);
 	}
 	
 	protected static void registerCommand(AbstractCommand command) {

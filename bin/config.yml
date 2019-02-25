@@ -26,20 +26,8 @@ disable-configurations-reset: false
 # All configurations relating to the actual plugin.
 plugin:
     load-player-before-join: true
-    warzone-free-pvp: false
     # If special characters can be used in the Kingdom names.
     allow-special-characters: false
-
-# All configurations relating to economy (Vault)
-economy:
-    enabled: false
-    kingdom-create-cost: 0
-    kingdom-create-item-cost: false
-    # https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
-    items:
-        5: "DIAMOND"
-        10: "GOLD_INGOT"
-        15: "IRON_INGOT"
 
 # Configure your database settings.
 database:
@@ -65,6 +53,17 @@ database:
     transfer:
         sqlite: false
         mysql: false
+
+# All configurations relating to economy (Vault)
+economy:
+    enabled: false
+    kingdom-create-cost: 0
+    kingdom-create-item-cost: false
+    # https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+    items:
+        5: "DIAMOND"
+        10: "GOLD_INGOT"
+        15: "IRON_INGOT"
 
 # All settings for worlds.
 worlds:

@@ -15,7 +15,7 @@ public class RankPermissions {
 	
 	public RankPermissions(Rank rank) {
 		this.rank = rank;
-		this.configuration = Kingdoms.getInstance().getConfig();
+		this.configuration = Kingdoms.getInstance().getConfiguration("ranks").get();
 		this.node = rank.getConfigurationNode() + ".default-permissions";
 		this.regulator = getDefaultValue(node + ".override-regulator");
 		this.max = configuration.getInt(node + ".max-claims", -1);

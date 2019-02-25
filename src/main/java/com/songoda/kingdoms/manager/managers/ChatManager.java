@@ -9,6 +9,7 @@ import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -69,9 +70,10 @@ public class ChatManager extends Manager {
 				break;
 			case PUBLIC:
 				Rank rank = kingdomPlayer.getRank();
-				if (configuration.getBoolean("ranks-use-prefix", true))
+				FileConfiguration ranks = instance.getConfiguration("ranks").get();
+				if (ranks.getBoolean("ranks-use-prefix", true))
 					event.setFormat(rank.getPrefix(kingdomPlayer) + event.getFormat());
-				if (configuration.getBoolean("ranks-use-chat-color", true))
+				if (ranks.getBoolean("ranks-use-chat-color", true))
 					event.setMessage(rank.getChat() + event.getMessage());
 				break;
 		}

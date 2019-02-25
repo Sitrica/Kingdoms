@@ -1,6 +1,5 @@
 package com.songoda.kingdoms.manager.managers;
 
-import com.google.common.collect.Sets;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.LandLoadEvent;
 import com.songoda.kingdoms.events.TurretBreakEvent;
@@ -20,23 +19,18 @@ import com.songoda.kingdoms.placeholders.Placeholder;
 import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.MessageBuilder;
-import com.songoda.kingdoms.utils.SoundPlayer;
-import com.songoda.kingdoms.utils.TurretUtil;
 import com.songoda.kingdoms.utils.Utils;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Dispenser;
 import org.bukkit.block.Skull;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -49,27 +43,12 @@ import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.world.ChunkLoadEvent;
-import org.bukkit.inventory.AnvilInventory;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.metadata.MetadataValue;
 import org.bukkit.metadata.Metadatable;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
-
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -85,6 +64,7 @@ public class TurretManager extends Manager {
 	private final String METADATA_KINGDOM = "turret-kingdom";
 	private final String METADATA_DAMAGE = "turret-damage";
 	private final Set<TurretType> types = new HashSet<>();
+	private final InvadingManager invadingManager;
 	private final CitizensManager citizensManager;
 	private final KingdomManager kingdomManager;
 	private final PlayerManager playerManager;
@@ -98,6 +78,7 @@ public class TurretManager extends Manager {
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+		this.invadingManager = instance.getManager("invading", InvadingManager.class);
 		for (String turret : configuration.getConfigurationSection("turrets.turrets").getKeys(false)) {
 			types.add(new TurretType(turret));
 		}
@@ -166,7 +147,7 @@ public class TurretManager extends Manager {
 	public boolean canBeTargeteded(Turret turret, Player target) {
 		if (target.isDead() || !target.isValid())
 			return false;
-		if (GameManagement.getChampionManager().isChampion(target))
+		if (invadingManager.isDefender(target))
 			return false;
 		Location location = turret.getLocation();
 		if (!location.getWorld().equals(target.getWorld()))
@@ -206,9 +187,9 @@ public class TurretManager extends Manager {
 			return false;
 		if (citizensManager.isCitizen(target))
 			return false;
-		if (GameManagement.getChampionManager().isChampion(target))
+		if (invadingManager.isDefender(target))
 			return false;
-		OfflineKingdom playerKingdom;
+		OfflineKingdom playerKingdom = null;
 		if (target instanceof Player) {
 			Player player = (Player) target;
 			KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);

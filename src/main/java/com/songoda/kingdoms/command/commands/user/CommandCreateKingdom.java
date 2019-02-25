@@ -1,14 +1,10 @@
 package com.songoda.kingdoms.command.commands.user;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -79,8 +75,8 @@ public class CommandCreateKingdom extends AbstractCommand {
 			return ReturnType.FAILURE;
         }
 		int cost = configuration.getInt("economy.kingdom-create-cost", 0);
-		if (ExternalManager.getVaultManager() != null && configuration.getBoolean("economy.enabled")) {
-			if (cost > 0 && ExternalManager.getBalance(player) < cost) {
+		if (configuration.getBoolean("economy.enabled")) {
+			if (cost > 0 && vaultManager.getBalance(player) < cost) {
 				new MessageBuilder("commands.economy-not-enough")
 						.setPlaceholderObject(kingdomPlayer)
 						.replace("%cost%", cost)
@@ -121,9 +117,8 @@ public class CommandCreateKingdom extends AbstractCommand {
 			}
 			items.entrySet().forEach(entry -> InventoryUtil.removeMaterial(player, entry.getKey(), entry.getValue().intValue()));
 		}
-		if (ExternalManager.getVaultManager() != null && configuration.getBoolean("economy.enabled") && cost > 0) {
-			ExternalManager.withdrawPlayer(player, cost);
-		}
+		if (configuration.getBoolean("economy.enabled") && cost > 0)
+			vaultManager.withdraw(player, cost);
 		if (kingdomManager.createNewKingdom(name, kingdomPlayer)) {
 			new MessageBuilder("commands.create-kingdom.create-success")
 					.setPlaceholderObject(kingdomPlayer)

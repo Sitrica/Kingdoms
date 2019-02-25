@@ -3,7 +3,7 @@ package com.songoda.kingdoms.objects.kingdom;
 public class DefenderInfo {
 	
 	private int reinforcements = 0;
-	private int determination = 0;
+	private int absorption = 0;
 	private int resistance = 0;
 	private int maxDamage = 0;
 	private int specials = 0;
@@ -185,12 +185,12 @@ public class DefenderInfo {
 		this.resistance = resistance;
 	}
 	
-	public int getDetermination() {
-		return determination;
+	public int getAbsorption() {
+		return absorption;
 	}
 	
-	public void setDetermination(int determination) {
-		this.determination = determination;
+	public void setAbsorption(int absorption) {
+		this.absorption = absorption;
 	}
 	
 	public int getReinforcements() {
@@ -201,10 +201,10 @@ public class DefenderInfo {
 		this.reinforcements = reinforcements;
 	}
 
-	public int getUpgradeLevel(ChampionUpgrade upgrade) {
+	public int getUpgradeLevel(DefenderUpgrade upgrade) {
 		if (upgrade == null)
 			return 0;
-		switch(upgrade) {
+		switch (upgrade) {
 			case AQUA:
 				return aqua;
 			case ARMOR:
@@ -243,7 +243,7 @@ public class DefenderInfo {
 		return 0;
 	}
 	
-	public void setUpgradeLevel(ChampionUpgrade upgrade, int level) {
+	public void setUpgradeLevel(DefenderUpgrade upgrade, int level) {
 		if (upgrade == null)
 			return;
 		switch (upgrade) {

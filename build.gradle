@@ -15,6 +15,11 @@ repositories {
 		url "https://oss.sonatype.org/content/repositories/snapshots/"
 	}
 	
+	// Songoda
+	maven {
+		url "http://repo.songoda.com/artifactory/private/"
+	}
+	
 	// Citizens
 	maven {
 		url "http://repo.citizensnpcs.co/"
@@ -29,6 +34,9 @@ dependencies {
 	
 	// Spigot
 	implementation (group: 'org.spigotmc', name: 'spigot-api', version: '1.13.2-R0.1-SNAPSHOT')
+	
+	// Vault
+	implementation (group: 'net.milkbowl', name: 'vault', version: '1.7.1')
 
 }
 

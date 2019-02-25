@@ -12,6 +12,7 @@ import com.songoda.kingdoms.manager.managers.CooldownManager.KingdomCooldown;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 import com.songoda.kingdoms.objects.kingdom.BotKingdom;
+import com.songoda.kingdoms.objects.kingdom.DefenderUpgrade;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.MiscUpgrade;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
@@ -40,6 +41,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -357,8 +359,8 @@ public class KingdomManager extends Manager {
 				king.setRank(rankManager.getOwnerRank());
 				king.setKingdom(kingdom);
 				kingdoms.add(kingdom);
-				for (ChampionUpgrade upgrade : ChampionUpgrade.values()) {
-					kingdom.getChampionInfo().setUpgradeLevel(upgrade, upgrade.getUpgradeDefault(upgrade));
+				for (DefenderUpgrade upgrade : DefenderUpgrade.values()) {
+					kingdom.getDefenderInfo().setUpgradeLevel(upgrade, upgrade.getUpgradeDefault(upgrade));
 				}
 				for (MiscUpgrade upgrade : MiscUpgrade.values()) {
 					kingdom.getMisupgradeInfo().setBought(upgrade, upgrade.isDefaultOn());
@@ -464,15 +466,9 @@ public class KingdomManager extends Manager {
 		if (attacked.getKingdom() == null)
 			return;
 		KingdomPlayer damaged = playerManager.getKingdomPlayer((Player) victim);
-		if (configuration.getBoolean("plugin.warzone-free-pvp", false)) {
-			Land land = landManager.getLandAt(damaged.getLocation());
-			if (land.getOwnerUUID() != null) {
-
-			}
-		}
-		if (damaged.getKingdom() == null)
-			return;
 		Kingdom kingdom = damaged.getKingdom();
+		if (kingdom == null)
+			return;
 		if (attacked.getKingdom().equals(kingdom)) {
 			if (!configuration.getBoolean("kingdoms.friendly-fire", false)) {
 				event.setDamage(0);
@@ -487,22 +483,22 @@ public class KingdomManager extends Manager {
 
 	@EventHandler(priority = EventPriority.LOW)
 	public void onMemberAttacksAllyMembers(EntityDamageByEntityEvent event) {
-		if (!worldManager.acceptsWorld(event.getEntity().getWorld()))
-			return;
-		if (configuration.getBoolean("kingdoms.alliance-can-pvp", false))
-			return;
 		Entity victim = event.getEntity();
 		if (!(victim instanceof Player))
+			return;
+		if (!worldManager.acceptsWorld(victim.getWorld()))
+			return;
+		if (configuration.getBoolean("kingdoms.alliance-can-pvp", false))
 			return;
 		if (citizensManager.isCitizen(victim))
 			return;
 		Entity attacker = event.getDamager();
 		if (attacker.getUniqueId().equals(victim.getUniqueId()))
 			return;
-		KingdomPlayer kingdomPlayer;
+		KingdomPlayer kingdomPlayer = null;
 		if (attacker instanceof Projectile) {
 			Projectile projectile = (Projectile)attacker;
-			Entity shooter = projectile.getShooter();
+			ProjectileSource shooter = projectile.getShooter();
 			if (shooter != null) {
 				if (shooter instanceof Player) {
 					Player player = (Player)shooter;
@@ -524,50 +520,38 @@ public class KingdomManager extends Manager {
 		if (kingdom == null)
 			return;
 		KingdomPlayer victimKingdomPlayer = playerManager.getKingdomPlayer((Player) victim);
-		if (Config.getConfig().getBoolean("warzone-free-pvp")) {
-			Land att = GameManagement.getLandManager().getOrLoadLand(damaged.getLoc());
-			if (att.getOwnerUUID() != null) {
-
-			}
-		}
 		Kingdom victimKingdom = victimKingdomPlayer.getKingdom();
 		if (victimKingdom == null)
 			return;
 		if (kingdom.isAllianceWith(victimKingdom)) {
+			new MessageBuilder("kingdoms.cannot-attack-ally")
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(kingdom)
+					.send(kingdomPlayer);
 			event.setDamage(0.0D);
-			attacked.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Attack_Own_Ally", attacked.getLang()));
 			event.setCancelled(true);
 		}
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	public void onKingdomPlayerCommand(PlayerCommandPreprocessEvent e) {
-		if (!Config.getConfig().getStringList("enabled-worlds").contains(e.getPlayer().getWorld().getName())) {
+	public void onCommand(PlayerCommandPreprocessEvent event) {
+		if (event.isCancelled())
 			return;
-		}
-		Kingdoms.logDebug("command: " + e.getMessage());
-		if (e.isCancelled())
+		Player player = event.getPlayer();
+		if (!worldManager.acceptsWorld(player.getWorld()))
 			return;
-
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-		if (kp == null)
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		Land land = landManager.getLand(kingdomPlayer.getLocation().getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (landKingdom == null)
 			return;
-
-		Land land = GameManagement.getLandManager().getOrLoadLand(kp.getLoc());
-		if (land.getOwnerUUID() == null)
-			return;
-
-		Kingdom kingdom = getOrLoadKingdom(land.getOwnerUUID());
-		if (kingdom == null)
-			return;// Warzone or Safezone
-
-		if (kp.getKingdom() == null) {
-
-			if (isCommandDisabled(e.getMessage(), Config.getConfig().getStringList("denied-commands-neutral"))) {
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null) {
+			if (isCommandDisabled(event.getMessage(), Config.getConfig().getStringList("denied-commands-neutral"))) {
 				kp.sendMessage(Kingdoms.getLang().getString("Kingdom_Command_Denied_Other", kp.getLang()));
-				e.setCancelled(true);
+				event.setCancelled(true);
 			}
-		} else if (kingdom.isEnemyMember(kp) || kp.getKingdom().isEnemyWith(kingdom)) {
+		} else if (kingdom.isEnemyMember(kingdomPlayer) || kingdom.isEnemyWith(landKingdom)) {
 			if (isCommandDisabled(e.getMessage(), Config.getConfig().getStringList("denied-commands-enemy"))) {
 				kp.sendMessage(Kingdoms.getLang().getString("Kingdom_Command_Denied_Enemy", kp.getLang()));
 				e.setCancelled(true);
@@ -581,11 +565,8 @@ public class KingdomManager extends Manager {
 		}
 	}
 
-	private boolean isCommandDisabled(String message, List<String> list) {
-		for (String entry : list) {
-			if (entry.equalsIgnoreCase(message)) return true;
-		}
-		return false;
+	private boolean isCommandDisabled(String message, Collection<String> collection) {
+		return collection.parallelStream().anyMatch(string -> string.equalsIgnoreCase(message));
 	}
 
 	@EventHandler
