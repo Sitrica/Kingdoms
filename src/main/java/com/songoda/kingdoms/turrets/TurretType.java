@@ -1,4 +1,4 @@
-package com.songoda.kingdoms.objects.land;
+package com.songoda.kingdoms.turrets;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
@@ -23,18 +24,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public class TurretType {
 	
-	/*FLAME(Kingdoms.getLang().getString("Guis_Turret_Flame"),
-		Kingdoms.getLang().getString("Guis_Turret_Flame_Desc"),
-		ChatColor.RED + "=-=-=-=-=",
-		"MHF_WSkeleton",
-		2,
-		TurretTargetType.MONSTERS, TurretTargetType.ENEMY_PLAYERS),
-	HEALING(Kingdoms.getLang().getString("Guis_Turret_Healing"),
-		Kingdoms.getLang().getString("Guis_Turret_Healing_Desc"),
-		ChatColor.GREEN + "=-=-=-=-=",
-		"MHF_Zombie",
-		1,
-		TurretTargetType.ALLY_PLAYERS),
+	/*
 	HEATBEAM(Kingdoms.getLang().getString("Guis_Turret_Heatbeam"),
 		Kingdoms.getLang().getString("Guis_Turret_Heatbeam_Desc"),
 		ChatColor.GREEN + "=========",
@@ -73,20 +63,23 @@ public class TurretType {
 		TurretTargetType.ENEMY_PLAYERS);
 	*/
 
+	private final boolean enabled, natural, critical, flame, particle, heal, usePotions;
 	private final String node, title, decal, skin, meta, reload;
 	private final List<String> description = new ArrayList<>();
+	private final int cost, damage, range, max, ammo, spread;
 	private final Set<TargetType> targets = new HashSet<>();
 	private SoundPlayer placing, reloading, shooting;
-	private final int cost, damage, range, max, ammo;
 	private final FileConfiguration configuration;
-	private final boolean enabled, natural;
+	private ParticleProjectile particleProjectile;
 	private final long cooldown, firerate;
 	private final EntityType projectile;
 	private final Material material;
+	private HealthInfo health;
+	private Potions potions;
 	
 	public TurretType(String node) {
 		configuration = Kingdoms.getInstance().getConfiguration("turrets").get();
-		ConfigurationSection section = configuration.getConfigurationSection("turrets.turrets" + node);
+		ConfigurationSection section = configuration.getConfigurationSection("turrets.turrets." + node);
 		ConfigurationSection item = section.getConfigurationSection("item");
 		if (section.getBoolean("use-place-sound", false))
 			this.placing = new SoundPlayer(section.getConfigurationSection("place-sounds"));
@@ -94,17 +87,29 @@ public class TurretType {
 			this.shooting = new SoundPlayer(section.getConfigurationSection("shoot-sound"));
 		if (section.getBoolean("use-reload-sound", false))
 			this.reloading = new SoundPlayer(section.getConfigurationSection("reload-sounds"));
+		this.particle = section.getBoolean("particle-projectile.enabled", false);
+		if (particle)
+			particleProjectile = new ParticleProjectile(section.getConfigurationSection("particle-projectile"));
+		this.heal = section.getBoolean("health-gain.enabled", false);
+		if (heal)
+			health = new HealthInfo(section.getConfigurationSection("health-gain"));
+		this.usePotions = section.getBoolean("potions.enabled", false);
+		if (usePotions)
+			potions = new Potions(section.getConfigurationSection("potions.list"));
 		this.material = Utils.materialAttempt(item.getString("material", "MUSIC_DISC_STAL"), "GOLD_RECORD");
 		this.projectile = Utils.entityAttempt(section.getString("projectile", "ARROW"), "ARROW");
 		this.firerate = IntervalUtils.getInterval(section.getString("fire-rate", "1 second"));
 		this.cooldown = IntervalUtils.getInterval(section.getString("cooldown", "5 seconds"));
 		this.reload = section.getString("reloading-skull-skin", "Redstone");
+		this.skin = section.getString("skull-skin", "MHF_Skeleton");
 		this.description.addAll(item.getStringList("description"));
 		this.natural = section.getBoolean("natural-damage", false);
-		this.skin = section.getString("skull-skin", "MHF_Zombie");
+		this.critical = section.getBoolean("critical", false);
 		this.decal = section.getString("decal", "---------");
 		this.enabled = section.getBoolean("enabled", true);
+		this.flame = section.getBoolean("flame", false);
 		this.max = section.getInt("max-per-land", 50);
+		this.spread = section.getInt("spread", 12);
 		this.damage = section.getInt("damage", 4);
 		this.range = section.getInt("range", 8);
 		this.cost = section.getInt("cost", 300);
@@ -112,6 +117,10 @@ public class TurretType {
 		this.title = item.getString("title");
 		this.meta = item.getString("meta");
 		this.node = node;
+	}
+	
+	public ParticleProjectile getParticleProjectile() {
+		return particleProjectile;
 	}
 	
 	public SoundPlayer getReloadingSounds() {
@@ -126,6 +135,10 @@ public class TurretType {
 		return placing;
 	}
 	
+	public boolean isParticleProjectile() {
+		return particle;
+	}
+	
 	public List<String> getDescription() {
 		return description;
 	}
@@ -134,16 +147,39 @@ public class TurretType {
 		return targets;
 	}
 	
+	public HealthInfo getHealthInfo() {
+		return health;
+	}
+	
 	public EntityType getProjectile() {
 		return projectile;
 	}
 	
+	/**
+	 * Cooldown is in milliseconds.
+	 */
 	public long getReloadCooldown() {
-		return cooldown;
+		return cooldown * 1000;
 	}
 	
 	public Material getMaterial() {
 		return material;
+	}
+	
+	public boolean isCritical() {
+		return critical;
+	}
+	
+	public int getArrowSpread() {
+		return spread;
+	}
+	
+	public Potions getPotions() {
+		return potions;
+	}
+	
+	public boolean hasPotions() {
+		return usePotions;
 	}
 	
 	public boolean isNatural() {
@@ -154,12 +190,23 @@ public class TurretType {
 		return enabled;
 	}
 	
+	public boolean isHealer() {
+		return heal;
+	}
+	
+	/*
+	 * Firerate is in milliseconds.
+	 */
 	public long getFirerate() {
-		return firerate;
+		return firerate * 1000;
 	}
 
 	public String getTitle() {
 		return title;
+	}
+	
+	public boolean isFlame() {
+		return flame;
 	}
 	
 	public String getDecal() {
@@ -201,6 +248,7 @@ public class TurretType {
 	public enum TargetType {
 		ALLIANCE,
 		MONSTERS,
+		KINGDOM,
 		ENEMIES;
 	}
 	

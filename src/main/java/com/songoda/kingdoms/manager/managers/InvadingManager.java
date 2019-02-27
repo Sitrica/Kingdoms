@@ -3,7 +3,6 @@ package com.songoda.kingdoms.manager.managers;
 import com.songoda.kingdoms.events.InvadingSurrenderEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
-import com.songoda.kingdoms.objects.kingdom.ChampionUpgrade;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
@@ -11,9 +10,9 @@ import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.land.Structure;
 import com.songoda.kingdoms.objects.land.StructureType;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
+import com.songoda.kingdoms.turrets.TurretUtil;
 import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
-import com.songoda.kingdoms.utils.TurretUtil;
 import com.songoda.kingdoms.utils.Utils;
 
 import org.bukkit.Bukkit;

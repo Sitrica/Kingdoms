@@ -1,17 +1,8 @@
-package com.songoda.kingdoms.utils;
+package com.songoda.kingdoms.turrets;
 
-import com.songoda.kingdoms.constants.TurretType;
-import com.songoda.kingdoms.manager.external.ExternalManager;
-import com.songoda.kingdoms.manager.game.GameManagement;
-import com.songoda.kingdoms.objects.KingdomPlayer;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
-import com.songoda.kingdoms.objects.land.Turret;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.Kingdoms;
-import com.songoda.kingdoms.constants.TurretTargetType;
-
-import org.bukkit.*;
-import org.bukkit.entity.*;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 import org.bukkit.inventory.EntityEquipment;
@@ -21,30 +12,12 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
-import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 public class TurretUtil {
 
 	public static final String turretDecal = ChatColor.GOLD + "Kingdoms Turret";
-
-	public static void shootArrow(Kingdom shooter, Location target, Location origin, boolean crit, boolean fire, double damage) {
-		Vector to = target.clone().add(0.0D, 0.75D, 0.0D).toVector();
-		Location fromLoc = origin.clone().add(0.5D, 1.0D, 0.5D);
-		Vector from = fromLoc.toVector();
-		Vector direction = to.subtract(from);
-		direction.normalize();
-		Kingdoms instance = Kingdoms.getInstance();
-		Arrow arrow = origin.getWorld().spawnArrow(fromLoc, direction, 1.5F, 10);// speed,spread
-		if (shooter != null)
-			arrow.setMetadata(META_SHOOTER, new FixedMetadataValue(instance, shooter.getKingdomName()));
-		if (crit)
-			arrow.setCritical(crit);
-		if (fire)
-			arrow.setFireTicks(Integer.MAX_VALUE);
-		arrow.setMetadata(META_DAMAGE, new FixedMetadataValue(instance, "" + damage));
-	}
 
 	public static void volley(Kingdom shooter, Location target, Location origin) {
 		Location fromLoc = origin.clone().add(0.5D, 1.0D, 0.5D);
@@ -95,24 +68,23 @@ public class TurretUtil {
 
 
 	public static void heatbeamAttack(LivingEntity target, Location origin, double damage, boolean upgraded){
-	heatbeamParticleEffect(target, origin);
-	if(upgraded) damage += 3;
-	target.damage((1.0 - getDamageReduced(target)) * damage);
-	if(target instanceof Player){
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession((Player) target);
-		if(ExternalManager.sendActionBar(((Player) target),
-			Kingdoms.getLang().getString("Turrets_Heatbeam_Attack", kp.getLang()))){
-		target.sendMessage(Kingdoms.getLang().getString("Turrets_Heatbeam_Attack", kp.getLang()));
+		heatbeamParticleEffect(target, origin);
+		if(upgraded) damage += 3;
+		target.damage((1.0 - getDamageReduced(target)) * damage);
+		if(target instanceof Player){
+			KingdomPlayer kp = GameManagement.getPlayerManager().getSession((Player) target);
+			if(ExternalManager.sendActionBar(((Player) target),
+				Kingdoms.getLang().getString("Turrets_Heatbeam_Attack", kp.getLang()))){
+			target.sendMessage(Kingdoms.getLang().getString("Turrets_Heatbeam_Attack", kp.getLang()));
+			}
 		}
 	}
 
-	}
-
-	public static void heatbeamParticleEffect(Entity target, Location origin){
+	public static void heatbeamParticleEffect(Entity target, Location origin) {
 		origin = origin.clone().add(0.5D, 1.0D, 0.5D);
 		Location targetLoc = target.getLocation().clone().add(0, 0.5, 0);
 		// 2017-05-04 -- distanceSquared is already always positive. Math.sqrt() seems to perform better than Math.abs()
-		//							 I think Location.distance() does the exact same thing, but lets just do it manually as I'm not sure about that
+		// I think Location.distance() does the exact same thing, but lets just do it manually as I'm not sure about that
 		double distance = Math.sqrt(targetLoc.distanceSquared(origin));
 		int distInt = (int) Math.ceil(distance);
 	
@@ -144,7 +116,7 @@ public class TurretUtil {
 	}
 
 
-	private static double getDamageReduced(LivingEntity livingEntity){
+	private static double getDamageReduced(LivingEntity livingEntity) {
 		EntityEquipment inv = livingEntity.getEquipment();
 		ItemStack boots = inv.getBoots();
 		ItemStack helmet = inv.getHelmet();
@@ -183,50 +155,6 @@ public class TurretUtil {
 			else if(chest.getType() == Material.DIAMOND_CHESTPLATE) red = red + 0.32;
 		}
 		return red;
-	}
-
-
-	public static void healEffect(Player target, double amount){
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession(target);
-		int level = kp.getKingdom().getPowerUp().getRegenboost();
-		double amt = amount * (1.0D + level / 100.0D);
-	
-		EntityRegainHealthEvent event = new EntityRegainHealthEvent(target, amt, RegainReason.CUSTOM);
-		Bukkit.getPluginManager().callEvent(event);
-		if(event.isCancelled()) return;
-		amt = event.getAmount();
-		target.setHealth(target.getHealth() + amt > target.getMaxHealth() ? target.getMaxHealth()
-			: target.getHealth() + amt);
-	}
-
-	private static final Map<UUID, Integer> healTasks = new ConcurrentHashMap<UUID, Integer>();
-
-	public static void regenHealEffect(Player target, double amount){
-		int i = Bukkit.getScheduler().scheduleSyncRepeatingTask(Kingdoms.getInstance(), new Runnable() {
-			int timesRun = 0;
-	
-			@Override
-			public void run(){
-			timesRun++;
-			if(timesRun >= 4){
-				if(healTasks.get(target.getUniqueId()) != null)
-				Bukkit.getScheduler().cancelTask(healTasks.remove(target.getUniqueId()));
-				return;
-			}
-			healEffect(target, amount);
-			}
-	
-		}, 0, 5L);
-		healTasks.put(target.getUniqueId(), i);
-	}
-
-	public static int randInt(int min, int max) {
-
-		Random rand = new Random();
-	
-		int randomNum = rand.nextInt((max - min) + 1) + min;
-	
-		return randomNum;
 	}
 
 }

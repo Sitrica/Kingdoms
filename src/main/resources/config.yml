@@ -104,7 +104,7 @@ claiming:
     # unclaim all confirmation delay
     unclaim-all-confirmation-delay: "25 seconds"
 
-# Blocks that can't be relplaced when placing a structure.
+# Blocks that can't be replaced when placing a structure.
 unreplaceable-blocks:
     - "BEDROCK"
     - "OBSIDIAN"
@@ -359,6 +359,18 @@ invading:
         # 1.13+ Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
         # 1.8 and lower materials: https://github.com/Attano/Spigot-1.8/blob/master/org/bukkit/Material.java
         helmet: "PUMPKIN"
+
+# All configurations relating to commands.
+commands:
+    # If the command or arguments contains a string, cancel it.
+    contains: false
+    denied-in-neutral:
+        - "/example"
+        - "/example1"
+    denied-in-enemy:
+        - "/sethome"
+        - "/essentials:sethome"
+        - "/derpcommand with any arguments"
         
         
         
@@ -450,13 +462,6 @@ siege:
         recharge-cost-reset-time-in-min: 720
 canOnlyInvadeDuringMasswar: false
 kingdom-expiry-days: 999
-denied-commands-neutral:
-- /example
-- /example1
-denied-commands-enemy:
-- /sethome
-- /essentials:sethome
-- /derpcommand with any arguments
 showLandEnterMessage: true
 private-chests:
     enable-private-chests: true

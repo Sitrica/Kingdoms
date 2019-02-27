@@ -1,6 +1,13 @@
 apply plugin: 'java-library'
 apply plugin: 'eclipse'
 
+jar.archiveName = project.name + '.jar'
+
+configurations {
+    shade
+    compile.extendsFrom shade
+}
+
 repositories {
 	mavenCentral()
 	jcenter()
@@ -20,6 +27,11 @@ repositories {
 		url "http://repo.songoda.com/artifactory/private/"
 	}
 	
+	// EffectLib
+	maven {
+		url 'http://maven.elmakers.com/repository/'
+	}
+	
 	// Citizens
 	maven {
 		url "http://repo.citizensnpcs.co/"
@@ -35,6 +47,9 @@ dependencies {
 	// Spigot
 	implementation (group: 'org.spigotmc', name: 'spigot-api', version: '1.13.2-R0.1-SNAPSHOT')
 	
+	// EffectLib
+	shade (group: 'de.slikey', name: 'EffectLib', version: '6.2-SNAPSHOT')
+	
 	// Vault
 	implementation (group: 'net.milkbowl', name: 'vault', version: '1.7.1')
 
@@ -44,4 +59,12 @@ processResources {
 	from (sourceSets.main.resources.srcDirs) {
 		include '**/*.yml'
 	}
+}
+
+jar {
+    configurations.shade.each { dep ->
+        from (project.zipTree(dep)) {
+            exclude 'META-INF', 'META-INF/**'
+        }
+    }
 }

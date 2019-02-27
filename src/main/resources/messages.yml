@@ -154,6 +154,9 @@ chat:
 
 # All command releated messages
 commands:
+    # When a command can't be executed in a neutral area based on the values in the config.
+    # Placeholders: %location% and all Kingdom releated placeholders.
+    kingdom-denied-neutral: '&cThis command is cannot be used in others'' kingdom.'
     # Placeholders: %location% and all Kingdom releated placeholders.
     spawn-set: '&aKingdom spawn has been set at: %location%'
     kingdoms:
@@ -193,6 +196,12 @@ commands:
         auto-claim-on: "&aAuto claiming has been enabled."
         auto-claim-off: "&cAuto claiming has been disabled."
     unclaim:
+        # Placeholders: All KingdomPlayer placeholders.
+        description:
+            - "Unclaim the chunk you're standing on for your Kingdom"
+            - "/k unclaim all - Will unclaim all lands owned by your Kingdom."
+        # Placeholders: All KingdomPlayer placeholders.
+        syntax: "/k unclaim [all]"
         # Placeholders: All Kingdom and KingdomPlayer placeholders.
         not-your-kingdom: "&cYour kingdom does not own this land."
         # Placeholders: All Kingdom and KingdomPlayer placeholders.
@@ -231,10 +240,6 @@ Turrets_Psi_Attack: '&c&lYou were hit by a Psionic Strike!'
 Turrets_Heatbeam_Attack: '&c&lYou were hit by a Heatbeam Attack!'
 # If you're looking for this one, ignore it.
 #Misc_Kingdom_Deleting: Kingdom is disbanding. Please wait a moment...
-Guis_Turret_Healing: '&bHealing Station'
-Guis_Turret_Healing_Desc: '&aA turret which heals nearby allies'
-Guis_Turret_Flame: '&bFlame Turret'
-Guis_Turret_Flame_Desc: '&aFast firing turret that sets targets ablaze.'
 Guis_Turret_Hellfire: '&bHellfire Turret'
 Guis_Turret_Hellfire_Desc: '&aPowerful turret which fires quickly and with high damage'
 Guis_Turret_Heatbeam: '&bHeatbeam Turret'
@@ -959,7 +964,6 @@ LandManager_MovedWhiledRemoveAll: '&c/k remove all cancelled.'
 PChest_AlreadyProtected: '&cThis chest is already protected.'
 PChest_CostDeducted: '&aProtected sign successfully made for %cost% rp!'
 PChest_NotYourKingdomChest: '&cThis chest is property of [%kingdom%].'
-Kingdom_Command_Denied_Other: '&cThis command is cannot be used in others'' kingdom.'
 Kingdom_Command_Denied_Enemy: '&cThis command is cannot be used in kingdom who against you.'
 EventManager_Masswar_NotOn: '&cNot On.'
 Guis_Misc_Enabled: '&aEnabled'

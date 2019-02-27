@@ -157,10 +157,19 @@ public class Utils {
 		}
 	}
 	
+	public static boolean methodExists(Class<?> c, String methodName) {
+		try {
+			c.getDeclaredMethod(methodName);
+			return true;
+		} catch (NoSuchMethodException | SecurityException e) {
+			return false;
+		}
+	}
+	
 	public static EntityType entityAttempt(String attempt, String fallback) {
 		EntityType entity = null;
 		try {
-			entity = EntityType.valueOf(attempt);
+			entity = EntityType.valueOf(attempt.toUpperCase());
 		} catch (Exception e) {
 			try {
 				entity = EntityType.valueOf(fallback);
@@ -174,7 +183,7 @@ public class Utils {
 	public static Material materialAttempt(String attempt, String fallback) {
 		Material material = null;
 		try {
-			material = Material.valueOf(attempt);
+			material = Material.valueOf(attempt.toUpperCase());
 		} catch (Exception e) {
 			try {
 				material = Material.valueOf(fallback);
@@ -188,7 +197,7 @@ public class Utils {
 	public static Sound soundAttempt(String attempt, String fallback) {
 		Sound sound = null;
 		try {
-			sound = Sound.valueOf(attempt);
+			sound = Sound.valueOf(attempt.toUpperCase());
 		} catch (Exception e) {
 			try {
 				sound = Sound.valueOf(fallback);

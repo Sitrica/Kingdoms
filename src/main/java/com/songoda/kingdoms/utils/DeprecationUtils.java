@@ -52,6 +52,14 @@ public class DeprecationUtils {
 			return player.getInventory().getItemInMainHand();
 		}
 	}
+	
+	public static double getMaxHealth(LivingEntity entity) {
+		try {
+			return entity.getMaxHealth();
+		} catch (Exception e) {
+			return entity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+		}
+	}
 
 	public static void setItemInMainHand(LivingEntity entity, ItemStack item) {
 		try {

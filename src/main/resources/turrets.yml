@@ -122,6 +122,66 @@ turrets:
             # https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionType.html
             # Otherwise if it's not one of those three, this option will be ignored.
             projectile-meta: "STONE"
+            # If the projectile should apply a potion effect when hitting an enemy.
+            potions:
+                enabled: false
+                # List of all potions to apply.
+                list:
+                    1:
+                        # Potion types: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionEffectType.html
+                        potion: "HEALTH_BOOST"
+                        # Duration is in ticks. (20 ticks per second)
+                        duration: 60
+                        amplifier: 1
+                        # "ambient is whether or not the potion effect is provided by a beacon and therefore should be less intrusive on the screen." - Minecraft wiki.
+                        ambient: false
+                        # If the particles should be shown on the potion effect.
+                        particles: true
+                        # If the potion icon (toast) should be displayed to the user. (In the top right corner)
+                        toast: true
+            # You can make the turret shoot particle projectiles instead of an actual entity.
+            particle-projectile:
+                enabled: false
+                # The modes are currently "FOLLOW" and "LINE"
+                # Follow mode will make the particle trace towards the target.
+                # Line mode will be like the older Kingdoms versions where it just shots a steady beam of particles at the target.
+                mode: "line"
+                # The particle to use https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
+                particle: "FLAME"
+                # If the particle is a colorable particle such as redstone dust, you can define the color here.
+                # Colros: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Color.html
+                color: "RED"
+                # If the particle accepts materials such as BLOCK_CRACK, BLOCK_DUST etc
+                # You can define the material the particle will represent https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+                material: "STONE"
+                # The viewing radius of the particle.
+                radius: 25
+                # The time that the particle should stay.
+                stay-time: "1 second"
+                # This value determines how fast the follow particle type should travel at when the target is far away.
+                # The higher this value, the quicker the follow particle travels to hit the target.
+                follow-speed-modifier: 4
+                # The value multiplied by the distance for the max amount of attempts to send a follow particle to the target.
+                # If the target is using like an Elytra the particle won't catch up and would infinitely try to get to the player.
+                # This adds a timeout to the particle. The smaller the value, the quicker it times out.
+                follow-timeout: 10
+                # The amount of particles to spawn at each tick update.
+                amount: 2
+                # The size of the particle.
+                size: 1
+            # Change the turret to be a healing turret
+            health-gain:
+                enabled: false
+                health: 2
+                chance:
+                    enabled: false
+                    percent: 85
+            # If the projectile is an Arrow should it be set as critical damage?
+            critical: false
+            # If the projectile is an Arrow, you can add the spread of the arrow, as in coord accuracy.
+            arrow-spread: 12
+            # If the projectile is an Arrow should it be set as a flame arrow?
+            flame: false
             # Decal is a fancy little additional part of the lore in the turret shop.
             decal: "&e=-=-=-=-="
             # The firing reload cooldown
@@ -214,9 +274,184 @@ turrets:
             # The range at which the turret can shoot.
             range: 8
             # Targets will allow you to define what the turrets will shoot at
-            # The types are MONSTERS, ENEMIES, and ALLIANCE
+            # The types are MONSTERS, ENEMIES, KINGDOM, and ALLIANCE
+            # ALLIANCE includes KINGDOM members.
             targets:
                 - "MONSTERS"
                 - "ENEMIES"
             # How many resource points it costs to buy this turret.
             cost: 100
+        flame:
+            enabled: true
+            max-per-land: 50
+            skull-skin: "MHF_WSkeleton"
+            reloading-skull-skin: "Redstone"
+            projectile: "ARROW"
+            projectile-meta: "STONE"
+            critical: false
+            arrow-spread: 10
+            flame: true
+            decal: "&c=-=-=-=-="
+            cooldown: "2 second"
+            # The time in between each shot of ammo.
+            fire-rate: "10 ticks"
+            # The amount of ammo the turret has before reloading.
+            # In this example it will shoot 4 times in 2 seconds
+            ammo: 4
+            use-place-sound: true
+            place-sounds:
+                1:
+                    sound: "BLOCK_IRON_DOOR_OPEN"
+                    volume: 1
+                    pitch: 1
+                    delay: 0
+            use-shoot-sound: true
+            shoot-sounds:
+                fire:
+                    sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR"
+                    volume: 0.6
+                    pitch: 0
+                    delay: 0
+                fire-2:
+                    sound: "BLOCK_FIRE_EXTINGUISH"
+                    volume: 1
+                    pitch: 1
+                    delay: 5
+            use-reload-sound: true
+            reload-sounds:
+                reload-1:
+                    sound: "BLOCK_FIRE_EXTINGUISH"
+                    volume: 1
+                    pitch: 1
+                    delay: 0
+                reload-2:
+                    sound: "BLOCK_IRON_DOOR_OPEN"
+                    volume: 1
+                    pitch: 1
+                    delay: 5
+                reload-3:
+                    sound: "BLOCK_IRON_DOOR_OPEN"
+                    volume: 1
+                    pitch: 1
+                    delay: 10
+                reload-4:
+                    sound: "BLOCK_IRON_DOOR_CLOSE"
+                    volume: 1
+                    pitch: 1
+                    delay: 15
+                reload-5:
+                    sound: "BLOCK_IRON_DOOR_CLOSE"
+                    volume: 1
+                    pitch: 1
+                    delay: 20
+            item:
+                title: "&6Flame Turret"
+                material: "TIPPED_ARROW"
+                meta: "FIRE_RESISTANCE"
+                description:
+                    - "&7Fast firing turret that sets targets ablaze."
+            natural-damage: true
+            damage: 3
+            range: 8
+            targets:
+                - "MONSTERS"
+                - "ENEMIES"
+            cost: 200
+        heart-beam:
+            enabled: true
+            max-per-land: 10
+            skull-skin: "MHF_Pumpkin"
+            reloading-skull-skin: "Redstone"
+            # This isn't used as this is a particle projectile.
+            projectile: "TIPPED_ARROW"
+            projectile-meta: "INSTANT_HEAL"
+            potions:
+                enabled: true
+                list:
+                    1:
+                        # Used for effect mosty, it makes the heart bar bounce to signify health gain.
+                        # The health-gain controls the actual amount.
+                        potion: "REGENERATION"
+                        duration: 20
+                        amplifier: 1
+                        ambient: false
+                        particles: true
+                        toast: true
+            particle-projectile:
+                enabled: true
+                mode: "FOLLOW"
+                particle: "HEART"
+                color: "RED"
+                material: "STONE"
+                radius: 25
+                stay-time: "1 second"
+                follow-speed-modifier: 4
+                follow-timeout: 5
+                amount: 1
+                size: 1
+            health-gain:
+                enabled: true
+                health: 2
+                chance:
+                    enabled: false
+                    percent: 85
+            critical: false
+            arrow-spread: 12
+            flame: false
+            decal: "&c========="
+            cooldown: "4 second"
+            fire-rate: "1 second"
+            ammo: 1
+            use-place-sound: true
+            place-sounds:
+                1:
+                    sound: "BLOCK_FENCE_GATE_OPEN"
+                    volume: 1
+                    pitch: 5
+                    delay: 0
+                2:
+                    sound: "ENCHANT_THORNS_HIT"
+                    volume: 1
+                    pitch: 0
+                    delay: 5
+            use-shoot-sound: true
+            shoot-sounds:
+                fire:
+                    sound: "BLOCK_FENCE_GATE_OPEN"
+                    volume: 0.6
+                    pitch: 15
+                    delay: 0
+            use-reload-sound: true
+            reload-sounds:
+                reload-1:
+                    sound: "BLOCK_ANVIL_USE"
+                    volume: 0.3
+                    pitch: 0
+                    delay: 0
+                reload-2:
+                    sound: "BLOCK_FENCE_GATE_CLOSE"
+                    volume: 1
+                    pitch: 0
+                    delay: 20
+                reload-3:
+                    sound: "BLOCK_FENCE_GATE_CLOSE"
+                    volume: 1
+                    pitch: 0
+                    delay: 40
+                reload-4:
+                    sound: "BLOCK_FENCE_GATE_CLOSE"
+                    volume: 1
+                    pitch: 0
+                    delay: 60
+            item:
+                title: "&dHealing Station"
+                material: "TIPPED_ARROW"
+                meta: "INSTANT_HEAL"
+                description:
+                    - "&7A turret which heals nearby allies."
+            natural-damage: false
+            damage: 0
+            range: 10
+            targets:
+                - "ALLIANCE"
+            cost: 350

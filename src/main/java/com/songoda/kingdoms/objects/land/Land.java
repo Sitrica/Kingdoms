@@ -10,6 +10,7 @@ import org.bukkit.World;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.turrets.Turret;
 
 public class Land {
 

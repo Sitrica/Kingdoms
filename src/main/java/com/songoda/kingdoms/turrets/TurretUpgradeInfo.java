@@ -1,4 +1,4 @@
-package com.songoda.kingdoms.objects.kingdom;
+package com.songoda.kingdoms.turrets;
 
 public class TurretUpgradeInfo {
 

@@ -44,6 +44,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -547,8 +548,11 @@ public class KingdomManager extends Manager {
 			return;
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null) {
-			if (isCommandDisabled(event.getMessage(), Config.getConfig().getStringList("denied-commands-neutral"))) {
-				kp.sendMessage(Kingdoms.getLang().getString("Kingdom_Command_Denied_Other", kp.getLang()));
+			if (isCommandDisabled(event.getMessage(), "commands.kingdom-denied-neutral")) {
+				new MessageBuilder()
+						.setPlaceholderObject(kingdomPlayer)
+						.setKingdom(kingdom)
+						.send(player);
 				event.setCancelled(true);
 			}
 		} else if (kingdom.isEnemyMember(kingdomPlayer) || kingdom.isEnemyWith(landKingdom)) {
@@ -565,8 +569,11 @@ public class KingdomManager extends Manager {
 		}
 	}
 
-	private boolean isCommandDisabled(String message, Collection<String> collection) {
-		return collection.parallelStream().anyMatch(string -> string.equalsIgnoreCase(message));
+	private boolean isCommandDisabled(String message, String node) {
+		List<String> commands = configuration.getStringList(node);
+		if (configuration.getBoolean("commands.contains", false))
+			return commands.parallelStream().anyMatch(string -> string.contains(message));
+		return commands.parallelStream().anyMatch(string -> string.equalsIgnoreCase(message));
 	}
 
 	@EventHandler

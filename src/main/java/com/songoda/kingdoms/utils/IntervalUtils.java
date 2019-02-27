@@ -6,14 +6,17 @@ import java.util.regex.Pattern;
 public class IntervalUtils {
 
 	public static long getInterval(String interval) {
-		Pattern regex = Pattern.compile("( ?and ?)?([0-9]+) ?(second(s|)|s|minute(s|)|m|hour(s|)|h|day(s|)|d|week(s|)|w)", Pattern.DOTALL | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.MULTILINE);
+		Pattern regex = Pattern.compile("( ?and ?)?([0-9]+) ?(tick(s|)|t|second(s|)|s|minute(s|)|m|hour(s|)|h|day(s|)|d|week(s|)|w)", Pattern.DOTALL | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.MULTILINE);
 		Matcher matcher = regex.matcher(interval);
 		long time = 1;
 		while (matcher.find()) {
 			interval = matcher.group(2);
 			switch (matcher.group(3).toLowerCase().charAt(0)) {
-				case 's':
+				case 't':
 					time = time + Long.parseLong(interval);
+					break;
+				case 's':
+					time = time + Long.parseLong(interval) * 20;
 					break;
 				case 'm':
 					time = time + Long.parseLong(interval) * 60;

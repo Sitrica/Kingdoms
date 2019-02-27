@@ -122,6 +122,31 @@ turrets:
             # https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionType.html
             # Otherwise if it's not one of those three, this option will be ignored.
             projectile-meta: "STONE"
+            # You can make the turret shoot particle projectiles instead of an actual entity.
+            particle-projectile:
+                enabled: false
+                # The modes are currently "FOLLOW" and "LINE"
+                # Follow mode will make the particle trace towards the target.
+                # Line mode will be like the older Kingdoms versions where it just shots a steady beam of particles at the target.
+                mode: "line"
+                # The particle to use https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html
+                particle: "FLAME"
+                # If the particle is a colorable particle such as redstone dust, you can define the color here.
+                # Colros: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Color.html
+                color: "RED"
+                # If the particle accepts materials such as BLOCK_CRACK, BLOCK_DUST etc
+                # You can define the material the particle will represent https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+                material: "STONE"
+                # The viewing radius of the particle.
+                radius: 25
+                # The time that the particle should stay.
+                stay-time: "1 second"
+            # If the projectile is an Arrow should it be set as critical damage?
+            critical: false
+            # If the projectile is an Arrow, you can add the spread of the arrow, as in coord accuracy.
+            arrow-spread: 12
+            # If the projectile is an Arrow should it be set as a flame arrow?
+            flame: false
             # Decal is a fancy little additional part of the lore in the turret shop.
             decal: "&e=-=-=-=-="
             # The firing reload cooldown
@@ -220,3 +245,81 @@ turrets:
                 - "ENEMIES"
             # How many resource points it costs to buy this turret.
             cost: 100
+        flame:
+            enabled: true
+            max-per-land: 50
+            skull-skin: "MHF_WSkeleton"
+            reloading-skull-skin: "Redstone"
+            projectile: "ARROW"
+            projectile-meta: "STONE"
+            critical: false
+            arrow-spread: 10
+            flame: true
+            decal: "&c=-=-=-=-="
+            cooldown: "2 second"
+            # The time in between each shot of ammo.
+            fire-rate: "2 second"
+            # The amount of ammo the turret has before reloading.
+            # In this example it will shoot 4 times in 2 seconds
+            ammo: 4
+            use-place-sound: true
+            place-sounds:
+                1:
+                    sound: "BLOCK_IRON_DOOR_OPEN"
+                    volume: 1
+                    pitch: 1
+                    delay: 0
+            use-shoot-sound: true
+            shoot-sounds:
+                fire:
+                    sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR"
+                    volume: 0.6
+                    pitch: 0
+                    delay: 0
+                fire-2:
+                    sound: "BLOCK_FIRE_EXTINGUISH"
+                    volume: 1
+                    pitch: 1
+                    delay: 5
+            use-reload-sound: true
+            reload-sounds:
+                reload-1:
+                    sound: "BLOCK_FIRE_EXTINGUISH"
+                    volume: 1
+                    pitch: 1
+                    delay: 0
+                reload-2:
+                    sound: "BLOCK_IRON_DOOR_OPEN"
+                    volume: 1
+                    pitch: 1
+                    delay: 5
+                reload-3:
+                    sound: "BLOCK_IRON_DOOR_OPEN"
+                    volume: 1
+                    pitch: 1
+                    delay: 10
+                reload-4:
+                    sound: "BLOCK_IRON_DOOR_CLOSE"
+                    volume: 1
+                    pitch: 1
+                    delay: 15
+                reload-5:
+                    sound: "BLOCK_IRON_DOOR_CLOSE"
+                    volume: 1
+                    pitch: 1
+                    delay: 20
+            item:
+                title: "&cFlame Turret"
+                # If this is set to SKELETON_SKULL you can set the skull-skin to a UUID and the item will be the skull head.
+                # Latest Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+                material: "ARROW"
+                meta: "FIRE_RESISTANCE"
+                description:
+                    - "&7Fast firing turret that sets targets ablaze."
+            natural-damage: true
+            damage: 3
+            range: 8
+            targets:
+                - "MONSTERS"
+                - "ENEMIES"
+            cost: 200

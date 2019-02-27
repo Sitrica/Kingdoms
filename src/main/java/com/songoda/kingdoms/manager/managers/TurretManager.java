@@ -3,19 +3,23 @@ package com.songoda.kingdoms.manager.managers;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.LandLoadEvent;
 import com.songoda.kingdoms.events.TurretBreakEvent;
+import com.songoda.kingdoms.events.TurretFireEvent;
 import com.songoda.kingdoms.events.TurretPlaceEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
+import com.songoda.kingdoms.manager.managers.external.EffectLibManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
-import com.songoda.kingdoms.objects.land.Turret;
-import com.songoda.kingdoms.objects.land.TurretType;
-import com.songoda.kingdoms.objects.land.TurretType.TargetType;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.placeholders.Placeholder;
+import com.songoda.kingdoms.turrets.HealthInfo;
+import com.songoda.kingdoms.turrets.Potions;
+import com.songoda.kingdoms.turrets.Turret;
+import com.songoda.kingdoms.turrets.TurretType;
+import com.songoda.kingdoms.turrets.TurretType.TargetType;
 import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.MessageBuilder;
@@ -32,9 +36,12 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Dispenser;
 import org.bukkit.block.Skull;
 import org.bukkit.entity.AnimalTamer;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TippedArrow;
 import org.bukkit.entity.Wolf;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
@@ -43,11 +50,17 @@ import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.Metadatable;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.util.Vector;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -60,10 +73,14 @@ public class TurretManager extends Manager {
 		registerManager("turret", new TurretManager());
 	}
 	
-	private final String METADATA_CONQUEST = "conquest-arrow";
-	private final String METADATA_KINGDOM = "turret-kingdom";
-	private final String METADATA_DAMAGE = "turret-damage";
 	private final Set<TurretType> types = new HashSet<>();
+	public final String METADATA_CONQUEST = "conquest-arrow";
+	public final String METADATA_KINGDOM = "turret-kingdom";
+	public final String METADATA_POTIONS = "turret-potions";
+	public final String METADATA_CHANCE = "turret-chance";
+	public final String METADATA_HEALTH = "turret-health";
+	public final String METADATA_VALUE = "turret-value";
+	private final EffectLibManager effectLibManager;
 	private final InvadingManager invadingManager;
 	private final CitizensManager citizensManager;
 	private final KingdomManager kingdomManager;
@@ -79,13 +96,34 @@ public class TurretManager extends Manager {
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 		this.invadingManager = instance.getManager("invading", InvadingManager.class);
+		this.effectLibManager = instance.getManager("effectlib", EffectLibManager.class);
 		for (String turret : configuration.getConfigurationSection("turrets.turrets").getKeys(false)) {
 			types.add(new TurretType(turret));
 		}
 	}
 	
+	public boolean isHealthProjectile(Metadatable metadatable) {
+		return metadatable.getMetadata(METADATA_HEALTH).parallelStream()
+				.filter(metadata -> metadata.getOwningPlugin().equals(instance))
+				.findFirst().isPresent();
+	}
+	
+	public Optional<Boolean> getChance(Metadatable metadatable) {
+		return metadatable.getMetadata(METADATA_CHANCE).parallelStream()
+				.filter(metadata -> metadata.getOwningPlugin().equals(instance))
+				.map(metadata -> metadata.asBoolean())
+				.findFirst();
+	}
+	
+	public Optional<Potions> getPotions(Metadatable metadatable) {
+		return metadatable.getMetadata(METADATA_POTIONS).parallelStream()
+				.filter(metadata -> metadata.getOwningPlugin().equals(instance))
+				.map(metadata -> new Potions(metadata.asString()))
+				.findFirst();
+	}
+	
 	public Optional<Double> getProjectileDamage(Metadatable metadatable) {
-		return metadatable.getMetadata(METADATA_DAMAGE).parallelStream()
+		return metadatable.getMetadata(METADATA_VALUE).parallelStream()
 				.filter(metadata -> metadata.getOwningPlugin().equals(instance))
 				.map(metadata -> metadata.asDouble())
 				.findFirst();
@@ -144,7 +182,7 @@ public class TurretManager extends Manager {
 		return null;
 	}
 	
-	public boolean canBeTargeteded(Turret turret, Player target) {
+	public boolean canBeTargeted(Turret turret, Player target) {
 		if (target.isDead() || !target.isValid())
 			return false;
 		if (invadingManager.isDefender(target))
@@ -164,7 +202,10 @@ public class TurretManager extends Manager {
 		GameMode gamemode = target.getGameMode();
 		if (gamemode != GameMode.SURVIVAL && gamemode != GameMode.ADVENTURE)
 			return false;
-		if (type.getTargets().contains(TargetType.ALLIANCE)) {
+		if (type.getTargets().contains(TargetType.KINGDOM)) {
+			if (landKingdom.equals(kingdom))
+				return true;
+		} else if (type.getTargets().contains(TargetType.ALLIANCE)) {
 			if (kingdom == null)
 				return false;
 			if (landKingdom.equals(kingdom))
@@ -212,6 +253,167 @@ public class TurretManager extends Manager {
 		if (kingdom.equals(playerKingdom))
 			return false;
 		return !kingdom.isAllianceWith(playerKingdom);
+	}
+	
+	public void fire(Turret turret, Player target) {
+		if (target == null)
+			return;
+		if (!canBeTargeted(turret, target))
+			return;
+		Location location = turret.getLocation();
+		TurretType type = turret.getType();
+		Land land = landManager.getLand(location.getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		TurretFireEvent event = new TurretFireEvent(turret, target, landKingdom);
+		Bukkit.getPluginManager().callEvent(event);
+		if (event.isCancelled())
+			return;
+		
+		// Handle the fire rate
+		long fireCooldown = turret.getFireCooldown();
+		if (System.currentTimeMillis() - fireCooldown < type.getFirerate())
+			return;
+		turret.setFireCooldown();
+		
+		// Handle ammo reloading. There is another code block below that handles reloading.
+		long reloadCooldown = turret.getReloadCooldown();
+		if (System.currentTimeMillis() - reloadCooldown < type.getReloadCooldown())
+			return;
+
+		// Setup vectors
+		Location fromLocation = location.clone().add(0.5, 1.0, 0.5);
+		Vector to = target.getLocation().clone().add(0.0, 0.75, 0.0).toVector();
+		Vector from = fromLocation.toVector();
+		Vector direction = to.subtract(from);
+		direction.normalize();
+		
+		// Execute
+		if (turret.getAmmo() > 0) {
+			turret.useAmmo();
+			if (type.isParticleProjectile()) {
+				effectLibManager.shootParticle(turret, fromLocation, target, new Runnable() {
+					@Override
+					public void run() {
+						if (type.isHealer()) {
+							double health = target.getHealth();
+							HealthInfo info = type.getHealthInfo();
+							health += info.getHealth();
+							if (health > DeprecationUtils.getMaxHealth(target))
+								return;
+							EntityRegainHealthEvent event = new EntityRegainHealthEvent(target, info.getHealth(), RegainReason.CUSTOM);
+							Bukkit.getPluginManager().callEvent(event);
+							if (event.isCancelled())
+								return;
+							if (info.chance())
+								target.setHealth(health);
+							if (type.hasPotions()) {
+								for (PotionEffect effect : type.getPotions().getPotionEffects()) {
+									target.addPotionEffect(effect, true);
+								}
+							}
+							return;
+						}
+						target.damage(type.getDamage());
+					}
+				});
+			} else if (type.getProjectile() == EntityType.ARROW) {
+				Arrow arrow = location.getWorld().spawnArrow(fromLocation, direction, 1.5F, type.getArrowSpread());
+				arrow.setCritical(type.isCritical());
+				if (landKingdom != null)
+					arrow.setMetadata(METADATA_KINGDOM, new FixedMetadataValue(instance, landKingdom.getName()));
+				if (type.isFlame())
+					arrow.setFireTicks(Integer.MAX_VALUE);
+				arrow.setMetadata(METADATA_VALUE, new FixedMetadataValue(instance, "" + type.getDamage()));
+				if (type.hasPotions())
+					arrow.setMetadata(METADATA_POTIONS, new FixedMetadataValue(instance, "" + type.getDamage()));
+			} else {
+				Entity projectile = location.getWorld().spawnEntity(fromLocation, type.getProjectile());
+				if (type.hasPotions()) {
+					if (projectile instanceof TippedArrow) {
+						TippedArrow tipped = (TippedArrow) projectile;
+						for (PotionEffect effect : type.getPotions().getPotionEffects()) {
+							tipped.addCustomEffect(effect, true);
+						}
+					}
+					projectile.setMetadata(METADATA_POTIONS, new FixedMetadataValue(instance, "" + type.getDamage()));
+				}
+				projectile.setVelocity(direction);
+				if (landKingdom != null)
+					projectile.setMetadata(METADATA_KINGDOM, new FixedMetadataValue(instance, landKingdom.getName()));
+				if (type.isHealer()) {
+					HealthInfo health = type.getHealthInfo();
+					projectile.setMetadata(METADATA_HEALTH, new FixedMetadataValue(instance, true));
+					projectile.setMetadata(METADATA_CHANCE, new FixedMetadataValue(instance, health.chance()));
+					projectile.setMetadata(METADATA_VALUE, new FixedMetadataValue(instance, "" + health.getHealth()));
+				} else {
+					projectile.setMetadata(METADATA_VALUE, new FixedMetadataValue(instance, "" + type.getDamage()));
+				}
+			}
+			if (turret.getAmmo() <= 0) {
+				turret.setReloadCooldown();
+				Block block = location.getBlock();
+				Material head = Utils.materialAttempt("SKELETON_SKULL", "SKULL");
+				block.setType(head);
+				BlockState state = block.getState();
+				// 1.8 users...
+				if (head.name().equalsIgnoreCase("SKULL"))
+					DeprecationUtils.setupOldSkull(state);
+				if (state instanceof Skull) {
+					Skull skull = (Skull) state;
+					skull.setOwningPlayer(type.getReloadingSkullOwner());
+					state.update(true);
+				}
+				type.getReloadingSounds().playAt(location);
+				instance.getServer().getScheduler().runTaskLater(instance, new Runnable() {
+					@Override
+					public void run() {
+						// Check that the block wasn't removed.
+						if (!block.getType().name().contains("SKULL"))
+							return;
+						BlockState state = block.getState();
+						if (state instanceof Skull) {
+							Skull skull = (Skull) state;
+							skull.setOwningPlayer(type.getSkullOwner());
+							state.update(true);
+						}
+					}
+				}, (type.getReloadCooldown() / 1000) * 20);
+			}
+		}
+		/*switch (type) {
+			case HEALING:
+				TurretUtil.healEffect((Player) target, type.getDamage());
+				if(shooter.getTurretUpgrades().isImprovedHeal())
+				TurretUtil.regenHealEffect((Player) target, (float) type.getDamage() / 2);
+				break;
+			case HEATBEAM:
+				TurretUtil.heatbeamAttack(target, loc.toLocation(), type.getDamage(), shooter.getTurretUpgrades().isUnrelentingGaze());
+				break;
+			case HELLFIRE:
+				TurretUtil.shootArrow(shooter, target.getLocation(), loc.toLocation(), true, false, type.getDamage());
+				break;
+			case MINE_CHEMICAL:
+				int dur = 100;
+				if(shooter.getTurretUpgrades().isVirulentPlague()) dur = 200;
+				target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, 1));
+				target.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 200, 1));
+				target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, dur, type.getDamage()));
+				destroy();
+				break;
+			case MINE_PRESSURE:
+				loc.toLocation().getWorld().createExplosion(loc.getX(), loc.getY(), loc.getZ(), type.getDamage(), false, false);
+				if(shooter.getTurretUpgrades().isConcentratedBlast())
+				loc.toLocation().getWorld().createExplosion(loc.getX(), loc.getY(), loc.getZ(), (float) (type.getDamage() * 0.5), false, false);
+				destroy();
+				break;
+			case PSIONIC:
+				TurretUtil.psionicEffect(target, type.getDamage(), shooter.getTurretUpgrades().isVoodoo());
+				break;
+			case SOLDIER:
+				GameManagement.getSoldierTurretManager().turretSpawnSoldier(shooter, target.getLocation(), loc.toLocation(), type.getDamage(), (Player) target);
+				break;
+		}
+		*/
 	}
 	
 	@EventHandler
@@ -418,11 +620,37 @@ public class TurretManager extends Manager {
 	@EventHandler
 	public void onTurretHit(EntityDamageByEntityEvent event) {
 		Entity attacker = event.getDamager();
+		Entity entity = event.getEntity();
+		if (!(entity instanceof LivingEntity))
+			return;
+		LivingEntity victim = (LivingEntity) entity;
 		Optional<OfflineKingdom> kingdom = getProjectileKingdom(attacker);
-		Optional<Double> damage = getProjectileDamage(attacker);
-		if (damage.isPresent() && kingdom.isPresent()) {
+		Optional<Double> value = getProjectileDamage(attacker);
+		if (value.isPresent() && kingdom.isPresent()) {
 			if (canBeTargeted(kingdom.get(), event.getEntity())) {
-				event.setDamage(damage.get());
+				if (isHealthProjectile(attacker)) {
+					double health = victim.getHealth();
+					health += value.get();
+					EntityRegainHealthEvent healthEvent = new EntityRegainHealthEvent(victim, value.get(), RegainReason.CUSTOM);
+					Bukkit.getPluginManager().callEvent(healthEvent);
+					if (healthEvent.isCancelled())
+						return;
+					if (health > DeprecationUtils.getMaxHealth(victim))
+						return;
+					Optional<Boolean> chance = getChance(attacker);
+					if (chance.isPresent() && chance.get())
+						victim.setHealth(health);
+					return;
+				}
+				Optional<Potions> potions = getPotions(attacker);
+				if (potions.isPresent()) {
+					if (attacker instanceof TippedArrow) // Minecraft will already do the setting of the effect for us.
+						return;
+					for (PotionEffect effect : potions.get().getPotionEffects()) {
+						victim.addPotionEffect(effect, true);
+					}
+				}
+				event.setDamage(value.get());
 			} else {
 				event.setCancelled(true);
 			}
