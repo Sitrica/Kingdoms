@@ -29,6 +29,35 @@ plugin:
     # If special characters can be used in the Kingdom names.
     allow-special-characters: false
 
+# All configurations relating to HolographicDisplays.
+# In order for holograms to be active, you need to install ProtocolLib and HolographicDisplays.
+holograms:
+    # Hologram that happens when the user is not appart of the invasion.
+    # Location happens on the damage of the Defender.
+    defender-divided:
+        use-sounds: false
+        sounds:
+            1:
+                sound: "ENTITY_VILLAGER_NO"
+                volume: 0.6
+                pitch: 3
+                delay: 0
+        # The time before the hologram expires, remove this node for Kingdom to use the default expiration.
+        expiration: "2 seconds"
+        x-offset: 0
+        y-offset: 0
+        z-offset: 0
+        # If there should be an item in the hologram.
+        item:
+            enabled: false
+            # If the item should be above or below the text.
+            above: false
+            material: "DIAMOND_SWORD"
+            material-meta: ""
+        lines:
+            - "&c&lYour damage has been divided in half!"
+            - "&cYou're not involved in Kingdom %kingdom%'s invasion."
+
 # Configure your database settings.
 database:
     mysql:

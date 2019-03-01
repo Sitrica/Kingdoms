@@ -1,5 +1,7 @@
 package com.songoda.kingdoms.manager.managers;
 
+import com.songoda.kingdoms.events.DefenderDamageMaxedEvent;
+import com.songoda.kingdoms.events.DefenderFocusEvent;
 import com.songoda.kingdoms.events.DefenderKnockbackEvent;
 import com.songoda.kingdoms.events.DefenderMockEvent;
 import com.songoda.kingdoms.events.InvadingSurrenderEvent;
@@ -15,6 +17,7 @@ import com.songoda.kingdoms.objects.land.StructureType;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.turrets.TurretUtil;
 import com.songoda.kingdoms.utils.DeprecationUtils;
+import com.songoda.kingdoms.utils.HologramBuilder;
 import com.songoda.kingdoms.utils.MessageBuilder;
 import com.songoda.kingdoms.utils.Utils;
 
@@ -22,6 +25,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -60,9 +64,11 @@ import org.bukkit.util.Vector;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
@@ -366,7 +372,7 @@ public class InvadingManager extends Manager {
 				@Override
 				public void run() {
 					if (!player.isDead() && !defender.isDead() && defender.isValid() && player.isOnline()) {
-						sendLightning(player);
+						sendLightning(player, player.getLocation());
 						p.damage(kingdom.getChampionInfo().getThor(), champion);
 	
 						p.sendMessage(Kingdoms.getLang().getString("Champion_Thor", GameManagement.getPlayerManager().getSession(p).getLang()));
@@ -799,7 +805,7 @@ public class InvadingManager extends Manager {
 		OfflineKingdom kingdom = optional.get();
 		DefenderInfo info = getDefenderInfo(kingdom);
 		int resistance = info.getResistance();
-		if (resistance < 0)
+		if (resistance <= 0)
 			return;
 		if (random.nextInt(100) <= resistance) {
 			DefenderKnockbackEvent knockbackEvent = new DefenderKnockbackEvent(kingdom, entity, event.getDamager());
@@ -828,7 +834,7 @@ public class InvadingManager extends Manager {
 		OfflineKingdom defenderKingdom = kingdomOptional.get();
 		DefenderInfo info = getDefenderInfo(defenderKingdom);
 		int mock = info.getMock();
-		if (mock < 0)
+		if (mock <= 0)
 			return;
 		DefenderMockEvent mockEvent = new DefenderMockEvent(defenderKingdom, defender, mock);
 		Bukkit.getPluginManager().callEvent(mockEvent);
@@ -868,7 +874,7 @@ public class InvadingManager extends Manager {
 		OfflineKingdom defenderKingdom = defenderOptional.get();
 		DefenderInfo info = getDefenderInfo(defenderKingdom);
 		int duel = info.getDuel();
-		if (duel < 0)
+		if (duel <= 0)
 			return;
 		event.setDamage(event.getDamage() * 2);//double to non-invader
 	}
@@ -880,6 +886,7 @@ public class InvadingManager extends Manager {
 			return;
 		if (citizensManager.isCitizen(attacker))
 			return;
+		Player player = (Player) attacker;
 		Entity victim = event.getEntity();
 		if (!isDefender(victim))
 			return;
@@ -889,180 +896,146 @@ public class InvadingManager extends Manager {
 		OfflineKingdom defenderKingdom = optional.get();
 		DefenderInfo info = getDefenderInfo(defenderKingdom);
 		int duel = info.getDuel();
-		if (duel < 0)
+		if (duel <= 0)
 			return;
 		event.setDamage(event.getDamage() / 2);
-		//TODO add hologram.
+		new HologramBuilder(victim.getLocation().add(0, 1, 0), "holograms.defender-divided")
+				.withDefaultExpiration("2 seconds")
+				.setPlaceholderObject(player)
+				.setKingdom(defenderKingdom)
+				.send(player);
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onChampDamageWhileDamageCapOn(EntityDamageByEntityEvent e) {
-		if (e.getEntity().getType() != EntityType.ZOMBIE)
-			return; //damaged is not zombie
-		if(!entityOwners.containsKey(e.getEntity().getEntityId())) return;//damaged is not champion
-	
-		Kingdom kingdom = entityOwners.get(e.getEntity().getEntityId());
-		ChampionInfo info = kingdom.getChampionInfo();
-		int damageCap = info.getDamagecap();
-		if(!(damageCap > 0)) return;// damageCap is not on
-	
-		if(e.getDamage() > 15.0D){
-			ChampionDamageCapEvent damageCapEvent = new ChampionDamageCapEvent(e.getEntity(), e.getDamager(), damageCap, e.getDamage());
-			Bukkit.getPluginManager().callEvent(damageCapEvent);
-			if(!damageCapEvent.isCancelled()){
-			e.setDamage(damageCapEvent.getDamageCap());
+	public void onDefenderDamageMaxed(EntityDamageByEntityEvent event) {
+		Entity victim = event.getEntity();
+		Optional<OfflineKingdom> optional = getDefenderOwner(victim);
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom defenderKingdom = optional.get();
+		DefenderInfo info = getDefenderInfo(defenderKingdom);
+		int limit = info.getDamageLimit();
+		if (limit <= 0)
+			return;
+		double damage = event.getDamage();
+		if (damage > 15) {
+			DefenderDamageMaxedEvent damageEvent = new DefenderDamageMaxedEvent(defenderKingdom, victim, event.getDamager(), limit, damage);
+			Bukkit.getPluginManager().callEvent(damageEvent);
+			if (!damageEvent.isCancelled())
+				event.setDamage(damageEvent.getLimit());
+		}
+	}
+
+	@EventHandler
+	public void onFocus(EntityDamageByEntityEvent event) {
+		Entity victim = event.getEntity();
+		if (!(victim instanceof Player))
+			return;
+		if (citizensManager.isCitizen(victim))
+			return;
+		Player player = (Player) victim;
+		Entity attacker = event.getDamager();
+		Optional<OfflineKingdom> optional = getDefenderOwner(attacker);
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom defenderKingdom = optional.get();
+		DefenderInfo info = getDefenderInfo(defenderKingdom);
+		int focus = info.getFocus();
+		if (focus <= 0)
+			return;
+		Collection<PotionEffect> effects = player.getActivePotionEffects();
+		if (effects.size() > 0) {
+			DefenderFocusEvent focusEvent = new DefenderFocusEvent(defenderKingdom, attacker, playerManager.getKingdomPlayer(player));
+			Bukkit.getPluginManager().callEvent(focusEvent);
+			if (focusEvent.isCancelled())
+				return;
+			for (PotionEffect effect : effects) {
+				PotionEffect potion = new PotionEffect(effect.getType(), effect.getDuration() - 1, effect.getAmplifier());
+				player.removePotionEffect(effect.getType());
+				player.addPotionEffect(potion);
 			}
 		}
 	}
 
-	/**
-	 * Listener (do not touch)
-	 *
-	 * @param e
-	 */
 	@EventHandler
-	public void onFocus(EntityDamageByEntityEvent e){
-	if(e.getDamager().getType() != EntityType.ZOMBIE) return; //damager is not zombie
-	if(!(e.getEntity() instanceof Player)) return; //damaged is not player
-	GameManagement.getApiManager();
-	if(ExternalManager.isCitizen(e.getEntity())) return;
-
-	if(!entityOwners.containsKey(e.getDamager().getEntityId())) return; //damager not champion
-	Player p = (Player) e.getEntity();
-	Kingdom kingdom = entityOwners.get(e.getDamager().getEntityId());
-	ChampionInfo info = kingdom.getChampionInfo();
-	int focus = info.getFocus();
-	if(focus <= 0) return;// focus is not on
-	Collection<PotionEffect> effects = p.getActivePotionEffects();
-	if(effects.size() > 0){
-		ChampionFocusEvent focusEvent = new ChampionFocusEvent(e.getDamager(), GameManagement.getPlayerManager().getSession(p));
-		Bukkit.getPluginManager().callEvent(focusEvent);
-		if(focusEvent.isCancelled()){
+	public void onDamageWhileStrength(EntityDamageByEntityEvent event) {
+		Entity victim = event.getEntity();
+		if (!(victim instanceof Player))
 			return;
-		}
-		for(PotionEffect effect : effects){
-		PotionEffect pe = new PotionEffect(effect.getType(), effect.getDuration() - 1, effect.getAmplifier());
-		p.removePotionEffect(effect.getType());
-		p.addPotionEffect(pe);
-		}
-	}
-	}
-
-
-	/**
-	 * Listener (do not touch)
-	 *
-	 * @param e
-	 */
-	@EventHandler
-	public void onDamageWhileStrengthUp(EntityDamageByEntityEvent e){
-	if(e.getDamager().getType() != EntityType.ZOMBIE) return; //damager is not zombie
-	if(!(e.getEntity() instanceof Player)) return; //damaged is not player
-	GameManagement.getApiManager();
-	if(ExternalManager.isCitizen(e.getEntity())) return;
-
-	if(!entityOwners.containsKey(e.getDamager().getEntityId())) return; //damager not champion
-
-	Kingdom kingdom = entityOwners.get(e.getDamager().getEntityId());
-	ChampionInfo info = kingdom.getChampionInfo();
-	int strength = info.getStrength();
-	if(!(strength > 0)) return;// strength is not on
-
-	if(ProbabilityTool.testProbability100(strength)){
-		ChampionStrengthEvent strengthEvent = new ChampionStrengthEvent(e.getDamager(), GameManagement.getPlayerManager().getSession(e.getEntity().getUniqueId()));
-		Bukkit.getPluginManager().callEvent(strengthEvent);
-		if(strengthEvent.isCancelled()){
+		if (citizensManager.isCitizen(victim))
 			return;
+		Player player = (Player) victim;
+		Entity attacker = event.getDamager();
+		Optional<OfflineKingdom> optional = getDefenderOwner(attacker);
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom defenderKingdom = optional.get();
+		DefenderInfo info = getDefenderInfo(defenderKingdom);
+		// TODO this is now called throw.
+		int strength = info.getStrength();
+		if (strength <= 0)
+			return;
+		if (ProbabilityTool.testProbability100(strength)) {
+			ChampionStrengthEvent strengthEvent = new ChampionStrengthEvent(defenderKingdom, attacker, playerManager.getKingdomPlayer(player));
+			Bukkit.getPluginManager().callEvent(strengthEvent);
+			if (strengthEvent.isCancelled())
+				return;
+			victim.setVelocity(new Vector(0, 1.5, 0));
 		}
-		e.getEntity().setVelocity(new Vector(0, 1.5, 0));
 	}
+	
+	private final Class<?> weatherPacket = getNMSClass("PacketPlayOutSpawnEntityWeather");
+	private final Class<?> lightningClass = getNMSClass("EntityLightning");
+	private final Class<?> entityClass = getNMSClass("Entity");
+	private final Class<?> worldClass = getNMSClass("World");
+
+	public void sendLightning(Player player, Location location) {
+		try {
+			Constructor<?> constructor = lightningClass.getConstructor(worldClass, double.class, double.class, double.class, boolean.class, boolean.class);
+			Object world = player.getWorld().getClass().getMethod("getHandle").invoke(player.getWorld());
+			Object lightning = constructor.newInstance(world, location.getX(), location.getY(), location.getZ(), false, false);
+			Object object = weatherPacket.getConstructor(entityClass).newInstance(lightning);
+			sendPacket(player, object);
+			Sound sound = Utils.soundAttempt("ENTITY_LIGHTNING_BOLT_THUNDER", "AMBIENCE_THUNDER");
+			if (sound == null) //1.9-1.12 users...
+				sound = Utils.soundAttempt("ENTITY_LIGHTNING_THUNDER", "LIGHTNING_THUNDER");
+			player.playSound(player.getLocation(), sound, 100, 1);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public Class<?> getNMSClass(String name) {
+		String version = instance.getServer().getClass().getPackage().getName().split("\\.")[3];
+		try {
+			return Class.forName("net.minecraft.server." + version + "." + name);
+		} catch(ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
-	/**
-	 * Listener (do not touch)
-	 * @param e
-	 */
-
-	/**
-	 * get Entity instance from its id
-	 *
-	 * @param world world
-	 * @param id		entityID
-	 * @return Entity if found; null if not found
-	 */
-	public static Entity getEntityByEntityID(World world, int id){
-	Iterator<Entity> iter = world.getEntities().iterator();
-	for(; iter.hasNext(); ){
-		Entity e = iter.next();
-		if(e.getEntityId() == id) return e;
+	public void sendPacket(Player player, Object packet) {
+		try{
+			Object handle = player.getClass().getMethod("getHandle").invoke(player);
+			Object playerConnection = handle.getClass().getField("playerConnection").get(handle);
+			playerConnection.getClass().getMethod("sendPacket", getNMSClass("Packet")).invoke(playerConnection, packet);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 	}
-
-	return null;
-	}
-
+	
 	@Override
-	public void onDisable(){
-	for(Map.Entry<Integer, KingdomPlayer> entry : targets.entrySet()){
-		stopFight(entry.getValue());
-	}
-
-	targets.clear();
-	}
-
-	public static void sendLightning(Player p, Location l){
-	Class<?> light = getNMSClass("EntityLightning");
-	try{
-		Constructor<?> constu =
-			light
-				.getConstructor(getNMSClass("World"),
-					double.class, double.class,
-					double.class, boolean.class, boolean.class);
-		Object wh = p.getWorld().getClass().getMethod("getHandle").invoke(p.getWorld());
-		Object lighobj = constu.newInstance(wh, l.getX(), l.getY(), l.getZ(), false, false);
-
-		Object obj =
-			getNMSClass("PacketPlayOutSpawnEntityWeather")
-				.getConstructor(getNMSClass("Entity")).newInstance(lighobj);
-
-
-		try{
-		sendPacket(p, obj);
-		p.playSound(p.getLocation(), Sound.valueOf("AMBIENCE_THUNDER"), 100, 1);
-		}catch(IllegalArgumentException e){
-		try{
-			sendPacket(p, obj);
-			p.playSound(p.getLocation(), Sound.valueOf("ENTITY_LIGHTNING_THUNDER"), 100, 1);
-		}catch(IllegalArgumentException ex){
-			p.getWorld().strikeLightningEffect(p.getLocation());
-		}
-		}
-//				} catch (NoSuchMethodException | SecurityException |
-//								IllegalAccessException | IllegalArgumentException |
-//								InvocationTargetException | InstantiationException e) {
-	}catch(Exception e){
-		e.printStackTrace();
-	}
-	}
-
-	public static Class<?> getNMSClass(String name){
-	String version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
-	try{
-		return Class.forName("net.minecraft.server." + version + "." + name);
-	}catch(ClassNotFoundException e){
-		e.printStackTrace();
-		return null;
-	}
-	}
-
-	public static void sendPacket(Player player, Object packet){
-	try{
-		Object handle = player.getClass().getMethod("getHandle").invoke(player);
-		Object playerConnection = handle.getClass().getField("playerConnection").get(handle);
-		playerConnection.getClass().getMethod("sendPacket", getNMSClass("Packet"))
-			.invoke(playerConnection, packet);
-	}catch(Exception e){
-		e.printStackTrace();
-	}
+	public void onDisable() {
+		infos.clear(); //TODO save these
+		fighting.keySet().forEach(kingdomPlayer -> stopFight(kingdomPlayer));
+		fighting.clear();
+		entities.clear();
+		invading.clear();
+		defenders.clear();
+		dragTasks.values().forEach(task -> instance.getServer().getScheduler().cancelTask(task));
+		thorTasks.values().forEach(task -> instance.getServer().getScheduler().cancelTask(task));
+		plowTasks.values().forEach(task -> instance.getServer().getScheduler().cancelTask(task));
 	}
 
 }

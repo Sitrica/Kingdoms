@@ -5,7 +5,6 @@ public class DefenderInfo {
 	private int reinforcements = 0;
 	private int absorption = 0;
 	private int resistance = 0;
-	private int maxDamage = 0;
 	private int specials = 0;
 	private int strength = 0;
 	private int health = 100;
@@ -16,6 +15,7 @@ public class DefenderInfo {
 	private int armor = 0;
 	private int mimic = 0;
 	private int focus = 0;
+	private int limit = 0;
 	private int tier = 1;
 	private int thor = 0;
 	private int grab = 0;
@@ -169,12 +169,12 @@ public class DefenderInfo {
 		this.strength = strength;
 	}
 	
-	public int getMaxDamage() {
-		return maxDamage;
+	public int getDamageLimit() {
+		return limit;
 	}
 	
-	public void setMaxDamage(int maxDamage) {
-		this.maxDamage = maxDamage;
+	public void setDamageLimit(int limit) {
+		this.limit = limit;
 	}
 	
 	public int getResistance() {
