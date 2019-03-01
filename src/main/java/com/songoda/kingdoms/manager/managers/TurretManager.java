@@ -103,12 +103,16 @@ public class TurretManager extends Manager {
 	}
 	
 	public boolean isHealthProjectile(Metadatable metadatable) {
+		if (!metadatable.hasMetadata(METADATA_HEALTH))
+			return false;
 		return metadatable.getMetadata(METADATA_HEALTH).parallelStream()
 				.filter(metadata -> metadata.getOwningPlugin().equals(instance))
 				.findFirst().isPresent();
 	}
 	
 	public Optional<Boolean> getChance(Metadatable metadatable) {
+		if (!metadatable.hasMetadata(METADATA_CHANCE))
+			return Optional.empty();
 		return metadatable.getMetadata(METADATA_CHANCE).parallelStream()
 				.filter(metadata -> metadata.getOwningPlugin().equals(instance))
 				.map(metadata -> metadata.asBoolean())
@@ -116,6 +120,8 @@ public class TurretManager extends Manager {
 	}
 	
 	public Optional<Potions> getPotions(Metadatable metadatable) {
+		if (!metadatable.hasMetadata(METADATA_POTIONS))
+			return Optional.empty();
 		return metadatable.getMetadata(METADATA_POTIONS).parallelStream()
 				.filter(metadata -> metadata.getOwningPlugin().equals(instance))
 				.map(metadata -> new Potions(metadata.asString()))
@@ -123,6 +129,8 @@ public class TurretManager extends Manager {
 	}
 	
 	public Optional<Double> getProjectileDamage(Metadatable metadatable) {
+		if (!metadatable.hasMetadata(METADATA_VALUE))
+			return Optional.empty();
 		return metadatable.getMetadata(METADATA_VALUE).parallelStream()
 				.filter(metadata -> metadata.getOwningPlugin().equals(instance))
 				.map(metadata -> metadata.asDouble())
@@ -130,6 +138,8 @@ public class TurretManager extends Manager {
 	}
 	
 	public Optional<OfflineKingdom> getProjectileKingdom(Metadatable metadatable) {
+		if (!metadatable.hasMetadata(METADATA_KINGDOM))
+			return Optional.empty();
 		return metadatable.getMetadata(METADATA_KINGDOM).parallelStream()
 				.filter(metadata -> metadata.getOwningPlugin().equals(instance))
 				.map(metadata -> metadata.asString())

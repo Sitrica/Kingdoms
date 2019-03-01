@@ -104,7 +104,7 @@ claiming:
     # unclaim all confirmation delay
     unclaim-all-confirmation-delay: "25 seconds"
 
-# Blocks that can't be relplaced when placing a structure.
+# Blocks that can't be replaced when placing a structure.
 unreplaceable-blocks:
     - "BEDROCK"
     - "OBSIDIAN"
@@ -354,6 +354,7 @@ invading:
     # For every break on the nexus, should the amount broken from the node 'nexus-break-cost' be added to the invaders Kingdom?
     nexus-break-adds: true
     defender:
+        void-death-end-invasion: true
         health: 2048
         # The helmet that the Zombie will wear.
         # 1.13+ Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
@@ -371,6 +372,16 @@ commands:
         - "/sethome"
         - "/essentials:sethome"
         - "/derpcommand with any arguments"
+    allowed-during-invasion:
+        - "/k surrender"
+        - "/kingdom surrender"
+        - "/kingdoms surrender"
+        - "/k ff"
+        - "/kingdom ff"
+        - "/kingdoms ff"
+        - "/k forfeit"
+        - "/kingdom forfeit"
+        - "/kingdoms forfeit"
         
         
         
@@ -395,24 +406,6 @@ cost:
         glory: 200
         nexusguard: 100
         psioniccore: 500
-    champion:
-        health: 1
-        speed: 20
-        resist: 10
-        weapon: 10
-        duel: 100
-        drag: 30
-        mock: 10
-        thor: 300
-        damagecap: 300
-        plow: 600
-        strength: 500
-        armor: 300
-        reinforcements: 800
-        mimic: 600
-        focus: 700
-        aqua: 500
-        determination: 5
     outpost:
         xpbottle: 5
     turretupgrades:
@@ -545,47 +538,6 @@ max:
         dmg-boost: 60
         arrow-boost: 60
         maxmembers: 30
-    champion:
-        determination: 2048
-        speed: 5
-        resist: 100
-        weapon: 10
-        duel: 1
-        drag: 1
-        mock: 6
-        thor: 10
-        damagecap: 1
-        plow: 1
-        strength: 50
-        armor: 5
-        reinforcements: 2
-        mimic: 1
-        focus: 1
-default:
-    champion:
-        health: 100
-        speed: 0
-        resist: 0
-        weapon: 0
-        duel: 0
-        drag: 0
-        mock: 0
-        thor: 0
-        damagecap: 0
-        plow: 0
-        strength: 0
-        armor: 0
-        reinforcements: 0
-        mimic: 0
-        focus: 0
-        aqua: 0
-        determination: 0
-magnitude:
-    champion:
-        healthI: 2
-        healthII: 50
-        determinationI: 2
-        determinationII: 50
 destroy-extra-turrets-to-enforce-max: false
 enable:
     turretupgrades:

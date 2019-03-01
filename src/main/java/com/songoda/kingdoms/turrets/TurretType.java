@@ -259,11 +259,11 @@ public class TurretType {
 		ItemMeta itemmeta = itemstack.getItemMeta();
 		itemmeta.setDisplayName(Formatting.color(title));
 		List<String> lores = new ArrayList<>();
-		lores.addAll(description);
+		description.forEach(message -> lores.add(Formatting.color(message)));
 		if (spacing)
 			lores.add(" ");
 		if (useDecals)
-			lores.add(Formatting.colorAndStrip(decal));
+			lores.add(Formatting.color(decal));
 		lores.add(new MessageBuilder(false, "turrets.formats.range")
 				.fromConfiguration(configuration)
 				.replace("%range%", range)
@@ -291,7 +291,7 @@ public class TurretType {
 		if (spacing)
 			lores.add(" ");
 		if (useDecals)
-			lores.add(Formatting.colorAndStrip(decal));
+			lores.add(Formatting.color(decal));
 		itemmeta.setLore(lores);
 		itemstack.setItemMeta(itemmeta);
 		return DeprecationUtils.setupItemMeta(itemstack, meta);

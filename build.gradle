@@ -22,6 +22,11 @@ repositories {
 		url "https://oss.sonatype.org/content/repositories/snapshots/"
 	}
 	
+	// HolographicDisplays
+	maven {
+		url 'https://ci.filoghost.me/plugin/repository/everything/'
+	}
+	
 	// Songoda
 	maven {
 		url "http://repo.songoda.com/artifactory/private/"
@@ -41,17 +46,20 @@ repositories {
 
 dependencies {
 	
+	// HolographicDisplays
+	implementation (group: 'com.gmail.filoghost.holographicdisplays', name: 'holographicdisplays-plugin', version: '2.3.3-SNAPSHOT')
+	
 	// Citizens
 	implementation (group: 'net.citizensnpcs', name: 'citizensapi', version: '2.0.24-SNAPSHOT')
 	
 	// Spigot
 	implementation (group: 'org.spigotmc', name: 'spigot-api', version: '1.13.2-R0.1-SNAPSHOT')
 	
-	// EffectLib
-	shade (group: 'de.slikey', name: 'EffectLib', version: '6.2-SNAPSHOT')
-	
 	// Vault
 	implementation (group: 'net.milkbowl', name: 'vault', version: '1.7.1')
+	
+	// EffectLib
+	shade (group: 'de.slikey', name: 'EffectLib', version: '6.2-SNAPSHOT')
 
 }
 

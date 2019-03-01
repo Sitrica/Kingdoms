@@ -1,8 +1,5 @@
 package com.songoda.kingdoms.objects.kingdom;
 
-import com.songoda.kingdoms.main.Config;
-import com.songoda.kingdoms.main.Kingdoms;
-import com.songoda.kingdoms.utils.Materials;
 import org.bukkit.Material;
 
 public enum MiscUpgrade {

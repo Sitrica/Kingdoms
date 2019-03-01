@@ -12,100 +12,190 @@
 # The version is to help determine which version this config is. Please don't modify this value.
 version: "2.0.0"
 
-# All configurations relating to structures.
+# All configurations relating to upgrades on the defenders.
 upgrades:
-    nexus:
-        title: "&bNexus"
-        # The block material that will be used.
-        material: "BEACON"
-        # The item given to the player that they have to click the ground with to build the structure.
-        inventory-material: "MUSIC_DISC_WAIT"
-        description:
-            - "&7The Nexus executes most Kingdom actions."
-    regulator:
+    # The upgrade settings for the defender's weapon.
+    weapon:
         enabled: true
+        # The title of the item in the inventory.
+        title: "&bDefender Weapon"
+        # The block material that will be used.
+        # https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+        material: "DIAMOND_SWORD"
+        material-meta: ""
+        # If the material should be shiny like an enchantment in the inventory.
+        glowing: false
+        # The message that states it's current state.
+        current: "&7Current Weapon Level: %level%"
+        # Level 1 is wood sword, 2 is stone and so on, until diamond, then it's level - 4 sharpness
+        max-level: 10
+        # The amount of resource points it takes to level up.
         cost: 50
-        title: "&bRegulator"
-        material: "REDSTONE_BLOCK"
-        inventory-material: "MUSIC_DISC_CHIRP"
+        # For every level add this much on. E.G level 5 would (cost + (5 * multiplier)) = 100 by default.
+        cost-multiplier: 10
         description:
-            - "&7Regulators can allow ranked players to change who can build, who can interact in each chunk of land,"
-            - "&7if monsters can spawn, if animals can spawn, and other similar functions in each chunk of land."
-    radar:
+            - "&7Provides your Defender with a better weapon each upgrade. Max level is %value%."
+    # The upgrade settings for the defender's health.
+    health:
         enabled: true
+        title: "&bDefender Health"
+        material: "GLISTERING_MELON_SLICE"
+        material-meta: ""
+        glowing: false
+        current: "&dCurrent Health Level: %level%"
+        # Value will represent the health per this upgrade.
+        value: 2
+        # If the max-level node isn't present, it will be infinite.
+        # max-level: 10
+        cost: 10
+        cost-multiplier: 5
+        description:
+            - "&7Increases Defender's Health by &d%value%&7."
+    mega-health:
+        enabled: true
+        title: "&bDefender Health II"
+        material: "GLISTERING_MELON_SLICE"
+        material-meta: ""
+        glowing: true
+        current: "&dCurrent Health Level: %level%"
+        # Value will represent the health per this upgrade.
+        value: 50
         cost: 150
-        title: "&bRadar"
-        material: "NOTE_BLOCK"
-        inventory-material: "MUSIC_DISC_MELLOHI"
+        cost-multiplier: 200
         description:
-            - "&7Executing '/k map' while standing on land with a radar will reveal all structures."
-            - "&7A radar will also start ticking sound if enemies are near."
-    output:
+            - "&7Increases Defender's Health by &d%value%&7."
+    # The upgrade settings for the defender's resistance.
+    resistance:
         enabled: true
-        # How much resource points this structure costs to aquire.
-        cost: 250
-        title: "&bOutpost"
-        # The block material that will be used.
-        material: "HAY_BLOCK"
-        # The item given to the player that they have to click the ground with to build the structure.
-        inventory-material: "MUSIC_DISC_13"
+        title: "&bResistance"
+        material: "BRICK"
+        material-meta: ""
+        glowing: false
+        current: "&fCurrent Resistance: %level%%"
+        max-level: 10
+        # Value will represent the percentage in which is increased.
+        # If you adjust this value, adjust the max-level to accomidate for it.
+        value: 10
+        cost: 50
+        cost-multiplier: 15
         description:
-            - "&7The Outpost allows direct access to your Nexus."
-            - "&7It enables you to access turrets, upgrades, and unlockable structures."
-            - "&7Outposts can produce exp bottles from resource points aswell."
-    powercell:
+            - "&7Each upgrade adds %value%% chance that the champion won't be knocked back by an attack. Max is 100%"
+    # The upgrade settings for the defender's speed.
+    speed:
         enabled: true
-        cost: 250
-        title: "&bPowercell"
-        material: "REDSTONE_TORCH"
-        inventory-material: "MUSIC_DISC_BLOCKS"
+        title: "&bSpeed"
+        # Setting the material to be a potion and set it's meta to be Speed.
+        material: "POTION"
+        material-meta: "SPEED"
+        glowing: false
+        current: "&bCurrent Speed: %level%"
+        max-level: 5
+        cost: 20
+        cost-multiplier: 15
         description:
-            - "&7Chunks next to a chunk with a power cell cannot be invaded without invading the power cell first."
-            - "&cDoes not work on other power cell lands."
-    arsenal:
+            - "&7Increases Defender's Speed. Max is %max%"
+    # The upgrade settings for the defender's armor.
+    armor:
         enabled: true
+        title: "&bArmor"
+        material: "DIAMOND_CHESTPLATE"
+        material-meta: ""
+        glowing: false
+        current: "&eCurrent Armor Level: %level%"
+        max-level: 5
+        cost: 300
+        cost-multiplier: 150
+        description:
+            - "&7Each upgrade adds a level of protection to the Defender's chestplate"
+    # The upgrade settings for the defender's strength.
+    strength:
+        enabled: true
+        title: "&bStrength"
+        material: "ANVIL"
+        material-meta: ""
+        glowing: false
+        current: "&cCurrent Strength Level: %level%"
+        max-level: 3
         cost: 500
-        title: "&bArsenal"
-        material: "FURNACE"
-        inventory-material: "MUSIC_DISC_STAL"
+        cost-multiplier: 200
         description:
-            - "&7Purchase special consumable items."
-    siege-engine:
+            - "&7Strength potion added to the Defender and will be amplified each level."
+    # The upgrade settings for the defender's throw.
+    throw:
         enabled: true
-        cost: 1000
-        # The cooldown it takes per fire shot.
-        cooldown: "60 seconds"
-        title: "&bSiege Engine"
-        material: "DISPENSER"
-        inventory-material: "MUSIC_DISC_11"
+        title: "&bThrow"
+        material: "COOKED_PORKCHOP"
+        material-meta: ""
+        glowing: false
+        current: "&cCurrent Throwing Level: %level%"
+        max-level: 50
+        # Value will represent the percentage in which is increased.
+        value: 10
+        cost: 200
+        cost-multiplier: 150
         description:
-            - "&7Siege structure. Place next to target land, and fire from the GUI. Siege Engines have."
-    shield-battery:
-        enabled: true
-        cost: 1000
-        title: "&bShield Battery"
-        material: "PRISMARINE"
-        inventory-material: "MUSIC_DISC_MALL"
-        description:
-            - "&7When placed in land connected to your nexus land, your nexus' shield limit and recharge will increase."
-    extractor:
-        enabled: true
-        cost: 1000
-        title: "&bExtractor"
-        material: "EMERALD_BLOCK"
-        # This is an extractor option only this and reward-amount.
-        reward-delay: "24 hours"
-        # The amount of resource points to give.
-        reward-amount: 50
-        inventory-material: "MUSIC_DISC_CAT"
-        description:
-            - "&7Extractors produce resource points every set time."
-            - "&7Resource points must be manually collected from the extractor."
-    warp-pad:
-        enabled: true
-        cost: 5000
-        title: "&bWarp Pad"
-        material: "SEA_LANTERN"
-        inventory-material: "MUSIC_DISC_STRAD"
-        description:
-            - "&7Warp Pads allow Kingdom members to teleport to the Kingdom's nexus and outposts."
+            - "&7Every attack, there will be a chance to knock the player into the sky. Each upgrade increases this chance by 10%"
+
+# cost
+    champion:
+        duel: 100
+        drag: 30
+        mock: 10
+        thor: 300
+        damagecap: 300
+        plow: 600
+        reinforcements: 800
+        mimic: 600
+        focus: 700
+        aqua: 500
+        determination: 5
+        
+# level max
+    champion:
+        determination: 2048
+        duel: 1
+        drag: 1
+        mock: 6
+        thor: 10
+        damagecap: 1
+        plow: 1
+        reinforcements: 2
+        mimic: 1
+        focus: 1
+
+Guis_ChampionUpgrades_Title: '&bChampion Upgrades'
+Guis_ChampionUpgrades_Determination_Title: '&bDetermination'
+Guis_ChampionUpgrades_Determination_Curr: '&5Current Determination: %level%'
+Guis_ChampionUpgrades_Determination_Desc: Increases Determination by 2. Champion Determination will act as a shield that will absorb damage. Armor does not affect this shield.
+Guis_ChampionUpgrades_DeterminationII_Title: '&bDetermination II'
+Guis_ChampionUpgrades_DeterminationII_Desc: Increases Determination by 50
+Guis_ChampionUpgrades_Drag_Title: '&bDrag'
+Guis_ChampionUpgrades_Drag_Curr: '&5Enabled: %level%'
+Guis_ChampionUpgrades_Drag_Desc: If the invading player is more than 7 blocks away from the champion, the champion will teleport the player to the champion's location
+Guis_ChampionUpgrades_Mock_Title: '&bMock'
+Guis_ChampionUpgrades_Mock_Curr: '&5Current Mock Range: %level% blocks'
+Guis_ChampionUpgrades_Mock_Desc: Each upgrade increases the radius in which invading players can't build while near the champion
+Guis_ChampionUpgrades_DeathDuel_Title: '&bDeath Duel'
+Guis_ChampionUpgrades_DeathDuel_Curr: '&5Enabled: %level%'
+Guis_ChampionUpgrades_DeathDuel_Desc: All players except the invader will deal 50% less damage to the champion. The champion will also deal double damage to all players except the invader
+Guis_ChampionUpgrades_Thor_Title: '&bThor'
+Guis_ChampionUpgrades_Thor_Curr: '&5Current Thor Damage: %level%'
+Guis_ChampionUpgrades_Thor_Desc: Every 3 seconds, strike lightning down at the invading player and all nearby non-allied players, dealing damage, and knocking the player back
+Guis_ChampionUpgrades_DamageCap_Title: '&bDamage Cap'
+Guis_ChampionUpgrades_DamageCap_Curr: '&5Enabled: %level%'
+Guis_ChampionUpgrades_DamageCap_Desc: Your champion can only receive up to 15 damage at any attack.
+Guis_ChampionUpgrades_Plow_Title: '&bPlow'
+Guis_ChampionUpgrades_Plow_Curr: '&5Enabled: %level%'
+Guis_ChampionUpgrades_Plow_Desc: Your champion will try to clear lava and webs
+Guis_ChampionUpgrades_Reinforcements_Title: '&bReinforcements'
+Guis_ChampionUpgrades_Reinforcements_Curr: '&5Number of reinforcements: %level%'
+Guis_ChampionUpgrades_Reinforcements_Desc: 'Each upgrade allows only the &c&lNexus Champion &ato spawn an additonal nexus guard. Maximum level: 2'
+Guis_ChampionUpgrades_Mimic_Title: '&bMimic'
+Guis_ChampionUpgrades_Mimic_Curr: '&5Enabled: %level%'
+Guis_ChampionUpgrades_Mimic_Desc: The champion gains the invader's helmet, leggings and boots
+Guis_ChampionUpgrades_Focus_Title: '&bFocus'
+Guis_ChampionUpgrades_Focus_Curr: '&5Current Focus Level: %level%'
+Guis_ChampionUpgrades_Focus_Desc: Players hit by the champion (including Thor) will have 1 second removed from all their active potion effects
+Guis_ChampionUpgrades_Aqua_Title: '&bAqua'
+Guis_ChampionUpgrades_Aqua_Curr: '&5Enabled: %level%'
+Guis_ChampionUpgrades_Aqua_Desc: The champion gets depth strider boots

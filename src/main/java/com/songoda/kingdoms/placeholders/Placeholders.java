@@ -7,11 +7,11 @@ import java.util.Set;
 public class Placeholders {
 
 	private static Set<Placeholder<?>> placeholders = new HashSet<>();
-	
+
 	public static void registerPlaceholder(Placeholder<?> placeholder) {
 		placeholders.add(placeholder);
 	}
-	
+
 	/**
 	 * Grab a placeholder by it's syntax.
 	 * Example: %command% to be replaced by a String command.
@@ -29,9 +29,9 @@ public class Placeholders {
 		}
 		return Optional.empty();
 	}
-	
+
 	public static Set<Placeholder<?>> getPlaceholders() {
 		return placeholders;
 	}
-	
+
 }

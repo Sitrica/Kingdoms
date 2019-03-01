@@ -118,6 +118,8 @@ public class DeprecationUtils {
 	}
 
 	public static ItemStack setupItemMeta(ItemStack itemstack, String meta) {
+		if (meta.equals(""))
+			return itemstack;
 		ItemMeta itemMeta = itemstack.getItemMeta();
 		if (itemMeta instanceof PotionMeta) {
 			PotionMeta potionMeta = (PotionMeta) itemMeta;

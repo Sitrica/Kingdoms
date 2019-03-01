@@ -31,6 +31,14 @@ messages:
     #no-player: "&cThere was no player found under the name &l%name%&c."
     # Placeholders: %name% and All Kingdom and KingdomPlayer placeholders. The name is the Kingdom name.
     processing: "&cYour command is still processing. If this problem persists, contact an administrator."
+    # There are holographic-displays player placeholders (Requires ProtocolLib for HolographicDisplays)
+    # Placeholders to use in the HolographicDisplays plugin are: {kingdom}, {kingdom-rank}, {points} and {kingdom-at}.
+    # kingdom-at will be the name of the Kingdom at the player's location.
+    # All of these HolographicDisplays placeholders are viewed towards the player viewing the hologram. So {kingdom} will be the player's Kingdom looking at the hologram.
+    holographic-displays:
+        # Used for all placeholders except kingdom-at, when the player has no Kingdom.
+        no-kingdom: "No Kingdom"
+        no-kingdom-at: "No Kingdom at this location"
 
 # All messages related to taxes.
 taxes:
@@ -57,6 +65,7 @@ kingdoms:
     invading:
         # Placeholders: %player%, %chunkTo%, %chunkFrom%, %land% and %kingdom%
         invading-deny-chunk-change: "&cYou can not leave the Kingdom while invading!"
+        # TODO remove this above and place into the invading category.
     deleted: "&eYour Kingdom %kingdom% has been disbanded."
     no-kingdom: "&cYou are not apart of any Kingdom!"
     creation: "&aYou have successfully created a Kingdom with the name %kingdom%!"
@@ -90,6 +99,13 @@ kingdoms:
     nexus-setting-cancelled: "&cNexus placing mode was cancelled!"
     nexus-setting-cancelled-moved: "&cYou moved into another chunk of land!"
     cannot-attack-ally: "&cYou can't attack your own Kingdom allies!"
+    # Placeholders: All Kingdom and KingdomPlayer related placeholders.
+    defender-void-death: "&cThe Defender has disappeared into the void! Invasion stopped!"
+    defender-own: "&cYou can't attack your own Kingdom's Defender!"
+    # Placeholders: All Kingdom and KingdomPlayer related placeholders.
+    defender-command-blocked: "&cYou can't use this command during an invasion!"
+    # Placeholders: %mock% and All Kingdom and KingdomPlayer related placeholders.
+    defender-mock: "&cYou can't build within %mock% blocks of the invading Kingdom's Defender!"
 
 # All messages relating to maps and chunks.
 map:
@@ -622,11 +638,6 @@ Misc_Cannot_Be_Traded_For_Points: '&c%item% cannot be traded for resource points
 Champion_Drag: '&cThe champion dragged you back!'
 Champion_Thor: '&cThe champion smites you!'
 Champion_Determination: '&c&lChampion Determination: &a&l[&c&l%amt%&a&l/&c&l%max%&a&l]'
-Champion_Own_Kingdom: '&cYou can''t attack your own kingdom''s champion'
-Champion_Command_Block: '&cYou can''t use commands during the champion fight!'
-Champion_Mock: '&cYou can''t build within %mock% blocks of the champion!'
-Champion_DeathDuel: '&cYou only deal half damage to the champion'
-Champion_Void_Death: '&cThe champion disappeared into the void! Invasion stopped!'
 Soldier_Name: '&cKingdom Guard'
 Map_Your_Kingdom: Your Kingdom
 Map_Unidentified: Unidentified Kingdom
@@ -794,62 +805,6 @@ Guis_Conquests_Kingdom_Is_In_Map: '&cYour Kingdom is competing for this Conquest
 Guis_Conquests_Kingdom_Is_Not_In_Full_Map: '&eYour Kingdom is not inside this Map, and this Map is full'
 Guis_Conquests_Kingdom_Can_Join_Map: '&eYour Kingdom is not inside this Map, but can join'
 Guis_Conquests_Map_Income_Yield: This map yields %amount% RP per hour for your kingdom
-Guis_ChampionUpgrades_Title: '&bChampion Upgrades'
-Guis_ChampionUpgrades_Weapon_Title: '&bChampion Weapon'
-Guis_ChampionUpgrades_Weapon_Desc: Provides your champion with a better weapon each upgrade. Max level is 10
-Guis_ChampionUpgrades_Weapon_Curr: 'Current Champion Weapon Level: %level%'
-Guis_ChampionUpgrades_Health_Title: '&bChampion Health'
-Guis_ChampionUpgrades_Health_Curr: '&5Current Health: %level%'
-Guis_ChampionUpgrades_Health_Desc: Increases Champion Health by 2
-Guis_ChampionUpgrades_HealthII_Title: '&bChampion Health II'
-Guis_ChampionUpgrades_HealthII_Desc: Increases Champion Health by 50
-Guis_ChampionUpgrades_Determination_Title: '&bDetermination'
-Guis_ChampionUpgrades_Determination_Curr: '&5Current Determination: %level%'
-Guis_ChampionUpgrades_Determination_Desc: Increases Determination by 2. Champion Determination will act as a shield that will absorb damage. Armor does not affect this shield.
-Guis_ChampionUpgrades_DeterminationII_Title: '&bDetermination II'
-Guis_ChampionUpgrades_DeterminationII_Desc: Increases Determination by 50
-Guis_ChampionUpgrades_Resistance_Curr: '&5Current Resistance: %level%%'
-Guis_ChampionUpgrades_Resistance_Title: '&bResistance'
-Guis_ChampionUpgrades_Resistance_Desc: Each upgrade adds 20% chance that the champion won't be knocked back by an attack. Max is 100%
-Guis_ChampionUpgrades_Speed_Title: '&bChampion Speed'
-Guis_ChampionUpgrades_Speed_Curr: '&5Current Speed Level: %level%'
-Guis_ChampionUpgrades_Speed_Desc: 'Increases Champion Speed. Max: 5'
-Guis_ChampionUpgrades_Drag_Title: '&bDrag'
-Guis_ChampionUpgrades_Drag_Curr: '&5Enabled: %level%'
-Guis_ChampionUpgrades_Drag_Desc: If the invading player is more than 7 blocks away from the champion, the champion will teleport the player to the champion's location
-Guis_ChampionUpgrades_Mock_Title: '&bMock'
-Guis_ChampionUpgrades_Mock_Curr: '&5Current Mock Range: %level% blocks'
-Guis_ChampionUpgrades_Mock_Desc: Each upgrade increases the radius in which invading players can't build while near the champion
-Guis_ChampionUpgrades_DeathDuel_Title: '&bDeath Duel'
-Guis_ChampionUpgrades_DeathDuel_Curr: '&5Enabled: %level%'
-Guis_ChampionUpgrades_DeathDuel_Desc: All players except the invader will deal 50% less damage to the champion. The champion will also deal double damage to all players except the invader
-Guis_ChampionUpgrades_Thor_Title: '&bThor'
-Guis_ChampionUpgrades_Thor_Curr: '&5Current Thor Damage: %level%'
-Guis_ChampionUpgrades_Thor_Desc: Every 3 seconds, strike lightning down at the invading player and all nearby non-allied players, dealing damage, and knocking the player back
-Guis_ChampionUpgrades_DamageCap_Title: '&bDamage Cap'
-Guis_ChampionUpgrades_DamageCap_Curr: '&5Enabled: %level%'
-Guis_ChampionUpgrades_DamageCap_Desc: Your champion can only receive up to 15 damage at any attack.
-Guis_ChampionUpgrades_Plow_Title: '&bPlow'
-Guis_ChampionUpgrades_Plow_Curr: '&5Enabled: %level%'
-Guis_ChampionUpgrades_Plow_Desc: Your champion will try to clear lava and webs
-Guis_ChampionUpgrades_Strength_Title: '&bStrength'
-Guis_ChampionUpgrades_Strength_Curr: '&5Current Strength chance: %level%%'
-Guis_ChampionUpgrades_Strength_Desc: Every attack, there will be a chance to knock the player into the sky. Each upgrade increases this chance by 10%
-Guis_ChampionUpgrades_Armor_Title: '&bArmor'
-Guis_ChampionUpgrades_Armor_Curr: '&5Current Armor Level: %level%'
-Guis_ChampionUpgrades_Armor_Desc: Each upgrade adds a level of protection in the champion's chestplate
-Guis_ChampionUpgrades_Reinforcements_Title: '&bReinforcements'
-Guis_ChampionUpgrades_Reinforcements_Curr: '&5Number of reinforcements: %level%'
-Guis_ChampionUpgrades_Reinforcements_Desc: 'Each upgrade allows only the &c&lNexus Champion &ato spawn an additonal nexus guard. Maximum level: 2'
-Guis_ChampionUpgrades_Mimic_Title: '&bMimic'
-Guis_ChampionUpgrades_Mimic_Curr: '&5Enabled: %level%'
-Guis_ChampionUpgrades_Mimic_Desc: The champion gains the invader's helmet, leggings and boots
-Guis_ChampionUpgrades_Focus_Title: '&bFocus'
-Guis_ChampionUpgrades_Focus_Curr: '&5Current Focus Level: %level%'
-Guis_ChampionUpgrades_Focus_Desc: Players hit by the champion (including Thor) will have 1 second removed from all their active potion effects
-Guis_ChampionUpgrades_Aqua_Title: '&bAqua'
-Guis_ChampionUpgrades_Aqua_Curr: '&5Enabled: %level%'
-Guis_ChampionUpgrades_Aqua_Desc: The champion gets depth strider boots
 Guis_BoostShop_Inventory_Title: '&bBoosts Shop'
 Guis_BoostShop_CombatBoost_Title: '&bCombat Boost'
 Guis_BoostShop_CombatBoost_Desc: For 60 minutes, deal 30% more damage, and prevent durability loss for swords

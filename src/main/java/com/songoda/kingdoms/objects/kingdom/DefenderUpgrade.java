@@ -1,38 +1,31 @@
 package com.songoda.kingdoms.objects.kingdom;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.utils.DeprecationUtils;
+import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.Utils;
 
 public enum DefenderUpgrade {
 	
-	WEAPON("weapon");
+	MEGA_HEALTH("mega-health"),
+	RESISTANCE("resistance"),
+	STRENGTH("strength"),
+	WEAPON("weapon"),
+	HEALTH("health"),
+	THROW("throw"),
+	SPEED("speed"),
+	ARMOR("armor");
 	
-	/*WEAPON(Kingdoms.getLang().getString("Guis_ChampionUpgrades_Weapon_Curr"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Weapon_Desc"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Weapon_Title"),
-			Material.IRON_SWORD, 1),
-	HEALTH(Kingdoms.getLang().getString("Guis_ChampionUpgrades_Health_Curr"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Health_Desc"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Health_Title"),
-			Material.IRON_CHESTPLATE,
-            Integer.parseInt(Config.getConfig().getString("magnitude.champion.healthI"))),
-	HEALTHII(Kingdoms.getLang().getString("Guis_ChampionUpgrades_Health_Curr"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_HealthII_Desc"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_HealthII_Title"),
-			Material.IRON_CHESTPLATE,
-            Integer.parseInt(Config.getConfig().getString("magnitude.champion.healthII"))),
-	RESISTANCE(Kingdoms.getLang().getString("Guis_ChampionUpgrades_Resistance_Curr"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Resistance_Desc"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Resistance_Title"),
-			Material.BRICK,20),
-	SPEED(Kingdoms.getLang().getString("Guis_ChampionUpgrades_Speed_Curr"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Speed_Desc"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Speed_Title"),
-			Material.QUARTZ,1),
+	/*
 	DRAG(Kingdoms.getLang().getString("Guis_ChampionUpgrades_Drag_Curr"),
 			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Drag_Desc"),
 			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Drag_Title"),
@@ -61,14 +54,6 @@ public enum DefenderUpgrade {
 			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Plow_Title"),
 			Material.BUCKET,1,
 			true),
-	STRENGTH(Kingdoms.getLang().getString("Guis_ChampionUpgrades_Strength_Curr"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Strength_Desc"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Strength_Title"),
-			Materials.GOLDEN_AXE.parseMaterial(),10),
-	ARMOR(Kingdoms.getLang().getString("Guis_ChampionUpgrades_Armor_Curr"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Armor_Desc"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Armor_Title"),
-			Material.DIAMOND_CHESTPLATE,1),
 	REINFORCEMENTS(Kingdoms.getLang().getString("Guis_ChampionUpgrades_Reinforcements_Curr"),
 			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Reinforcements_Desc"),
 			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Reinforcements_Title"),
@@ -98,240 +83,86 @@ public enum DefenderUpgrade {
 			Materials.GOLDEN_CHESTPLATE.parseMaterial(),
             Config.getConfig().getInt("magnitude.champion.determinationII"));
     */
-	
-	private String node;
-	private Material display;
+
+	private final List<String> description = new ArrayList<>();
+	private final int max, value, cost, multiplier;
+	private final boolean glowing, enabled;
+	private final String node, title, meta;
+	private final Material material;
 	
 	private DefenderUpgrade(String node) {
 		FileConfiguration configuration = Kingdoms.getInstance().getConfiguration("defender-upgrades").get();
 		ConfigurationSection section = configuration.getConfigurationSection("upgrades." + node);
-		this.item = Utils.materialAttempt(section.getString("inventory-material"), "RECORD_3");
-		this.material = Utils.materialAttempt(section.getString("material"), "REDSTONE_BLOCK");
-		this.additional.addAll(configuration.getStringList("structures.additional-lore"));
-		this.description = section.getString("description");
-		this.enabled = section.getBoolean("enabled", true);
-		this.cost = section.getLong("cost", 0);
-		this.title = section.getString("name");
-		if (metadata == null) { 
-			this.metadata = node;
-			return;
-		}
-		this.metadata = metadata;
+		this.material = Utils.materialAttempt(section.getString("material", "WOODEN_SWORD"), "WOOD_SWORD");
+		this.description.addAll(section.getStringList("description"));
+		this.multiplier = section.getInt("cost-multiplier", 10);
+		this.glowing = section.getBoolean("glowing", false);
+		this.enabled = section.getBoolean("enabled", false);
+		this.title = section.getString("title", "Not set");
+		this.meta = section.getString("material-meta", "");
+		this.max = section.getInt("max-level", 0);
+		this.value = section.getInt("value", 1);
+		this.cost = section.getInt("cost", 10);
+		this.node = node;
 	}
 	
-	ChampionUpgrade(String curr, String desc, String title, Material display, int levels, boolean isToggle){
-		this.curr = curr;
-		this.desc = desc;
-		this.title = title;
-		this.isToggle = isToggle;
-		this.display = display;
-		this.levels = levels;
+	public List<String> getDescription() {
+		return description;
 	}
 	
-	public int getLevels(){
-		return levels;
+	public int getCostAt(int level) {
+		return cost + (level * multiplier);
 	}
 	
-	public String getCurr() {
-		return curr;
+	public int getCostMultiplier() {
+		return multiplier;
 	}
-	public String getDesc() {
-		return desc;
+	
+	public Material getMaterial() {
+		return material;
 	}
+	
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public boolean isGlowing() {
+		return glowing;
+	}
+	
+	public int getMaxLevel() {
+		return max;
+	}
+
 	public String getTitle() {
 		return title;
 	}
-	public Material getDisplay() {
-		return display;
-	}
-	public boolean isToggle() {
-		return isToggle;
-	}
-	public static boolean getUpgradeEnabled(ChampionUpgrade upgrade){
-		if(upgrade == null) return false;
-		
-		switch(upgrade){
-			case WEAPON:
-				return Config.getConfig().getBoolean("enable.champion.weapon");
-			case AQUA:
-				return Config.getConfig().getBoolean("enable.champion.aqua");
-			case ARMOR:
-				return Config.getConfig().getBoolean("enable.champion.armor");
-			case DAMAGE_CAP:
-				return Config.getConfig().getBoolean("enable.champion.damagecap");
-			case DEATH_DUEL:
-				return Config.getConfig().getBoolean("enable.champion.duel");
-			case DRAG:
-				return Config.getConfig().getBoolean("enable.champion.drag");
-			case FOCUS:
-				return Config.getConfig().getBoolean("enable.champion.focus");
-			case HEALTH:
-				return true;
-			case HEALTHII:
-				return true;
-			case MIMIC:
-				return Config.getConfig().getBoolean("enable.champion.mimic");
-			case MOCK:
-				return Config.getConfig().getBoolean("enable.champion.mock");
-			case PLOW:
-				return Config.getConfig().getBoolean("enable.champion.plow");
-			case REINFORCEMENTS:
-				return Config.getConfig().getBoolean("enable.champion.reinforcements");
-			case RESISTANCE:
-				return Config.getConfig().getBoolean("enable.champion.resist");
-			case SPEED:
-				return Config.getConfig().getBoolean("enable.champion.speed");
-			case STRENGTH:
-				return Config.getConfig().getBoolean("enable.champion.strength");
-			case THOR:
-				return Config.getConfig().getBoolean("enable.champion.thor");
-			case DETERMINATION:
-				return Config.getConfig().getBoolean("enable.champion.determination");
-			case DETERMINATIONII:
-				return Config.getConfig().getBoolean("enable.champion.determination");
-		}
-		return false;
-	}
-	
-	
-	public static int getUpgradeMax(ChampionUpgrade upgrade){
-		if(upgrade == null) return 0;
-		
-		switch(upgrade){
-			case WEAPON:
-				return Config.getConfig().getInt("max.champion.weapon");
-			case AQUA:
-				return 1;
-			case ARMOR:
-				return Config.getConfig().getInt("max.champion.armor");
-			case DAMAGE_CAP:
-				return Config.getConfig().getInt("max.champion.damagecap");
-			case DEATH_DUEL:
-				return Config.getConfig().getInt("max.champion.duel");
-			case DRAG:
-				return Config.getConfig().getInt("max.champion.drag");
-			case FOCUS:
-				return Config.getConfig().getInt("max.champion.focus");
-			case HEALTH:
-				return Config.getConfig().getInt("max.champion.health");
-			case HEALTHII:
-				return Config.getConfig().getInt("max.champion.health");
-			case MIMIC:
-				return Config.getConfig().getInt("max.champion.mimic");
-			case MOCK:
-				return Config.getConfig().getInt("max.champion.mock");
-			case PLOW:
-				return Config.getConfig().getInt("max.champion.plow");
-			case REINFORCEMENTS:
-				return Config.getConfig().getInt("max.champion.reinforcements");
-			case RESISTANCE:
-				return Config.getConfig().getInt("max.champion.resist");
-			case SPEED:
-				return Config.getConfig().getInt("max.champion.speed");
-			case STRENGTH:
-				return Config.getConfig().getInt("max.champion.strength");
-			case THOR:
-				return Config.getConfig().getInt("max.champion.thor");
-			case DETERMINATION:
-				return Config.getConfig().getInt("max.champion.determination");
-			case DETERMINATIONII:
-				return Config.getConfig().getInt("max.champion.determination");
 
-		}
-		return 0;
+	public String getNode() {
+		return node;
 	}
 	
-	public static int getUpgradeCost(ChampionUpgrade upgrade){
-		if(upgrade == null) return 0;
-		
-		switch(upgrade){
-			case WEAPON:
-				return Config.getConfig().getInt("cost.champion.weapon");
-			case AQUA:
-				return Config.getConfig().getInt("cost.champion.aqua");
-			case ARMOR:
-				return Config.getConfig().getInt("cost.champion.armor");
-			case DAMAGE_CAP:
-				return Config.getConfig().getInt("cost.champion.damagecap");
-			case DEATH_DUEL:
-				return Config.getConfig().getInt("cost.champion.duel");
-			case DRAG:
-				return Config.getConfig().getInt("cost.champion.drag");
-			case FOCUS:
-				return Config.getConfig().getInt("cost.champion.focus");
-			case HEALTH:
-				return Config.getConfig().getInt("cost.champion.health")*Config.getConfig().getInt("magnitude.champion.healthI");
-			case HEALTHII:
-				return Config.getConfig().getInt("cost.champion.health")*Config.getConfig().getInt("magnitude.champion.healthII");
-			case MIMIC:
-				return Config.getConfig().getInt("cost.champion.mimic");
-			case MOCK:
-				return Config.getConfig().getInt("cost.champion.mock");
-			case PLOW:
-				return Config.getConfig().getInt("cost.champion.plow");
-			case REINFORCEMENTS:
-				return Config.getConfig().getInt("cost.champion.reinforcements");
-			case RESISTANCE:
-				return Config.getConfig().getInt("cost.champion.resist");
-			case SPEED:
-				return Config.getConfig().getInt("cost.champion.speed");
-			case STRENGTH:
-				return Config.getConfig().getInt("cost.champion.strength");
-			case THOR:
-				return Config.getConfig().getInt("cost.champion.thor");
-			case DETERMINATION:
-				return Config.getConfig().getInt("cost.champion.determination")*Config.getConfig().getInt("magnitude.champion.determinationI");
-			case DETERMINATIONII:
-				return Config.getConfig().getInt("cost.champion.determination")*Config.getConfig().getInt("magnitude.champion.determinationII");
-		}
-		return 0;
+	public int getValue() {
+		return value;
 	}
 	
-
-	public static int getUpgradeDefault(ChampionUpgrade upgrade){
-		if(upgrade == null) return 0;
+	public int getCost() {
+		return cost;
+	}
+	
+	public void execute() {
 		
-		switch(upgrade){
-			case WEAPON:
-				return Config.getConfig().getInt("default.champion.weapon");
-			case AQUA:
-				return Config.getConfig().getInt("default.champion.aqua");
-			case ARMOR:
-				return Config.getConfig().getInt("default.champion.armor");
-			case DAMAGE_CAP:
-				return Config.getConfig().getInt("default.champion.damagecap");
-			case DEATH_DUEL:
-				return Config.getConfig().getInt("default.champion.duel");
-			case DRAG:
-				return Config.getConfig().getInt("default.champion.drag");
-			case FOCUS:
-				return Config.getConfig().getInt("default.champion.focus");
-			case HEALTH:
-				return Config.getConfig().getInt("default.champion.health");
-			case HEALTHII:
-				return Config.getConfig().getInt("default.champion.health");
-			case MIMIC:
-				return Config.getConfig().getInt("default.champion.mimic");
-			case MOCK:
-				return Config.getConfig().getInt("default.champion.mock");
-			case PLOW:
-				return Config.getConfig().getInt("default.champion.plow");
-			case REINFORCEMENTS:
-				return Config.getConfig().getInt("default.champion.reinforcements");
-			case RESISTANCE:
-				return Config.getConfig().getInt("default.champion.resist");
-			case SPEED:
-				return Config.getConfig().getInt("default.champion.speed");
-			case STRENGTH:
-				return Config.getConfig().getInt("default.champion.strength");
-			case THOR:
-				return Config.getConfig().getInt("default.champion.thor");
-			case DETERMINATION:
-				return Config.getConfig().getInt("default.champion.determination");
-			case DETERMINATIONII:
-				return Config.getConfig().getInt("default.champion.determination");
-		}
-		return 0;
+	}
+	
+	public ItemStack build(OfflineKingdom kingdom, boolean shop) {
+		ItemStack itemstack = new ItemStack(material);
+		ItemMeta itemmeta = itemstack.getItemMeta();
+		itemmeta.setDisplayName(Formatting.color(title));
+		List<String> lores = new ArrayList<>();
+		description.forEach(message -> lores.add(Formatting.color(message)));
+		itemmeta.setLore(lores);
+		itemstack.setItemMeta(itemmeta);
+		return DeprecationUtils.setupItemMeta(itemstack, meta);
 	}
 
 }

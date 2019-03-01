@@ -357,7 +357,7 @@ turrets:
                 - "MONSTERS"
                 - "ENEMIES"
             cost: 200
-        heart-beam:
+        healing-station:
             enabled: true
             max-per-land: 10
             skull-skin: "MHF_Pumpkin"

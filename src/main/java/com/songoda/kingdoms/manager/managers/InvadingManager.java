@@ -1,8 +1,11 @@
 package com.songoda.kingdoms.manager.managers;
 
+import com.songoda.kingdoms.events.DefenderKnockbackEvent;
+import com.songoda.kingdoms.events.DefenderMockEvent;
 import com.songoda.kingdoms.events.InvadingSurrenderEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
+import com.songoda.kingdoms.manager.managers.external.HolographicDisplaysManager;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
@@ -29,6 +32,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.ThrownPotion;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -37,7 +41,10 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
@@ -45,6 +52,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
@@ -53,8 +61,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -75,14 +85,19 @@ public class InvadingManager extends Manager {
 	private final Map<UUID, Integer> thorTasks = new HashMap<>();
 	private final Map<UUID, Integer> plowTasks = new HashMap<>();
 	private final Map<Land, UUID> invading = new HashMap<>();
+	private final HolographicDisplaysManager hologramManager;
 	private final CitizensManager citizensManager;
+	private final Random random = new Random();
+	private final TurretManager turretManager;
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
 	private final LandManager landManager;
 
 	protected InvadingManager() {
 		super(true);
+		this.hologramManager = instance.getManager("holographic-displays", HolographicDisplaysManager.class);
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+		this.turretManager = instance.getManager("turret", TurretManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
@@ -123,11 +138,11 @@ public class InvadingManager extends Manager {
 	 * @param kingdomPlayer The KingdomPlayer to check.
 	 * @return The defender Entity instance.
 	 */
-	public Entity getDefender(KingdomPlayer kingdomPlayer) {
-		Optional<UUID> uuid = Optional.ofNullable(fighting.get(kingdomPlayer));
-		if (!uuid.isPresent())
-			return null;
-		return Bukkit.getEntity(uuid.get());
+	public Optional<Entity> getDefender(KingdomPlayer kingdomPlayer) {
+		UUID uuid = fighting.get(kingdomPlayer);
+		if (uuid == null)
+			return Optional.empty();
+		return Optional.ofNullable(Bukkit.getEntity(uuid));
 	}
 
 	/**
@@ -136,8 +151,8 @@ public class InvadingManager extends Manager {
 	 * @param uuid Entity's UUID of defender.
 	 * @return owner Optional<OfflineKingdom>
 	 */
-	public Optional<OfflineKingdom> getDefenderOwner(UUID uuid) {
-		return Optional.ofNullable(entities.get(uuid));
+	public Optional<OfflineKingdom> getDefenderOwner(Entity entity) {
+		return Optional.ofNullable(entities.get(entity.getUniqueId()));
 	}
 	
 	/**
@@ -146,9 +161,9 @@ public class InvadingManager extends Manager {
 	 * @param uuid Entity's UUID of defender.
 	 * @return challenger Optional<KingdomPlayer>
 	 */
-	public Optional<KingdomPlayer> getDefenderChallenger(UUID uuid) {
+	public Optional<KingdomPlayer> getDefenderChallenger(Entity entity) {
 		return fighting.entrySet().parallelStream()
-				.filter(entry -> entry.getValue() == uuid)
+				.filter(entry -> entry.getValue() == entity.getUniqueId())
 				.map(entry -> entry.getKey())
 				.findFirst();
 	}
@@ -182,7 +197,6 @@ public class InvadingManager extends Manager {
 		if (kingdom.isOnline()) {
 			kingdom.getKingdom().getOnlinePlayers().forEach(player -> defenders.put(player, location));
 		}
-		DefenderInfo info = getDefenderInfo(kingdom);
 		Player player = challenger.getPlayer();
 		player.setGameMode(GameMode.SURVIVAL);
 		
@@ -190,10 +204,6 @@ public class InvadingManager extends Manager {
 		Zombie defender = (Zombie) location.getWorld().spawnEntity(location, EntityType.ZOMBIE);
 		startChampionCountdown(defender);
 		int value = configuration.getInt("invading.defender.health", 2048);
-		int health = info.getHealth() > value ? value : info.getHealth();
-		DeprecationUtils.setMaxHealth(defender, health);
-		double amount = info.getResistance() / 100f;
-		DeprecationUtils.setKnockbackResistance(defender, amount);
 		String name = new MessageBuilder("invading.defenders-name")
 				.setPlaceholderObject(challenger)
 				.setKingdom(kingdom)
@@ -215,6 +225,14 @@ public class InvadingManager extends Manager {
 		fighting.put(challenger, uuid);
 		entities.put(uuid, kingdom);
 		invading.put(land, uuid);
+		
+		// Start applying upgrades.
+		DefenderInfo info = getDefenderInfo(kingdom);
+		
+		int health = info.getHealth() > value ? value : info.getHealth();
+		DeprecationUtils.setMaxHealth(defender, health);
+		double amount = info.getResistance() / 100f;
+		DeprecationUtils.setKnockbackResistance(defender, amount);
 
 		// 200 bonus health for Nexus defense
 		Structure structure = land.getStructure();
@@ -461,8 +479,8 @@ public class InvadingManager extends Manager {
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onChallengerQuit(PlayerQuitEvent event) {
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
-		Entity defender = getDefender(kingdomPlayer);
-		if (defender == null)
+		Optional<Entity> defender = getDefender(kingdomPlayer);
+		if (!defender.isPresent())
 			return;
 		Land land = kingdomPlayer.getInvadingLand();
 		if (land == null)
@@ -482,8 +500,8 @@ public class InvadingManager extends Manager {
 		if (citizensManager.isCitizen(player))
 			return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		Entity defender = getDefender(kingdomPlayer);
-		if (defender == null)
+		Optional<Entity> defender = getDefender(kingdomPlayer);
+		if (!defender.isPresent())
 			return;
 		Land land = kingdomPlayer.getInvadingLand();
 		if (land == null)
@@ -543,14 +561,14 @@ public class InvadingManager extends Manager {
 	public void onDefenderVoidDamage(EntityDamageEvent event) {
 		if (event.getCause() != DamageCause.VOID)
 			return;
-		if (!Config.getConfig().getBoolean("champion-specs.invader-lose-on-champion-void-damage"))
+		if (!configuration.getBoolean("invading.defender.void-death-end-invasion"))
 			return;
 		Entity entity = event.getEntity();
 		if (citizensManager.isCitizen(entity))
 			return;
 		if (!worldManager.acceptsWorld(entity.getWorld()))
 			return;
-		Optional<KingdomPlayer> optional = getDefenderChallenger(entity.getUniqueId());
+		Optional<KingdomPlayer> optional = getDefenderChallenger(entity);
 		if (!optional.isPresent())
 			return;
 		KingdomPlayer challenger = optional.get();
@@ -561,7 +579,10 @@ public class InvadingManager extends Manager {
 		OfflineKingdom landKingdom = land.getKingdomOwner();
 		Bukkit.getPluginManager().callEvent(new InvadingSurrenderEvent(challenger, landKingdom, land));
 		stopFight(challenger);
-		challenger.sendMessage(Kingdoms.getLang().getString("Champion_Void_Death", challenger.getLang()));
+		new MessageBuilder("kingdoms.defender-void-death")
+				.setPlaceholderObject(challenger)
+				.setKingdom(landKingdom)
+				.send(challenger);
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
@@ -571,7 +592,7 @@ public class InvadingManager extends Manager {
 			return;
 		if (!worldManager.acceptsWorld(entity.getWorld()))
 			return;
-		Optional<OfflineKingdom> optional = getDefenderOwner(entity.getUniqueId());
+		Optional<OfflineKingdom> optional = getDefenderOwner(entity);
 		if (!optional.isPresent())
 			return;
 		OfflineKingdom landKingdom = optional.get();
@@ -584,11 +605,14 @@ public class InvadingManager extends Manager {
 		if (kingdom == null)
 			return;
 		if (kingdom.equals(landKingdom)) {
-			challenger.sendMessage(Kingdoms.getLang().getString("Champion_Own_Kingdom", challenger.getLang()));
+			new MessageBuilder("kingdoms.defender-own")
+					.setPlaceholderObject(challenger)
+					.setKingdom(kingdom)
+					.send(challenger);
 			event.setDamage(0.0D);
 			return;
 		}
-		ChampionByPlayerDamageEvent damageEvent = new ChampionByPlayerDamageEvent(e.getEntity(), challenger, e.getDamage());
+		ChampionByPlayerDamageEvent damageEvent = new ChampionByPlayerDamageEvent(entity, challenger, event.getDamage());
 		if (damageEvent.isCancelled()) {
 			event.setCancelled(true);
 			return;
@@ -597,386 +621,298 @@ public class InvadingManager extends Manager {
 		}
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onChampionDetermination(EntityDamageByEntityEvent event) {
-		Entity entity = event.getEntity();
-		if (citizensManager.isCitizen(entity))
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void onDefenderTurretDamage(EntityDamageByEntityEvent event) {
+		Entity victim = event.getEntity();
+		World world = event.getEntity().getWorld();
+		if (!worldManager.acceptsWorld(world))
 			return;
-		if (!worldManager.acceptsWorld(entity.getWorld()))
-			return;
-		Optional<OfflineKingdom> optional = getDefenderOwner(entity.getUniqueId());
+		Optional<OfflineKingdom> optional = getDefenderOwner(victim);
 		if (!optional.isPresent())
 			return;
-		OfflineKingdom landKingdom = optional.get().getKingdom();
+		OfflineKingdom defenderKingdom = optional.get();
 		Entity attacker = event.getDamager();
-		if (!(attacker instanceof Player))
+		optional = turretManager.getProjectileKingdom(attacker);
+		if (!optional.isPresent())
 			return;
-		Player damager = (Player) attacker;
-		KingdomPlayer challenger = playerManager.getKingdomPlayer(damager);
-		DefenderInfo info = this.getDefenderInfo(landKingdom);
-		if (info.getDetermination() > 0) {
-			//Also this appears to ignore damage to an extent? I do 14 dmg and boss has 1 determination it does nothing???
-			//Also why only rip determination when hit by another entity?
-			if (!determination.containsKey(e.getEntity().getEntityId())) {
-				determination.put(e.getEntity().getEntityId(), info.getDetermination());
-			}
-			if(determination.get(e.getEntity().getEntityId()) > 0) {
-				ChampionDeterminationDamageEvent determinationDamageEvent =
-					new ChampionDeterminationDamageEvent(e.getEntity(), e.getDamage(), determination.get(e.getEntity().getEntityId()), challenger);
-				Bukkit.getPluginManager().callEvent(determinationDamageEvent);
-				if(determinationDamageEvent.isCancelled()){
-					return;
-			}
-			e.setDamage(determinationDamageEvent.getDamage());
-			int newd = (int) (determination.get(e.getEntity().getEntityId()) - e.getDamage());
-			e.setDamage(0.0);
-			//TODO possible fix
-			/*
-			if(newd < 0){
-				e.setDamage(-1 * newD);
-			}
-			else{
-				e.setDamage(0)
-			}
-			 */
-			if (newd < 0)
-				newd = 0;
-			determination.put(e.getEntity().getEntityId(), newd);
-			}
+		OfflineKingdom turretKingdom = optional.get();
+		if (turretKingdom.equals(defenderKingdom)) {
+			event.setCancelled(true);
+			event.setDamage(0);
+			return;
+		}
+		ChampionDamageEvent damageEvent = new ChampionDamageEvent(victim, event.getDamage(), ChampionDamageEvent.ChampionDamageCause.TURRET);
+		Bukkit.getPluginManager().callEvent(damageEvent);
+		if (!damageEvent.isCancelled())
+			event.setDamage(damageEvent.getDamage());
+	}
+
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void onDefenderPotionDamage(PotionSplashEvent event) {
+		Entity victim = event.getHitEntity();
+		World world = victim.getWorld();
+		if (!worldManager.acceptsWorld(world))
+			return;
+		Iterator<LivingEntity> iterator = event.getAffectedEntities().iterator();
+		while (iterator.hasNext()) {
+			Entity entity = iterator.next();
+			Optional<OfflineKingdom> optional = turretManager.getProjectileKingdom(entity);
+			if (!optional.isPresent())
+				return;
+			OfflineKingdom defenderKingdom = optional.get();
+			ProjectileSource thrower = event.getPotion().getShooter();
+			if (!(thrower instanceof Player))
+				continue;
+			Player player = (Player) thrower;
+			KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+			if (kingdomPlayer.hasAdminMode())
+				continue;
+			Kingdom kingdom = kingdomPlayer.getKingdom();
+			if (kingdom == null)
+				continue;
+			if (player.getGameMode() != GameMode.SURVIVAL && player.getGameMode() != GameMode.ADVENTURE)
+				iterator.remove();
+			if (defenderKingdom.equals(kingdom) || defenderKingdom.isAllianceWith(kingdom))
+				iterator.remove();
 		}
 	}
 
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void onChampionDamageByTurretArrow(EntityDamageByEntityEvent e){
-	World bukkitWorld = e.getEntity().getWorld();
-	if(!Config.getConfig().getStringList("enabled-worlds").contains(bukkitWorld.getName())) return;
-
-	if(!entityOwners.containsKey(e.getEntity().getEntityId())) return;
-	Kingdom champKingdom = entityOwners.get(e.getEntity().getEntityId());
-
-	if(!(e.getDamager() instanceof Arrow)) return;
-
-	Arrow a = (Arrow) e.getDamager();
-
-	if(a.getMetadata(TurretUtil.META_SHOOTER) == null) return;
-	if(a.getMetadata(TurretUtil.META_SHOOTER).size() < 1) return;
-
-	String shooterKingdom = a.getMetadata(TurretUtil.META_SHOOTER).get(0).asString();
-	if(shooterKingdom == null) return;
-
-	Kingdom shootKingdom = GameManagement.getKingdomManager().getOrLoadKingdom(shooterKingdom);
-	if(shootKingdom == null) return;
-
-	if(shootKingdom.equals(champKingdom)){
-		e.setDamage(0.0D);
-		e.setCancelled(true);
-		return;
-	}
-
-	ChampionDamageEvent damageEvent = new ChampionDamageEvent(e.getEntity(), e.getDamage(), ChampionDamageEvent.ChampionDamageCause.TURRET);
-	Bukkit.getPluginManager().callEvent(damageEvent);
-	if(!damageEvent.isCancelled()){
-		e.setDamage(damageEvent.getDamage());
-	}
-	}
-
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void onChampionDamageByPotion(PotionSplashEvent e){
-
-	World bukkitWorld = e.getEntity().getWorld();
-	if(!Config.getConfig().getStringList("enabled-worlds").contains(bukkitWorld.getName())) return;
-
-	for(Iterator<LivingEntity> iter = e.getAffectedEntities().iterator(); iter.hasNext(); ){
-		Entity entity = iter.next();
-		if(!entityOwners.containsKey(entity.getEntityId())) continue;
-		Kingdom champKingdom = entityOwners.get(entity.getEntityId());
-
-		if(!(e.getPotion().getShooter() instanceof Player)) continue;
-		KingdomPlayer shooter = GameManagement.getPlayerManager().getSession((Player) e.getPotion().getShooter());
-
-		if(champKingdom.equals(shooter.getKingdom())
-			|| champKingdom.isAllianceWith(shooter.getKingdom())
-			|| shooter.getPlayer().getGameMode() != GameMode.SURVIVAL)
-		iter.remove();
-	}
-	}
-
-	/**
-	 * Listener (do not touch)
-	 *
-	 * @param event
-	 */
 	@EventHandler
-	public void onChampionDeath(EntityDeathEvent event){
-	GameManagement.getApiManager();
-	if(ExternalManager.isCitizen(event.getEntity())) return;
-	World bukkitWorld = event.getEntity().getWorld();
-	if(!Config.getConfig().getStringList("enabled-worlds").contains(bukkitWorld.getName())) return;
-
-	if(!entityOwners.containsKey(event.getEntity().getEntityId())) return;
-
-	Player killer = event.getEntity().getKiller();
-	if(killer == null) return;
-
-	KingdomPlayer challenger = targets.get(event.getEntity().getEntityId());
-	if(challenger == null){
-		Kingdoms.logInfo("Fatal error! challenger was null!");
-		return;
-	}
-
-	if(challenger.getKingdom() == null) return;
-
-	if(event.getEntity() != challenger.getChampionPlayerFightingWith()) return;
-
-	SimpleChunkLocation chunk = challenger.getFightZone().clone();
-	Land land = GameManagement.getLandManager().getOrLoadLand(chunk);
-	if(land.getOwnerUUID() == null){
-		Kingdoms.logInfo("Error! champion of [" + chunk.toString() + "] is dead.");
-		Kingdoms.logInfo("But no kingdom owns this land.");
+	public void onDefenderDeath(EntityDeathEvent event) {
+		LivingEntity victim = event.getEntity();
+		World world = victim.getWorld();
+		if (!worldManager.acceptsWorld(world))
+			return;
+		if (citizensManager.isCitizen(victim))
+			return;
+		Optional<OfflineKingdom> optional = turretManager.getProjectileKingdom(victim);
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom defenderKingdom = optional.get();
+		Player attacker = victim.getKiller();
+		if (attacker == null)
+			return;
+		Optional<KingdomPlayer> challengerOptional = getDefenderChallenger(victim);
+		if (!challengerOptional.isPresent())
+			return;
+		KingdomPlayer challenger = challengerOptional.get();
+		Kingdom kingdom = challenger.getKingdom();
+		if (kingdom == null)
+			return;
+		Land land = challenger.getInvadingLand();
+		if (land == null)
+			return;
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (landKingdom == null) {
+			stopFight(challenger);
+			return;
+		}	
 		stopFight(challenger);
-		return;
+		event.getDrops().clear();
+		// Should not be the end of the invasion, should only be a Defender death event.
+		instance.getServer().getPluginManager().callEvent(new KingdomPlayerWonEvent(challenger, defenderKingdom, land));
 	}
 
-	Kingdom defending = entityOwners.get(event.getEntity().getEntityId());
-
-	stopFight(challenger);
-	event.getDrops().clear();
-	plugin.getServer().getPluginManager().callEvent(new KingdomPlayerWonEvent(challenger, defending, chunk));
-	}
-
-	/**
-	 * Listener (do not touch)
-	 *
-	 * @param e
-	 */
 	@EventHandler
-	public void onChallengerDeathWhileInvade(PlayerDeathEvent e){
-	GameManagement.getApiManager();
-	if(ExternalManager.isCitizen(e.getEntity())) return;
-	World bukkitWorld = e.getEntity().getWorld();
-
-	if(!Config.getConfig().getStringList("enabled-worlds").contains(bukkitWorld.getName())) return;
-
-	KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getEntity());
-	if(kp == null) return;
-	if(kp.getChampionPlayerFightingWith() == null) return;
-
-
-	stopFight(kp);
-	}
-
-	/**
-	 * Listener (do not touch)
-	 *
-	 * @param e
-	 */
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void onCommandWhileFight(PlayerCommandPreprocessEvent e){
-	KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-	if(kp == null) return;//GameManagement.getPlayerManager().preloadKingdomPlayer(e.getPlayer());
-	if(kp.getChampionPlayerFightingWith() == null) return;
-	if(e.getMessage().equalsIgnoreCase("/k surrender") ||
-		e.getMessage().equalsIgnoreCase("/kingdoms surrender") ||
-		e.getMessage().equalsIgnoreCase("/kingdom surrender") ||
-		e.getMessage().equalsIgnoreCase("/k ff") ||
-		e.getMessage().equalsIgnoreCase("/kingdoms ff") ||
-		e.getMessage().equalsIgnoreCase("/kingdom ff")){
-		if(kp.getPlayer().hasPermission("kingdoms.surrender") ||
-			kp.getPlayer().hasPermission("kingdoms.player"))
-		return;
-	}
-	kp.sendMessage(Kingdoms.getLang().getString("Champion_Command_Block", kp.getLang()));
-	e.setCancelled(true);
-	}
-
-	/**
-	 * Listener (do not touch)
-	 *
-	 * @param e
-	 */
-	@EventHandler
-	public void onTargetChange(EntityTargetLivingEntityEvent e){
-	World bukkitWorld = e.getEntity().getWorld();
-	if(!Config.getConfig().getStringList("enabled-worlds").contains(bukkitWorld.getName())) return;
-	GameManagement.getApiManager();
-	if(ExternalManager.isCitizen(e.getTarget())) return;
-	if(!entityOwners.containsKey(e.getEntity().getEntityId())) return;
-	Kingdom kingdom = entityOwners.get(e.getEntity().getEntityId());
-	KingdomPlayer challenger = targets.get(e.getEntity().getEntityId());
-	ChampionTargetChangeEvent championTargetChangeEvent = new ChampionTargetChangeEvent(e.getEntity(), e.getTarget());
-	if(e.getTarget() instanceof Player){
-		Player targetP = (Player) e.getTarget();
-		KingdomPlayer target = GameManagement.getPlayerManager().getSession(targetP);
-		if(target.getKingdom() == null) return; // don't change if has no kingdom
-
-		if(kingdom.equals(target.getKingdom())){//Why this???????? -> || kingdom.equals(target.getKingdom())){
-		e.setTarget(challenger.getPlayer());// change target if ally or own kingdom member
-		}
-		//TODO check that this is right lmao
-		else{
-			Bukkit.getPluginManager().callEvent(championTargetChangeEvent);
-			if(championTargetChangeEvent.isCancelled()){
-				e.setTarget(challenger.getPlayer());
-		}
-		}
-	}
-	}
-
-
-	/**
-	 * Listener (do not touch)
-	 *
-	 * @param e
-	 */
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onKnockBack(EntityDamageByEntityEvent e){
-
-	if(e.getCause() != DamageCause.ENTITY_ATTACK //only arrow and projectile
-		|| e.getCause() != DamageCause.PROJECTILE) return;
-
-	if(e.getEntity().getType() != EntityType.ZOMBIE) return; //check if zombie
-
-	if(!entityOwners.containsKey(e.getEntity().getEntityId())) return; //check if champion
-
-	Kingdom kingdom = entityOwners.get(e.getEntity().getEntityId());
-	ChampionInfo info = kingdom.getChampionInfo();
-
-	int resist = info.getResist();
-	if(!(resist > 0)) return;
-
-	if(ProbabilityTool.testProbability100(resist)){
-		ChampionIgnoreKnockbackEvent ignoreKnockbackEvent = new ChampionIgnoreKnockbackEvent(e.getEntity());
-		Bukkit.getPluginManager().callEvent(ignoreKnockbackEvent);
-		if(ignoreKnockbackEvent.isCancelled()){
+	public void onDefenderDeathWhileInvade(PlayerDeathEvent event) {
+		Player player = event.getEntity();
+		World world = player.getWorld();
+		if (!worldManager.acceptsWorld(world))
 			return;
+		if (citizensManager.isCitizen(player))
+			return;
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		if (!getDefender(kingdomPlayer).isPresent())
+			return;
+		stopFight(kingdomPlayer);
+	}
+
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void onCommandWhileFight(PlayerCommandPreprocessEvent event) {
+		Player player = event.getPlayer();
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		Optional<Entity> defender = getDefender(kingdomPlayer);
+		if (!defender.isPresent())
+			return;
+		String command = event.getMessage();
+		if (command.equalsIgnoreCase("/k ff") || command.equalsIgnoreCase("/kingdoms ff") || command.equalsIgnoreCase("/kingdom ff")) {
+			if (player.hasPermission("kingdoms.surrender") || player.hasPermission("kingdoms.player"))
+				return;
 		}
-		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> e.getEntity().setVelocity(new Vector())
-			, 1L);
-
+		if (command.equalsIgnoreCase("/k forfeit") || command.equalsIgnoreCase("/kingdoms forfeit") || command.equalsIgnoreCase("/kingdom forfeit")) {
+			if (player.hasPermission("kingdoms.surrender") || player.hasPermission("kingdoms.player"))
+				return;
+		}
+		if (configuration.getStringList("commands.allowed-during-invasion").contains(command))
+			return;
+		Optional<OfflineKingdom> landKingdom = getDefenderOwner(defender.get());
+		new MessageBuilder("kingdoms.defender-command-blocked")
+				.setKingdom(landKingdom.isPresent() ? landKingdom.get() : null)
+				.setPlaceholderObject(kingdomPlayer)
+				.send(player);
+		event.setCancelled(true);
 	}
 
-	}
-
-	/**
-	 * Listener (do not touch)
-	 *
-	 * @param e
-	 */
 	@EventHandler
-	public void onPlaceInMockRange(BlockPlaceEvent e){
-	KingdomPlayer kp = GameManagement.getPlayerManager().getSession(e.getPlayer());
-	if(kp.getKingdom() == null) return; //check if has kingdom
+	public void onTargetChange(EntityTargetLivingEntityEvent event) {
+		Entity entity = event.getEntity();
+		World world = entity.getWorld();
+		if (!worldManager.acceptsWorld(world))
+			return;
+		if (citizensManager.isCitizen(entity))
+			return;
+		Optional<OfflineKingdom> optional = getDefenderOwner(entity);
+	    if (!optional.isPresent())
+	        return;
+	    OfflineKingdom defenderKingdom = optional.get();
+		Optional<KingdomPlayer> challengerOptional = getDefenderChallenger(entity);
+		if (!challengerOptional.isPresent())
+			return;
+		KingdomPlayer challenger = challengerOptional.get();
+		LivingEntity target = event.getTarget();
+		ChampionTargetChangeEvent targetEvent = new ChampionTargetChangeEvent(entity, target);
+		Bukkit.getPluginManager().callEvent(targetEvent);
+		if (targetEvent.isCancelled())
+			return;
+		if (target instanceof Player) {
+			KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer((Player) target);
+			Kingdom kingdom = kingdomPlayer.getKingdom();
+			if (kingdom == null)
+				return;
+			// If the target doesn't belong to the defenders Kingdom nor an alliance with them, continue to target them.
+			if (!defenderKingdom.equals(kingdom) && !defenderKingdom.isAllianceWith(kingdom))
+				return;
+		}
+		// If the target is an entity.
+		event.setTarget(challenger.getPlayer());
+	}
 
-	Entity entity = kp.getChampionPlayerFightingWith();
-	if(entity == null) return;//check if fighting
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onProjectileKnockback(EntityDamageByEntityEvent event) {
+		DamageCause cause = event.getCause();
+		if (cause != DamageCause.ENTITY_ATTACK || cause != DamageCause.PROJECTILE)
+			return;
+		Entity entity = event.getEntity();
+		Optional<OfflineKingdom> optional = getDefenderOwner(entity);
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom kingdom = optional.get();
+		DefenderInfo info = getDefenderInfo(kingdom);
+		int resistance = info.getResistance();
+		if (resistance < 0)
+			return;
+		if (random.nextInt(100) <= resistance) {
+			DefenderKnockbackEvent knockbackEvent = new DefenderKnockbackEvent(kingdom, entity, event.getDamager());
+			Bukkit.getPluginManager().callEvent(knockbackEvent);
+			if (knockbackEvent.isCancelled())
+				return;
+			Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(instance, () -> entity.setVelocity(new Vector()), 1);
+	
+		}
+	}
 
-	Kingdom defender = entityOwners.get(entity.getEntityId());
-	ChampionInfo info = defender.getChampionInfo();
-	int mock = info.getMock();
-
-	if(!(mock > 0)) return;
-	ChampionPreMockEvent preMockEvent = new ChampionPreMockEvent(entity, mock);
-	Bukkit.getPluginManager().callEvent(preMockEvent);
-	if(preMockEvent.isCancelled()){
+	@EventHandler
+	public void onMockPlace(BlockPlaceEvent event) {
+		Player player = event.getPlayer();
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null)
+			return;
+		Optional<Entity> optional = getDefender(kingdomPlayer);
+		if (!optional.isPresent())
+			return;
+		Entity defender = optional.get();
+		Optional<OfflineKingdom> kingdomOptional = getDefenderOwner(defender);
+		if (!kingdomOptional.isPresent())
+			return;
+		OfflineKingdom defenderKingdom = kingdomOptional.get();
+		DefenderInfo info = getDefenderInfo(defenderKingdom);
+		int mock = info.getMock();
+		if (mock < 0)
+			return;
+		DefenderMockEvent mockEvent = new DefenderMockEvent(defenderKingdom, defender, mock);
+		Bukkit.getPluginManager().callEvent(mockEvent);
+		if (mockEvent.isCancelled())
+			return;
+		mock = mockEvent.getRange();
+		Location location = defender.getLocation();
+		Block block = event.getBlock();
+		int x = block.getX();
+		int z = block.getZ();
+		if (block.getLocation().distanceSquared(location) > mock * mock)
+			return;
+		if (mockEvent.isEventCancelled())
+			event.setCancelled(true);
+		new MessageBuilder("kingdoms.defender-mock")
+				.setPlaceholderObject(kingdomPlayer)
+				.setKingdom(defenderKingdom)
+				.replace("%mock%", mock)
+				.send(player);
 		return;
 	}
-	mock = preMockEvent.getMockRange();
-	Location champLoc = entity.getLocation();
-	int champX = champLoc.getBlockX();
-	int champZ = champLoc.getBlockZ();
 
-	int placingX = e.getBlock().getX();
-	int placingZ = e.getBlock().getZ();
-
-	if(e.getBlock().getLocation().distanceSquared(champLoc) > mock * mock) return;
-	ChampionMockEvent mockEvent = new ChampionMockEvent(entity);
-	Bukkit.getPluginManager().callEvent(mockEvent);
-	e.setCancelled(!mockEvent.isCancelled());
-	kp.sendMessage(Kingdoms.getLang().getString("Champion_Mock", kp.getLang()).replaceAll("%mock%", mock + ""));
-	return;
-
-	}
-
-	/**
-	 * Listener (do not touch)
-	 *
-	 * @param e
-	 */
 	@EventHandler
-	public void onDeathDuelChampDamageToNonInvader(EntityDamageByEntityEvent e){
-	if(e.getDamager().getType() != EntityType.ZOMBIE) return; //damager is not zombie
-	if(!(e.getEntity() instanceof Player)) return; //damaged is not player
-
-	GameManagement.getApiManager();
-	if(ExternalManager.isCitizen(e.getEntity())) return;
-	if(!entityOwners.containsKey(e.getDamager().getEntityId())) return; //damager not champion
-	GameManagement.getApiManager();
-	if(ExternalManager.isCitizen(e.getDamager())) return;
-	KingdomPlayer damaged = GameManagement.getPlayerManager().getSession((Player) e.getEntity());
-	//if(damaged.getKingdom() == null)//not in kingdom
-
-	if(damaged.getChampionPlayerFightingWith() != null) return; //it's invader
-
-	Kingdom kingdom = entityOwners.get(e.getDamager().getEntityId());
-	ChampionInfo info = kingdom.getChampionInfo();
-	int duel = info.getDuel();
-	if(!(duel > 0)) return;// duel is not on
-
-	e.setDamage(e.getDamage() * 2);//double to non-invader
-	//damaged.sendMessage(ChatColor.RED+"Death duel rage!!!");
+	public void onDefenderDamageNonInvader(EntityDamageByEntityEvent event) {
+		Entity victim = event.getEntity();
+		if (!(victim instanceof Player)) // Defender can only target players in other parts of the code.
+			return;
+		Entity attacker = event.getDamager();
+		Player player = (Player) victim;
+		if (citizensManager.isCitizen(player) || citizensManager.isCitizen(attacker))
+			return;
+		if (!isDefender(attacker))
+			return;
+		Optional<OfflineKingdom> defenderOptional = getDefenderOwner(attacker);
+		if (!defenderOptional.isPresent())
+			return;
+		OfflineKingdom defenderKingdom = defenderOptional.get();
+		DefenderInfo info = getDefenderInfo(defenderKingdom);
+		int duel = info.getDuel();
+		if (duel < 0)
+			return;
+		event.setDamage(event.getDamage() * 2);//double to non-invader
 	}
 
-	/**
-	 * Listener (do not touch)
-	 *
-	 * @param e
-	 */
 	@EventHandler
-	public void onDeathDuelNonInvaderDamageToChamp(EntityDamageByEntityEvent e){
-	if(!(e.getDamager() instanceof Player)) return; //damager is not player
-	GameManagement.getApiManager();
-	if(ExternalManager.isCitizen(e.getDamager())) return;
-	if(e.getEntity().getType() != EntityType.ZOMBIE) return; //damaged is not zombie
-
-	if(!entityOwners.containsKey(e.getEntity().getEntityId())) return;//damaged is not champion
-
-	KingdomPlayer damager = GameManagement.getPlayerManager().getSession((Player) e.getDamager());
-	//if(damager.getKingdom() == null);//not in kingdom
-
-	if(damager.getChampionPlayerFightingWith() != null) return; //it's invader
-
-	Kingdom kingdom = entityOwners.get(e.getEntity().getEntityId());
-	ChampionInfo info = kingdom.getChampionInfo();
-	int duel = info.getDuel();
-	if(!(duel > 0)) return;// duel is not on
-
-	e.setDamage(e.getDamage() / 2);//double to non-invader
-	damager.sendMessage(Kingdoms.getLang().getString("Champion_DeathDuel", damager.getLang()));
+	public void onNonInvaderDamageDefender(EntityDamageByEntityEvent event) {
+		Entity attacker = event.getDamager();
+		if(!(attacker instanceof Player))
+			return;
+		if (citizensManager.isCitizen(attacker))
+			return;
+		Entity victim = event.getEntity();
+		if (!isDefender(victim))
+			return;
+		Optional<OfflineKingdom> optional = getDefenderOwner(victim);
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom defenderKingdom = optional.get();
+		DefenderInfo info = getDefenderInfo(defenderKingdom);
+		int duel = info.getDuel();
+		if (duel < 0)
+			return;
+		event.setDamage(event.getDamage() / 2);
+		//TODO add hologram.
 	}
 
-	/**
-	 * Listener (do not touch)
-	 *
-	 * @param e
-	 */
 	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onChampDamageWhileDamageCapOn(EntityDamageByEntityEvent e){
-	if(e.getEntity().getType() != EntityType.ZOMBIE) return; //damaged is not zombie
-	if(!entityOwners.containsKey(e.getEntity().getEntityId())) return;//damaged is not champion
-
-	Kingdom kingdom = entityOwners.get(e.getEntity().getEntityId());
-	ChampionInfo info = kingdom.getChampionInfo();
-	int damageCap = info.getDamagecap();
-	if(!(damageCap > 0)) return;// damageCap is not on
-
-	if(e.getDamage() > 15.0D){
-		ChampionDamageCapEvent damageCapEvent = new ChampionDamageCapEvent(e.getEntity(), e.getDamager(), damageCap, e.getDamage());
-		Bukkit.getPluginManager().callEvent(damageCapEvent);
-		if(!damageCapEvent.isCancelled()){
-		e.setDamage(damageCapEvent.getDamageCap());
+	public void onChampDamageWhileDamageCapOn(EntityDamageByEntityEvent e) {
+		if (e.getEntity().getType() != EntityType.ZOMBIE)
+			return; //damaged is not zombie
+		if(!entityOwners.containsKey(e.getEntity().getEntityId())) return;//damaged is not champion
+	
+		Kingdom kingdom = entityOwners.get(e.getEntity().getEntityId());
+		ChampionInfo info = kingdom.getChampionInfo();
+		int damageCap = info.getDamagecap();
+		if(!(damageCap > 0)) return;// damageCap is not on
+	
+		if(e.getDamage() > 15.0D){
+			ChampionDamageCapEvent damageCapEvent = new ChampionDamageCapEvent(e.getEntity(), e.getDamager(), damageCap, e.getDamage());
+			Bukkit.getPluginManager().callEvent(damageCapEvent);
+			if(!damageCapEvent.isCancelled()){
+			e.setDamage(damageCapEvent.getDamageCap());
+			}
 		}
-	}
-
 	}
 
 	/**
