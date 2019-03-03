@@ -13,10 +13,11 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import com.google.common.collect.Sets;
 import com.songoda.kingdoms.manager.Manager;
-import com.songoda.kingdoms.turrets.ParticleProjectile;
-import com.songoda.kingdoms.turrets.ParticleProjectile.ParticleMode;
-import com.songoda.kingdoms.turrets.Turret;
-import com.songoda.kingdoms.turrets.TurretType;
+import com.songoda.kingdoms.objects.turrets.ParticleProjectile;
+import com.songoda.kingdoms.objects.turrets.Turret;
+import com.songoda.kingdoms.objects.turrets.TurretType;
+import com.songoda.kingdoms.objects.turrets.ParticleProjectile.ParticleMode;
+
 import de.slikey.effectlib.EffectManager;
 import de.slikey.effectlib.effect.LineEffect;
 import de.slikey.effectlib.util.DynamicLocation;

@@ -1,4 +1,4 @@
-package com.songoda.kingdoms.turrets;
+package com.songoda.kingdoms.objects.turrets;
 
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;

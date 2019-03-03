@@ -3,7 +3,7 @@ package com.songoda.kingdoms.events;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
-import com.songoda.kingdoms.turrets.Turret;
+import com.songoda.kingdoms.objects.turrets.Turret;
 
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;

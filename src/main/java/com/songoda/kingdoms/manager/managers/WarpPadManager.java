@@ -6,7 +6,7 @@ import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
-import com.songoda.kingdoms.objects.land.StructureType;
+import com.songoda.kingdoms.objects.structures.StructureType;
 
 public class WarpPadManager extends Manager {
 	

@@ -1,7 +1,10 @@
+import org.apache.tools.ant.filters.ReplaceTokens
 apply plugin: 'java-library'
 apply plugin: 'eclipse'
 
 jar.archiveName = project.name + '.jar'
+
+version = "2.0.0"
 
 configurations {
     shade
@@ -64,6 +67,7 @@ dependencies {
 }
 
 processResources {
+	filter ReplaceTokens, tokens: ["version": project.property("version")]
 	from (sourceSets.main.resources.srcDirs) {
 		include '**/*.yml'
 	}

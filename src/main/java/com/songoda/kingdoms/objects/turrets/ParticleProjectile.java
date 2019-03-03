@@ -1,4 +1,4 @@
-package com.songoda.kingdoms.turrets;
+package com.songoda.kingdoms.objects.turrets;
 
 import java.util.Arrays;
 

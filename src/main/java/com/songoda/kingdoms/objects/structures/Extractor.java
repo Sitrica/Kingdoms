@@ -7,8 +7,6 @@ import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.land.Land;
-import com.songoda.kingdoms.objects.land.Structure;
-import com.songoda.kingdoms.objects.land.StructureType;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;

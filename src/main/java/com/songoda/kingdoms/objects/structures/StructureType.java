@@ -1,4 +1,4 @@
-package com.songoda.kingdoms.objects.land;
+package com.songoda.kingdoms.objects.structures;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.utils.Formatting;

@@ -4,8 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 import org.bukkit.Location;
 
-import com.songoda.kingdoms.objects.land.Structure;
-import com.songoda.kingdoms.objects.land.StructureType;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 
 public class Regulator extends Structure {

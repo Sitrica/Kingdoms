@@ -1,6 +1,6 @@
 package com.songoda.kingdoms.objects.kingdom;
 
-import com.songoda.kingdoms.objects.KingdomPlayer;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 
 public interface KingdomEventHandler {

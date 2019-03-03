@@ -1,4 +1,4 @@
-package com.songoda.kingdoms.turrets;
+package com.songoda.kingdoms.objects.turrets;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.TurretManager;
@@ -16,11 +16,12 @@ import org.bukkit.entity.Player;
 public class Turret {
 
 	private final Set<LivingEntity> following = new HashSet<>();
+	private long fire, reload, currentAmmo, disabledCooldown;
 	private final TurretManager turretManager;
-	private long fire, reload, currentAmmo;
 	private final Location location;
 	private final TurretType type;
 	private final boolean post;
+	private boolean disabled;
 	private final long ammo;
 
 	public Turret(Location location, TurretType type) {
@@ -29,6 +30,7 @@ public class Turret {
 	
 	public Turret(Location location, TurretType type, boolean post) {
 		this.turretManager = Kingdoms.getInstance().getManager("turret", TurretManager.class);
+		this.disabledCooldown = System.currentTimeMillis();
 		this.reload = System.currentTimeMillis();
 		this.fire = System.currentTimeMillis();
 		this.ammo = type.getAmmo();
@@ -87,6 +89,18 @@ public class Turret {
 		this.reload = System.currentTimeMillis();
 	}
 	
+	public long getDisabledCooldown() {
+		return disabledCooldown;
+	}
+
+	public void setDisabledCooldown() {
+		this.disabledCooldown = System.currentTimeMillis();
+	}
+	
+	public boolean isDisabled() {
+		return disabled;
+	}
+	
 	public void resetAmmo() {
 		this.currentAmmo = ammo;
 	}
@@ -112,7 +126,8 @@ public class Turret {
 	}
 	
 	public void fireAt(Player target) {
-		turretManager.fire(this, target);
+		if (!disabled)
+			turretManager.fire(this, target);
 	}
 
 }

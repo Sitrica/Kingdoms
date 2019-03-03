@@ -1,7 +1,7 @@
 package com.songoda.kingdoms.events;
 
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
-import com.songoda.kingdoms.turrets.Turret;
+import com.songoda.kingdoms.objects.turrets.Turret;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;

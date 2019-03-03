@@ -37,4 +37,11 @@ public class IntervalUtils {
 		return time;
 	}
 	
+	public static String getSeconds(long ticks) {
+		double seconds = ticks / 20;
+		if (seconds == 1)
+			return "1 second";
+		return seconds + " seconds";
+	}
+	
 }

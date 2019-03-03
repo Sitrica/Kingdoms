@@ -1,4 +1,4 @@
-package com.songoda.kingdoms.objects.land;
+package com.songoda.kingdoms.objects.structures;
 
 import org.apache.commons.lang.Validate;
 import org.bukkit.Location;

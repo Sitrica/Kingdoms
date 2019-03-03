@@ -150,10 +150,6 @@ public enum DefenderUpgrade {
 		return cost;
 	}
 	
-	public void execute() {
-		
-	}
-	
 	public ItemStack build(OfflineKingdom kingdom, boolean shop) {
 		ItemStack itemstack = new ItemStack(material);
 		ItemMeta itemmeta = itemstack.getItemMeta();

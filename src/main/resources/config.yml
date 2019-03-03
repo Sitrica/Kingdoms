@@ -44,9 +44,10 @@ holograms:
                 delay: 0
         # The time before the hologram expires, remove this node for Kingdom to use the default expiration.
         expiration: "2 seconds"
-        x-offset: 0
-        y-offset: 0
-        z-offset: 0
+        # Negative numbers work too.
+        x-offset: 0.0
+        y-offset: 0.0
+        z-offset: 0.0
         # If there should be an item in the hologram.
         item:
             enabled: false
@@ -57,6 +58,26 @@ holograms:
         lines:
             - "&c&lYour damage has been divided in half!"
             - "&cYou're not involved in Kingdom %kingdom%'s invasion."
+    turret-disabled:
+        use-sounds: true
+        sounds:
+            1:
+                sound: "BLOCK_FIRE_EXTINGUISH"
+                volume: 1
+                pitch: 1
+                delay: 0
+        x-offset: 0.0
+        y-offset: 0.5
+        z-offset: 0.0
+        item:
+            enabled: false
+            # If the item should be above or below the text.
+            above: false
+            material: "DIAMOND_SWORD"
+            material-meta: ""
+        lines:
+            - "&c&lTurret disabled!"
+            - "&fTime remaining: %time%"
 
 # Configure your database settings.
 database:
@@ -471,8 +492,6 @@ worlds-where-land-is-explosive-vulnerable:
 no-region-claim: true
 siege:
     fire:
-        cost: 1000
-        explosion-radius: 4.0
         shield-damage: 200
     shield:
         recharge-cost-base: 50

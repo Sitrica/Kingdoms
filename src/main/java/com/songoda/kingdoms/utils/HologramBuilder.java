@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -17,6 +18,9 @@ import org.bukkit.inventory.ItemStack;
 
 import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.VisibilityManager;
+import com.gmail.filoghost.holographicdisplays.api.line.HologramLine;
+import com.gmail.filoghost.holographicdisplays.api.line.ItemLine;
+import com.gmail.filoghost.holographicdisplays.api.line.TextLine;
 import com.google.common.collect.Sets;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.external.HolographicDisplaysManager;
@@ -41,6 +45,7 @@ public class HologramBuilder {
 	private OfflineKingdom kingdom;
 	private long defaultExpiration;
 	private final String node;
+	private boolean update;
 	
 	/**
 	 * Creates a HologramBuilder with the defined nodes..
@@ -141,6 +146,23 @@ public class HologramBuilder {
 	}
 	
 	/**
+	 * Replace a placeholder every update the hologram makes. The function replacer is the time remaining.
+	 * 
+	 * @param syntax The syntax to check within the messages e.g: %command%
+	 * @param function Function<Object, String> to execute on update, return a String here.
+	 * @return The HologramBuilder for chaining.
+	 */
+	public HologramBuilder updatableReplace(String syntax, Function<Long, String> function) {
+		placeholders.put(new SimplePlaceholder(syntax) {
+			@Override
+			public String get() {
+				return function.apply(defaultExpiration);
+			}
+		}, defaultExpiration);
+		return this;
+	}
+	
+	/**
 	 * Set the KingdomPlayer used for placeholders.
 	 * 
 	 * @param player The KingdomPlayer to set
@@ -148,6 +170,17 @@ public class HologramBuilder {
 	 */
 	public HologramBuilder setKingdomPlayer(OfflineKingdomPlayer kingdomPlayer) {
 		this.kingdomPlayer = kingdomPlayer;
+		return this;
+	}
+	
+	/**
+	 * Set if the hologram should constantly update until expiration.
+	 * 
+	 * @param update boolean if it should update.
+	 * @return The HologramBuilder for chaining.
+	 */
+	public HologramBuilder update(boolean update) {
+		this.update = update;
 		return this;
 	}
 	
@@ -243,9 +276,9 @@ public class HologramBuilder {
 		}
 		if (players.isEmpty())
 			return;
-		int x = configuration.getInt(node + "x-offset", 0);
-		int y = configuration.getInt(node + "y-offset", 0);
-		int z = configuration.getInt(node + "z-offset", 0);
+		double x = configuration.getDouble(node + "x-offset", 0);
+		double y = configuration.getDouble(node + "y-offset", 0);
+		double z = configuration.getDouble(node + "z-offset", 0);
 		long expiration = configuration.getLong(node + "expiration", defaultExpiration);
 		if (expiration <= 0)
 			expiration = defaultExpiration;
@@ -274,13 +307,48 @@ public class HologramBuilder {
 			if (sound)
 				soundPlayer.playTo(player);
 		}
-		// Might not account for shutdown during expiration, but it's using the API and not saving over restart.
-		instance.getServer().getScheduler().runTaskLater(instance, new Runnable() {
-			@Override
-			public void run() {
-				hologram.delete();
+		if (update) {
+			for (int i = 0; i <= expiration; i++) {
+				instance.getServer().getScheduler().runTaskLater(instance, () -> update(hologram), i);
+				defaultExpiration--;
 			}
-		}, expiration);
+		}
+		// Might not account for shutdown during expiration, but it's using the API and not saving over restart.
+		instance.getServer().getScheduler().runTaskLater(instance, () -> hologram.delete(), expiration);
+	}
+	
+	public void update(Hologram hologram) {
+		boolean above = configuration.getBoolean(node + "item.above", false);
+		boolean item = configuration.getBoolean(node + "item.enabled", false);
+		Material material = Utils.materialAttempt(configuration.getString(node + "item.material", "DIAMOND_SWORD"), "DIAMOND_SWORD");
+		ItemStack itemstack = new ItemStack(material);
+		DeprecationUtils.setupItemMeta(itemstack, configuration.getString(node + "item.material-meta", ""));
+		if (above && item) {
+			HologramLine line = hologram.getLine(0);
+			if (!(line instanceof ItemLine))
+				return;
+			ItemLine itemLine = (ItemLine) line;
+			itemLine.setItemStack(itemstack);
+		}
+		int i = 0;
+		if (above)
+			i++;
+		for (String string : configuration.getStringList(node + "lines")) {
+			String complete = Formatting.color(string);
+			complete = applyPlaceholders(complete);
+			HologramLine line = hologram.getLine(i);
+			if (!(line instanceof TextLine))
+				continue;
+			TextLine textLine = (TextLine) line;
+			textLine.setText(complete);
+		}
+		if (!above && item) {
+			HologramLine line = hologram.getLine(hologram.size());
+			if (!(line instanceof ItemLine))
+				return;
+			ItemLine itemLine = (ItemLine) line;
+			itemLine.setItemStack(itemstack);
+		}
 	}
 	
 }

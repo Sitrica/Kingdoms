@@ -35,5 +35,5 @@ public class ChestSign {
 	public UUID getOwner() {
 		return owner;
 	}
-	
+
 }

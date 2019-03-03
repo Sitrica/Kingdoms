@@ -15,10 +15,10 @@ import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.manager.managers.RankManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
-import com.songoda.kingdoms.manager.managers.WorldManager;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
-import com.songoda.kingdoms.turrets.TurretUpgradeInfo;
+import com.songoda.kingdoms.objects.turrets.TurretUpgradeInfo;
+import com.songoda.kingdoms.manager.managers.WorldManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

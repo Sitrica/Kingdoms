@@ -17,12 +17,12 @@ import java.util.logging.Level;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
-import com.songoda.kingdoms.objects.land.Structure;
-import com.songoda.kingdoms.objects.land.StructureType;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.structures.Extractor;
 import com.songoda.kingdoms.objects.structures.Regulator;
 import com.songoda.kingdoms.objects.structures.SiegeEngine;
+import com.songoda.kingdoms.objects.structures.Structure;
+import com.songoda.kingdoms.objects.structures.StructureType;
 import com.songoda.kingdoms.placeholders.Placeholder;
 import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.Formatting;
@@ -33,6 +33,8 @@ import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.LandLoadEvent;
 import com.songoda.kingdoms.events.StructureBreakEvent;
 import com.songoda.kingdoms.events.StructurePlaceEvent;
+import com.songoda.kingdoms.inventories.ArsenalInventory;
+import com.songoda.kingdoms.manager.InventoryManager;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
@@ -68,6 +70,7 @@ import org.bukkit.scheduler.BukkitTask;
 public class StructureManager extends Manager {
 	
 	private final Queue<Land> loadQueue = new LinkedList<Land>();
+	private final InventoryManager inventoryManager;
 	private final WarpPadManager warpPadManager;
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
@@ -82,6 +85,7 @@ public class StructureManager extends Manager {
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.warpPadManager = instance.getManager("warppad", WarpPadManager.class);
+		this.inventoryManager = instance.getManager("ivnentory", InventoryManager.class);
 		task = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
 			@Override
 			public void run() {
@@ -411,7 +415,7 @@ public class StructureManager extends Manager {
 			return;
 		switch (type) {
 			case ARSENAL:
-				GUIManagement.getArsenalGUIManager().openMenu(kingdomPlayer);
+				inventoryManager.getInventory(ArsenalInventory.class).openInventory(kingdomPlayer);
 				break;
 			case EXTRACTOR:
 				Extractor extractor;

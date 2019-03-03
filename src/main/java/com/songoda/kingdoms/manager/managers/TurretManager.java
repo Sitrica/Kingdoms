@@ -14,12 +14,12 @@ import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
+import com.songoda.kingdoms.objects.turrets.HealthInfo;
+import com.songoda.kingdoms.objects.turrets.Potions;
+import com.songoda.kingdoms.objects.turrets.Turret;
+import com.songoda.kingdoms.objects.turrets.TurretType;
+import com.songoda.kingdoms.objects.turrets.TurretType.TargetType;
 import com.songoda.kingdoms.placeholders.Placeholder;
-import com.songoda.kingdoms.turrets.HealthInfo;
-import com.songoda.kingdoms.turrets.Potions;
-import com.songoda.kingdoms.turrets.Turret;
-import com.songoda.kingdoms.turrets.TurretType;
-import com.songoda.kingdoms.turrets.TurretType.TargetType;
 import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.MessageBuilder;
@@ -157,10 +157,33 @@ public class TurretManager extends Manager {
 				.count();
 	}
 	
-	boolean isTurret(Block block) {
+	public enum TurretBlock {
+		TURRET_BASE,
+		NOT_TURRET,
+		TURRET;
+	}
+	
+	public Optional<Turret> getTurret(Block block) {
+		TurretBlock turretBlock = getTurretBlock(block);
 		Location location = block.getLocation();
 		Land land = landManager.getLand(location.getChunk());
-		return land.getTurret(location) != null;
+		if (turretBlock == TurretBlock.TURRET) {
+			return Optional.ofNullable(land.getTurret(location));
+		} else if (turretBlock == TurretBlock.TURRET_BASE) {
+			return Optional.ofNullable(land.getTurret(location.add(0, 1, 0)));
+		}
+		return Optional.empty();
+	}
+	
+	public TurretBlock getTurretBlock(Block block) {
+		Location location = block.getLocation();
+		Land land = landManager.getLand(location.getChunk());
+		if (land.getTurret(location) == null) {
+			if (land.getTurret(location.add(0, 1, 0)) != null)
+				return TurretBlock.TURRET_BASE;
+			return TurretBlock.NOT_TURRET;
+		}
+		return TurretBlock.TURRET;
 	}
 	
 	public void breakTurret(Turret turret) {
@@ -429,13 +452,15 @@ public class TurretManager extends Manager {
 	@EventHandler
 	public void onTurretBreak(BlockBreakEvent event) {
 		Block block = event.getBlock();
-		if (isTurret(block)) {
+		if (getTurretBlock(block) != TurretBlock.NOT_TURRET) {
 			Player player = event.getPlayer();
 			Location location = block.getLocation();
 			Land land = landManager.getLand(location.getChunk());
 			Turret turret = land.getTurret(location);
 			if (turret == null)
-				return;
+				turret = land.getTurret(location.add(0, 1, 0));
+				if (turret == null)
+					return;
 			KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 			OfflineKingdom landKingdom = land.getKingdomOwner();
 			if (landKingdom == null) {
@@ -581,7 +606,7 @@ public class TurretManager extends Manager {
 			return;
 		Dispenser dispenser = (Dispenser) state;
 		BlockFace face = ((org.bukkit.material.Dispenser) dispenser.getData()).getFacing();
-		if (isTurret(block.getRelative(face)))
+		if (getTurretBlock(block.getRelative(face)) != TurretBlock.NOT_TURRET)
 			event.setCancelled(true);
 	}
 
@@ -600,7 +625,7 @@ public class TurretManager extends Manager {
 			if (item != null) {
 				Material type = item.getType();
 				if (type == Material.WATER_BUCKET || type == Material.LAVA_BUCKET) {
-					if (isTurret(event.getClickedBlock().getRelative(event.getBlockFace()))) {
+					if (getTurretBlock(event.getClickedBlock().getRelative(event.getBlockFace())) != TurretBlock.NOT_TURRET) {
 						event.setCancelled(true);
 					}
 				}
@@ -610,7 +635,7 @@ public class TurretManager extends Manager {
 
 	@EventHandler
 	public void onWaterPassThrough(BlockFromToEvent event) {
-		if (isTurret(event.getToBlock()))
+		if (getTurretBlock(event.getToBlock()) != TurretBlock.NOT_TURRET)
 			event.setCancelled(true);
 	}
 

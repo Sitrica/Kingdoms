@@ -6,7 +6,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 
-import com.songoda.kingdoms.objects.KingdomPlayer;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
 
 public class KingdomChest{
 	private List<ItemStack> inv;

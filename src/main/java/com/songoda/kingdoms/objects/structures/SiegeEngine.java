@@ -4,8 +4,6 @@ import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import com.songoda.kingdoms.Kingdoms;
-import com.songoda.kingdoms.objects.land.Structure;
-import com.songoda.kingdoms.objects.land.StructureType;
 import com.songoda.kingdoms.utils.IntervalUtils;
 
 public class SiegeEngine extends Structure {

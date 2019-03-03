@@ -12,10 +12,10 @@ import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
-import com.songoda.kingdoms.objects.land.Structure;
-import com.songoda.kingdoms.objects.land.StructureType;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
-import com.songoda.kingdoms.turrets.TurretUtil;
+import com.songoda.kingdoms.objects.structures.Structure;
+import com.songoda.kingdoms.objects.structures.StructureType;
+import com.songoda.kingdoms.objects.turrets.TurretUtil;
 import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.HologramBuilder;
 import com.songoda.kingdoms.utils.MessageBuilder;
@@ -91,7 +91,6 @@ public class InvadingManager extends Manager {
 	private final Map<UUID, Integer> thorTasks = new HashMap<>();
 	private final Map<UUID, Integer> plowTasks = new HashMap<>();
 	private final Map<Land, UUID> invading = new HashMap<>();
-	private final HolographicDisplaysManager hologramManager;
 	private final CitizensManager citizensManager;
 	private final Random random = new Random();
 	private final TurretManager turretManager;
@@ -101,7 +100,6 @@ public class InvadingManager extends Manager {
 
 	protected InvadingManager() {
 		super(true);
-		this.hologramManager = instance.getManager("holographic-displays", HolographicDisplaysManager.class);
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 		this.turretManager = instance.getManager("turret", TurretManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
