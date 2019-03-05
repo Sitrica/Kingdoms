@@ -1,9 +1,6 @@
 package com.songoda.kingdoms.objects.structures;
 
 import org.bukkit.Location;
-import org.bukkit.configuration.file.FileConfiguration;
-
-import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.land.Land;
@@ -23,8 +20,6 @@ public class Extractor extends Structure {
 	
 	public Extractor(Location location, long next) {
 		super(location, StructureType.EXTRACTOR);
-		Kingdoms instance = Kingdoms.getInstance();
-		FileConfiguration configuration = instance.getConfig();
 		String interval = configuration.getString("structures.extractor.reward-delay", "24 hours");
 		this.reward = configuration.getLong("structures.extractor.reward-amount", 50);
 		this.landManager = instance.getManager("land", LandManager.class);
@@ -59,13 +54,13 @@ public class Extractor extends Structure {
 		next = System.currentTimeMillis();
 		Land land = landManager.getLand(location.getChunk());
 		Kingdom kingdom = land.getKingdomOwner().getKingdom();
-		if (kingdom != null) {
-			kingdom.setResourcePoints(kingdom.getResourcePoints() + reward);
-			new MessageBuilder("structures.extractor-collection")
-					.replace("%amount%", reward)
-					.setKingdom(kingdom)
-					.send(kingdom.getOnlinePlayers());
-		}
+		if (kingdom == null)
+			return;
+		kingdom.setResourcePoints(kingdom.getResourcePoints() + reward);
+		new MessageBuilder("structures.extractor-collection")
+				.replace("%amount%", reward)
+				.setKingdom(kingdom)
+				.send(kingdom.getOnlinePlayers());
 	}
 
 }

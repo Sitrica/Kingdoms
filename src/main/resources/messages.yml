@@ -9,7 +9,7 @@
 #!    ▀                                                                                        
 #!
 # The version is to help determine which version this config is. Please don't modify this value.
-version: "2.0.0"
+version: "@version@"
 
 # Information: Placeholders that are available for each message will be commented above it.
 # Default placeholders that exist on every message are %prefix% and %newline%/%nl%
@@ -658,7 +658,6 @@ Guis_ResourcePoints_Title: '&bResource Points'
 Guis_ResourcePoints_Desc: '&aYour kingdom currently has'
 Guis_ResourcePoints_Count: '&e%amount% &aresource points'
 Guis_Back_Btn: '&4Return to main menu'
-Guis_ResourcePointsConverter: Convert items to resource points
 Guis_ResourcePointsConverter_Lore1: 1 resourcepoint per %itemrp% items
 Guis_Logs_Title: '&bBattle Logs'
 Guis_Logs_Description: '&aClick to view battle logs'
@@ -813,8 +812,6 @@ Guis_BoostShop_Sentinel_Desc: For 60 minutes, a sentinel will be unleashed upon 
 Guis_BoostShop_Boost_Activated_Error: '&cThis boost is already active! Remaining time: %time% minutes'
 Guis_BoostShop_CombatBoost_Activation_Message: '&a&lCombat Boost has been activated for 60 minutes! Decimate our enemies!'
 Guis_BoostShop_Sentinel_Activation_Message: '&a&lSentinel has been activated for 60 minutes! May our sentinel tear our foes apart!'
-Guis_Extractor_Collect: '&aCollect %amount% RP'
-Guis_Extractor_TimeToNextCollection: '&c%time% more minutes before next collection'
 Guis_Extractor_Refresh_Title: '&bRefresh'
 Guis_Extractor_Refresh_Desc: '&aClick to refresh timings displayed here'
 Guis_Regulator_WhoCanBuild_Title: '&bClick to manage who can build here'

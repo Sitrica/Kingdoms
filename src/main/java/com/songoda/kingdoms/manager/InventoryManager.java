@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -35,8 +36,9 @@ public class InventoryManager extends Manager {
 		});
 	}
 
-	public KingdomInventory getInventory(Class<? extends KingdomInventory> inventory) {
-		return inventories.parallelStream()
+	@SuppressWarnings("unchecked")
+	public <C extends KingdomInventory> C getInventory(Class<C> inventory) {
+		return (C) inventories.parallelStream()
 				.filter(kingdomInventory -> kingdomInventory.getClass().equals(inventory))
 				.findFirst().orElseGet(() -> {
 					KingdomInventory kingdomInventory;
@@ -70,10 +72,10 @@ public class InventoryManager extends Manager {
 		if (!optional.isPresent())
 			return;
 		KingdomInventory inventory = optional.get();
-		Runnable runnable = inventory.getAction(event.getSlot());
-		if (runnable == null)
+		Optional<Consumer<InventoryClickEvent>> consumer = inventory.getAction(event.getSlot());
+		if (!consumer.isPresent())
 			return;
-		runnable.run();
+		consumer.get().accept(event);
 	}
 	
 	@EventHandler

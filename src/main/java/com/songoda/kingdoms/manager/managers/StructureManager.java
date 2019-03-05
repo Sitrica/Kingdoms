@@ -34,6 +34,7 @@ import com.songoda.kingdoms.events.LandLoadEvent;
 import com.songoda.kingdoms.events.StructureBreakEvent;
 import com.songoda.kingdoms.events.StructurePlaceEvent;
 import com.songoda.kingdoms.inventories.ArsenalInventory;
+import com.songoda.kingdoms.inventories.ExtractorInventory;
 import com.songoda.kingdoms.manager.InventoryManager;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
@@ -373,6 +374,10 @@ public class StructureManager extends Manager {
 	private final Map<KingdomPlayer, Extractor> extractors = new HashMap<>();
 	private final Map<KingdomPlayer, Land> selected = new HashMap<>();
 	
+	public Map<KingdomPlayer, Extractor> getOpenExtractors() {
+		return extractors;
+	}
+	
 	@EventHandler
 	public void onRightClickStructure(PlayerInteractEvent event) {
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
@@ -427,7 +432,7 @@ public class StructureManager extends Manager {
 					block.setType(type.getBlockMaterial());
 					block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
 				}
-				GUIManagement.getExtractorGUIManager().openExtractorMenu(extractor, kingdomPlayer);
+				inventoryManager.getInventory(ExtractorInventory.class).openExtractorMenu(extractor, kingdomPlayer);
 				extractors.put(kingdomPlayer, extractor);
 				break;
 			case NEXUS:

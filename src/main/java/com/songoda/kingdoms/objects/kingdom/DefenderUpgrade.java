@@ -6,6 +6,8 @@ import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -157,6 +159,14 @@ public enum DefenderUpgrade {
 		List<String> lores = new ArrayList<>();
 		description.forEach(message -> lores.add(Formatting.color(message)));
 		itemmeta.setLore(lores);
+		if (glowing) {
+			if (material == Material.BOW) {
+				itemstack.addUnsafeEnchantment(Enchantment.WATER_WORKER, 69);
+			} else {
+				itemstack.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, 69);
+			}
+			itemmeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+		}
 		itemstack.setItemMeta(itemmeta);
 		return DeprecationUtils.setupItemMeta(itemstack, meta);
 	}

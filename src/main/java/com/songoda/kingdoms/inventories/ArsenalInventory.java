@@ -2,6 +2,7 @@ package com.songoda.kingdoms.inventories;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 
 import com.songoda.kingdoms.manager.StructureInventory;
 import com.songoda.kingdoms.objects.kingdom.ArsenalItem;
@@ -14,7 +15,7 @@ public class ArsenalInventory extends StructureInventory {
 	private final FileConfiguration arsenal;
 	
 	public ArsenalInventory() {
-		super("arsenal", 1);
+		super(InventoryType.CHEST, "arsenal", 9);
 		this.arsenal = instance.getConfiguration("arsenal-items").get();
 	}
 	
@@ -26,7 +27,7 @@ public class ArsenalInventory extends StructureInventory {
 			if (!item.isEnabled())
 				continue;
 			inventory.setItem(i, item.build(true));
-			setAction(i, () -> {
+			setAction(i, event -> {
 					Kingdom kingdom = kingdomPlayer.getKingdom();
 					if (kingdom == null)
 						return;

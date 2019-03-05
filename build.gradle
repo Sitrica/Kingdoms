@@ -4,8 +4,6 @@ apply plugin: 'eclipse'
 
 jar.archiveName = project.name + '.jar'
 
-version = "2.0.0"
-
 configurations {
     shade
     compile.extendsFrom shade

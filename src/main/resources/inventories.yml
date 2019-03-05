@@ -1,0 +1,66 @@
+#!
+#!     ▄█   ▄█▄  ▄█  ███▄▄▄▄      ▄██████▄  ████████▄   ▄██████▄    ▄▄▄▄███▄▄▄▄      ▄████████ 
+#!    ███ ▄███▀ ███  ███▀▀▀██▄   ███    ███ ███   ▀███ ███    ███ ▄██▀▀▀███▀▀▀██▄   ███    ███ 
+#!    ███▐██▀   ███▌ ███   ███   ███    █▀  ███    ███ ███    ███ ███   ███   ███   ███    █▀  
+#!   ▄█████▀    ███▌ ███   ███  ▄███        ███    ███ ███    ███ ███   ███   ███   ███        
+#!  ▀▀█████▄    ███▌ ███   ███ ▀▀███ ████▄  ███    ███ ███    ███ ███   ███   ███ ▀███████████ 
+#!    ███▐██▄   ███  ███   ███   ███    ███ ███    ███ ███    ███ ███   ███   ███          ███ 
+#!    ███ ▀███▄ ███  ███   ███   ███    ███ ███   ▄███ ███    ███ ███   ███   ███    ▄█    ███ 
+#!    ███   ▀█▀ █▀    ▀█   █▀    ████████▀  ████████▀   ▀██████▀   ▀█   ███   █▀   ▄████████▀  
+#!    ▀                                                                                        
+#!
+# The version is to help determine which version this config is. Please don't modify this value.
+version: "@version@"
+
+# All configurations relating to structures.
+inventories:
+    extractor:
+        # The item that represents the collection item.
+        collect-item:
+            title: "&a&lCOLLECT"
+            material: "WHEAT"
+            # Explained in other configurations.
+            material-meta: ""
+            # If the itemstack should have the glowing enchantment effect on it.
+            glowing: false
+            # Lore is the text attached to the itemstack under the name.
+            lore:
+                - "&aCollect %amount% resource points"
+                - "&7Click to collect this extractors generated resource points."
+        # The item that represents the time left before collection.
+        time-item:
+            title: "&c&lTIME LEFT"
+            material: "CLOCK"
+            material-meta: ""
+            # If the itemstack should have the glowing enchantment effect on it all the time.
+            glowing: false
+            # if the item should glow when collection is ready.
+            glowing-collect: true
+            lore:
+                - "&c%time% more minutes before next collection"
+                - "&7Click to collect this extractors generated resource points."
+        use-filler: true
+        # The item that represents a filler, it's a blank item used to make things pretty.
+        filler-item-collect:
+            title: ""
+            material: "LIME_STAINED_GLASS_PANE"
+            material-meta: ""
+            glowing: true
+        # The item that represents a filler, it's a blank item used to make things pretty.
+        filler-item-cant-collect:
+            title: ""
+            material: "RED_STAINED_GLASS_PANE"
+            material-meta: ""
+            glowing: false
+    nexus:
+        # The item that represents the resource points convertsion.
+        converter:
+            title: "&aResource point converter"
+            material: "WHEAT"
+            # Explained in other configurations.
+            material-meta: ""
+            # If the itemstack should have the glowing enchantment effect on it.
+            glowing: false
+            # Lore is the text attached to the itemstack under the name.
+            lore:
+                - "&7Convert items into resource points."
