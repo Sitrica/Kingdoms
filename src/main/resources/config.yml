@@ -210,6 +210,10 @@ kingdoms:
     base-shield-time: "5 minutes"
     # The maximum members for newly created Kingdoms.
     base-max-members: 10
+    # The maximum amount of members that can be upgraded too.
+    max-members-via-upgrade: 30
+    # The amount of resource points it takes to upgrade by one.
+    cost-per-max-member-upgrade: 10
     # Messages that happen when walking into an unoccupied land chunk.
     # Placeholders: %world%, %player% and %chunk%
     land-enter-unoccupied:
@@ -448,7 +452,6 @@ cost:
         regen-boost: 70
         dmg-boost: 70
         arrow-boost: 100
-        maxmembers: 10
     misc-upgrades:
         anticreeper: 20
         antitrample: 50

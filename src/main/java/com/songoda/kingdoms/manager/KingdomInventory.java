@@ -12,6 +12,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.managers.InventoryManager;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 
 public abstract class KingdomInventory {

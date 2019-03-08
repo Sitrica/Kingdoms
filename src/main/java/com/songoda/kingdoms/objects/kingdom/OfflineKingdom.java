@@ -25,12 +25,13 @@ public class OfflineKingdom {
 	private final Set<OfflineKingdom> enemies = new HashSet<>();
 	private final Set<OfflineKingdom> allies = new HashSet<>();
 	protected final Set<Land> claims = new HashSet<>();
-	private long might = 0, resourcePoints = 0, invasionCooldown = 0;
+	private long might = 0, resourcePoints = 0, invasionCooldown = 0, max;
 	private final KingdomManager kingdomManager;
 	private final RankManager rankManager;
 	private KingdomCooldown shieldTime;
-	private OfflineKingdomPlayer king;
 	protected final Kingdoms instance;
+	private OfflineKingdomPlayer king;
+	private KingdomChest kingdomChest;
 	private boolean neutral, first;
 	private Location nexus, spawn;
 	private String name, lore;
@@ -66,6 +67,7 @@ public class OfflineKingdom {
 		this.instance = Kingdoms.getInstance();
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.rankManager = instance.getManager("rank", RankManager.class);
+		this.max = instance.getConfig().getInt("base-max-members", 10);
 		this.dynmapColor = kingdomManager.getRandomColor();
 		this.members.add(king);
 		this.king = king;
@@ -82,6 +84,14 @@ public class OfflineKingdom {
 		}
 	}
 	
+	public long getMaxMembers() {
+		return max;
+	}
+
+	public void setMaxMembers(long max) {
+		this.max = max;
+	}
+
 	public OfflineKingdomPlayer getKing() {
 		return king;
 	}
@@ -151,6 +161,16 @@ public class OfflineKingdom {
 		this.spawn = spawn;
 	}
 	
+	public KingdomChest getKingdomChest() {
+		if (kingdomChest == null)
+			kingdomChest = new KingdomChest();
+		return kingdomChest;
+	}
+
+	public void setKingdomChest(KingdomChest kingdomChest) {
+		this.kingdomChest = kingdomChest;
+	}
+
 	public long getResourcePoints() {
 		return resourcePoints;
 	}

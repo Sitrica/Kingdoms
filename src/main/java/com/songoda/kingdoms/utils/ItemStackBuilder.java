@@ -103,7 +103,7 @@ public class ItemStackBuilder {
 	 * Set the placeholder object, good if you want to allow multiple placeholders.
 	 * 
 	 * @param object The object to set
-	 * @return The MessageBuilder for chaining.
+	 * @return The ItemStackBuilder for chaining.
 	 */
 	public ItemStackBuilder setPlaceholderObject(Object object) {
 		this.defaultPlaceholderObject = object;
@@ -114,10 +114,21 @@ public class ItemStackBuilder {
 	 * Set the placeholder object, good if you want to allow multiple placeholders.
 	 * 
 	 * @param object The object to set
-	 * @return The MessageBuilder for chaining.
+	 * @return The ItemStackBuilder for chaining.
 	 */
 	public ItemStackBuilder glowingIf(Supplier<Boolean> glowing) {
 		this.glowing = glowing.get();
+		return this;
+	}
+	
+	/**
+	 * Set the section to read from.
+	 * 
+	 * @param section The ConfigurationSection to read from.
+	 * @return The ItemStackBuilder for chaining.
+	 */
+	public ItemStackBuilder setConfigurationSection(ConfigurationSection section) {
+		this.section = section;
 		return this;
 	}
 	

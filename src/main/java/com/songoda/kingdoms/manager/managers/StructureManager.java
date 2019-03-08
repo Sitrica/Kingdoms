@@ -35,7 +35,7 @@ import com.songoda.kingdoms.events.StructureBreakEvent;
 import com.songoda.kingdoms.events.StructurePlaceEvent;
 import com.songoda.kingdoms.inventories.ArsenalInventory;
 import com.songoda.kingdoms.inventories.ExtractorInventory;
-import com.songoda.kingdoms.manager.InventoryManager;
+import com.songoda.kingdoms.inventories.NexusInventory;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
@@ -436,8 +436,8 @@ public class StructureManager extends Manager {
 				extractors.put(kingdomPlayer, extractor);
 				break;
 			case NEXUS:
-				if (kingdom.getUniqueId() == landKingdom.getUniqueId()) {
-					GUIManagement.getNexusGUIManager().openNexusGui(player);
+				if (kingdom.equals(landKingdom)) {
+					inventoryManager.getInventory(NexusInventory.class).openInventory(kingdomPlayer);
 				} else if (kingdom.isAllianceWith(landKingdom)) {
 					Inventory inventory = Bukkit.createInventory(null, 54, Formatting.color("&1Donate to &2" + kingdom.getName()));
 					player.openInventory(inventory);

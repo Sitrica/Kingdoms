@@ -27,6 +27,11 @@ public class Formatting {
 		return Formatting.color(complete);
 	}
 
+	public static String getPrefix() {
+		Kingdoms instance = Kingdoms.getInstance();
+		FileConfiguration messages = instance.getConfiguration("messages").orElse(instance.getConfig());
+		return Formatting.color(messages.getString("messages.prefix", "&7[&6Kingdoms&7] &r"));
+	}
 	
 	public static String color(String input) {
 		return ChatColor.translateAlternateColorCodes('&', input);

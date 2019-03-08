@@ -30,7 +30,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
-	private int max;
 	
 	int chestsize = 9;
 	long timestamp = 0;
@@ -51,7 +50,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 		super(kingdom.getUniqueId(), kingdom.getKing(), true);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
-		this.max = instance.getConfig().getInt("base-max-members", 10);
 	}
 	
 	public Kingdom(KingdomPlayer king) {
@@ -62,7 +60,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 		super(uuid, king);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
-		this.max = instance.getConfig().getInt("base-max-members", 10);
 	}
 	
 	public Set<KingdomPlayer> getOnlinePlayers() {

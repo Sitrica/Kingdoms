@@ -27,10 +27,16 @@ public class DefaultPlaceholders extends Manager {
 				return "&7[&6Kingdoms&7] &r";
 			}
 		});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%maxmembers%", "%max-members%") {
+			@Override
+			public String replace(OfflineKingdom kingdom) {
+				return kingdom.getMaxMembers() + "";
+			}
+		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%points%", "%resourcepoints%") {
 			@Override
-			public String replace(OfflineKingdom Kingdom) {
-				return Kingdom.getResourcePoints() + "";
+			public String replace(OfflineKingdom kingdom) {
+				return kingdom.getResourcePoints() + "";
 			}
 		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%playerkingdom%") {
