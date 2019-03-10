@@ -182,3 +182,32 @@ inventories:
             lore:
                 - "&7Click to open Nexus chest."
                 - "&7Stored items can only be lost if enemies invade your nexus land."
+        # The item that represents the Nexus chest size upgrade item.
+        chest-size:
+            title: "&bIncrease Kingdom Chest Size"
+            material: "END_PORTAL"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Increases the size of Nexus Chest by 1 row per upgrade."
+                - "&6SCurrent nexus chest size: %size%"
+        # The item that represents the neutral item when it's enabled.
+        neutral-on:
+            title: "&bClick to toggle pacifism"
+            material: "OAK_SAPLING"
+            material-meta: ""
+            glowing: true
+            lore:
+                - "&7You can't invade other kingdoms, and other kingdoms can't invade you while you're pacifist."
+                - "&7Once you invade, your kingdom cannot become pacifist again."
+                - "&6Currently: &a&lENABLED"
+        # The item that represents the neutral item when it's disabled.
+        neutral-off:
+            title: "&bClick to toggle pacifism"
+            material: "OAK_SAPLING"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7You can't invade other kingdoms, and other kingdoms can't invade you while you're pacifist."
+                - "&7Once you invade, your kingdom cannot become pacifist again."
+                - "&6Currently: &c&lDISABLED"

@@ -54,6 +54,14 @@ public class DeprecationUtils {
 		}
 	}
 	
+	public static short getDurability(ItemStack item) {
+		try {
+			return item.getDurability();
+		} catch (Exception e) {
+			return 0;
+		}
+	}
+	
 	public static String getTitle(Inventory inventory) {
 		return inventory.getTitle();
 	}

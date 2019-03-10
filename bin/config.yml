@@ -214,6 +214,10 @@ kingdoms:
     max-members-via-upgrade: 30
     # The amount of resource points it takes to upgrade by one.
     cost-per-max-member-upgrade: 10
+    # The cost in resource points for the nexus check upgrade.
+    chest-size-upgrade-cost: 30
+    # The amount to add per each level of the chest.
+    chest-size-upgrade-multiplier: 10
     # Messages that happen when walking into an unoccupied land chunk.
     # Placeholders: %world%, %player% and %chunk%
     land-enter-unoccupied:
@@ -447,11 +451,6 @@ commands:
         
         
 cost:
-    nexusupgrades:
-        dmg-reduc: 70
-        regen-boost: 70
-        dmg-boost: 70
-        arrow-boost: 100
     misc-upgrades:
         anticreeper: 20
         antitrample: 50
@@ -582,13 +581,6 @@ defaulton:
         glory: false
         nexusguard: false
         psioniccore: false
-max:
-    nexusupgrades:
-        dmg-reduc: 40
-        regen-boost: 200
-        dmg-boost: 60
-        arrow-boost: 60
-        maxmembers: 30
 destroy-extra-turrets-to-enforce-max: false
 enable:
     turretupgrades:

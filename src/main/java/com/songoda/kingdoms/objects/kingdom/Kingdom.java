@@ -37,8 +37,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	ArmyInfo armyInfo = new ArmyInfo();
 	AggressorInfo aggressorInfo = new AggressorInfo();
 	MisupgradeInfo misupgradeInfo = new MisupgradeInfo();
-	KingdomChest kingdomChest = new KingdomChest();
-	PowerUp powerUp = new PowerUp();
 	TurretUpgradeInfo turretUpgrades = new TurretUpgradeInfo();
 	
 	// Only used for BotKingdoms.
@@ -103,21 +101,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	
 	
 	/*
-	public int getChestSize() {
-		return chestsize;
-	}
-
-	public void setChestSize(int chestsize) {
-		this.chestsize = chestsize;
-		
-	}
-
-	public ChampionInfo getChampionInfo() {
-		if(championInfo == null)
-			championInfo = new ChampionInfo();
-		return championInfo;
-	}
-
 	public ArmyInfo getArmyInfo() {
 		if(armyInfo == null)
 			armyInfo = new ArmyInfo();
@@ -143,62 +126,14 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 		return turretUpgrades;
 	}
 
-	public int getMaxMember() {
-		return maxMember;
-	}
-
-	public void setMaxMember(int maxMember) {
-		this.maxMember = maxMember;
-		
-	}
-
 	public MisupgradeInfo getMisupgradeInfo() {
 		if(misupgradeInfo == null)
 			misupgradeInfo = new MisupgradeInfo();
 		return misupgradeInfo;
 	}
 
-	public KingdomChest getKingdomChest() {
-		if(kingdomChest == null)
-			kingdomChest = new KingdomChest();
-		return kingdomChest;
-	}
-
-	public void setKingdomChest(KingdomChest kingdomChest) {
-		this.kingdomChest = kingdomChest;
-		
-	}
-
-	public PowerUp getPowerUp() {
-		if(powerUp == null)
-			powerUp = new PowerUp();
-		return powerUp;
-	}
-
-	public void setPowerUp(PowerUp powerUp) {
-		this.powerUp = powerUp;
-		
-	}
-
-	public void setResourcepoints(int resourcepoints) {
-		Kingdom k = this;
-		if(resourcepoints != this.resourcepoints){
-			Bukkit.getScheduler().runTask(Kingdoms.getInstance(), new Runnable(){
-				public void run(){
-					Bukkit.getPluginManager().callEvent(new KingdomResourcePointChangeEvent(k));
-					
-				}
-			});
-		}
-		this.resourcepoints = resourcepoints;
-		if(this.resourcepoints < 0){
-			this.resourcepoints = 0;
-		}
-		
-	}
 	public void setMight(int might) {
 		this.might = might;
-		
 	}
 	
 	public int getShieldMax() {
@@ -217,7 +152,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 				}
 			}
 		}
-		
 		return max;
 	}
 	
@@ -258,21 +192,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	public boolean isRechargingShield(){
 		return getTimeLeft(RECHARGE_COOLDOWN) > 0;
 	}
-	
-//	public static final String CAMO = "CAMO";
-//
-//    public void giveCamo(int camoTimeInMin){
-//    	beginCooldown(CAMO, camoTimeInMin);
-//    }
-//
-//	public boolean isCamoUp(){
-//		return getTimeLeft(CAMO) > 0;
-//	}
-//	
-//	public void removeCamo(){
-//		cancelCooldown(CAMO);
-//	}
-//	
 
 	public int getLand() {
 		int land = 0;
@@ -293,8 +212,8 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	}
 	public void setKingdomName(String kingdomName) {
 		this.kingdomName = kingdomName;
-		
 	}
+	
 	public void setKingdomLore(String kingdomLore) {
 		this.kingdomLore = kingdomLore;
 		
@@ -308,11 +227,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	public void removeMember(UUID uuid){
 		members.remove(uuid);
 	}
-	
-	//public void setmembers(List<UUID> members) {
-	//	this.members = members;
-	//	
-	//}
 	
 	public void enemyKingdom(Kingdom target){
 		if(this.getAlliesList().contains(target.getKingdomUuid())){

@@ -186,6 +186,8 @@ public class ItemStackBuilder {
 		ItemMeta meta = itemstack.getItemMeta();
 		meta.setDisplayName(title);
 		List<String> lores = section.getStringList("lore");
+		if (lores == null || lores.isEmpty())
+			lores = section.getStringList("description");
 		if (lores != null && !lores.isEmpty()) {
 			meta.setLore(lores.parallelStream()
 					.map(lore -> applyPlaceholders(lore))

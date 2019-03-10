@@ -18,6 +18,7 @@ import com.songoda.kingdoms.events.NexusMoveEvent;
 import com.songoda.kingdoms.events.NexusPlaceEvent;
 import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
 import com.songoda.kingdoms.events.StructureBreakEvent;
+import com.songoda.kingdoms.inventories.NexusInventory;
 import com.songoda.kingdoms.manager.Manager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -46,12 +47,14 @@ public class NexusManager extends Manager {
 
 	private final Set<KingdomPlayer> placing = new HashSet<>();
 	private final StructureType type = StructureType.NEXUS;
+	private final InventoryManager inventoryManager;
 	private final WarpPadManager warpPadManager;
 	private final PlayerManager playerManager;
 	private final LandManager landManager;
 
 	protected NexusManager() {
 		super(true);
+		this.inventoryManager = instance.getManager("inventory", InventoryManager.class);
 		this.warpPadManager = instance.getManager("warppad", WarpPadManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
@@ -242,6 +245,44 @@ public class NexusManager extends Manager {
 		if (GameManagement.getApiManager().getScoreboardManager() != null)
 			ExternalManager.getScoreboardManager().updateScoreboard(invader);
 		event.setCancelled(true);
+	}
+	
+	@EventHandler
+	public void onNexusClick(PlayerInteractEvent event) {
+		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
+			return;
+		Block block = event.getClickedBlock();
+		if (block.getType() != StructureType.NEXUS.getBlockMaterial())
+			return;
+		if (!block.hasMetadata(StructureType.NEXUS.getMetaData()))
+			return;
+		Player player = event.getPlayer();
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		event.setCancelled(true);
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null) {
+			new MessageBuilder("kingdoms.no-kingdom")
+					.setPlaceholderObject(kingdomPlayer)
+					.send(player);
+			return;
+		}
+		Land land = landManager.getLand(block.getChunk());		
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (landKingdom == null) { // Old code could potentially mess up? This code check was old - Lime.
+			block.setType(Material.AIR);
+			return;
+		}
+		NexusInventory inventory = inventoryManager.getInventory(NexusInventory.class);
+		if (landKingdom.isAllianceWith(kingdom)) {
+			inventory.openDonateInventory(landKingdom, kingdomPlayer);
+		} else if (landKingdom.equals(kingdom)) {
+			inventory.openInventory(kingdomPlayer);
+		} else {
+			new MessageBuilder("kingdoms.cannot-use-others-nexus")
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(landKingdom)
+					.send(player);
+		}
 	}
 
 	public void breakNexus(Land land) {

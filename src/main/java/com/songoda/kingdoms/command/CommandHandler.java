@@ -59,7 +59,7 @@ public class CommandHandler implements CommandExecutor {
 			if (arguments.length > 0)
 				array = Arrays.copyOfRange(arguments, 1, arguments.length);
 			ReturnType returnType = command.runCommand(instance, sender, array);
-			if (returnType == AbstractCommand.ReturnType.SYNTAX_ERROR) {
+			if (returnType == ReturnType.SYNTAX_ERROR) {
 				 new MessageBuilder("messages.invalid-command", "messages.invalid-command-correction")
 				 		.replace("%command%", Arrays.toString(command.getSyntax(sender)))
 				 		.setPlaceholderObject(sender)

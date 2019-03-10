@@ -109,6 +109,8 @@ kingdoms:
     rank-too-low-regulator-override: "&cYour rank is too low to override the regulator! Only rank %rank% may override regulators!"
     # Placeholders: %rank% and all Kingdom related placeholders.
     rank-too-low-unclaim-override: "&cYour rank is too low to unclaim land! Only rank %rank% may unclaim land!"
+    # Placeholders: %rank% and all Kingdom related placeholders.
+    rank-too-low-chest-access: "&cYour rank is too low to open the Nexus chest! Only rank %rank% and higher may use the chest!"
     # Placeholders: All Kingdom and KingdomPlayer placeholders.
     cannot-build-unoccupied-land: "&cYou need to claim this land to build on it!"
     not-in-land: "&cYou can only do that in your land."
@@ -130,6 +132,13 @@ kingdoms:
     defender-command-blocked: "&cYou can't use this command during an invasion!"
     # Placeholders: %mock% and All Kingdom and KingdomPlayer related placeholders.
     defender-mock: "&cYou can't build within %mock% blocks of the invading Kingdom's Defender!"
+    not-enough-resourcepoints-chest-upgrade: "&cYour Kingdom currently doesn't have %cost% resource points to upgrade the nexus chest."
+    chest-size-upgraded: "&6%player% upgraded the Kingdom chest to %size% rows!"
+    nexus-chest-maxed: "&cYour Kingdoms nexus chest size has been maxed out."
+    neutral-toggled: "&aNeutrality toggled to %status%."
+    cannot-be-neutral: "&cYour Kingdom has invaded before, so you cannot become pacifist!"
+    not-enough-resourcepoints-powerup: "&cYour Kingdom currently doesn't have %cost% resource points to upgrade %powerup% powerup."
+    powerup-maxed: "&cYour Kingdoms %powerup% powerup has been maxed out."
 
 # All messages relating to maps and chunks.
 map:
@@ -644,8 +653,6 @@ Misc_Kingdom_Too_Many_Members: '&cYou can only have %amount% members. Upgrade th
 Misc_Inventory_Full: '&cPlease have at least one empty slot in your inventory'
 Misc_Invasion_Victory: We have conquered [%chunk%] from %kingdom%
 Misc_Invasion_Nexus_Victory: We have pillaged %rp% from %kingdom%
-Misc_Neutral_Toggled: '&aNeutrality toggled.'
-Misc_Cannot_Neutral: '&cKingdoms that have invaded before cannot become pacifist!'
 Misc_Shield_Up_Invade_Warning: '&cYour Kingdom shield is still up for %time% minutes! Use /k invade again in the next 5 seconds to discard shield and begin invasion.'
 Misc_Cannot_Invade_Shielded: '&cYou cannot invade a shielded kingdom! Their shield expires in %time% minutes.'
 Misc_Neutral_Cannot_Invade: '&cPacifist kingdoms cannot invade!'
@@ -672,9 +679,6 @@ Guis_PreviousPage: '&6Previous Page'
 Guis_Max: 'Max Level: '
 Guis_TurretUpgrades_Title: '&bTurret Upgrades'
 Guis_TurretUpgrades_Lore: '&aResearch turret upgrades here'
-Guis_ResourcePoints_Title: '&bResource Points'
-Guis_ResourcePoints_Desc: '&aYour kingdom currently has'
-Guis_ResourcePoints_Count: '&e%amount% &aresource points'
 Guis_Back_Btn: '&4Return to main menu'
 Guis_ResourcePointsConverter_Lore1: 1 resourcepoint per %itemrp% items
 Guis_Log_Title: '&bBattle Log'
@@ -718,24 +722,9 @@ Guis_Member_LastTimeDonated: '&aLast Donation Time: &c%lasttime%'
 Guis_Member_LastTimeDonatedAmt: '&aLast Donation Amount: &c%amt%'
 Guis_Member_TotalDonated: '&aTotal Donations: %amt%'
 Guis_PrivateSign_Manager_CanOpen: This user can open your protected chest
-Guis_PrivateSign_Manager_CannotOpen: This user cannot open your protected chest
-Guis_DamageReduction_Title: '&bDamage Reduction'
-Guis_DamageReduction_Description: Each upgrade reduces damage taken by another 1%
-Guis_DamageReduction_CurrLevel: 'Current Damage Reduction: '
-Guis_Regeneration_Title: '&bRegeneration Boost'
-Guis_Regeneration_Description: '&aWhile in your own land, boost your health regeneration by 1% more.'
-Guis_Regeneration_CurrLevel: 'Current Regeneration Boost: '
-Guis_DamageBoost_Title: '&bDamage Boost'
-Guis_DamageBoost_Description: Each upgrade increases your melee damage by 1%
-Guis_DamageBoost_CurrLevel: 'Current Damage Boost: '
-Guis_ArrowDamage_Title: '&bArrow Damage'
-Guis_ArrowDamage_Description: Each upgrade increases your bow damage by 1%
-Guis_ArrowDamage_CurrLevel: 'Current Arrow Damage: '
+Guis_PrivateSign_Manager_CannotOpen: This user cannot open your protected chest'
 Guis_Research_Title: '&bResearch'
 Guis_Research_Description: Access Kingdom Research
-Guis_KingdomChestSize_Title: '&bIncrease Kingdom Chest Size'
-Guis_KingdomChestSize_Description: Increases the size of Nexus Chest by 9 slots per upgrade
-Guis_KingdomChestSize_CurrLevel: 'Current Nexus Chest Size: '
 Guis_Nexus_RP_Trade_Insufficient_Itemcount: You need %amount% more item(s) to make this trade!
 Guis_Nexus_RP_Trade_Overflowing_Itemcount: '%amount% item(s) are being returned'
 Guis_Nexus_RP_Trade_Success: '&aYour kingdom gained %amount% resource points'
@@ -743,11 +732,6 @@ Guis_Nexus_RP_Trade_Success_Ally: '&a%kingdom% has gained %amount% resource poin
 Guis_Nexus_RP_Trade_Success_Ally_Notif: '&a%player% has donated %amount% resources to your kingdom'
 Guis_Nexus_Conquests_Title: '&bConquests'
 Guis_Nexus_Conquests_Desc: Click to conquer faraway lands and earn rewards!
-Guis_Nexus_KingdomChest_Title: '&bNexus Chest'
-Guis_Nexus_KingdomChest_Desc: Click to open Nexus chest. Store items in the nexus chest, that can only be lost if enemies invade your nexus land.
-Guis_Nexus_Neutral_Title: '&bClick to toggle pacifism'
-Guis_Nexus_Neutral_Desc: You can't invade other kingdoms, and other kingdoms can't invade you while you're pacifist. Once you invade, your kingdom cannot become pacifist again
-Guis_Nexus_Neutral_Status: '&aEnabled: %status%'
 Guis_Nexus_Shield_Title: '&bNexus Shield status'
 Guis_Nexus_Shield_Value: '&e%value%&b/&e%max% Shield Value'
 Guis_Nexus_Shield_Recharge_Cost: '&cRecharge Cost: %cost%'

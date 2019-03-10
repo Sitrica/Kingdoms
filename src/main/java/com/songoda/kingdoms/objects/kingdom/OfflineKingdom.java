@@ -27,15 +27,16 @@ public class OfflineKingdom {
 	protected final Set<Land> claims = new HashSet<>();
 	private long might = 0, resourcePoints = 0, invasionCooldown = 0, max;
 	private final KingdomManager kingdomManager;
+	private boolean neutral, first, invaded;
 	private final RankManager rankManager;
 	private KingdomCooldown shieldTime;
 	protected final Kingdoms instance;
 	private OfflineKingdomPlayer king;
 	private KingdomChest kingdomChest;
-	private boolean neutral, first;
 	private Location nexus, spawn;
 	private String name, lore;
 	private final UUID uuid;
+	private Powerup powerup;
 	private int dynmapColor;
 	
 	/*
@@ -163,12 +164,22 @@ public class OfflineKingdom {
 	
 	public KingdomChest getKingdomChest() {
 		if (kingdomChest == null)
-			kingdomChest = new KingdomChest();
+			kingdomChest = new KingdomChest(this);
 		return kingdomChest;
 	}
+	
+	public Powerup getPowerup() {
+		if (powerup == null)
+			powerup = new Powerup(this);
+		return powerup;
+	}
 
-	public void setKingdomChest(KingdomChest kingdomChest) {
-		this.kingdomChest = kingdomChest;
+	public boolean hasInvaded() {
+		return invaded;
+	}
+
+	public void setInvaded(boolean invaded) {
+		this.invaded = invaded;
 	}
 
 	public long getResourcePoints() {

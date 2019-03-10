@@ -54,7 +54,7 @@ public class ChestManager extends Manager {
 		if (!chest.isPresent())
 			return;
 		Inventory inventory = chest.get().getInventory();
-		inventory.setItem(event.getSlot(), event.getCursor());
+		event.getItems().entrySet().forEach(entry -> inventory.setItem(entry.getKey(), entry.getValue()));
 	}
 	
 	@EventHandler
@@ -63,7 +63,7 @@ public class ChestManager extends Manager {
 		if (!chest.isPresent())
 			return;
 		Inventory inventory = chest.get().getInventory();
-		inventory.remove(event.getCursor());
+		event.getItems().values().forEach(item -> inventory.remove(item));
 	}
 	
 	public static String serialize(KingdomChest chest) {

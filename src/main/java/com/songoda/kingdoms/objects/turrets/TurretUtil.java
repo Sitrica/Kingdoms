@@ -41,9 +41,7 @@ public class TurretUtil {
 	public static void psionicEffect(Entity target, double damage, boolean isVoodoo) {
 		if (!(target instanceof Damageable))
 			return;
-
 		Damageable d = (Damageable) target;
-
 		double calcDamage = damage;
 		if (d.getHealth() - damage < 6)
 			calcDamage = d.getHealth() - 6;

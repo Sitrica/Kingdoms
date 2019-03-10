@@ -25,11 +25,11 @@ public abstract class Placeholder<T> {
 	 * @param object The object to get the placeholder replacement from.
 	 * @return The final replaced placeholder.
 	 */
-	public abstract String replace(T object);
+	public abstract Object replace(T object);
 	
 	@SuppressWarnings("unchecked")
 	public String replace_i(Object object) {
-		return replace((T) object);
+		return replace((T) object).toString();
 	}
 	
 }

@@ -3,6 +3,9 @@ package com.songoda.kingdoms.objects.kingdom;
 import org.bukkit.Material;
 
 public enum MiscUpgrade {
+
+	//TODO finish recoding this, last left off here.
+	
 	ANTICREEPER(Kingdoms.getLang().getString("Guis_Misc_AntiCreeper_Desc"),
 			Kingdoms.getLang().getString("Guis_Misc_AntiCreeper_Title"),
 			Materials.GUNPOWDER.parseMaterial()),
@@ -20,12 +23,11 @@ public enum MiscUpgrade {
 			Material.TNT),
 	PSIONICCORE(Kingdoms.getLang().getString("Guis_Misc_PsionicCore_Desc"),
 			Kingdoms.getLang().getString("Guis_Misc_PsionicCore_Title"),
-			Materials.ENDER_EYE.parseMaterial()),
-	;
+			Materials.ENDER_EYE.parseMaterial());
 
-	private final String desc;
-	private final String title;
+	private final String desc, title;
 	private final Material display;
+
 	MiscUpgrade(String desc, String title, Material display){
 		this.desc = desc;
 		this.title = title;

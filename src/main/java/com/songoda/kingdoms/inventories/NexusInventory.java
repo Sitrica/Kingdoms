@@ -3,18 +3,29 @@ package com.songoda.kingdoms.inventories;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.StructureInventory;
 import com.songoda.kingdoms.manager.managers.ChestManager;
 import com.songoda.kingdoms.manager.managers.MasswarManager;
+import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
-import com.songoda.kingdoms.objects.kingdom.PowerUp;
+import com.songoda.kingdoms.objects.kingdom.KingdomChest;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.objects.kingdom.PowerUpOld;
+import com.songoda.kingdoms.objects.kingdom.Powerup;
+import com.songoda.kingdoms.objects.kingdom.PowerupType;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.placeholders.Placeholder;
+import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.ItemStackBuilder;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
@@ -35,14 +46,29 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
 public class NexusInventory extends StructureInventory {
-	
+
+	private final Map<Player, OfflineKingdom> donations = new HashMap<>();
 	private final MasswarManager masswarManager;
+	private final PlayerManager playerManager;
 	private final ChestManager chestManager;
 	
 	public NexusInventory() {
 		super(InventoryType.CHEST, "nexus", 27);
 		this.chestManager = instance.getManager("chest", ChestManager.class);
+		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.masswarManager = instance.getManager("masswar", MasswarManager.class);
+	}
+	
+	public void openDonateInventory(OfflineKingdom kingdom, KingdomPlayer kingdomPlayer) {
+		String title = new MessageBuilder(false, "inventories.nexus.title")
+				.setPlaceholderObject(kingdomPlayer)
+				.fromConfiguration(inventories)
+				.setKingdom(kingdom)
+				.get();
+		Player player = kingdomPlayer.getPlayer();
+		Inventory inventory = instance.getServer().createInventory(null, 54, title);
+		player.openInventory(inventory);
+		donations.put(player, kingdom);
 	}
 	
 	@Override
@@ -63,14 +89,8 @@ public class NexusInventory extends StructureInventory {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(0, converter);
-		String title = new MessageBuilder(false, "inventories.nexus.title")
-				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
-				.setKingdom(kingdom)
-				.get();
 		setAction(0, event -> {
-			Inventory inventory = instance.getServer().createInventory(null, 54, title);
-			player.openInventory(inventory);
+			openDonateInventory(kingdom, kingdomPlayer);
 		});
 		int cost = configuration.getInt("kingdoms.cost-per-max-member-upgrade");
 		int max = configuration.getInt("kingdoms.max-members-via-upgrade");
@@ -102,7 +122,7 @@ public class NexusInventory extends StructureInventory {
 			}
 			kingdom.subtractResourcePoints(cost);
 			kingdom.setMaxMembers(kingdom.getMaxMembers() + 1);
-			openNexusGui(kingdomPlayer);
+			openInventory(kingdomPlayer);
 		});
 		ItemStack battle = new ItemStackBuilder(section.getConfigurationSection("battle-logs"))
 				.setPlaceholderObject(kingdomPlayer)
@@ -165,128 +185,246 @@ public class NexusInventory extends StructureInventory {
 				.build();
 		inventory.setItem(16, chest);
 		setAction(16, event -> openKingdomChest(kingdomPlayer));
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
-	//white listed items -- Material and the item worth corresponding to the Material
-	public static Map<ItemStack, Integer> whiteListed = new HashMap<ItemStack, Integer>();
-		
-	//black listed items -- this can be null if Kingdoms.config.useWhiteList is true
-	public static ArrayList<ItemStack> blackListed = new ArrayList<ItemStack>(){{
-		add(new ItemStack(Material.AIR));
-	}};
-	
-	//special items -- Material and the item worth corresponding to the Material
-	public static Map<ItemStack, Integer> specials = new HashMap<ItemStack, Integer>();
-
-	public void openNexusGui(KingdomPlayer kp){
-		Kingdom kingdom = kp.getKingdom();
-		PowerUp powerup = kp.getKingdom().getPowerUp();
-		int slot = 9;
-		for (PowerUpType type: PowerUpType.values()) {
-			ItemStack i2 = new ItemStack(type.getMat());
-			ItemMeta i2m = i2.getItemMeta();
-			i2m.setDisplayName(type.getTitle());
-			ArrayList<String> i2l = new ArrayList<String>();
-			i2l.add(ChatColor.GREEN + type.getDesc());
-			i2l.add(ChatColor.RED + type.getCurrlevel()
-					+ powerup.getLevel(type) + "%");
-			String cost = ""+type.getCost();
-			i2l.add(Kingdoms.getLang().getString("Guis_Cost_Text", kp.getLang()).replaceAll("%cost%", cost));
-			i2l.add(ChatColor.RED + Kingdoms.getLang().getString("Guis_Max", kp.getLang())
-					+ type.getMax());
-			i2l.add(ChatColor.LIGHT_PURPLE + "Nexus Upgrade");
-			i2m.setLore(LoreOrganizer.organize(i2l));
-			i2.setItemMeta(i2m);
-			if(type.isEnabled()){
-				gui.getInventory().setItem(slot, i2);
-				final int meow = slot;
-				gui.setAction(slot, new Runnable(){
-					public void run(){
-						Kingdoms.logDebug("Called update for " + type + " at " + meow);
-						upgradePowerUp(kp, type);
-						openNexusGui(kp);
-					}
-				});
-				slot++;
+		KingdomChest kingdomChest = kingdom.getKingdomChest();
+		int size = kingdomChest.getSize();
+		cost = configuration.getInt("kingdoms.chest-size-upgrade-cost", 30);
+		cost += configuration.getInt("kingdoms.chest-size-upgrade-multiplier", 10) * ((size / 9) - 3);
+		ItemStack chestSize = new ItemStackBuilder(section.getConfigurationSection("chest-size"))
+				.setPlaceholderObject(kingdomPlayer)
+				.replace("%size%", size)
+				.replace("%cost%", cost)
+				.setKingdom(kingdom)
+				.build();
+		inventory.setItem(17, chestSize);
+		setAction(17, event -> {
+			if (cost > kingdom.getResourcePoints()) {
+				new MessageBuilder("kingdoms.not-enough-resourcepoints-chest-upgrade")
+						.setPlaceholderObject(kingdomPlayer)
+						.replace("%cost%", cost)
+						.setKingdom(kingdom)
+						.send(player);
+				return;
 			}
-		}
-		ItemStack i7 = new ItemStack(Materials.END_PORTAL_FRAME.parseMaterial());
-		ItemMeta i7m = i7.getItemMeta();
-		i7m.setDisplayName(Kingdoms.getLang().getString("Guis_KingdomChestSize_Title", kp.getLang()));
-		ArrayList<String> i7l = new ArrayList<String>();
-		i7l.add(ChatColor.GREEN + Kingdoms.getLang().getString("Guis_KingdomChestSize_Description", kp.getLang()));
-		i7l.add(ChatColor.RED + Kingdoms.getLang().getString("Guis_KingdomChestSize_CurrLevel", kp.getLang())
-				+ kingdom.getChestsize() + " slots");
-		String cost = "30";
-		i7l.add(Kingdoms.getLang().getString("Guis_Cost_Text", kp.getLang()).replaceAll("%cost%", cost));
-		i7l.add(ChatColor.LIGHT_PURPLE + "Nexus Upgrade");
-		i7m.setLore(LoreOrganizer.organize(i7l));
-		i7.setItemMeta(i7m);
-		
-		gui.getInventory().setItem(13, i7);
-		gui.setAction(13, new Runnable(){
-			public void run(){
-				int cost = 30;
-				int max = 27;
-				if(kingdom.getResourcepoints() - cost < 0){
-					kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_Enough_Points", kp.getLang()).replaceAll("%cost%", "" + cost));
-					return;
-				}
-				if(kingdom.getChestsize() + 9 > max){
-					kp.sendMessage(Kingdoms.getLang().getString("Misc_Max_Level_Reached", kp.getLang()));
-					return;
-				}
-				kingdom.setResourcepoints(kingdom.getResourcepoints() - cost);
-				kingdom.setChestsize(kingdom.getChestsize() + 9);
-				kingdom.sendAnnouncement(kp, ChatColor.GOLD+"ChestSize: "+ChatColor.DARK_GREEN+kingdom.getChestsize(), false);
-				openNexusGui(kp);
+			if (size + 9 > max) {
+				new MessageBuilder("kingdoms.nexus-chest-maxed")
+						.setPlaceholderObject(kingdomPlayer)
+						.setKingdom(kingdom)
+						.send(player);
+				return;
 			}
-		});		
-		
-		ItemStack neutral = new ItemStack(Materials.WHITE_WOOL.parseMaterial(), 1, DyeColor.WHITE.getWoolData());
-		ItemMeta neutralm = neutral.getItemMeta();
-		neutralm.setDisplayName(Kingdoms.getLang().getString("Guis_Nexus_Neutral_Title", kp.getLang()));
-		ArrayList<String> neutrall = new ArrayList<String>();
-		neutrall.add(ChatColor.YELLOW + Kingdoms.getLang().getString("Guis_Nexus_Neutral_Desc", kp.getLang()));
-		neutrall.add(Kingdoms.getLang().getString("Guis_Nexus_Neutral_Status", kp.getLang()).replaceAll("%status%", "" + kingdom.isNeutral()));
-		neutralm.setLore(LoreOrganizer.organize(neutrall));
-		neutral.setItemMeta(neutralm);
-
-		if(Config.getConfig().getBoolean("allow-pacifist")){
-			gui.getInventory().setItem(2, neutral);
-			gui.setAction(2, new Runnable(){
-				public void run(){
-					if(kingdom.hasInvaded()){
-						kp.sendMessage(Kingdoms.getLang().getString("Misc_Cannot_Neutral", kp.getLang()));
-						return;
-					}
-					kingdom.setNeutral(!kingdom.isNeutral());
-					kp.sendMessage(Kingdoms.getLang().getString("Misc_Neutral_Toggled", kp.getLang()));
-					openNexusGui(kp);
+			kingdom.subtractResourcePoints(cost);
+			kingdomChest.setSize(size + 9);
+			new MessageBuilder("kingdoms.chest-size-upgraded")
+					.setPlaceholderObject(kingdomPlayer)
+					.replace("%size%", (size + 9) / 9)
+					.setKingdom(kingdom)
+					.send(player);
+			openInventory(kingdomPlayer);
+		});
+		if (configuration.getBoolean("kingdoms.allow-pacifist")) {
+			ItemStackBuilder builder = new ItemStackBuilder(section.getConfigurationSection("neutral-off"))
+					.replace("%status%", kingdom.isNeutral())
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(kingdom);
+			if (kingdom.isNeutral()) {
+				builder = new ItemStackBuilder(section.getConfigurationSection("neutral-on"))
+						.replace("%status%", kingdom.isNeutral())
+						.setPlaceholderObject(kingdomPlayer)
+						.setKingdom(kingdom);
+			}
+			inventory.setItem(22, builder.build());
+			setAction(22, event -> {
+				if (kingdom.hasInvaded()) {
+					new MessageBuilder("kingdoms.cannot-be-neutral")
+							.replace("%status%", kingdom.isNeutral())
+							.setPlaceholderObject(kingdomPlayer)
+							.setKingdom(kingdom)
+							.send(player);
 					return;
 				}
+				kingdom.setNeutral(!kingdom.isNeutral());
+				new MessageBuilder("kingdoms.neutral-toggled")
+						.replace("%status%", kingdom.isNeutral())
+						.setPlaceholderObject(kingdomPlayer)
+						.setKingdom(kingdom)
+						.send(player);
+				openInventory(kingdomPlayer);
+				return;
 			});
 		}
-		
-		
-		getShieldDisplayItem(kingdom);
-		KingdomNexusGUIOpenEvent event = new KingdomNexusGUIOpenEvent(kp, gui);
-		Bukkit.getPluginManager().callEvent(event);
-		if(!event.isCancelled())
-			gui.openInventory(kp.getPlayer());
-		
+		Powerup powerup = kingdom.getPowerup();
+		List<Integer> slots = Lists.newArrayList(18, 19, 25, 26);
+		int i = 0;
+		for (PowerupType type: PowerupType.values()) {
+			if (!type.isEnabled())
+				continue;
+			int slot = Optional.ofNullable(slots.get(i)).orElse(18 + i);
+			inventory.setItem(slot, type.getItemStackBuilder()
+					.withPlaceholder(powerup, new Placeholder<Powerup>("%amount%", "%level%") {
+						@Override
+						public Integer replace(Powerup powerup) {
+							return powerup.getLevel(type);
+						}
+					}).build());
+			setAction(slot, event -> {
+				if (type.getCost() > kingdom.getResourcePoints()) {
+					new MessageBuilder("kingdoms.not-enough-resourcepoints-powerup")
+							.replace("%powerup%", type.name().toLowerCase().replaceAll("_", "-"))
+							.setPlaceholderObject(kingdomPlayer)
+							.replace("%cost%", type.getCost())
+							.setKingdom(kingdom)
+							.send(player);
+					return;
+				}
+				int level = powerup.getLevel(type);
+				if (level + 1 > type.getMax()) {
+					new MessageBuilder("kingdoms.powerup-maxed")
+							.replace("%powerup%", type.name().toLowerCase().replaceAll("_", "-"))
+							.setPlaceholderObject(kingdomPlayer)
+							.replace("%cost%", type.getCost())
+							.setKingdom(kingdom)
+							.send(player);
+					return;
+				}
+				kingdom.subtractResourcePoints(type.getCost());
+				powerup.setLevel(level + 1, type);
+				openInventory(kingdomPlayer);
+			});
+		}
+		//getShieldDisplayItem(kingdom); This was planned but never made it to the nexus menu I guess - Lime
+		openInventory(player);
 	}
 	
-	public ItemStack getShieldDisplayItem(Kingdom kingdom){
+	public void openKingdomChest(KingdomPlayer kingdomPlayer) {
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null)
+			return;
+		if (!kingdom.getPermissions(kingdomPlayer.getRank()).hasChestAccess()) {
+			new MessageBuilder("kingdoms.rank-too-low-chest-access")
+					.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.hasChestAccess()), new Placeholder<Optional<Rank>>("%rank%") {
+						@Override
+						public String replace(Optional<Rank> rank) {
+							if (rank.isPresent())
+								return rank.get().getName();
+							return "(Not attainable)";
+						}
+					})
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(kingdom)
+					.send(kingdomPlayer);
+			return;
+		}
+		chestManager.openChest(kingdomPlayer, kingdom);
+	}
+	
+	private int consumeDonationItems(Inventory inventory, KingdomPlayer kingdomPlayer) {
+		Set<ItemStack> returning = new HashSet<>();
+		Player player = kingdomPlayer.getPlayer();
+		ConfigurationSection section = configuration.getConfigurationSection("kingdoms.resource-donation");
+		int worth = 0;
+		ItemStack[] items = inventory.getContents();
+		if (section.getBoolean("use-list", false)) {
+			ConfigurationSection list = section.getConfigurationSection("list");
+			Set<String> nodes = list.getKeys(false);
+			for (ItemStack item : items) {
+				if (item == null)
+					continue;
+				Material type = item.getType();
+				Optional<Double> points = nodes.parallelStream()
+						.filter(node -> node.equals(type.name()))
+						.map(node -> list.getDouble(node, 3))
+						.findFirst();
+				if (!points.isPresent()) {
+					returning.add(item);
+					continue;
+				}
+				worth += item.getAmount() * points.get();
+			}
+		} else {
+			double points = section.getDouble("points-per-item", 3);
+			for (ItemStack item : items) {
+				if (item == null)
+					continue;
+				String name = item.getType().name();
+				if (section.getStringList("blacklist").contains(name)) {
+					returning.add(item);
+					continue;
+				}
+				worth += item.getAmount() * points;
+			}
+		}
+		Map<Material, Integer> map = new HashMap<>();
+		for (ItemStack item : returning) {
+			Material material = item.getType();
+			if (!map.containsKey(material))
+				map.put(item.getType(), inventory.all(material).size());
+		}
+		Set<Material> displayed = new HashSet<>();
+		for (ItemStack item : returning) {
+			Material material = item.getType();
+			String name = map.get(material) + " " + material.name().toLowerCase();
+			ItemMeta meta = item.getItemMeta();
+			boolean modified;
+			if (meta != null && meta.getDisplayName() != null) {
+				name = meta.getDisplayName();
+				modified = true;
+			} else {
+				short durability = DeprecationUtils.getDurability(item);
+				if (durability > 0) {
+					name += ":" + durability;
+					modified = true;
+				}
+			}
+			if (!displayed.contains(material) || modified)
+				new MessageBuilder("kingdoms.cannot-be-donated")
+						.setPlaceholderObject(kingdomPlayer)
+						.replace("%item%", name)
+						.send(player);
+			displayed.add(material);
+			player.getWorld().dropItemNaturally(player.getLocation(), item);
+		}
+		return worth;
+	}
+	
+	@EventHandler
+	public void onDonateInventoryClose(InventoryCloseEvent event) {
+		Player player = (Player) event.getPlayer();
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		if (donations.containsKey(player)) {
+			int donated = consumeDonationItems(event.getInventory(), kingdomPlayer);
+			Kingdom kingdom = kingdomPlayer.getKingdom();
+			if (kingdom == null)
+				return;
+			OfflineKingdom donatingTo = donations.get(player);
+			if (kingdom.equals(donatingTo)) {
+				kingdom.addResourcePoints(donated);
+				new MessageBuilder("kingdoms.donated-kingdom")
+						.toKingdomPlayers(donatingTo.getKingdom().getOnlinePlayers())
+						.setPlaceholderObject(kingdomPlayer)
+						.replace("%amount%", donated)
+						.setKingdom(kingdom)
+						.send();
+			} else { // It's an ally donating.
+				donatingTo.addResourcePoints(donated);
+				new MessageBuilder("kingdoms.donated-alliance")
+						.toKingdomPlayers(donatingTo.getKingdom().getOnlinePlayers())
+						.setPlaceholderObject(kingdomPlayer)
+						.replace("%amount%", donated)
+						.setKingdom(kingdom)
+						.send();
+			}
+			new MessageBuilder("kingdoms.donated-self")
+					.setPlaceholderObject(kingdomPlayer)
+					.replace("%amount%", donated)
+					.setKingdom(kingdom)
+					.send(player);
+			//TODO make a donation tracker and add the donation time and amount from here.
+			return;
+		}
+		donations.remove(player);
+	}
+
+	/*public ItemStack getShieldDisplayItem(Kingdom kingdom){
 		ItemStack shield = new ItemStack(Material.OBSIDIAN);
 		ItemMeta shieldm = shield.getItemMeta();
 		shieldm.setDisplayName(Kingdoms.getLang().getString("Guis_Nexus_Shield_Title"));
@@ -311,366 +449,6 @@ public class NexusInventory extends StructureInventory {
 		shield.setItemMeta(shieldm);
 		return shield;
 	}
-	
-	private void upgradePowerUp(KingdomPlayer kp, PowerUp.PowerUpType type){
-		Kingdom kingdom = kp.getKingdom();
-		PowerUp powerup = kingdom.getPowerUp();
-		Kingdoms.logDebug("DMG" + powerup.getDmgboost());
-		Kingdoms.logDebug("DEF" + powerup.getDmgreduction());
-		Kingdoms.logDebug("REGEN" + powerup.getRegenboost());
-		Kingdoms.logDebug("ARROW" + powerup.getArrowboost());
-		int resourcePoint = kingdom.getResourcepoints();
-		int cost = type.getCost();
-		int max = type.getMax();
-		if(resourcePoint - cost < 0){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Not_Enough_Points", kp.getLang()).replaceAll("%cost%", "" + cost));
-			return;
-		}
-		
-		if(powerup.getLevel(type) + 1 > max){
-			kp.sendMessage(Kingdoms.getLang().getString("Misc_Max_Level_Reached", kp.getLang()));
-			return;
-		}
-		Kingdoms.logDebug("Ran upgrade method with type " + type);
-		kingdom.setResourcepoints(resourcePoint - cost);
-		powerup.setLevel(type, powerup.getLevel(type) + 1);
-	}
-	
-	@EventHandler
-	public void onDonateInventoryClose(InventoryCloseEvent event) {
-		if(!(event.getPlayer() instanceof Player)) return;
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession((Player) event.getPlayer());
-
-		String invName = event.getInventory().getName();
-		if(invName.equals(Kingdoms.getLang().getString("Guis_Nexus_RP_Trade", kp.getLang()))){
-			int donatedamt = consumeDonationItems(event.getInventory().getContents(), kp);
-			kp.getKingdom().setResourcepoints(kp.getKingdom().getResourcepoints() + donatedamt);
-			kp.sendMessage(Kingdoms.getLang().getString("Guis_Nexus_RP_Trade_Success", kp.getLang()).replaceAll("%amount%", ""+donatedamt));
-			kp.setLastTimeDonated(new Date());
-			kp.setDonatedAmt(kp.getDonatedAmt() + donatedamt);
-			kp.setLastDonatedAmt(donatedamt);
-			return;
-		}
-		
-		if(invName.startsWith(ChatColor.DARK_BLUE + "Donate to " + ChatColor.DARK_GREEN)){
-			String[] nsplit = event.getInventory().getName().split(" ");
-			String sentKingdomName = ChatColor.stripColor(nsplit[(nsplit.length - 1)]);
-			
-			Kingdom sentTo = GameManagement.getKingdomManager().getOrLoadKingdom(sentKingdomName);
-			int donatedamt = consumeDonationItems(event.getInventory().getContents(), kp);
-			sentTo.setResourcepoints(sentTo.getResourcepoints() + donatedamt);
-			kp.sendMessage(Kingdoms.getLang().getString("Guis_Nexus_RP_Trade_Success", kp.getLang()).replaceAll("%amount%", ""+donatedamt).replaceAll("%kingdom%", ""+sentTo.getKingdomName()));
-			sentTo.sendAnnouncement(null,Kingdoms.getLang().getString("Guis_Nexus_RP_Trade_Success", kp.getLang()).replaceAll("%amount%", ""+donatedamt).replaceAll("%player%", ""+kp.getName()),true);
-			
-			return;
-		}
-		
-		//?
-		if(invName.equals(Kingdoms.getLang().getString("Guis_Nexus_KingdomChest_Title", kp.getLang()))){
-			
-			
-			return;
-		}
-	}
-	
-	//2016-10-11
-		/**
-		 * DOES NOT award the resource points. It does, however, consume the used items or return the items depending on the situation
-		 * @param items items to donated
-		 * @param p donator
-		 * @return total points the items are worth.
-		 */
-		public int consumeDonationItems(ItemStack[] items, KingdomPlayer p) {
-			//items to return
-			ArrayList<ItemStack> returningIS = new ArrayList<ItemStack>();
-			//items to consume
-			//ArrayList<ItemStack> consumingIS = new ArrayList<ItemStack>();
-			//special items that doesn't affected by items_needed_for_one_resource_point
-			//ArrayList<ItemStack> extraIS = new ArrayList<ItemStack>();
-			int itemworth = 0;
-			int itemsperrp = Config.getConfig().getInt("items-needed-for-one-resource-point");
-			
-			if(Config.getConfig().getBoolean("use-whitelist")){
-				for(ItemStack item:items){
-					if(item == null)continue;
-					ItemStack type = new ItemStack(item.clone().getType(),1,item.getDurability());
-					if(whiteListed.containsKey(type)){
-						itemworth += item.getAmount() * whiteListed.get(type);
-					}else{
-						returningIS.add(item);
-					}
-				}
-			}else{
-				for(ItemStack item:items){
-					if(item == null)continue;
-					Kingdoms.logDebug(item.getType().toString() + "," + item.getAmount());
-					
-					
-					if (isBlackListed(item)) {
-						String name = item.getType().toString();
-						if(item.getItemMeta() != null &&
-								item.getItemMeta().getDisplayName() != null){
-							name = item.getItemMeta().getDisplayName();
-						}else if(item.getDurability() != 0){
-							name += ":" + item.getDurability();
-						}
-						String message = Kingdoms.getLang().getString("Misc_Cannot_Be_Traded_For_Points").replaceAll("%item%", name);
-						
-						
-						p.sendMessage(message);
-						returningIS.add(item);
-						Kingdoms.logDebug("BLACKLISTED: " + item.toString());
-						continue;
-					}else if(getSpecialWorth(item) != -1){
-						itemworth += item.getAmount() * getSpecialWorth(item);
-					}else{
-						itemworth += item.getAmount();
-					}
-				}
-			}
-			
-			if(itemworth % Config.getConfig().getInt("items-needed-for-one-resource-point") != 0){
-				int itemoverflow = itemworth % Config.getConfig().getInt("items-needed-for-one-resource-point");
-				for(ItemStack item:items){
-					if(item == null)continue;
-					ItemStack type = new ItemStack(item.clone().getType(),1,item.getDurability());
-					if (isBlackListed(item)) continue;
-					int worth = 1;
-					if(getSpecialWorth(item) != -1){
-						worth = getSpecialWorth(item);
-					}
-					if(Config.getConfig().getBoolean("use-whitelist") && whiteListed.containsKey(type)){
-						worth = whiteListed.get(type);
-					}
-					int originalAmount = item.getAmount();
-					int removedAmount = 0;
-					while((itemworth) % Config.getConfig().getInt("items-needed-for-one-resource-point") != 0 &&
-							(itemworth - worth) >= ((itemworth/Config.getConfig().getInt("items-needed-for-one-resource-point"))*Config.getConfig().getInt("items-needed-for-one-resource-point")) &&
-							originalAmount - removedAmount > 0){
-
-						//Kingdoms.logDebug("===Type: " + type.getType().toString());
-						//Kingdoms.logDebug("===Condition 1: " + (itemworth-worth) + " / " + Kingdoms.config.items_needed_for_one_resource_point + " Remainder not 0");
-						//Kingdoms.logDebug("===Condition 2: " + (itemworth - worth) + " > " + ((itemworth/Kingdoms.config.items_needed_for_one_resource_point)*Kingdoms.config.items_needed_for_one_resource_point));
-						//Kingdoms.logDebug("old: " + itemworth);
-						itemworth -= worth;
-						//Kingdoms.logDebug("new: " + itemworth);
-						returningIS.add(type);
-						Kingdoms.logDebug("EXTRA: " + type.toString());
-						removedAmount++;
-					}
-					
-					if((itemworth) % Config.getConfig().getInt("items-needed-for-one-resource-point") == 0){
-						break;
-					}
-				}
-			}
-			//Kingdoms.logDebug("================Final");
-			//Kingdoms.logDebug("===Condition 1: " + (itemworth) + " / " + Kingdoms.config.items_needed_for_one_resource_point + " Remainder not 0");
-			//Kingdoms.logDebug("===Condition 2: " + (itemworth) + " > " + ((itemworth/Kingdoms.config.items_needed_for_one_resource_point)*Kingdoms.config.items_needed_for_one_resource_point));
-			
-			
-			if((itemworth) %Config.getConfig().getInt("items-needed-for-one-resource-point") != 0 ){
-				returningIS.clear();
-				for(ItemStack item:items){
-					if(item== null)continue;
-				
-					p.getPlayer().getWorld().dropItemNaturally(p.getPlayer().getLocation(), item);
-				}
-				p.sendMessage(Kingdoms.getLang().getString("Guis_Nexus_RP_Trade_Insufficient_Itemcount", p.getLang()).replaceAll("%amount%", "" + (Config.getConfig().getInt("items-needed-for-one-resource-point") - (itemworth%Config.getConfig().getInt("items-needed-for-one-resource-point")))));
-				return 0;
-			}
-			
-			int returned = returningIS.size();
-			if(returned != 0) p.sendMessage(Kingdoms.getLang().getString("Guis_Nexus_RP_Trade_Overflowing_Itemcount", p.getLang()).replaceAll("%amount%", "" + returned));
-			
-			for(ItemStack item:returningIS){
-				Kingdoms.logDebug(item.getType().toString() + "," + item.getAmount());
-				p.getPlayer().getWorld().dropItemNaturally(p.getPlayer().getLocation(), item);
-			}
-			
-			return itemworth/Config.getConfig().getInt("items-needed-for-one-resource-point");
-		}
-		
-		private int getSpecialWorth(ItemStack item){
-			ItemStack type = new ItemStack(item.clone().getType(),1,item.getDurability());
-			if(!specials.containsKey(type)){
-				return -1;
-			}
-			
-			return specials.get(type);
-			
-		}
-		
-		private boolean isBlackListed(ItemStack item){
-			ItemStack clone = item.clone();
-			clone.setAmount(1);
-			if(blackListed.contains(clone)) return true;
-			if(item.getItemMeta() == null) return false;
-			if(item.getItemMeta().getLore() != null &&
-					!item.getItemMeta().getLore().isEmpty()){
-				if(Config.getConfig().getBoolean("disallow-named-or-lored-items-from-rp-trade")) return true;
-			}
-			if(item.getItemMeta().getDisplayName() == null) return false;
-			if(Config.getConfig().getBoolean("disallow-named-or-lored-items-from-rp-trade")) return true;
-			
-			for(ItemStack bl:blackListed){
-				if(bl == null) continue;
-				if(bl.getItemMeta() == null) continue;
-				if(item.getItemMeta().getDisplayName().equals(bl.getItemMeta().getDisplayName())){
-					return true;
-				}
-			}
-			
-			return false;
-		}
-
-	
-	public static ItemStack getBackButton(){
-	    ItemStack backbtn = new ItemStack(Material.REDSTONE_BLOCK);
-	    ItemMeta backbtnmeta = backbtn.getItemMeta();
-	    backbtnmeta.setDisplayName(ChatColor.RED + Kingdoms.getLang().getString("Guis_Back_Btn"));
-		ArrayList<String> lore = new ArrayList<String>();
-		lore.add(ChatColor.RED + "" + ChatColor.YELLOW + "" + ChatColor.GREEN);
-		backbtnmeta.setLore(lore);
-	    backbtn.setItemMeta(backbtnmeta);
-	    return backbtn;
-	}
-	
-	@EventHandler
-	public void onBackBtnMove(InventoryClickEvent event){
-		KingdomPlayer kp = GameManagement.getPlayerManager().getSession((Player) event.getWhoClicked());
-		Kingdom kingdom = kp.getKingdom();
-		if(kingdom == null) return;
-		if(event.getCurrentItem() == null) return;
-		if(event.getCurrentItem().getItemMeta() == null) return;
-		if(event.getCurrentItem().getItemMeta().getDisplayName() == null) return;
-		if (event.getCurrentItem().getItemMeta().getDisplayName()
-				.equals(ChatColor.RED + Kingdoms.getLang().getString("Guis_Back_Btn"))){
-			if(event.getCurrentItem().getItemMeta().getLore() == null) return;
-			if(!event.getCurrentItem().getItemMeta().getLore().contains(ChatColor.RED + "" + ChatColor.YELLOW + "" + ChatColor.GREEN)) return;
-				event.setCancelled(true);
-			
-			kp.getPlayer().closeInventory();
-			
-			openNexusGui(kp);
-			return;
-		}
-		
-	}
-	
-	
-	//Initiate item trade lists.
-	public void init(){
-		if(Config.getConfig().getBoolean("use-whitelist")){
-			for(int i = 0; i < Config.getConfig().getStringList("whitelist-items").size(); i++){
-				String str = Config.getConfig().getStringList("whitelist-items").get(i);
-				if(str == null)
-					continue;
-					
-				String[] split = Config.getConfig().getStringList("whitelist-items").get(i).split(",");
-				if(split.length != 2){
-					Kingdoms.logInfo("[ERROR]: Your whitelist item, " + Config.getConfig().getStringList("whitelist-items").get(i) + " needs to be in the format of [MATERIAL],[ITEM VALUE]");
-					continue;
-				}
-				try{
-					ItemStack item = null;
-					int point = Integer.parseInt(split[1]);
-					String[] matSplit = split[0].split(":");
-					if(matSplit.length == 2){
-						item = new ItemStack(Material.valueOf(matSplit[0]), 1, (byte) Integer.parseInt(matSplit[1]));
-					}else{
-						item = new ItemStack(Material.valueOf(split[0]), 1);
-					}
-					whiteListed.put(item, point);
-				}catch(NumberFormatException e){
-					Kingdoms.logInfo("[ERROR]: Your whitelist item, " + Config.getConfig().getStringList("whitelist-items").get(i) + " has invalid point value ["+split[1]+"]");
-				}catch(IllegalArgumentException e){
-					Kingdoms.logInfo("[ERROR]: Your whitelist item, " + Config.getConfig().getStringList("whitelist-items").get(i) + " has unknown material name ["+split[0]+"]");
-				}
-			}
-		}else{
-			ArrayList<ItemStack> blacklists = new ArrayList<ItemStack>();
-			for(String matName : Config.getConfig().getStringList("resource-point-trade-blacklist")){
-				try{
-					ItemStack item = null;
-					String[] matNameSplit = matName.split(":");
-					if(matNameSplit.length == 2){
-						item = new ItemStack(Material.valueOf(matNameSplit[0]),1,(byte) Integer.parseInt(matNameSplit[1]));
-					}else{
-						item = new ItemStack(Material.valueOf(matName), 1);
-					}
-					blacklists.add(item);
-					
-				}catch(NumberFormatException e){
-					Kingdoms.logInfo("[ERROR]: Your blacklisted item " + matName + " has an invalid item value");
-				}catch(IllegalArgumentException e){
-					Kingdoms.logInfo("[ERROR]: Your blacklisted item " + matName + " is an unknown material name.");
-				}
-			}
-			for(String name:Config.getConfig().getStringList("resource-point-trade-blacklist")){
-				ItemStack item = new ItemStack(Material.BEDROCK);
-				ItemMeta meta = item.getItemMeta();
-				meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
-				item.setItemMeta(meta);
-				blacklists.add(item);
-			}
-			if(!blacklists.isEmpty()){
-				blackListed = blacklists;
-			}else{
-				blacklists.add(new ItemStack(Material.AIR));
-				blackListed = blacklists;
-			}
-			
-			for(int i = 0; i < Config.getConfig().getStringList("special-item-cases").size(); i++){
-				String str = Config.getConfig().getStringList("special-item-cases").get(i);
-				if(str == null)
-					continue;
-				
-				String[] split = Config.getConfig().getStringList("special-item-cases").get(i).split(",");
-				if(split.length != 2){
-					Kingdoms.logInfo("[ERROR]: Your special item, " + Config.getConfig().getStringList("special-item-cases").get(i) + " needs to be in the format of [MATERIAL],[ITEM VALUE]");
-					continue;
-				}
-				
-				try{
-					ItemStack item = null;
-					int point = Integer.parseInt(split[1]);
-					String[] matSplit = split[0].split(":");
-					if(matSplit.length == 2){
-						item = new ItemStack(Material.valueOf(matSplit[0]), 1, (byte) Integer.parseInt(matSplit[1]));
-					}else{
-						item = new ItemStack(Material.valueOf(split[0]), 1);
-					}
-					specials.put(item, point);
-				}catch(NumberFormatException e){
-					Kingdoms.logInfo("[ERROR]: Your special item, " + Config.getConfig().getStringList("special-item-cases").get(i) + " has invalid point value ["+split[1]+"]");
-				}catch(IllegalArgumentException e){
-					Kingdoms.logInfo("[ERROR]: Your special item, " + Config.getConfig().getStringList("special-item-cases").get(i) + " has unknown material name ["+split[0]+"]");
-				}
-			}
-		}
-	}
-
-	public void openKingdomChest(KingdomPlayer kingdomPlayer) {
-		Kingdom kingdom = kingdomPlayer.getKingdom();
-		if (kingdom == null)
-			return;
-		if (!kingdom.getPermissions(kingdomPlayer.getRank()).hasChestAccess()) {
-			new MessageBuilder("kingdoms.rank-too-low-chest-access")
-					.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.hasChestAccess()), new Placeholder<Optional<Rank>>("%rank%") {
-						@Override
-						public String replace(Optional<Rank> rank) {
-							if (rank.isPresent())
-								return rank.get().getName();
-							return "(Not attainable)";
-						}
-					})
-					.setPlaceholderObject(kingdomPlayer)
-					.setKingdom(kingdom)
-					.send(kingdomPlayer);
-			return;
-		}
-		chestManager.openChest(kingdomPlayer, kingdom);
-	}
+	*/
 
 }

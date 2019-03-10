@@ -14,6 +14,8 @@ version: "@version@"
 
 # All configurations relating to structures.
 inventories:
+    nexus-chest:
+        title: "&4%kingdom%'s Nexus Chest"
     extractor:
         # The item that represents the collection item.
         # Special placeholders: %amount% and %time%
@@ -162,3 +164,50 @@ inventories:
             lore:
                 - "&7During Masswar, all invading is FREE."
                 - "&7Masswar is currently &c&lDISABLED"
+        # The item that represents the item to display the resource points of the Kingdom.
+        resource-points:
+            title: "&bResource Points"
+            material: "HAY_BLOCK"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&aYour kingdom currently has"
+                - "&e%points% &aresource points."
+        # The item that represents the Nexus chest gui.
+        chest:
+            title: "&bNexus Chest"
+            material: "CHEST"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Click to open Nexus chest."
+                - "&7Stored items can only be lost if enemies invade your nexus land."
+        # The item that represents the Nexus chest size upgrade item.
+        chest-size:
+            title: "&bIncrease Kingdom Chest Size"
+            material: "END_PORTAL"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Increases the size of Nexus Chest by 1 row per upgrade."
+                - "&6SCurrent nexus chest size: %size%"
+        # The item that represents the neutral item when it's enabled.
+        neutral-on:
+            title: "&bClick to toggle pacifism"
+            material: "OAK_SAPLING"
+            material-meta: ""
+            glowing: true
+            lore:
+                - "&7You can't invade other kingdoms, and other kingdoms can't invade you while you're pacifist."
+                - "&7Once you invade, your kingdom cannot become pacifist again."
+                - "&6Currently: &a&lENABLED"
+        # The item that represents the neutral item when it's disabled.
+        neutral-off:
+            title: "&bClick to toggle pacifism"
+            material: "OAK_SAPLING"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7You can't invade other kingdoms, and other kingdoms can't invade you while you're pacifist."
+                - "&7Once you invade, your kingdom cannot become pacifist again."
+                - "&6Currently: &c&lDISABLED"

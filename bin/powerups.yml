@@ -1,0 +1,56 @@
+#!
+#!     ▄█   ▄█▄  ▄█  ███▄▄▄▄      ▄██████▄  ████████▄   ▄██████▄    ▄▄▄▄███▄▄▄▄      ▄████████ 
+#!    ███ ▄███▀ ███  ███▀▀▀██▄   ███    ███ ███   ▀███ ███    ███ ▄██▀▀▀███▀▀▀██▄   ███    ███ 
+#!    ███▐██▀   ███▌ ███   ███   ███    █▀  ███    ███ ███    ███ ███   ███   ███   ███    █▀  
+#!   ▄█████▀    ███▌ ███   ███  ▄███        ███    ███ ███    ███ ███   ███   ███   ███        
+#!  ▀▀█████▄    ███▌ ███   ███ ▀▀███ ████▄  ███    ███ ███    ███ ███   ███   ███ ▀███████████ 
+#!    ███▐██▄   ███  ███   ███   ███    ███ ███    ███ ███    ███ ███   ███   ███          ███ 
+#!    ███ ▀███▄ ███  ███   ███   ███    ███ ███   ▄███ ███    ███ ███   ███   ███    ▄█    ███ 
+#!    ███   ▀█▀ █▀    ▀█   █▀    ████████▀  ████████▀   ▀██████▀   ▀█   ███   █▀   ▄████████▀  
+#!    ▀                                                                                        
+#!
+# The version is to help determine which version this config is. Please don't modify this value.
+version: "@version@"
+
+# All configurations relating to powerups.
+powerups:
+    damage-reduction:
+        enabled: true
+        title: "&bDamage Reduction"
+        material: "DIAMOND_CHESTPLATE"
+        material-meta: ""
+        cost: 70
+        max: 40
+        description:
+            - "&7Each upgrade reduces damage taken by 1%."
+            - "&6Current Damage Reduction: %amount%"
+    regeneration:
+        enabled: true
+        title: "&bRegeneration Boost"
+        material: "POPPY"
+        material-meta: ""
+        cost: 70
+        max: 200
+        description:
+            - "&7While in your own land, your health has regeneration by 1% per each upgrade."
+            - "&6Current Regeneration Boost: %amount%"
+    arrow-damage:
+        enabled: true
+        title: "&bArrow Damage"
+        material: "BOW"
+        material-meta: ""
+        cost: 125
+        max: 60
+        description:
+            - "&7Each upgrade increases your bow damage by 1%."
+            - "&6Current Arrow Damage: %amount%"
+    damage-boost:
+        enabled: true
+        title: "&bDamage Boost"
+        material: "DIAMOND_SWORD"
+        material-meta: ""
+        cost: 85
+        max: 60
+        description:
+            - "&7Each upgrade increases your bow damage by 1%."
+            - "&6Current Damage Boost: %amount%"

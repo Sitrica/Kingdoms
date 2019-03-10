@@ -84,7 +84,7 @@ public class StoreListener implements Listener {
 			if (!storePossible.contains(player))
 				return;
 			if (event.isLeftClick()) {
-				StoreEvent store = new StoreEvent(player, cursor, event.getInventory());
+				StoreEvent store = new StoreEvent(player, cursor, event.getInventory(), event.getSlot());
 				Bukkit.getPluginManager().callEvent(store);
 				if (store.isCancelled()) {
 					event.setCancelled(true);
@@ -93,7 +93,7 @@ public class StoreListener implements Listener {
 				storePossible.remove(player);
 			} else {
 				cursor.setAmount(1);
-				StoreEvent store = new StoreEvent(player, cursor, event.getInventory());
+				StoreEvent store = new StoreEvent(player, cursor, event.getInventory(), event.getSlot());
 				Bukkit.getPluginManager().callEvent(store);
 				if (store.isCancelled())
 					event.setCancelled(true);
@@ -106,7 +106,7 @@ public class StoreListener implements Listener {
 					return;
 				if (!isAcceptableInventory(topType))
 					return;
-				StoreEvent store = new StoreEvent(player, cursor, event.getInventory());
+				StoreEvent store = new StoreEvent(player, cursor, event.getInventory(), event.getSlot());
 				Bukkit.getPluginManager().callEvent(store);
 				if (store.isCancelled()) {
 					event.setCancelled(true);
@@ -126,25 +126,7 @@ public class StoreListener implements Listener {
 		Inventory top = view.getTopInventory();
 		if (isAcceptableInventory(type)) {
 			if (storePossible.contains(player)) {
-				int chestSize = view.getTopInventory().getSize();
-				int num = 0;
-				ItemStack temp = new ItemStack(Material.AIR, 0);
-				for (int i : event.getNewItems().keySet()) {
-					if (i < chestSize) {
-						ItemStack item = event.getNewItems().get(i);
-						if (num == 0)
-							temp = item.clone();
-						if (inventory.getItem(i) != null) {
-							num += item.getAmount() - inventory.getItem(i).getAmount();
-						} else {
-							num += item.getAmount();
-						}
-					}
-				}
-				if (temp.getType() == Material.AIR)
-					return;
-				temp.setAmount(num);
-				StoreEvent store = new StoreEvent(player, temp, inventory);
+				StoreEvent store = new StoreEvent(player, inventory, event.getNewItems());
 				Bukkit.getPluginManager().callEvent(store);
 				if (store.isCancelled())
 					event.setCancelled(true);
@@ -175,7 +157,8 @@ public class StoreListener implements Listener {
 			if (temp.getType() == Material.AIR)
 				return;
 			temp.setAmount(num);
-			UnstoreEvent unstore = new UnstoreEvent(player, temp, inventory);
+			Set<Integer> slots = event.getInventorySlots();
+			UnstoreEvent unstore = new UnstoreEvent(player, temp, inventory, slots.toArray(new Integer[slots.size()]));
 			Bukkit.getPluginManager().callEvent(unstore);
 			if (unstore.isCancelled())
 				event.setCancelled(true);
