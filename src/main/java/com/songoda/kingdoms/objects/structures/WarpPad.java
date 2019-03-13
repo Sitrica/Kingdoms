@@ -6,12 +6,16 @@ import com.songoda.kingdoms.objects.land.Land;
 
 public class WarpPad extends Structure {
 
-	private final String name;
 	private final Land land;
+	private String name;
 
 	public WarpPad(Location location, String name, Land land) {
 		super(location, StructureType.WARPPAD);
 		this.land = land;
+		this.name = name;
+	}
+	
+	public void setName(String name) {
 		this.name = name;
 	}
 

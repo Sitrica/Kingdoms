@@ -317,16 +317,13 @@ inventories:
             lore:
                 - "&cCannot interact in this land."
     warp-pad:
+        # Special Placeholders: %location% and %warp%
         warp-item:
-            title: "&bWarp: &l%name%"
+            title: "&bWarp: &l%warp%"
             material: "ENDER_PORTAL_FRAME"
             material-meta: ""
             glowing: false
             lore:
-                - "&7Opens an inventory displaying all the members who can build in this regulator chunk."
-                
-                
-Guis_Regulator_CanInteract_Title: '&aCan interact in this land'
-Guis_Regulator_CannotInteract_Title: '&cCannot interact in this land'
-Guis_Regulator_WhoCanInteract_Title: '&bClick to manage who can interact here'
-Guis_Regulator_CanAnimalsSpawn_Title: '&bAnimal spawning in this land'
+                - "&7Warp Location: &r%location%"
+                - "&fLeft-click &7to warp to this location."
+                - "&fRight-click &7to rename this warp."

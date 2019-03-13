@@ -1,11 +1,16 @@
 package com.songoda.kingdoms.inventories.structures;
 
+import java.util.ArrayList;
 import java.util.Optional;
+
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
+import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
@@ -110,6 +115,16 @@ public class OutpostInventory extends StructureInventory {
 			kingdom.subtractResourcePoints(cost64);
 			player.getInventory().addItem(new ItemStack(Utils.materialAttempt("EXPERIENCE_BOTTLE", "EXP_BOTTLE"), 64));
 		});
+		ItemStack r = new ItemStack(Material.HAY_BLOCK);
+		ItemMeta rm = r.getItemMeta();
+		rm.setDisplayName(Kingdoms.getLang().getString("Guis_ResourcePoints_Title", kp.getLang()));
+		ArrayList rl = new ArrayList();
+		rl.add(Kingdoms.getLang().getString("Guis_ResourcePoints_Desc", kp.getLang()));
+		rl.add(Kingdoms.getLang().getString("Guis_ResourcePoints_Count", kp.getLang()).replaceAll("%amount%", ""+kingdom.getResourcepoints()));
+		rm.setLore(LoreOrganizer.organize(rl));
+		r.setItemMeta(rm);
+
+		gui.getInventory().setItem(8, r);
 		openInventory(kingdomPlayer);
 	}
 

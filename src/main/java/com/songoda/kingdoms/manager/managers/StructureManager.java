@@ -1,19 +1,51 @@
 package com.songoda.kingdoms.manager.managers;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.Set;
-import java.util.UUID;
-import java.util.logging.Level;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.AnvilInventory;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.scheduler.BukkitTask;
+
+import com.songoda.kingdoms.events.LandLoadEvent;
+import com.songoda.kingdoms.events.StructureBreakEvent;
+import com.songoda.kingdoms.events.StructurePlaceEvent;
+import com.songoda.kingdoms.inventories.structures.ArsenalInventory;
+import com.songoda.kingdoms.inventories.structures.ExtractorInventory;
+import com.songoda.kingdoms.inventories.structures.NexusInventory;
+import com.songoda.kingdoms.inventories.structures.OutpostInventory;
+import com.songoda.kingdoms.inventories.structures.RegulatorInventory;
+import com.songoda.kingdoms.inventories.structures.SiegeEngineInventory;
+import com.songoda.kingdoms.inventories.structures.WarppadInventory;
+import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.inventories.InventoryManager;
+import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
@@ -28,49 +60,6 @@ import com.songoda.kingdoms.placeholders.Placeholder;
 import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.MessageBuilder;
-import com.songoda.kingdoms.utils.Utils;
-import com.google.common.collect.Sets;
-import com.songoda.kingdoms.Kingdoms;
-import com.songoda.kingdoms.events.LandLoadEvent;
-import com.songoda.kingdoms.events.StructureBreakEvent;
-import com.songoda.kingdoms.events.StructurePlaceEvent;
-import com.songoda.kingdoms.inventories.structures.ArsenalInventory;
-import com.songoda.kingdoms.inventories.structures.ExtractorInventory;
-import com.songoda.kingdoms.inventories.structures.NexusInventory;
-import com.songoda.kingdoms.inventories.structures.OutpostInventory;
-import com.songoda.kingdoms.inventories.structures.RegulatorInventory;
-import com.songoda.kingdoms.manager.Manager;
-import com.songoda.kingdoms.manager.inventories.InventoryManager;
-import com.songoda.kingdoms.manager.managers.RankManager.Rank;
-import com.songoda.kingdoms.manager.managers.external.CitizensManager;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPistonExtendEvent;
-import org.bukkit.event.block.BlockPistonRetractEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.AnvilInventory;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 public class StructureManager extends Manager {
 	
@@ -454,10 +443,6 @@ public class StructureManager extends Manager {
 				selected.put(kingdomPlayer, land);
 				inventoryManager.getInventory(OutpostInventory.class).openInventory(kingdomPlayer);
 				break;
-			case POWERCELL:
-				break;
-			case RADAR:
-				break;
 			case REGULATOR:
 				if (!kingdom.getPermissions(kingdomPlayer.getRank()).canOverrideRegulator()) {
 					new MessageBuilder("kingdoms.rank-too-low-regulator-override")
@@ -483,11 +468,15 @@ public class StructureManager extends Manager {
 					block.setType(type.getBlockMaterial());
 					block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
 				}
-				GUIManagement.getSiegeEngineGUIManager().openMenu(kingdomPlayer, land);
+				inventoryManager.getInventory(SiegeEngineInventory.class).openSiegeMenu(land, kingdomPlayer);
 				break;
 			case WARPPAD:
 				selected.put(kingdomPlayer, land);
-				GUIManagement.getWarppadGUIManager().openMenu(kingdomPlayer);
+				inventoryManager.getInventory(WarppadInventory.class).openInventory(kingdomPlayer);
+				break;
+			case POWERCELL:
+			case RADAR:
+			default:
 				break;
 		}
 	}

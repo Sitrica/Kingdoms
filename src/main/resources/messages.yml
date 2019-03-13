@@ -85,6 +85,10 @@ structures:
     # Special placeholders are %cost% and %max% for max members allowed.
     nexus-max-member-cant-afford: "&cYour Kingdom does not currently have %cost% resource points to upgrade!"
     max-members-reached: "&cMaximum member count already reached!"
+    # Special placeholders: %warp% (old name) and %location%
+    rename-warp: "&bType in chat the new name for this warp. Type 'cancel' to cancel rename."
+    # Special placeholders: %old% (old name), %new% (new name), and %location%
+    rename-success: "&bThe name of this warp has been changed from %old% to %new%"
 
 # All messages relating to Kingdoms.
 kingdoms:
@@ -799,8 +803,6 @@ Guis_BoostShop_CombatBoost_Activation_Message: '&a&lCombat Boost has been activa
 Guis_BoostShop_Sentinel_Activation_Message: '&a&lSentinel has been activated for 60 minutes! May our sentinel tear our foes apart!'
 Guis_Extractor_Refresh_Title: '&bRefresh'
 Guis_Extractor_Refresh_Desc: '&aClick to refresh timings displayed here'
-Guis_WarpPad_Click_To_Tp: '&aClick to teleport to the location above'
-Guis_WarpPad_You_Are_Here: '&cYou are here'
 Guis_SiegeEngine_Land_Title: '&b[&e%x%&b, &e%z%&b] %tag%'
 Guis_SiegeEngine_Land_Click_To_Fire: '&cClick to fire at this land'
 Guis_SiegeEngine_Land_Invalid_Target: '&cThis land is not shielded and cannot be fired at.'

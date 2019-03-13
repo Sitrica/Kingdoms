@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -37,6 +38,7 @@ public class RegulatorInventory extends StructureInventory {
 		Structure structure = land.getStructure();
 		if (structure == null || !(structure instanceof Regulator))
 			return;
+		Player player = kingdomPlayer.getPlayer();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		ConfigurationSection section = inventories.getConfigurationSection("inventories.regulator");
 		Regulator regulator = (Regulator) structure;
@@ -48,19 +50,19 @@ public class RegulatorInventory extends StructureInventory {
 		inventory.setItem(0, build);
 		setAction(0, event -> {
 			List<ItemStack> items = new ArrayList<ItemStack>();
-			for (OfflineKingdomPlayer player : kingdom.getMembers()) {
-				if (player.equals(kingdomPlayer))
+			for (OfflineKingdomPlayer offlineKingdomPlayer : kingdom.getMembers()) {
+				if (offlineKingdomPlayer.equals(kingdomPlayer))
 					continue;
-				if (regulator.getWhoCanBuild().contains(player)) {
+				if (regulator.getWhoCanBuild().contains(offlineKingdomPlayer)) {
 					items.add(new ItemStackBuilder(viewer.getConfigurationSection("can-build"))
 							.fromConfiguration(inventories)
-							.setPlaceholderObject(player)
+							.setPlaceholderObject(offlineKingdomPlayer)
 							.setKingdom(kingdom)
 							.build());
 				} else {
 					items.add(new ItemStackBuilder(viewer.getConfigurationSection("cannot-build"))
 							.fromConfiguration(inventories)
-							.setPlaceholderObject(player)
+							.setPlaceholderObject(offlineKingdomPlayer)
 							.setKingdom(kingdom)
 							.build());
 				}
@@ -77,19 +79,19 @@ public class RegulatorInventory extends StructureInventory {
 		inventory.setItem(1, interact);
 		setAction(1, event -> {
 			List<ItemStack> items = new ArrayList<ItemStack>();
-			for (OfflineKingdomPlayer player : kingdom.getMembers()) {
-				if (player.equals(kingdomPlayer))
+			for (OfflineKingdomPlayer offlineKingdomPlayer : kingdom.getMembers()) {
+				if (offlineKingdomPlayer.equals(kingdomPlayer))
 					continue;
-				if (regulator.getWhoCanInteract().contains(player)) {
+				if (regulator.getWhoCanInteract().contains(offlineKingdomPlayer)) {
 					items.add(new ItemStackBuilder(viewer.getConfigurationSection("can-interact"))
 							.fromConfiguration(inventories)
-							.setPlaceholderObject(player)
+							.setPlaceholderObject(offlineKingdomPlayer)
 							.setKingdom(kingdom)
 							.build());
 				} else {
 					items.add(new ItemStackBuilder(viewer.getConfigurationSection("cannot-interact"))
 							.fromConfiguration(inventories)
-							.setPlaceholderObject(player)
+							.setPlaceholderObject(offlineKingdomPlayer)
 							.setKingdom(kingdom)
 							.build());
 				}
@@ -150,7 +152,7 @@ public class RegulatorInventory extends StructureInventory {
 				openRegulatorMenu(land, kingdomPlayer);
 			});
 		}
-		openInventory(kingdomPlayer);
+		openInventory(player);
 	}
 
 }
