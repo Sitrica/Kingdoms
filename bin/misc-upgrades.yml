@@ -12,47 +12,64 @@
 # The version is to help determine which version this config is. Please don't modify this value.
 version: "@version@"
 
-# All configurations relating to powerups.
-powerups:
-    damage-reduction:
+# All configurations relating to misc upgrades.
+misc-upgrades:
+    anti-creeper:
         enabled: true
-        title: "&bDamage Reduction"
-        material: "DIAMOND_CHESTPLATE"
+        # If the upgrade should be applied for free by default on newly created Kingdoms.
+        default: false
+        title: "&bAnti-Creeper"
+        # Use SULPHUR for 1.8...
+        material: "GUNPOWDER"
         material-meta: ""
-        # All other powerups support this too, not adding the node defaults to false.
-        glowing: false
-        cost: 70
-        max: 40
+        # Glowing can be used here if wanted.
+        # glowing: false
+        cost: 50
         description:
-            - "&7Each upgrade reduces damage taken by 1%."
-            - "&6Current Damage Reduction: %amount%"
-    regeneration:
+            - "&7If a creeper explodes in your land, it will do no block damage or damage your members."
+    anti-trample:
         enabled: true
-        title: "&bRegeneration Boost"
-        material: "POPPY"
+        default: false
+        title: "&bAnti-Trample"
+        # Use SEEDS for 1.8...
+        material: "WHEAT_SEEDS"
         material-meta: ""
-        cost: 70
-        max: 200
+        cost: 50
         description:
-            - "&7While in your own land, your health has regeneration by 1% per each upgrade."
-            - "&6Current Regeneration Boost: %amount%"
-    arrow-damage:
+            - "&7Your tilled soil cannot be trampled by players."
+    nexus-guard:
         enabled: true
-        title: "&bArrow Damage"
-        material: "BOW"
+        default: false
+        title: "&bNexus Guard"
+        material: "IRON_AXE"
         material-meta: ""
-        cost: 125
-        max: 60
+        cost: 150
         description:
-            - "&7Each upgrade increases your bow damage by 1%."
-            - "&6Current Arrow Damage: %amount%"
-    damage-boost:
+            - "&7When someone mines your nexus, a zombie with light armor and your defender's weapon will spawn."
+    bomb-shards:
         enabled: true
-        title: "&bDamage Boost"
-        material: "DIAMOND_SWORD"
+        default: false
+        title: "&bBomb Expertise"
+        material: "TNT"
         material-meta: ""
-        cost: 85
-        max: 60
+        cost: 1000
         description:
-            - "&7Each upgrade increases your bow damage by 1%."
-            - "&6Current Damage Boost: %amount%"
+            - "&7TNT can no longer damage your land, but will cause damage to nearby non-allies and non-members."
+    insanity:
+        enabled: true
+        default: false
+        title: "&bInsanity"
+        material: "REDSTONE"
+        material-meta: ""
+        cost: 500
+        description:
+            - "&7Defenders and Nexus guards spawned on powercell land will have Strength I for 10 seconds"
+    glory:
+        enabled: true
+        default: false
+        title: "&bGlory"
+        material: "NETHER_STAR"
+        material-meta: ""
+        cost: 250
+        description:
+            - "&7Killing non-players on your land yields x3 experience."

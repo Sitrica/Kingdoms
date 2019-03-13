@@ -2,6 +2,7 @@ package com.songoda.kingdoms.objects.kingdom;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -9,7 +10,6 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 import org.bukkit.Location;
-
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.CooldownManager.KingdomCooldown;
 import com.songoda.kingdoms.manager.managers.KingdomManager;
@@ -17,6 +17,7 @@ import com.songoda.kingdoms.manager.managers.RankManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
+import com.songoda.kingdoms.objects.structures.WarpPad;
 
 public class OfflineKingdom {
 
@@ -24,8 +25,9 @@ public class OfflineKingdom {
 	protected final Set<OfflineKingdomPlayer> members = new HashSet<>();
 	private final Set<OfflineKingdom> enemies = new HashSet<>();
 	private final Set<OfflineKingdom> allies = new HashSet<>();
+	private final Set<WarpPad> warps = new HashSet<>();
 	protected final Set<Land> claims = new HashSet<>();
-	private long might = 0, resourcePoints = 0, invasionCooldown = 0, max;
+	private long resourcePoints = 0, invasionCooldown = 0, max;
 	private final KingdomManager kingdomManager;
 	private boolean neutral, first, invaded;
 	private final RankManager rankManager;
@@ -33,6 +35,8 @@ public class OfflineKingdom {
 	protected final Kingdoms instance;
 	private OfflineKingdomPlayer king;
 	private KingdomChest kingdomChest;
+	private DefenderInfo defenderInfo;
+	private MiscUpgrade miscUpgrade;
 	private Location nexus, spawn;
 	private String name, lore;
 	private final UUID uuid;
@@ -46,7 +50,6 @@ public class OfflineKingdom {
 	private final List<UUID> enemies= new ArrayList<>();
 	private final List<UUID> allies = new ArrayList<>();
 	private int shieldValue = 0, shieldRadius = 0;
-	private boolean hasInvaded;
 	*/
 	
 	public OfflineKingdom(OfflineKingdomPlayer king) {
@@ -85,6 +88,26 @@ public class OfflineKingdom {
 		}
 	}
 	
+	public void addWarp(WarpPad warp) {
+		warps.add(warp);
+	}
+	
+	public void removeWarp(WarpPad warp) {
+		warps.remove(warp);
+	}
+	
+	public void removeWarpAt(Land land) {
+		Iterator<WarpPad> iterator = warps.iterator();
+		while (iterator.hasNext()) {
+			if (iterator.next().getLand().equals(land))
+				iterator.remove();
+		}
+	}
+	
+	public Set<WarpPad> getWarps() {
+		return warps;
+	}
+	
 	public long getMaxMembers() {
 		return max;
 	}
@@ -107,14 +130,6 @@ public class OfflineKingdom {
 	
 	public String getName() {
 		return name;
-	}
-	
-	public long getMight() {
-		return might;
-	}
-	
-	public void setMight(int might) {
-		this.might = might;
 	}
 	
 	public boolean isNeutral() {
@@ -172,6 +187,18 @@ public class OfflineKingdom {
 		if (powerup == null)
 			powerup = new Powerup(this);
 		return powerup;
+	}
+	
+	public MiscUpgrade getMiscUpgrades() {
+		if (miscUpgrade == null)
+			miscUpgrade = new MiscUpgrade(this);
+		return miscUpgrade;
+	}
+	
+	public DefenderInfo getDefenderInfo() {
+		if (defenderInfo == null)
+			defenderInfo = new DefenderInfo(this);
+		return defenderInfo;
 	}
 
 	public boolean hasInvaded() {
@@ -300,7 +327,7 @@ public class OfflineKingdom {
 	}
 	
 	/**
-	 * Grabs the rank permissions of a rank for the Kingdom.
+	 * Grabs the permissions of a rank for the Kingdom.
 	 * 
 	 * @param rank Rank to grab permissions for.
 	 * @return RankPermissions which is an object for reading all permissions for a rank.
@@ -312,6 +339,22 @@ public class OfflineKingdom {
 			permissions.put(rank, permission);
 		}
 		return permission;
+	}
+
+	/*public void onMemberQuitKingdom(OfflineKingdomPlayer kingdomPlayer) {
+		//if (kingdomPlayer.isOnline()) {
+		//	Player player = kingdomPlayer.getKingdomPlayer().getPlayer();
+		//	player.closeInventory();
+		//}
+		//kingdomPlayer.setRank(rankManager.getDefaultRank());
+		//kingdomPlayer.setKingdom(null);
+		members.remove(kingdomPlayer);
+		//sendAnnouncement(null, "[" + kp.getName() + "] has left your kingdom!", true);
+	}*/
+	
+	public void onKingdomDelete(OfflineKingdom kingdom) {
+		enemies.remove(kingdom);
+		allies.remove(kingdom);
 	}
 	
 	
@@ -347,10 +390,6 @@ public class OfflineKingdom {
 
 	public void setShieldRadius(int shieldRadius) {
 		this.shieldRadius = shieldRadius;
-	}
-	
-	public boolean hasInvaded() {
-		return hasInvaded;
 	}
 
 	public boolean isShieldUp(){

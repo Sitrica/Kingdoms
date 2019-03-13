@@ -10,6 +10,7 @@ import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 import com.songoda.kingdoms.manager.managers.external.HolographicDisplaysManager;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
+import com.songoda.kingdoms.objects.kingdom.MiscUpgradeType;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
@@ -180,7 +181,7 @@ public class InvadingManager extends Manager {
 	 */
 	public DefenderInfo getDefenderInfo(OfflineKingdom kingdom) {
 		return Optional.ofNullable(infos.get(kingdom)).orElseGet(() -> {
-			DefenderInfo defenderInfo = new DefenderInfo();
+			DefenderInfo defenderInfo = new DefenderInfo(kingdom);
 			infos.put(kingdom, defenderInfo);
 			return defenderInfo;
 		});
@@ -245,13 +246,13 @@ public class InvadingManager extends Manager {
 				Land nexusLand = landManager.getLand(structure.getLocation().getChunk());
 				if (land.equals(nexusLand)) {
 					DeprecationUtils.setMaxHealth(defender, defender.getHealth() + 200);
-					if (kingdom.getMisupgradeInfo().hasNexusguard()) {
+					if (kingdom.getMiscUpgrades().hasNexusGuard()) {
 						GameManagement.getGuardsManager().spawnNexusGuard(location, kingdom, challenger);
 						//callReinforcement(location, challenger, 50);
 					}
 				}
 			} else if (structure.getType() == StructureType.POWERCELL) {
-				if (kingdom.getMisupgradeInfo().isPsioniccore() && Config.getConfig().getBoolean("enable.psioniccore"))
+				if (kingdom.getMiscUpgrades().hasInsanity() && MiscUpgradeType.INSANITY.isEnabled())
 					defender.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 1000, 1));
 			}
 		}

@@ -1,32 +1,19 @@
 package com.songoda.kingdoms.objects.kingdom;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.PlayerManager;
-import com.songoda.kingdoms.manager.managers.RankManager;
-import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
-import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.objects.turrets.TurretUpgradeInfo;
 import com.songoda.kingdoms.manager.managers.WorldManager;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
+public class Kingdom extends OfflineKingdom {
 	
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
@@ -36,7 +23,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 	int maxMember = 10;
 	ArmyInfo armyInfo = new ArmyInfo();
 	AggressorInfo aggressorInfo = new AggressorInfo();
-	MisupgradeInfo misupgradeInfo = new MisupgradeInfo();
 	TurretUpgradeInfo turretUpgrades = new TurretUpgradeInfo();
 	
 	// Only used for BotKingdoms.
@@ -360,40 +346,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 			onlineEnemies.remove(k);
 		}
 	}
-
-	@Override
-	public void onKingdomPlayerLogin(KingdomPlayer kp) {
-		if(kp == null) return;
-		Kingdoms.logDebug("event login? "+onlineMembers.contains(kp));
-		if(Kingdoms.getManagers().getKingdomManager().isBotKingdom(this)) return;
-		if(king == null) return;
-		if(!onlineMembers.contains(kp) && king.equals(kp.getUuid())){
-			onlineMembers.add(kp);
-			
-			kp.setRank(Rank.KING);
-			if(!kp.isVanishMode()&&
-					!Config.getConfig().getBoolean("disable-join-messages")) {
-				sendAnnouncement(null, Kingdoms.getLang().getString("Misc_Announcer_King_Online").replaceAll("%player%", kp.getPlayer().getName()), true);
-			}
-		}else if(!onlineMembers.contains(kp) && members.contains(kp.getUuid())){
-			if(kp.getRank() == Rank.KING) kp.setRank(Rank.ALL);
-			onlineMembers.add(kp);
-			
-			if(!kp.isVanishMode()&&
-					!Config.getConfig().getBoolean("disable-join-messages"))sendAnnouncement(null, Kingdoms.getLang().getString("Misc_Announcer_Online").replaceAll("%player%",kp.getPlayer().getName()), true);
-		}
-	}
-
-	@Override
-	public void onKingdomPlayerLogout(KingdomPlayer kp) {
-		Kingdoms.logDebug("event logout? "+onlineMembers.contains(kp));
-		if(onlineMembers.contains(kp) && members.contains(kp.getUuid())){
-			onlineMembers.remove(kp);
-			
-			if(!kp.isVanishMode()&&
-					!Config.getConfig().getBoolean("disable-join-messages"))sendAnnouncement(null, Kingdoms.getLang().getString("Misc_Announcer_Offline").replaceAll("%player%",kp.getPlayer().getName()), true);
-		}
-	}
 	
 	@Override
 	public void onMemberJoinKingdom(OfflineKingdomPlayer kp) {
@@ -405,47 +357,6 @@ public class Kingdom extends OfflineKingdom implements KingdomEventHandler {
 		if(kp.isOnline()) this.onlineMembers.add((KingdomPlayer) kp);
 		
 		sendAnnouncement(null, Kingdoms.getLang().getString("Command_Accept_Announcement").replaceAll("%player%", kp.getName()), true);
-	}
-
-	@Override
-	public void onMemberQuitKingdom(OfflineKingdomPlayer kp) {
-		if(!this.members.contains(kp.getUuid())) return;
-		
-		if(kp instanceof KingdomPlayer){
-			if(((KingdomPlayer) kp).getPlayer() != null){
-				if(((KingdomPlayer) kp).getPlayer().isOnline()){
-					((KingdomPlayer) kp).getPlayer().closeInventory();
-				}
-			}
-			((KingdomPlayer)kp).setRank(Rank.ALL);
-			((KingdomPlayer)kp).setKingdom(null);
-			kp.setDonatedAmt(0);
-			kp.setLastDonatedAmt(0);
-			kp.setLastTimeDonated(null);
-			
-			this.members.remove(kp.getUuid());
-			if(this.onlineMembers.contains((KingdomPlayer) kp))this.onlineMembers.remove((KingdomPlayer) kp);
-		}else{
-			kp.setRank(Rank.ALL);
-			kp.setKingdomName(null);
-			kp.setDonatedAmt(0);
-			kp.setLastDonatedAmt(0);
-			kp.setLastTimeDonated(null);
-			this.members.remove(kp.getUuid());
-		}
-
-		sendAnnouncement(null, "["+kp.getName()+"] has left your kingdom!", true);
-	}
-	
-	@Override
-	public void onKingdomDelete(Kingdom k) {
-		String kname = k.getKingdomName();
-		
-		if(alliesList.contains(k.getKingdomUuid())) alliesList.remove(k.getKingdomUuid());
-		if(enemiesList.contains(k.getKingdomUuid())) enemiesList.remove(k.getKingdomUuid());
-		
-		if(onlineAllies.contains(k)) onlineAllies.remove(k);
-		if(onlineEnemies.contains(k)) onlineEnemies.remove(k);
 	}
 	*/
 

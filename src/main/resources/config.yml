@@ -475,15 +475,6 @@ commands:
         
         
 cost:
-    misc-upgrades:
-        anticreeper: 20
-        antitrample: 50
-        bombshards: 1000
-        glory: 200
-        nexusguard: 100
-        psioniccore: 500
-    outpost:
-        xpbottle: 5
     turretupgrades:
         simplified-model: 1000
         flurry: 1000
@@ -583,9 +574,6 @@ economy:
 invade-cost: 10
 hidewarppadlocations: false
 enable-auto-backup: true
-regulator:
-    allow-toggling-animal-spawn: true
-    allow-toggling-monster-spawn: true
 minimum-members-online-to-be-invaded: 0
 infinite-claim-worlds:
 - worldThatAllowsYouToClaimInfinitely
@@ -596,14 +584,6 @@ allowedToUseInOtherKingdomLand:
 - SHIELD
 - AIR
 - GOLDEN_APPLE
-defaulton:
-    misc-upgrades:
-        anticreeper: false
-        antitrample: false
-        bombshards: false
-        glory: false
-        nexusguard: false
-        psioniccore: false
 destroy-extra-turrets-to-enforce-max: false
 enable:
     turretupgrades:

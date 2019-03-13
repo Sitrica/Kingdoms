@@ -1,7 +1,5 @@
 package com.songoda.kingdoms.objects.kingdom;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.bukkit.plugin.Plugin;
 
 public class BotKingdom extends Kingdom {
@@ -18,16 +16,15 @@ public class BotKingdom extends Kingdom {
 		return register;
 	}
 	
-	public Map<String, String> getInfo(){
+	/*public Map<String, String> getInfo(){
 		Map<String, String> info = new HashMap<String, String>();
 		info.put("kingdom", getName());
 		info.put("kingdomLore", getLore());
 		info.put("might", getMight() + "");
 		info.put("rp", getResourcePoints() + "");
 		info.put("land", String.valueOf(getLand()));
-		
 		return info;
-	}
+	}*/
 	
 	public boolean isShieldUp() {
 		return false;

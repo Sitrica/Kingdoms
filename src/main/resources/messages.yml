@@ -39,6 +39,9 @@ messages:
         # Used for all placeholders except kingdom-at, when the player has no Kingdom.
         no-kingdom: "No Kingdom"
         no-kingdom-at: "No Kingdom at this location"
+    # When the player's inventory is full.
+    # Placeholders: All KingdomPlayer placeholders.
+    inventory-full: "&cYour inventory is full, you need at least one empty slot in your inventory."
 
 # All messages relating to masswar.
 masswar:
@@ -111,6 +114,8 @@ kingdoms:
     rank-too-low-unclaim-override: "&cYour rank is too low to unclaim land! Only rank %rank% may unclaim land!"
     # Placeholders: %rank% and all Kingdom related placeholders.
     rank-too-low-chest-access: "&cYour rank is too low to open the Nexus chest! Only rank %rank% and higher may use the chest!"
+    # Placeholders: %rank% and all Kingdom related placeholders.
+    rank-too-low-grab-experience: "&cYour rank is too low to buy experience bottles! Only rank %rank% and higher may buy experience bottles!"
     # Placeholders: All Kingdom and KingdomPlayer placeholders.
     cannot-build-unoccupied-land: "&cYou need to claim this land to build on it!"
     not-in-land: "&cYou can only do that in your land."
@@ -145,6 +150,8 @@ kingdoms:
     donated-self: "&aYou donated items to Kingdom %kingdom% worth a total of %amount% resource points!"
     donated-kingdom: "&aKingdom member %player% has just donated %amount% resource points to the Kingdom!"
     donated-alliance: "&aAlliance member %player% has just donated %amount% resource points to the Kingdom!"
+    member-join: "&8[&7%player%&8] is now &aonline!"
+    member-leave: '&8[&7%player%&8] is now &coffline!"
 
 # All messages relating to maps and chunks.
 map:
@@ -615,8 +622,6 @@ Misc_KP_Not_Loaded: '&cYour data is not loaded yet! Please wait a little longer.
 Misc_Announcer_Nameless_Format: '&b[%kingdom%] &7%message%'
 Misc_Announcer_Named_Format: '&b[%kingdom% &8([%rank%]%player%)] &7%message%'
 Misc_Announcer_King_Online: King [%player%] is now &aOnline!
-Misc_Announcer_Online: '[%player%] is now &aOnline!'
-Misc_Announcer_Offline: '[%player%] is now &cOffline!'
 Misc_Announcer_Left_Kingdom: '[%player%] has left the kingdom!'
 Misc_Resourceplot_Reward_Message: Your kingdom received %amount% from resourceplot %plot%
 Misc_Resourceplot_Reset_Broadcast: ALL RESOURCE PLOTS HAVE BEEN RESET!
@@ -656,7 +661,6 @@ Misc_Kingdom_Tag_Too_Long: '&cYour kingdom tag cannot be longer than %maxchar% c
 Misc_Kingdom_Rename_Broadcast: '&c%player% has renamed %oldtag% to %newtag%'
 Misc_Kingdom_Invite_Message: '&a%player% has invite you to %kingdom%. Do /k join %kingdom% to accept the invitation'
 Misc_Kingdom_Too_Many_Members: '&cYou can only have %amount% members. Upgrade the max members upgrade in the nexus'
-Misc_Inventory_Full: '&cPlease have at least one empty slot in your inventory'
 Misc_Invasion_Victory: We have conquered [%chunk%] from %kingdom%
 Misc_Invasion_Nexus_Victory: We have pillaged %rp% from %kingdom%
 Misc_Shield_Up_Invade_Warning: '&cYour Kingdom shield is still up for %time% minutes! Use /k invade again in the next 5 seconds to discard shield and begin invasion.'
@@ -795,27 +799,8 @@ Guis_BoostShop_CombatBoost_Activation_Message: '&a&lCombat Boost has been activa
 Guis_BoostShop_Sentinel_Activation_Message: '&a&lSentinel has been activated for 60 minutes! May our sentinel tear our foes apart!'
 Guis_Extractor_Refresh_Title: '&bRefresh'
 Guis_Extractor_Refresh_Desc: '&aClick to refresh timings displayed here'
-Guis_Regulator_WhoCanBuild_Title: '&bClick to manage who can build here'
-Guis_Regulator_CanBuild_Title: '&aCan build in this land'
-Guis_Regulator_CannotBuild_Title: '&cCannot build in this land'
-Guis_Regulator_CanInteract_Title: '&aCan interact in this land'
-Guis_Regulator_CannotInteract_Title: '&cCannot interact in this land'
-Guis_Regulator_WhoCanInteract_Title: '&bClick to manage who can interact here'
-Guis_Regulator_CanMonstersSpawn_Title: '&bMonster spawning in this land'
-Guis_Regulator_CanAnimalsSpawn_Title: '&bAnimal spawning in this land'
 Guis_WarpPad_Click_To_Tp: '&aClick to teleport to the location above'
 Guis_WarpPad_You_Are_Here: '&cYou are here'
-Guis_Outpost_Buy1XpPotion_Title: '&bBuy 1 xp bottle'
-Guis_Outpost_Buy1XpPotion_Desc: '&aBuy 1 xp bottle for %cost% resourcepoints.'
-Guis_Outpost_Buy64XpPotion_Title: '&bBuy 64 xp bottles'
-Guis_Outpost_Buy64XpPotion_Desc: '&aBuy 64 xp bottle for %cost% resourcepoints.'
-Guis_Outpost_Rename_Land_Title: '&bRename current land name'
-Guis_Outpost_Rename_Land_Desc: '&aCurrent name: %name%'
-Guis_Outpost_Rename_Land_Message: '&bType the land''s desired name in chat'
-Guis_Outpost_Rename_Land_Successful: '&aRenamed!'
-Guis_Outpost_Nexus_Unavailable: '&cYour nexus isn''t placed, and this menu cannot be accessed!'
-Guis_Outpost_OpenNexus_Title: '&bOpen Nexus Menu'
-Guis_Outpost_OpenNexus_No_Nexus: '&cYou need your nexus to be placed to use this function!'
 Guis_SiegeEngine_Land_Title: '&b[&e%x%&b, &e%z%&b] %tag%'
 Guis_SiegeEngine_Land_Click_To_Fire: '&cClick to fire at this land'
 Guis_SiegeEngine_Land_Invalid_Target: '&cThis land is not shielded and cannot be fired at.'
@@ -827,18 +812,6 @@ Guis_SiegeEngine_ConcentratedBlast_Desc: '&aFires at a specific location, causin
 Guis_SiegeEngine_ShieldShatter: '&bShield Shatter'
 Guis_SiegeEngine_ShieldShatter_Desc: '&aFires at kingdom land. The attack will deal %damage% to the kingdom''s shield'
 Guis_SiegeEngine_Deploy_Instructions: '&cRight click on enemy territory to begin attack'
-Guis_Misc_AntiCreeper_Title: '&bAnti-Creeper'
-Guis_Misc_AntiCreeper_Desc: If a creeper explodes in your land, it will do no block damage or damage your players
-Guis_Misc_AntiTrample_Title: '&bAnti-Trample'
-Guis_Misc_AntiTrample_Desc: Your soil cannot be trampled by players
-Guis_Misc_NexusGuard_Title: '&bNexus Guard'
-Guis_Misc_NexusGuard_Desc: When someone mines your nexus, a zombie with light armor and your champion's weapon will spawn.
-Guis_Misc_Glory_Title: '&bGlory'
-Guis_Misc_Glory_Desc: Killing non-players on your land yields x3 xp
-Guis_Misc_BombShards_Title: '&bBomb Expertise'
-Guis_Misc_BombShards_Desc: TNT can no longer damage your land, and tnt explosions in your land would cause 5 damage to nearby non-allies and non-members.
-Guis_Misc_PsionicCore_Title: '&bPsionic Core'
-Guis_Misc_PsionicCore_Desc: Champions and nexus guards spawned on powercell land will have a power surge, starting with Strength I for 10 seconds
 Guis_Misc_ToggledOn: '&aUpgrade is toggled on. Click to toggle off'
 Guis_Misc_ToggledOff: '&cUpgrade is toggled off. Click to toggle on'
 Guis_privateSignGUI_PrivateSign: '&dPrivateSign'

@@ -12,6 +12,25 @@
 # The version is to help determine which version this config is. Please don't modify this value.
 version: "@version@"
 
+# For menus that have multiple pages
+scroller:
+    # The item that represents the next item, used to go to the next page.
+    # Placeholders: %previous%, %current%, %next%, %total%, and all KingdomPlayer placeholders.
+    next-item:
+        title: "&a&lNext page"
+        # Use SKULL for 1.8...
+        material: "SKELETON_SKULL"
+        material-meta: "MHF_ArrowRight"
+        lore:
+            - "&7Click to go to the next page. &8(&a%next%&7/&2%total%&8)"
+    previous-item:
+        title: "&c&lPrevious page"
+        # Use SKULL for 1.8...
+        material: "SKELETON_SKULL"
+        material-meta: "MHF_ArrowLeft"
+        lore:
+            - "&7Click to go to the previous page. &8(&c%previous%&7/&4%total%&8)"
+
 # All configurations relating to structures.
 inventories:
     nexus-chest:
@@ -211,3 +230,103 @@ inventories:
                 - "&7You can't invade other kingdoms, and other kingdoms can't invade you while you're pacifist."
                 - "&7Once you invade, your kingdom cannot become pacifist again."
                 - "&6Currently: &c&lDISABLED"
+    outpost:
+        # The item that represents the xp item.
+        buy-xp1:
+            title: "&bBuy experience bottle"
+            # Use EXP_BOTTLE for 1.8...
+            material: "EXPERIENCE_BOTTLE"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Buy an experience bottle for %cost% resource points."
+        buy-xp64:
+            title: "&bBuy 64 experience bottles"
+            material: "EXPERIENCE_BOTTLE"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Buy 64 experience bottles for %cost% resource points."
+    regulator:
+        # The item that represents the build permission item.
+        build:
+            title: "&bClick to manage who can build here"
+            # Use WOOL for 1.8... and set the color id in the meta.
+            material: "WHITE_WOOL"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Opens an inventory displaying all the members who can build in this regulator chunk."
+         # The item that represents the build permission item.
+        interact:
+            title: "&bClick to manage who can interact here"
+            # Use WOOL for 1.8... and set the color id in the meta.
+            material: "ORANGE_WOOL"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Opens an inventory displaying all the members who can interact in this regulator chunk."
+        monsters-can-spawn:
+            title: "&bMonster spawning in this land"
+            material: "ROTTEN_FLESH"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Monsters currently &a&lCAN &7spawn in this regulator chunk."
+        monsters-cannot-spawn:
+            title: "&bMonster spawning in this land"
+            material: "ROTTEN_FLESH"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Monsters currently &c&lCANNOT &7spawn in this regulator chunk."
+    # The menu that shows all the players who have permissions in this land with the regulator.
+    regulator-viewer:
+        build-title: "&4Click to manage who can build here"
+        can-build:
+            title: "&b%player%"
+            # Use WOOL for 1.8... and set the color id in the meta.
+            material: "GREEN_WOOL"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&aCan build in this land."
+        cannot-build:
+            title: "&b%player%"
+            # Use WOOL for 1.8... and set the color id in the meta.
+            material: "RED_WOOL"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&cCannot build in this land."
+        interact-title: "&4Click to manage who can interact here"
+        can-interact:
+            title: "&b%player%"
+            # Use WOOL for 1.8... and set the color id in the meta.
+            material: "GREEN_WOOL"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&aCan interact in this land."
+        cannot-interact:
+            title: "&b%player%"
+            # Use WOOL for 1.8... and set the color id in the meta.
+            material: "RED_WOOL"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&cCannot interact in this land."
+    warp-pad:
+        warp-item:
+            title: "&bWarp: &l%name%"
+            material: "ENDER_PORTAL_FRAME"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Opens an inventory displaying all the members who can build in this regulator chunk."
+                
+                
+Guis_Regulator_CanInteract_Title: '&aCan interact in this land'
+Guis_Regulator_CannotInteract_Title: '&cCannot interact in this land'
+Guis_Regulator_WhoCanInteract_Title: '&bClick to manage who can interact here'
+Guis_Regulator_CanAnimalsSpawn_Title: '&bAnimal spawning in this land'

@@ -23,6 +23,7 @@ import com.songoda.kingdoms.objects.structures.Regulator;
 import com.songoda.kingdoms.objects.structures.SiegeEngine;
 import com.songoda.kingdoms.objects.structures.Structure;
 import com.songoda.kingdoms.objects.structures.StructureType;
+import com.songoda.kingdoms.objects.structures.WarpPad;
 import com.songoda.kingdoms.placeholders.Placeholder;
 import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.Formatting;
@@ -33,10 +34,13 @@ import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.LandLoadEvent;
 import com.songoda.kingdoms.events.StructureBreakEvent;
 import com.songoda.kingdoms.events.StructurePlaceEvent;
-import com.songoda.kingdoms.inventories.ArsenalInventory;
-import com.songoda.kingdoms.inventories.ExtractorInventory;
-import com.songoda.kingdoms.inventories.NexusInventory;
+import com.songoda.kingdoms.inventories.structures.ArsenalInventory;
+import com.songoda.kingdoms.inventories.structures.ExtractorInventory;
+import com.songoda.kingdoms.inventories.structures.NexusInventory;
+import com.songoda.kingdoms.inventories.structures.OutpostInventory;
+import com.songoda.kingdoms.inventories.structures.RegulatorInventory;
 import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.inventories.InventoryManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 
@@ -72,7 +76,6 @@ public class StructureManager extends Manager {
 	
 	private final Queue<Land> loadQueue = new LinkedList<Land>();
 	private final InventoryManager inventoryManager;
-	private final WarpPadManager warpPadManager;
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
 	private final NexusManager nexusManager;
@@ -85,7 +88,6 @@ public class StructureManager extends Manager {
 		this.nexusManager = instance.getManager("neuxs", NexusManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.warpPadManager = instance.getManager("warppad", WarpPadManager.class);
 		this.inventoryManager = instance.getManager("ivnentory", InventoryManager.class);
 		task = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
 			@Override
@@ -310,7 +312,7 @@ public class StructureManager extends Manager {
 		block.setType(type.getBlockMaterial());
 		block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
 		if (type == StructureType.WARPPAD || type == StructureType.OUTPOST)
-			warpPadManager.addLand(kingdom, land);
+			kingdom.addWarp(new WarpPad(structure.getLocation(), StructureType.OUTPOST.build().getItemMeta().getDisplayName(), land));
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH)
@@ -366,7 +368,7 @@ public class StructureManager extends Manager {
 				if (!type.equals(StructureType.NEXUS))
 					block.getWorld().dropItemNaturally(block.getLocation(), type.build());
 				land.setStructure(null);
-				warpPadManager.removeLand(kingdom, land);
+				kingdom.removeWarpAt(land);
 			}
 		}
 	}
@@ -450,7 +452,7 @@ public class StructureManager extends Manager {
 				break;
 			case OUTPOST:
 				selected.put(kingdomPlayer, land);
-				GUIManagement.getOutpostGUIManager().openMenu(kingdomPlayer);
+				inventoryManager.getInventory(OutpostInventory.class).openInventory(kingdomPlayer);
 				break;
 			case POWERCELL:
 				break;
@@ -471,7 +473,7 @@ public class StructureManager extends Manager {
 							.send(kingdomPlayer);
 					return;
 				}
-				GUIManagement.getRegulatorGUIManager().openRegulatorMenu(kingdomPlayer, land);
+				inventoryManager.getInventory(RegulatorInventory.class).openRegulatorMenu(land, kingdomPlayer);
 				break;
 			case SHIELD_BATTERY:
 				break;

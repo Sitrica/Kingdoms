@@ -184,7 +184,7 @@ public class ItemStackBuilder {
 		Material material = Utils.materialAttempt(section.getString("material", "STONE"), "STONE");
 		ItemStack itemstack = new ItemStack(material);
 		ItemMeta meta = itemstack.getItemMeta();
-		meta.setDisplayName(title);
+		meta.setDisplayName(Formatting.color(title));
 		List<String> lores = section.getStringList("lore");
 		if (lores == null || lores.isEmpty())
 			lores = section.getStringList("description");

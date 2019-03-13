@@ -1,50 +1,31 @@
 package com.songoda.kingdoms.manager.managers;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
-
-import javax.naming.NamingException;
-
-import com.songoda.kingdoms.Kingdoms;
-import com.songoda.kingdoms.database.Database;
-import com.songoda.kingdoms.database.DatabaseTransferTask;
-import com.songoda.kingdoms.database.SQLiteDatabase;
-import com.songoda.kingdoms.database.YamlDatabase;
-import com.songoda.kingdoms.database.DatabaseTransferTask.TransferPair;
-import com.songoda.kingdoms.objects.kingdom.Kingdom;
-import com.songoda.kingdoms.objects.land.Land;
-import com.songoda.kingdoms.objects.player.KingdomPlayer;
-import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
-import com.songoda.kingdoms.utils.IntervalUtils;
-import com.songoda.kingdoms.manager.Manager;
-import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
-import com.google.gson.JsonSyntaxException;
+import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.database.Database;
+import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.managers.external.CitizensManager;
+import com.songoda.kingdoms.objects.kingdom.Kingdom;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
+import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
+import com.songoda.kingdoms.utils.IntervalUtils;
+import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class PlayerManager extends Manager {
 	
@@ -55,14 +36,12 @@ public class PlayerManager extends Manager {
 	private final Set<OfflineKingdomPlayer> users = new HashSet<>();
 	private Database<OfflineKingdomPlayer> database;
 	private final CitizensManager citizensManager;
-	private final KingdomManager kingdomManager;
 	private final WorldManager worldManager;
 	private BukkitTask autoSaveThread;
 
 	protected PlayerManager() {
 		super(true);
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(OfflineKingdomPlayer.class);
@@ -179,7 +158,15 @@ public class PlayerManager extends Manager {
 				.filter(player -> player.getUniqueId().equals(uuid))
 				.map(player -> (KingdomPlayer) player)
 				.forEach(player -> {
-					kingdomManager.onQuit(player);
+					if (!player.isVanished()) {
+						Kingdom kingdom = player.getKingdom();
+						new MessageBuilder("messages.member-leave")
+								.toKingdomPlayers(kingdom.getOnlinePlayers())
+								.toKingdomPlayers(kingdom.getOnlineAllies())
+								.setPlaceholderObject(player)
+								.setKingdom(kingdom)
+								.send();
+					}
 					database.save(uuid + "", player);
 				});
 	}
@@ -193,7 +180,15 @@ public class PlayerManager extends Manager {
 			loadKingdomPlayer(player.getUniqueId());
 		else if (configuration.getBoolean("kingdom.join-at-kingdom", false))
 			player.teleport(kingdomPlayer.getKingdom().getSpawn());
-		kingdomManager.onJoin(kingdomPlayer);
+		if (!kingdomPlayer.isVanished()) {
+			Kingdom kingdom = kingdomPlayer.getKingdom();
+			new MessageBuilder("messages.member-join")
+					.toKingdomPlayers(kingdom.getOnlinePlayers())
+					.toKingdomPlayers(kingdom.getOnlineAllies())
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(kingdom)
+					.send();
+		}
 	}
 	
 	@EventHandler(priority = EventPriority.LOW)
@@ -206,8 +201,6 @@ public class PlayerManager extends Manager {
 		if (player == null)
 			return;
 		users.add(player);
-		if (!configuration.getBoolean("kingdoms.markers-on-by-default", true))
-			player.setMarkerDisplaying(false);
 	}
 	
 	@Override

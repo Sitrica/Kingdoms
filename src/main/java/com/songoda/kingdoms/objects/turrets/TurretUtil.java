@@ -38,6 +38,7 @@ public class TurretUtil {
 		}
 	}
 
+	// Now called insanity
 	public static void psionicEffect(Entity target, double damage, boolean isVoodoo) {
 		if (!(target instanceof Damageable))
 			return;
@@ -62,8 +63,6 @@ public class TurretUtil {
 			((LivingEntity) target).addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 10, 6));
 		}
 	}
-
-
 
 	public static void heatbeamAttack(LivingEntity target, Location origin, double damage, boolean upgraded){
 		heatbeamParticleEffect(target, origin);

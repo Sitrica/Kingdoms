@@ -218,6 +218,30 @@ kingdoms:
     chest-size-upgrade-cost: 30
     # The amount to add per each level of the chest.
     chest-size-upgrade-multiplier: 10
+    # Configurations relating to resource donation.
+    resource-donation:
+        # The amount of resource points to give per each item.
+        # The calculation is: amount of items x this number.
+        points-per-item: 0.2
+        use-list: false
+        # Amount of resource points to give per each defined item.
+        # The calculation is: amount of items x number.
+        list:
+            EMERALD_BLOCK: 36
+            EMERALD: 4
+            DIAMOND_BLOCK: 27
+            DIAMOND: 3
+            GOLD_BLOCK: 18
+            GOLD: 2
+            IRON_BLOCK: 13.5
+            IRON: 1.5
+            REDSTONE_BLOCK: 9
+            REDSTONE: 1
+            COAL_BLOCK: 4.5
+            COAL: 0.5
+        # Items that are blacklisted from being placed in the donation.
+        blacklist:
+            - "AIR"
     # Messages that happen when walking into an unoccupied land chunk.
     # Placeholders: %world%, %player% and %chunk%
     land-enter-unoccupied:
@@ -451,15 +475,6 @@ commands:
         
         
 cost:
-    misc-upgrades:
-        anticreeper: 20
-        antitrample: 50
-        bombshards: 1000
-        glory: 200
-        nexusguard: 100
-        psioniccore: 500
-    outpost:
-        xpbottle: 5
     turretupgrades:
         simplified-model: 1000
         flurry: 1000
@@ -556,7 +571,6 @@ champion-specs:
     invader-lose-on-champion-void-damage: true
 economy:
     money-needed-for-one-rp: 10
-items-needed-for-one-resource-point: 5
 invade-cost: 10
 hidewarppadlocations: false
 enable-auto-backup: true
@@ -573,14 +587,6 @@ allowedToUseInOtherKingdomLand:
 - SHIELD
 - AIR
 - GOLDEN_APPLE
-defaulton:
-    misc-upgrades:
-        anticreeper: false
-        antitrample: false
-        bombshards: false
-        glory: false
-        nexusguard: false
-        psioniccore: false
 destroy-extra-turrets-to-enforce-max: false
 enable:
     turretupgrades:
@@ -650,16 +656,10 @@ enable:
         soldierspawner: true
         hellfire: true
         heatbeam: true
-use-whitelist: false
 disallow-named-or-lored-items-from-rp-trade: false
 resource-point-item-names-that-cannot-be-traded: []
 resource-point-trade-blacklist: []
 whitelist-items: []
-special-item-cases:
-- IRON_INGOT,30
-- GOLD_INGOT,20
-- EMERALD,50
-- DIAMOND,50
 can-interact-in-safezone:
 - ENDER_CHEST
 - WORKBENCH

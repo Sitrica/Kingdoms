@@ -1,6 +1,6 @@
-package com.songoda.kingdoms.inventories;
+package com.songoda.kingdoms.inventories.structures;
 
-import com.songoda.kingdoms.manager.StructureInventory;
+import com.songoda.kingdoms.manager.inventories.StructureInventory;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.structures.Extractor;
@@ -24,6 +24,11 @@ public class ExtractorInventory extends StructureInventory {
 		this.amount = structures.getInt("structures.extractor.reward-amount", 50);
 		String interval = structures.getString("structures.extractor.reward-delayt", "24 hours");
 		this.time = IntervalUtils.getInterval(interval);
+	}
+	
+	@Override
+	public void openInventory(KingdomPlayer kingdomPlayer) {
+		throw new UnsupportedOperationException("This method should not be called, use openExtractorMenu(Extractor, KingdomPlayer)");
 	}
 
 	public void openExtractorMenu(Extractor extractor, KingdomPlayer kingdomPlayer) {
@@ -89,11 +94,6 @@ public class ExtractorInventory extends StructureInventory {
 				}
 			}
 		}.runTaskTimer(instance, 0, 1);
-	}
-
-	@Override
-	public void openInventory(KingdomPlayer kingdomPlayer) {
-		throw new UnsupportedOperationException("This method should not be called use openExtractorMenu(Extractor, KingdomPlayer)");
 	}
 
 }

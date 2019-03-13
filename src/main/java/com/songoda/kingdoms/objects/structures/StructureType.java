@@ -75,7 +75,7 @@ public enum StructureType {
 	}
 
 	public String getTitle() {
-		return title;
+		return Formatting.color(title);
 	}
 	
 	public long getCost() {

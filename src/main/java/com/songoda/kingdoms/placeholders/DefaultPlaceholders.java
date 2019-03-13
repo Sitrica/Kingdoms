@@ -27,6 +27,18 @@ public class DefaultPlaceholders extends Manager {
 				return "&7[&6Kingdoms&7] &r";
 			}
 		});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%kingdom%", "%playerkingdom%", "%player-kingdom%") {
+				@Override
+				public String replace(OfflineKingdomPlayer player) {
+					return player.getKingdom().getName();
+				}
+			});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%rank%", "%playerrank%", "player-rank") {
+			@Override
+			public String replace(OfflineKingdomPlayer player) {
+				return player.getRank().getName();
+			}
+		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%maxmembers%", "%max-members%") {
 			@Override
 			public String replace(OfflineKingdom kingdom) {
@@ -39,34 +51,16 @@ public class DefaultPlaceholders extends Manager {
 				return kingdom.getResourcePoints() + "";
 			}
 		});
-		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%playerkingdom%") {
-			@Override
-			public String replace(OfflineKingdomPlayer player) {
-				return player.getKingdom().getName();
-			}
-		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%player%") {
 			@Override
 			public String replace(OfflineKingdomPlayer player) {
 				return player.getName();
 			}
 		});
-		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%rank%") {
-			@Override
-			public String replace(OfflineKingdomPlayer player) {
-				return player.getRank().getName();
-			}
-		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%claims%") {
 			@Override
 			public String replace(OfflineKingdom kingdom) {
 				return kingdom.getClaims() + "";
-			}
-		});
-		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%might%") {
-			@Override
-			public String replace(OfflineKingdom Kingdom) {
-				return Kingdom.getMight() + "";
 			}
 		});
 		Placeholders.registerPlaceholder(new Placeholder<CommandSender>("%sender%") {

@@ -1,104 +1,108 @@
 package com.songoda.kingdoms.objects.kingdom;
 
-import org.bukkit.Material;
+import java.util.HashMap;
+import java.util.Map;
 
-public enum MiscUpgrade {
-
-	//TODO finish recoding this, last left off here.
+public class MiscUpgrade {
 	
-	ANTICREEPER(Kingdoms.getLang().getString("Guis_Misc_AntiCreeper_Desc"),
-			Kingdoms.getLang().getString("Guis_Misc_AntiCreeper_Title"),
-			Materials.GUNPOWDER.parseMaterial()),
-	ANTITRAMPLE(Kingdoms.getLang().getString("Guis_Misc_AntiTrample_Desc"),
-			Kingdoms.getLang().getString("Guis_Misc_AntiTrample_Title"),
-			Materials.WHEAT_SEEDS.parseMaterial()),
-	NEXUSGUARD(Kingdoms.getLang().getString("Guis_Misc_NexusGuard_Desc"),
-			Kingdoms.getLang().getString("Guis_Misc_NexusGuard_Title"),
-			Material.IRON_AXE),
-	GLORY(Kingdoms.getLang().getString("Guis_Misc_Glory_Desc"),
-			Kingdoms.getLang().getString("Guis_Misc_Glory_Title"),
-			Material.NETHER_STAR),
-	BOMBSHARDS(Kingdoms.getLang().getString("Guis_Misc_BombShards_Desc"),
-			Kingdoms.getLang().getString("Guis_Misc_BombShards_Title"),
-			Material.TNT),
-	PSIONICCORE(Kingdoms.getLang().getString("Guis_Misc_PsionicCore_Desc"),
-			Kingdoms.getLang().getString("Guis_Misc_PsionicCore_Title"),
-			Materials.ENDER_EYE.parseMaterial());
-
-	private final String desc, title;
-	private final Material display;
-
-	MiscUpgrade(String desc, String title, Material display){
-		this.desc = desc;
-		this.title = title;
-		this.display = display;
+	private final Map<MiscUpgradeType, Boolean> enabled = new HashMap<>();
+	private final Map<MiscUpgradeType, Boolean> bought = new HashMap<>();
+	private final OfflineKingdom kingdom;
+	
+	public MiscUpgrade(OfflineKingdom kingdom) {
+		this.kingdom = kingdom;
 	}
 	
-	public int getCost(){
-		switch(this){
-			case ANTICREEPER:
-				return Config.getConfig().getInt("cost.misc-upgrades.anticreeper");
-			case ANTITRAMPLE:
-				return Config.getConfig().getInt("cost.misc-upgrades.antitrample");
-			case BOMBSHARDS:
-				return Config.getConfig().getInt("cost.misc-upgrades.bombshards");
-			case GLORY:
-				return Config.getConfig().getInt("cost.misc-upgrades.glory");
-			case NEXUSGUARD:
-				return Config.getConfig().getInt("cost.misc-upgrades.nexusguard");
-			case PSIONICCORE:
-				return Config.getConfig().getInt("cost.misc-upgrades.psioniccore");
-		 }
-		return 0;
-
+	public OfflineKingdom getKingdom() {
+		return kingdom;
 	}
 
-	public boolean isConfigEnabled(){
-		switch(this){
-			case ANTICREEPER:
-				return Config.getConfig().getBoolean("enable.misc.anticreeper.enabled");
-			case ANTITRAMPLE:
-				return Config.getConfig().getBoolean("enable.misc.antitrample");
-			case BOMBSHARDS:
-				return Config.getConfig().getBoolean("enable.misc.bombshards.enabled");
-			case GLORY:
-				return Config.getConfig().getBoolean("enable.misc.glory");
-			case NEXUSGUARD:
-				return Config.getConfig().getBoolean("enable.misc.nexusguard");
-			case PSIONICCORE:
-				return Config.getConfig().getBoolean("enable.misc.psioniccore");
-		 }
-		return false;
-
-	}
-
-
-	public boolean isDefaultOn(){
-		switch(this){
-			case ANTICREEPER:
-				return Config.getConfig().getBoolean("defaulton.misc-upgrades.anticreeper");
-			case ANTITRAMPLE:
-				return Config.getConfig().getBoolean("defaulton.misc-upgrades.antitrample");
-			case BOMBSHARDS:
-				return Config.getConfig().getBoolean("defaulton.misc-upgrades.bombshards");
-			case GLORY:
-				return Config.getConfig().getBoolean("defaulton.misc-upgrades.glory");
-			case NEXUSGUARD:
-				return Config.getConfig().getBoolean("defaulton.misc-upgrades.nexusguard");
-			case PSIONICCORE:
-				return Config.getConfig().getBoolean("defaulton.misc-upgrades.psioniccore");
-		 }
-		return false;
-		
+	public boolean hasBought(MiscUpgradeType upgrade) {
+		if (upgrade == null)
+			return false;
+		return bought.getOrDefault(upgrade, false);
 	}
 	
-	public String getDesc() {
-		return desc;
+	public void setBought(MiscUpgradeType upgrade, boolean bought) {
+		this.bought.put(upgrade, bought);
 	}
-	public String getTitle() {
-		return title;
+	
+	public boolean isEnabled(MiscUpgradeType upgrade) {
+		if (upgrade == null)
+			return false;
+		if (!hasBought(upgrade))
+			return false;
+		return enabled.getOrDefault(upgrade, false);
 	}
-	public Material getDisplay() {
-		return display;
+
+	public void setEnabled(MiscUpgradeType upgrade, boolean enabled) {
+		this.enabled.put(upgrade, enabled);
 	}
+
+	/**
+	 * Soil in land cannot be trampled.
+	 */
+	public boolean hasAntiTrample() {
+		return isEnabled(MiscUpgradeType.ANTI_TRAMPLE);
+	}
+
+	public void setAntitrample(boolean antiTrample) {
+		setBought(MiscUpgradeType.ANTI_TRAMPLE, antiTrample);
+	}
+
+	/**
+	 * No land damage nor any member damage.
+	 */
+	public boolean hasAnticreeper() {
+		return isEnabled(MiscUpgradeType.ANTI_CREEPER);
+	}
+
+	public void setAnticreeper(boolean antiCreeper) {
+		setBought(MiscUpgradeType.ANTI_CREEPER, antiCreeper);
+	}
+
+	/**
+	 * Spawn two light armor defenders with weapons on Nexus.
+	 */
+	public boolean hasNexusGuard() {
+		return isEnabled(MiscUpgradeType.NEXUS_GUARD);
+	}
+
+	public void setNexusguard(boolean nexusGuard) {
+		setBought(MiscUpgradeType.NEXUS_GUARD, nexusGuard);
+	}
+	
+	/**
+	 * No land damage, 5 damage to non-members around.
+	 */
+	public boolean hasBombShards() {
+		return isEnabled(MiscUpgradeType.BOMB_SHARDS);
+	}
+
+	public void setBombshards(boolean bombShards) {
+		setBought(MiscUpgradeType.BOMB_SHARDS, bombShards);
+	}
+	
+	/**
+	 * Apply strength 1 for 10 seconds to defender and guards.
+	 */
+	public boolean hasInsanity() {
+		return isEnabled(MiscUpgradeType.INSANITY);
+	}
+
+	public void setInsanity(boolean insanity) {
+		setBought(MiscUpgradeType.INSANITY, insanity);
+	}
+
+	/**
+	 * x3 experience on kills.
+	 */
+	public boolean hasGlory() {
+		return isEnabled(MiscUpgradeType.GLORY);
+	}
+
+	public void setGlory(boolean glory) {
+		setBought(MiscUpgradeType.GLORY, glory);
+	}
+
 }

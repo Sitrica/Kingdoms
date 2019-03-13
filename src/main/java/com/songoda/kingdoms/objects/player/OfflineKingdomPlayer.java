@@ -81,6 +81,10 @@ public class OfflineKingdomPlayer {
 		claims.clear();
 	}
 	
+	public boolean equals(OfflineKingdomPlayer player) {
+		return player.getUniqueId().equals(uuid);
+	}
+	
 	public void onKingdomLeave() {
 		resetClaims();
 		kingdom = null;

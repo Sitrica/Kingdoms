@@ -1,10 +1,10 @@
-package com.songoda.kingdoms.inventories;
+package com.songoda.kingdoms.inventories.structures;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 
-import com.songoda.kingdoms.manager.StructureInventory;
+import com.songoda.kingdoms.manager.inventories.StructureInventory;
 import com.songoda.kingdoms.objects.kingdom.ArsenalItem;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;

@@ -19,6 +19,8 @@ powerups:
         title: "&bDamage Reduction"
         material: "DIAMOND_CHESTPLATE"
         material-meta: ""
+        # All other powerups support this too, not adding the node defaults to false.
+        glowing: false
         cost: 70
         max: 40
         description:

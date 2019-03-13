@@ -15,6 +15,7 @@ import com.songoda.kingdoms.objects.kingdom.BotKingdom;
 import com.songoda.kingdoms.objects.kingdom.DefenderUpgrade;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.MiscUpgrade;
+import com.songoda.kingdoms.objects.kingdom.MiscUpgradeType;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
@@ -87,34 +88,36 @@ public class KingdomManager extends Manager {
 			database = getSQLiteDatabase(OfflineKingdom.class);
 		if (configuration.getBoolean("database.auto-save.enabled")) {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
-			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
-				@Override 
-				public void run() {
-					for (OfflineKingdom kingdom : kingdoms) {
-						UUID uuid = kingdom.getUniqueId();
-						String name = kingdom.getName();
-						// Was an old mistake, this is bad management.
-						// Still around for old database Kingdoms.
-						// TODO make a reader to read all Kingdom names and delete if this ends.
-						if (name.endsWith("_tmp")) {
-							kingdoms.remove(kingdom);
-							database.delete(kingdom.getUniqueId() + "");
-							continue;
-						}
-						Kingdoms.debugMessage("Saving Kingdom: " + name);
-						if (cooldowns.isInCooldown(kingdom, "attackcd"))
-							kingdom.setInvasionCooldown(cooldowns.getTimeLeft(kingdom, "attackcd"));
-						//null king means ready to remove
-						if (kingdom.getKing() == null && !(kingdom instanceof BotKingdom)) {
-							database.delete(uuid + "");
-							continue;
-						}
-						database.save(uuid + "", kingdom);
-					}
-				}
-			}, 0, IntervalUtils.getInterval(interval) * 20);
+			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, saveTask, 0, IntervalUtils.getInterval(interval) * 20);
 		}
 	}
+	
+	private final Runnable saveTask = new Runnable() {
+		@Override 
+		public void run() {
+			for (OfflineKingdom kingdom : kingdoms) {
+				UUID uuid = kingdom.getUniqueId();
+				String name = kingdom.getName();
+				// Was an old mistake, this is bad management.
+				// Still around for old database Kingdoms.
+				// TODO make a reader to read all Kingdom names and delete if this ends.
+				if (name.endsWith("_tmp")) {
+					kingdoms.remove(kingdom);
+					database.delete(kingdom.getUniqueId() + "");
+					continue;
+				}
+				Kingdoms.debugMessage("Saving Kingdom: " + name);
+				if (cooldowns.isInCooldown(kingdom, "attackcd"))
+					kingdom.setInvasionCooldown(cooldowns.getTimeLeft(kingdom, "attackcd"));
+				//null king means ready to remove
+				if (kingdom.getKing() == null && !(kingdom instanceof BotKingdom)) {
+					database.delete(uuid + "");
+					continue;
+				}
+				database.save(uuid + "", kingdom);
+			}
+		}
+	};
 	
 	public Set<OfflineKingdom> getKingdoms() {
 		return kingdoms;
@@ -229,8 +232,7 @@ public class KingdomManager extends Manager {
 				cooldown.start();
 				kingdom.setInvasionCooldown(0);
 			}
-			checkUpgrades(kingdom);
-			checkMight(kingdom);
+			updateUpgrades(kingdom);
 			kingdoms.add(kingdom);
 			Bukkit.getPluginManager().callEvent(new KingdomLoadEvent(kingdom));
 		}
@@ -318,10 +320,6 @@ public class KingdomManager extends Manager {
 				for (OfflineKingdomPlayer player : kingdom.getMembers()) {
 					player.setKingdom(null);
 					player.setRank(rankManager.getDefaultRank());
-					if (player.isOnline()) {
-						if (ExternalManager.getScoreboardManager() != null)
-							ExternalManager.getScoreboardManager().updateScoreboard(player.getKingdomPlayer());
-					}
 				}
 				OfflineKingdomPlayer king = kingdom.getKing();
 				kingdoms.remove(kingdom);
@@ -360,12 +358,7 @@ public class KingdomManager extends Manager {
 				king.setRank(rankManager.getOwnerRank());
 				king.setKingdom(kingdom);
 				kingdoms.add(kingdom);
-				for (DefenderUpgrade upgrade : DefenderUpgrade.values()) {
-					kingdom.getDefenderInfo().setUpgradeLevel(upgrade, upgrade.getUpgradeDefault(upgrade));
-				}
-				for (MiscUpgrade upgrade : MiscUpgrade.values()) {
-					kingdom.getMisupgradeInfo().setBought(upgrade, upgrade.isDefaultOn());
-				}
+				updateUpgrades(kingdom);
 				new MessageBuilder("kingdoms.creation")
 						.setKingdom(kingdom)
 						.send(king);
@@ -398,14 +391,122 @@ public class KingdomManager extends Manager {
 			return points;
 		}
 	}
-	
-	public void onJoin(KingdomPlayer kingdomPlayer) {
-		kingdomPlayer.getKingdom().onKingdomPlayerLogin(kingdomPlayer);
-	}
-	public void onQuit(KingdomPlayer kingdomPlayer) {
-		kingdomPlayer.getKingdom().onKingdomPlayerLogout(kingdomPlayer);
+
+	private boolean isCommandDisabled(String message, String node) {
+		List<String> commands = configuration.getStringList(node);
+		if (configuration.getBoolean("commands.contains", false))
+			return commands.parallelStream().anyMatch(string -> string.contains(message));
+		return commands.parallelStream().anyMatch(string -> string.equalsIgnoreCase(message));
 	}
 
+	public void updateUpgrades(Kingdom kingdom) {
+		if (kingdom == null) return;
+		Bukkit.getScheduler().runTaskAsynchronously(instance, new Runnable() {
+			@Override
+			public void run() {
+				for (MiscUpgradeType upgrade : MiscUpgradeType.values()) {
+					if (upgrade.isDefault())
+						kingdom.getMiscUpgrades().setBought(upgrade, true);
+				}
+				if (kingdom.getTurretUpgrades().isSimplifiedModel()) {
+					kingdom.getTurretUpgrades().setSimplifiedModel(Config.getConfig().getBoolean("enable.turretupgrades.simplified-model"));
+				}
+				if (kingdom.getTurretUpgrades().isFlurry()) {
+					kingdom.getTurretUpgrades().setFlurry(Config.getConfig().getBoolean("enable.turretupgrades.flurry"));
+				}
+				if (kingdom.getTurretUpgrades().isConcentratedBlast()) {
+					kingdom.getTurretUpgrades().setConcentratedBlast(Config.getConfig().getBoolean("enable.turretupgrades.concentrated-blast"));
+				}
+				if (kingdom.getTurretUpgrades().isVirulentPlague()) {
+					kingdom.getTurretUpgrades().setVirulentPlague(Config.getConfig().getBoolean("enable.turretupgrades.virulent-plague"));
+				}
+				if (kingdom.getTurretUpgrades().isImprovedHeal()) {
+					kingdom.getTurretUpgrades().setImprovedHeal(Config.getConfig().getBoolean("enable.turretupgrades.improved-healing"));
+				}
+				if (kingdom.getTurretUpgrades().isVoodoo()) {
+					kingdom.getTurretUpgrades().setVoodoo(Config.getConfig().getBoolean("enable.turretupgrades.voodoo"));
+				}
+				if (kingdom.getTurretUpgrades().isFinalService()) {
+					kingdom.getTurretUpgrades().setFinalService(Config.getConfig().getBoolean("enable.turretupgrades.final-service"));
+				}
+				if (kingdom.getTurretUpgrades().isHellstorm()) {
+					kingdom.getTurretUpgrades().setHellstorm(Config.getConfig().getBoolean("enable.turretupgrades.hellstorm"));
+				}
+				if (kingdom.getTurretUpgrades().isUnrelentingGaze()) {
+					kingdom.getTurretUpgrades().setUnrelentingGaze(Config.getConfig().getBoolean("enable.turretupgrades.unrelenting-gaze"));
+				}
+				if (kingdom.getMisupgradeInfo().isAnticreeper()) {
+					kingdom.getMisupgradeInfo().setAnticreeper(Config.getConfig().getBoolean("enable.misc.anticreeper.enabled"));
+				}
+				if (kingdom.getMisupgradeInfo().isAntitrample()) {
+					kingdom.getMisupgradeInfo().setAntitrample(Config.getConfig().getBoolean("enable.misc.antitrample"));
+				}
+				if (kingdom.getMisupgradeInfo().isBombshards()) {
+					kingdom.getMisupgradeInfo().setBombshards(Config.getConfig().getBoolean("enable.misc.bombshards.enabled"));
+				}
+				if (kingdom.getMisupgradeInfo().isGlory()) {
+					kingdom.getMisupgradeInfo().setGlory(Config.getConfig().getBoolean("enable.misc.glory"));
+				}
+				if (kingdom.getMisupgradeInfo().isNexusguard()) {
+					kingdom.getMisupgradeInfo().setNexusguard(Config.getConfig().getBoolean("enable.misc.nexusshards"));
+				}
+				if (kingdom.getMisupgradeInfo().isPsioniccore()) {
+					kingdom.getMisupgradeInfo().setPsioniccore(Config.getConfig().getBoolean("enable.misc.psioniccore"));
+				}
+				if (kingdom.getPowerUp().getDmgboost() > Config.getConfig().getInt("max.nexusupgrades.dmg-boost")) {
+					kingdom.getPowerUp().setDmgboost(Config.getConfig().getInt("max.nexusupgrades.dmg-boost"));
+				}
+				if (kingdom.getPowerUp().getDmgreduction() > Config.getConfig().getInt("max.nexusupgrades.dmg-reduc")) {
+					kingdom.getPowerUp().setDmgreduction(Config.getConfig().getInt("max.nexusupgrades.dmg-reduc"));
+				}
+				if (kingdom.getPowerUp().getArrowboost() > Config.getConfig().getInt("max.nexusupgrades.arrow-boost")) {
+					kingdom.getPowerUp().setArrowboost(Config.getConfig().getInt("max.nexusupgrades.arrow-boost"));
+				}
+				if (kingdom.getPowerUp().getRegenboost() > Config.getConfig().getInt("max.nexusupgrades.regen-boost")) {
+					kingdom.getPowerUp().setRegenboost(Config.getConfig().getInt("max.nexusupgrades.regen-boost"));
+				}
+				if (kingdom.getMaxMember() > Config.getConfig().getInt("max.nexusupgrades.maxmembers")) {
+					kingdom.setMaxMember(Config.getConfig().getInt("max.nexusupgrades.maxmembers"));
+				}
+				if (kingdom.getChampionInfo().getHealth() > Config.getConfig().getInt("max.champion.health")) {
+					kingdom.getChampionInfo().setHealth(Config.getConfig().getInt("max.champion.health"));
+				}
+				if (kingdom.getChampionInfo().getDetermination() > Config.getConfig().getInt("max.champion.determination")) {
+					kingdom.getChampionInfo().setDetermination(Config.getConfig().getInt("max.champion.determination"));
+				}
+				if (kingdom.getChampionInfo().getSpeed() > Config.getConfig().getInt("max.champion.speed")) {
+					kingdom.getChampionInfo().setSpeed(Config.getConfig().getInt("max.champion.speed"));
+				}
+				if (kingdom.getChampionInfo().getResist() > Config.getConfig().getInt("max.champion.resist")) {
+					kingdom.getChampionInfo().setResist(Config.getConfig().getInt("max.champion.resist"));
+				}
+				if (kingdom.getChampionInfo().getWeapon() > Config.getConfig().getInt("max.champion.weapon")) {
+					kingdom.getChampionInfo().setWeapon(Config.getConfig().getInt("max.champion.weapon"));
+				}
+				if (kingdom.getChampionInfo().getDrag() > Config.getConfig().getInt("max.champion.drag")) {
+					kingdom.getChampionInfo().setDrag(Config.getConfig().getInt("max.champion.drag"));
+				}
+				if (kingdom.getChampionInfo().getMock() > Config.getConfig().getInt("max.champion.mock")) {
+					kingdom.getChampionInfo().setMock(Config.getConfig().getInt("max.champion.mock"));
+				}
+				if (kingdom.getChampionInfo().getAqua() > 0 && !Config.getConfig().getBoolean("enable.champion.aqua") ||
+						Enchantment.getByName("DEPTH_STRIDER") == null) {
+					kingdom.getChampionInfo().setAqua(0);
+				}
+				if (kingdom.getChampionInfo().getDuel() > Config.getConfig().getInt("max.champion.duel")) {
+					kingdom.getChampionInfo().setDuel(Config.getConfig().getInt("max.champion.duel"));
+				}
+				if (kingdom.getChampionInfo().getThor() > Config.getConfig().getInt("max.champion.thor")) {
+					kingdom.getChampionInfo().setThor(Config.getConfig().getInt("max.champion.thor"));
+				}
+				if (kingdom.getChampionInfo().getStrength() > Config.getConfig().getInt("max.champion.strength")) {
+					kingdom.getChampionInfo().setStrength(Config.getConfig().getInt("max.champion.strength"));
+				}
+
+			}
+		});
+	}
+	
 	@EventHandler
 	public void onWorldLoad(WorldLoadEvent event) {
 		ArrayList<UUID> toBeRemoved = new ArrayList<>();
@@ -568,47 +669,14 @@ public class KingdomManager extends Manager {
 			}
 		}
 	}
-
-	private boolean isCommandDisabled(String message, String node) {
-		List<String> commands = configuration.getStringList(node);
-		if (configuration.getBoolean("commands.contains", false))
-			return commands.parallelStream().anyMatch(string -> string.contains(message));
-		return commands.parallelStream().anyMatch(string -> string.equalsIgnoreCase(message));
-	}
-
+	
 	@EventHandler
-	public void onKingdomDelete(KingdomDeleteEvent e) {
-		Kingdoms.logDebug("kdelete event: " + e.getKingdom().getKingdomName());
-		for (Entry<UUID, OfflineKingdom> entry : kingdomList.entrySet()) {
-			if (!(entry.getValue() instanceof Kingdom))
-				continue;
-			// String key = entry.getKey();
-			Kingdom value = (Kingdom) entry.getValue();
-			value.onKingdomDelete(e.getKingdom());
-		}
-	}
-
-	@EventHandler
-	public void onKingdomMemberJoinEvent(KingdomMemberJoinEvent event) {
-		Kingdoms.logDebug("memberjoin");
-		for (Entry<UUID, OfflineKingdom> entry : kingdomList.entrySet()) {
-			if (!(entry.getValue() instanceof Kingdom))
-				continue;
-			Kingdom value = (Kingdom) entry.getValue();
-
-			value.onMemberJoinKingdom(event.getKp());
-		}
-	}
-
-	@EventHandler
-	public void onKingdomMemberQuitEvent(KingdomMemberLeaveEvent e) {
-		Kingdoms.logDebug("memberquit");
-		for (Entry<UUID, OfflineKingdom> entry : kingdomList.entrySet()) {
-			if (!(entry.getValue() instanceof Kingdom))
-				continue;
-			Kingdom value = (Kingdom) entry.getValue();
-
-			value.onMemberQuitKingdom(e.getKp());
+	public void onKingdomDelete(KingdomDeleteEvent event) {
+		for (OfflineKingdom offlineKingdom : kingdoms) {
+			if (!(offlineKingdom instanceof Kingdom))
+				offlineKingdom = offlineKingdom.getKingdom();
+			Kingdom kingdom = (Kingdom) offlineKingdom;
+			kingdom.onKingdomDelete(event.getKingdom());
 		}
 	}
 	
@@ -616,9 +684,10 @@ public class KingdomManager extends Manager {
 	public void onNeutralMemberAttackOrAttacked(EntityDamageByEntityEvent event) {
 		if (!worldManager.acceptsWorld(event.getEntity().getWorld()))
 			return;
-		if (!configuration.getBoolean("allow-pacifist")) //TODO
+		if (!configuration.getBoolean("allow-pacifist"))
 			return;
-		if (!Config.getConfig().getBoolean("neutralPlayersCannotFightOnOwnLand")) return;
+		if (!Config.getConfig().getBoolean("neutralPlayersCannotFightOnOwnLand"))
+			return;
 		KingdomPlayer attacked;
 		if (!(event.getEntity() instanceof Player))
 			return;
@@ -672,189 +741,12 @@ public class KingdomManager extends Manager {
 			}
 		}
 	}
-	
-	public void checkMight(Kingdom kingdom) {
-		if (kingdom == null) return;
-		int might = 0;
-		if (kingdom.getMisupgradeInfo().isAnticreeper()) might += 53;
-		if (kingdom.getMisupgradeInfo().isAntitrample()) might += 53;
-		if (kingdom.getMisupgradeInfo().isBombshards()) might += 53;
-		if (kingdom.getMisupgradeInfo().isFireproofing()) might += 53;
-		if (kingdom.getMisupgradeInfo().isGlory()) might += 53;
-		if (kingdom.getMisupgradeInfo().isNexusguard()) might += 53;
-		if (kingdom.getMisupgradeInfo().isPsioniccore()) might += 53;
-		might += 53 * kingdom.getPowerUp().getArrowboost();
-		might += 53 * kingdom.getPowerUp().getDmgboost();
-		might += 53 * kingdom.getPowerUp().getDmgreduction();
-		might += 53 * kingdom.getPowerUp().getRegenboost();
-		might += 53 * kingdom.getMaxMember();
-		might += 53 * kingdom.getPowerUp().getRegenboost();
-		might += 53 * kingdom.getChampionInfo().getAqua();
-		might += 53 * kingdom.getChampionInfo().getArmor();
-		might += 53 * kingdom.getChampionInfo().getDamage();
-		might += 53 * kingdom.getChampionInfo().getDamagecap();
-		might += 53 * kingdom.getChampionInfo().getDetermination();
-		might += 53 * kingdom.getChampionInfo().getDrag();
-		might += 53 * kingdom.getChampionInfo().getDuel();
-		might += 53 * kingdom.getChampionInfo().getFocus();
-		might += 53 * kingdom.getChampionInfo().getGrab();
-		might += 6 * kingdom.getChampionInfo().getHealth();
-		might += 53 * kingdom.getChampionInfo().getMimic();
-		might += 53 * kingdom.getChampionInfo().getMock();
-		might += 53 * kingdom.getChampionInfo().getPlow();
-		might += 53 * kingdom.getChampionInfo().getReinforcements();
-		might += 53 * kingdom.getChampionInfo().getResist();
-		might += 53 * kingdom.getChampionInfo().getSpeed();
-		might += 53 * kingdom.getChampionInfo().getStrength();
-		might += 53 * kingdom.getChampionInfo().getSummon();
-		might += 53 * kingdom.getChampionInfo().getThor();
-		might += 53 * kingdom.getChampionInfo().getWeapon();
-		might += 53 * (kingdom.getChestSize() - 9);
-		if (kingdom.getTurretUpgrades().isFinalService()) might += 530;
-		if (kingdom.getTurretUpgrades().isConcentratedBlast()) might += 530;
-		if (kingdom.getTurretUpgrades().isFlurry()) might += 530;
-		if (kingdom.getTurretUpgrades().isHellstorm()) might += 530;
-		if (kingdom.getTurretUpgrades().isImprovedHeal()) might += 530;
-		if (kingdom.getTurretUpgrades().isSimplifiedModel()) might += 530;
-		if (kingdom.getTurretUpgrades().isUnrelentingGaze()) might += 530;
-		if (kingdom.getTurretUpgrades().isUnrelentingGaze()) might += 530;
-		if (kingdom.getTurretUpgrades().isVoodoo()) might += 530;
-		kingdom.setMight(might);
-	}
-
-	public void checkUpgrades(Kingdom kingdom) {
-
-		Bukkit.getScheduler().runTaskAsynchronously(instance, new Runnable() {
-			@Override
-			public void run() {
-
-				if (kingdom == null) return;
-				if (Config.getConfig().getBoolean("defaulton.misc-upgrades.anticreeper"))
-					kingdom.getMisupgradeInfo().setAnticreeper(true);
-				if (Config.getConfig().getBoolean("defaulton.misc-upgrades.bombshards"))
-					kingdom.getMisupgradeInfo().setBombshards(true);
-				if (Config.getConfig().getBoolean("defaulton.misc-upgrades.antitrample"))
-					kingdom.getMisupgradeInfo().setAntitrample(true);
-				if (Config.getConfig().getBoolean("defaulton.misc-upgrades.glory"))
-					kingdom.getMisupgradeInfo().setGlory(true);
-				if (Config.getConfig().getBoolean("defaulton.misc-upgrades.nexusguard"))
-					kingdom.getMisupgradeInfo().setNexusguard(true);
-				if (Config.getConfig().getBoolean("defaulton.misc-upgrades.psioniccore"))
-					kingdom.getMisupgradeInfo().setPsioniccore(true);
-
-				if (kingdom.getTurretUpgrades().isSimplifiedModel()) {
-					kingdom.getTurretUpgrades().setSimplifiedModel(Config.getConfig().getBoolean("enable.turretupgrades.simplified-model"));
-				}
-				if (kingdom.getTurretUpgrades().isFlurry()) {
-					kingdom.getTurretUpgrades().setFlurry(Config.getConfig().getBoolean("enable.turretupgrades.flurry"));
-				}
-				if (kingdom.getTurretUpgrades().isConcentratedBlast()) {
-					kingdom.getTurretUpgrades().setConcentratedBlast(Config.getConfig().getBoolean("enable.turretupgrades.concentrated-blast"));
-				}
-				if (kingdom.getTurretUpgrades().isVirulentPlague()) {
-					kingdom.getTurretUpgrades().setVirulentPlague(Config.getConfig().getBoolean("enable.turretupgrades.virulent-plague"));
-				}
-				if (kingdom.getTurretUpgrades().isImprovedHeal()) {
-					kingdom.getTurretUpgrades().setImprovedHeal(Config.getConfig().getBoolean("enable.turretupgrades.improved-healing"));
-				}
-				if (kingdom.getTurretUpgrades().isVoodoo()) {
-					kingdom.getTurretUpgrades().setVoodoo(Config.getConfig().getBoolean("enable.turretupgrades.voodoo"));
-				}
-				if (kingdom.getTurretUpgrades().isFinalService()) {
-					kingdom.getTurretUpgrades().setFinalService(Config.getConfig().getBoolean("enable.turretupgrades.final-service"));
-				}
-				if (kingdom.getTurretUpgrades().isHellstorm()) {
-					kingdom.getTurretUpgrades().setHellstorm(Config.getConfig().getBoolean("enable.turretupgrades.hellstorm"));
-				}
-				if (kingdom.getTurretUpgrades().isUnrelentingGaze()) {
-					kingdom.getTurretUpgrades().setUnrelentingGaze(Config.getConfig().getBoolean("enable.turretupgrades.unrelenting-gaze"));
-				}
-				if (kingdom.getMisupgradeInfo().isAnticreeper()) {
-					kingdom.getMisupgradeInfo().setAnticreeper(Config.getConfig().getBoolean("enable.misc.anticreeper.enabled"));
-				}
-				if (kingdom.getMisupgradeInfo().isAntitrample()) {
-					kingdom.getMisupgradeInfo().setAntitrample(Config.getConfig().getBoolean("enable.misc.antitrample"));
-				}
-				if (kingdom.getMisupgradeInfo().isBombshards()) {
-					kingdom.getMisupgradeInfo().setBombshards(Config.getConfig().getBoolean("enable.misc.bombshards.enabled"));
-				}
-				if (kingdom.getMisupgradeInfo().isGlory()) {
-					kingdom.getMisupgradeInfo().setGlory(Config.getConfig().getBoolean("enable.misc.glory"));
-				}
-				if (kingdom.getMisupgradeInfo().isNexusguard()) {
-					kingdom.getMisupgradeInfo().setNexusguard(Config.getConfig().getBoolean("enable.misc.nexusshards"));
-				}
-				if (kingdom.getMisupgradeInfo().isPsioniccore()) {
-					kingdom.getMisupgradeInfo().setPsioniccore(Config.getConfig().getBoolean("enable.misc.psioniccore"));
-				}
-				if (kingdom.getPowerUp().getDmgboost() > Config.getConfig().getInt("max.nexusupgrades.dmg-boost")) {
-					kingdom.getPowerUp().setDmgboost(Config.getConfig().getInt("max.nexusupgrades.dmg-boost"));
-				}
-				if (kingdom.getPowerUp().getDmgreduction() > Config.getConfig().getInt("max.nexusupgrades.dmg-reduc")) {
-					kingdom.getPowerUp().setDmgreduction(Config.getConfig().getInt("max.nexusupgrades.dmg-reduc"));
-				}
-				if (kingdom.getPowerUp().getArrowboost() > Config.getConfig().getInt("max.nexusupgrades.arrow-boost")) {
-					kingdom.getPowerUp().setArrowboost(Config.getConfig().getInt("max.nexusupgrades.arrow-boost"));
-				}
-				if (kingdom.getPowerUp().getRegenboost() > Config.getConfig().getInt("max.nexusupgrades.regen-boost")) {
-					kingdom.getPowerUp().setRegenboost(Config.getConfig().getInt("max.nexusupgrades.regen-boost"));
-				}
-				if (kingdom.getMaxMember() > Config.getConfig().getInt("max.nexusupgrades.maxmembers")) {
-					kingdom.setMaxMember(Config.getConfig().getInt("max.nexusupgrades.maxmembers"));
-				}
-				if (kingdom.getChampionInfo().getHealth() > Config.getConfig().getInt("max.champion.health")) {
-					kingdom.getChampionInfo().setHealth(Config.getConfig().getInt("max.champion.health"));
-				}
-				if (kingdom.getChampionInfo().getDetermination() > Config.getConfig().getInt("max.champion.determination")) {
-					kingdom.getChampionInfo().setDetermination(Config.getConfig().getInt("max.champion.determination"));
-				}
-				if (kingdom.getChampionInfo().getSpeed() > Config.getConfig().getInt("max.champion.speed")) {
-					kingdom.getChampionInfo().setSpeed(Config.getConfig().getInt("max.champion.speed"));
-				}
-				if (kingdom.getChampionInfo().getResist() > Config.getConfig().getInt("max.champion.resist")) {
-					kingdom.getChampionInfo().setResist(Config.getConfig().getInt("max.champion.resist"));
-				}
-				if (kingdom.getChampionInfo().getWeapon() > Config.getConfig().getInt("max.champion.weapon")) {
-					kingdom.getChampionInfo().setWeapon(Config.getConfig().getInt("max.champion.weapon"));
-				}
-				if (kingdom.getChampionInfo().getDrag() > Config.getConfig().getInt("max.champion.drag")) {
-					kingdom.getChampionInfo().setDrag(Config.getConfig().getInt("max.champion.drag"));
-				}
-				if (kingdom.getChampionInfo().getMock() > Config.getConfig().getInt("max.champion.mock")) {
-					kingdom.getChampionInfo().setMock(Config.getConfig().getInt("max.champion.mock"));
-				}
-				if (kingdom.getChampionInfo().getAqua() > 0 && !Config.getConfig().getBoolean("enable.champion.aqua") ||
-						Enchantment.getByName("DEPTH_STRIDER") == null) {
-					kingdom.getChampionInfo().setAqua(0);
-				}
-				if (kingdom.getChampionInfo().getDuel() > Config.getConfig().getInt("max.champion.duel")) {
-					kingdom.getChampionInfo().setDuel(Config.getConfig().getInt("max.champion.duel"));
-				}
-				if (kingdom.getChampionInfo().getThor() > Config.getConfig().getInt("max.champion.thor")) {
-					kingdom.getChampionInfo().setThor(Config.getConfig().getInt("max.champion.thor"));
-				}
-				if (kingdom.getChampionInfo().getStrength() > Config.getConfig().getInt("max.champion.strength")) {
-					kingdom.getChampionInfo().setStrength(Config.getConfig().getInt("max.champion.strength"));
-				}
-
-			}
-		});
-	}
 
 	@Override
 	public synchronized void onDisable() {
 		autoSaveThread.cancel();
-		Kingdoms.logInfo("Saving [" + kingdomNameList.size() + "] loaded kingdoms...");
-		try {
-			saveAll();
-			Kingdoms.logInfo("Done!");
-		} catch (Exception e) {
-			Kingdoms.logInfo("SQL connection failed! Saving to file DB");
-			db = createFileDB();
-			saveAll();
-			Config.getConfig().set("DO-NOT-TOUCH.grabKingdomsFromFileDB", true);
-		}
-		kingdomNameList.clear();
+		saveTask.run();
+		kingdoms.clear();
 	}
 
 }

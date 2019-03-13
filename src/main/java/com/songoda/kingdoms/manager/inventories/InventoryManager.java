@@ -1,4 +1,4 @@
-package com.songoda.kingdoms.manager.managers;
+package com.songoda.kingdoms.manager.inventories;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,7 +14,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 
-import com.songoda.kingdoms.manager.KingdomInventory;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.utils.Utils;
 

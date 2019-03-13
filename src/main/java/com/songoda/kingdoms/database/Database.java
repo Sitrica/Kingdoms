@@ -2,7 +2,10 @@ package com.songoda.kingdoms.database;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.serializers.*;
+import com.songoda.kingdoms.manager.managers.SerializerManager;
+
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 
@@ -19,11 +22,12 @@ public abstract class Database<T> {
 			.excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC)
 			.enableComplexMapKeySerialization()
 			.serializeNulls();
+	private final Kingdoms instance;
 	
-	public void registerSerializer(Class<?> clazz, Object object) {
-		synchronized (builder) {
-			builder.registerTypeAdapter(clazz, object);
-		}
+	public Database() {
+		instance = Kingdoms.getInstance();
+		instance.getManager("serializer", SerializerManager.class).getSerializers()
+				.forEach(serializer -> builder.registerTypeAdapter(serializer.getType(), serializer));
 	}
 	
 	public abstract void save(String key, T value);

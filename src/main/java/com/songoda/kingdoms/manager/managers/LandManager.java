@@ -50,6 +50,7 @@ import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.ManagerHandler;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
+import com.songoda.kingdoms.manager.managers.external.WorldGuardManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -88,9 +89,10 @@ public class LandManager extends Manager {
 		registerManager("land", new LandManager());
 	}
 	
-	private final List<String> unclaiming = new ArrayList<>(); //TODO test if this is even requried. It's a queue to avoid claiming and removing at same time.
+	private final List<String> unclaiming = new ArrayList<>(); //TODO test if this is even required. It's a queue to avoid claiming and removing at same time.
 	private final Map<Chunk, Land> lands = new HashMap<>();
 	private final Set<String> forbidden = new HashSet<>();
+	private final WorldGuardManager worldGuardManager;
 	private final VisualizerManager visualizerManager;
 	private final StructureManager structureManager;
 	private final FileConfiguration configuration;
@@ -109,6 +111,7 @@ public class LandManager extends Manager {
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
 		this.forbidden.addAll(configuration.getStringList("kingdoms.forbidden-inventories"));
+		this.worldGuardManager = instance.getManager("worldguard", WorldGuardManager.class);
 		this.visualizerManager = instance.getManager("visualizer", VisualizerManager.class);
 		this.structureManager = instance.getManager("structure", StructureManager.class);
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
@@ -297,9 +300,8 @@ public class LandManager extends Manager {
 					.send(player);
 			return;
 		}
-		if (ExternalManager.cannotClaimInRegion(player.getLocation())) {
-			new MessageBuilder("claiming.worldguard")
-				.send(player);
+		if (!worldGuardManager.canClaim(player.getLocation())) {
+			new MessageBuilder("claiming.worldguard").send(player);
 			return;
 		}
 		Land land = getLand(player.getLocation().getChunk());
@@ -353,7 +355,7 @@ public class LandManager extends Manager {
 			}
 		} else {
 			if (configuration.getBoolean("claiming.land-must-be-connected", false)) {
-				boolean connected;
+				boolean connected = false;
 				World world = player.getWorld();
 				for (int x = -1; x <= 1; x++) {
 					for (int z = -1; z <= 1; z++) {
@@ -761,8 +763,6 @@ public class LandManager extends Manager {
 			if (!lands.containsKey(chunk))
 				lands.put(chunk, land);
 			Bukkit.getPluginManager().callEvent(new LandLoadEvent(land));
-			WarpPadManager warpPadManager = instance.getManager("warp-pad", WarpPadManager.class);
-			warpPadManager.checkLoad(land);
 			toLoad.remove(land);
 		}
 	}

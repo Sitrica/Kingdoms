@@ -1,7 +1,16 @@
 package com.songoda.kingdoms.objects.kingdom;
 
-public class DefenderInfo {
+import java.lang.reflect.Type;
+
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.songoda.kingdoms.database.Serializer;
+
+public class DefenderInfo implements Serializer<DefenderInfo> {
 	
+	private final OfflineKingdom kingdom;
 	private int reinforcements = 0;
 	private int absorption = 0;
 	private int resistance = 0;
@@ -25,6 +34,14 @@ public class DefenderInfo {
 	private int duel = 0;
 	private int aqua = 0;
 	
+	public DefenderInfo(OfflineKingdom kingdom) {
+		this.kingdom = kingdom;
+	}
+	
+	public OfflineKingdom getKingdom() {
+		return kingdom;
+	}
+
 	public int getDrag() {
 		return drag;
 	}
@@ -298,6 +315,16 @@ public class DefenderInfo {
 				this.weapon = level; 
 				break;
 		}
+	}
+
+	@Override
+	public DefenderInfo deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws JsonParseException {
+		return null;
+	}
+
+	@Override
+	public JsonElement serialize(DefenderInfo src, Type type, JsonSerializationContext context) {
+		return null;
 	}
 
 }

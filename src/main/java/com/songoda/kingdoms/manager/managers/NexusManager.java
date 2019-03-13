@@ -1,9 +1,6 @@
 package com.songoda.kingdoms.manager.managers;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
@@ -18,10 +15,13 @@ import com.songoda.kingdoms.events.NexusMoveEvent;
 import com.songoda.kingdoms.events.NexusPlaceEvent;
 import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
 import com.songoda.kingdoms.events.StructureBreakEvent;
-import com.songoda.kingdoms.inventories.NexusInventory;
+import com.songoda.kingdoms.inventories.structures.NexusInventory;
 import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.inventories.InventoryManager;
+import com.songoda.kingdoms.manager.managers.TurretManager.TurretBlock;
+import com.songoda.kingdoms.manager.managers.external.WorldGuardManager;
+
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -29,15 +29,11 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.plugin.Plugin;
 
 public class NexusManager extends Manager {
 
@@ -47,15 +43,17 @@ public class NexusManager extends Manager {
 
 	private final Set<KingdomPlayer> placing = new HashSet<>();
 	private final StructureType type = StructureType.NEXUS;
+	private final WorldGuardManager worldGuardManager;
 	private final InventoryManager inventoryManager;
-	private final WarpPadManager warpPadManager;
+	private final TurretManager turretManager;
 	private final PlayerManager playerManager;
 	private final LandManager landManager;
 
 	protected NexusManager() {
 		super(true);
+		this.worldGuardManager = instance.getManager("worldguard", WorldGuardManager.class);
 		this.inventoryManager = instance.getManager("inventory", InventoryManager.class);
-		this.warpPadManager = instance.getManager("warppad", WarpPadManager.class);
+		this.turretManager = instance.getManager("turret", TurretManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
 	}
@@ -90,14 +88,14 @@ public class NexusManager extends Manager {
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		if (!placing.contains(kingdomPlayer))
 			return;
-		if(!ExternalManager.canBuild(player, block)) {
+		if(!worldGuardManager.canBuild(player, block.getLocation())) {
 			new MessageBuilder("claiming.worldguard")
 					.setKingdom(kingdom)
 					.send(player);
 			return;
 		}
 		//check if replacing with turret
-		if (instance.getManagers().getTurretManager().isTurret(block)) {
+		if (turretManager.getTurretBlock(block) != TurretBlock.NOT_TURRET) {
 			new MessageBuilder("kingdoms.nexus-cannot-replace")
 					.setPlaceholderObject(kingdomPlayer)
 					.send(player);
@@ -135,7 +133,7 @@ public class NexusManager extends Manager {
 					structureBlock.removeMetadata(type.getMetaData(), instance);
 					structureBlock.getWorld().dropItemNaturally(block.getLocation(), type.build());
 					land.setStructure(null);
-					warpPadManager.removeLand(kingdom, land);
+					kingdom.removeWarpAt(land);
 				}
 			}
 		}
@@ -242,8 +240,6 @@ public class NexusManager extends Manager {
 						.send(player);
 			}
 		}
-		if (GameManagement.getApiManager().getScoreboardManager() != null)
-			ExternalManager.getScoreboardManager().updateScoreboard(invader);
 		event.setCancelled(true);
 	}
 	

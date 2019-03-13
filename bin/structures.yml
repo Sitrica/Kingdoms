@@ -51,6 +51,8 @@ structures:
         title: "&bOutpost"
         # The block material that will be used.
         material: "HAY_BLOCK"
+        # The amount it will cost to buy one experience bottle from the outposts.
+        experience-bottle-cost: 5
         # The item given to the player that they have to click the ground with to build the structure.
         inventory-material: "MUSIC_DISC_13"
         description:

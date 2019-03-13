@@ -5,7 +5,7 @@ import com.songoda.kingdoms.events.PlayerUnwaterlogEvent;
 import com.songoda.kingdoms.events.PlayerWaterlogEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
-import com.songoda.kingdoms.objects.kingdom.Kingdom;
+import com.songoda.kingdoms.manager.managers.external.WorldGuardManager;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
@@ -23,30 +23,23 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 public class PlayerMovementManager extends Manager {
 
 	private long spam = System.currentTimeMillis();
+	private final WorldGuardManager worldGuardManager;
 	private final CitizensManager citizensManager;
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
@@ -58,6 +51,7 @@ public class PlayerMovementManager extends Manager {
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+		this.worldGuardManager = instance.getManager("worldguard", WorldGuardManager.class);
 	}
 	
 	@EventHandler
@@ -196,7 +190,7 @@ public class PlayerMovementManager extends Manager {
 		if (worldManager.acceptsWorld(world))
 			return;
 		//TODO add configuration option to ignore or not regions.
-		if (ExternalManager.isInRegion(player.getLocation()))
+		if (worldGuardManager.isInRegion(player.getLocation()))
 			return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		Chunk chunkFrom = event.getFromChunk();
