@@ -26,6 +26,7 @@ public class WorldManager extends Manager {
 		this.whitelistUnoccupied = configuration.getBoolean("worlds.unoccupied-list-is-whitelist", true);
 		this.whitelist = configuration.getBoolean("worlds.list-is-whitelist", true);
 		this.names.addAll(configuration.getStringList("worlds.list"));
+		this.names.add("KingdomsConquest");
 	}
 	
 	public boolean acceptsWorld(World world) {

@@ -574,9 +574,6 @@ economy:
 invade-cost: 10
 hidewarppadlocations: false
 enable-auto-backup: true
-regulator:
-    allow-toggling-animal-spawn: true
-    allow-toggling-monster-spawn: true
 minimum-members-online-to-be-invaded: 0
 infinite-claim-worlds:
 - worldThatAllowsYouToClaimInfinitely

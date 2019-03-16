@@ -42,6 +42,10 @@ repositories {
 	maven {
 		url "http://repo.citizensnpcs.co/"
 	}
+	
+	maven {
+		url 'https://jitpack.io'
+	}
 
 }
 
@@ -55,6 +59,9 @@ dependencies {
 	
 	// Spigot
 	implementation (group: 'org.spigotmc', name: 'spigot-api', version: '1.13.2-R0.1-SNAPSHOT')
+	
+	// Dynmap
+	implementation (group: 'com.github.webbukkit', name: 'dynmap-api', version: 'v2.5')
 
 	// WorldGuard
 	implementation (group: 'com.sk89q', name: "worldguard", version: '7.0.0')

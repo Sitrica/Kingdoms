@@ -1,28 +1,32 @@
 package com.songoda.kingdoms.inventories.structures;
 
-import java.util.ArrayList;
-
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
+import org.bukkit.Location;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
-import com.sk89q.worldguard.bukkit.util.Materials;
-import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
+import com.songoda.kingdoms.manager.managers.LandManager;
+import com.songoda.kingdoms.manager.managers.SiegeEngineManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.structures.SiegeEngine;
 import com.songoda.kingdoms.objects.structures.Structure;
+import com.songoda.kingdoms.utils.IntervalUtils;
+import com.songoda.kingdoms.utils.ItemStackBuilder;
 
 public class SiegeEngineInventory extends StructureInventory {
 
+	private final SiegeEngineManager siegeEngineManager;
+	private final LandManager landManager;
+	
 	protected SiegeEngineInventory() {
 		super(InventoryType.CHEST, "siege-engine", 27);
+		this.landManager = instance.getManager("land", LandManager.class);
+		this.siegeEngineManager = instance.getManager("siege-engine", SiegeEngineManager.class);
 	}
 	
 	@Override
@@ -30,13 +34,17 @@ public class SiegeEngineInventory extends StructureInventory {
 		throw new UnsupportedOperationException("This method should not be called, use openSiegeMenu(Land, KingdomPlayer)");
 	}
 	
-	public void openSiegeMenu(Land land, KingdomPlayer kingdomPlayer) {
-		Structure structure = land.getStructure();
+	public void openSiegeMenu(Land engineLand, KingdomPlayer kingdomPlayer) {
+		Structure structure = engineLand.getStructure();
 		if (structure == null)
 			return;
+		ConfigurationSection section = inventories.getConfigurationSection("inventories.siege-engine");
 		SiegeEngine engine = (SiegeEngine) structure;
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		Player player = kingdomPlayer.getPlayer();
+		Location location = engine.getLocation();
+		Land land = landManager.getLand(location.getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
 		for (int x = -1; x <= 1; x++) {
 			for (int z = -1; z <= 1; z++) {
 				//No diagonal Firing.
@@ -44,77 +52,90 @@ public class SiegeEngineInventory extends StructureInventory {
 					continue;
 				ItemStack item;
 				if (x == 0 && z == 0) {
-					item = new ItemStack(Materials.GLASS_PANE.parseMaterial());
-					ItemMeta meta = item.getItemMeta();
-					ArrayList<String> lore = new ArrayList<>();
-					lore.add(Kingdoms.getLang().getString("Structures_SiegeEngine", kp.getLang()));
-					meta.setDisplayName(Kingdoms.getLang().getString("Guis_SiegeEngine_Land_Title", kp.getLang())
-							.replaceAll("%x%",""+sc.getX())
-							.replaceAll("%z%",""+sc.getZ())
-							.replaceAll("%tag%",""+ChatColor.GREEN + kingdom.getName()));
-					lore.add(ChatColor.AQUA + "\\N/");
-					lore.add(ChatColor.AQUA + "W+E");
-					lore.add(ChatColor.AQUA + "/S\\");
-					meta.setLore(LoreOrganizer.organize(lore));
-					item.setItemMeta(meta);
+					item = new ItemStackBuilder(section.getConfigurationSection("location"))
+							.setPlaceholderObject(kingdomPlayer)
+							.replace("x", location.getBlockX())
+							.replace("y", location.getBlockY())
+							.replace("z", location.getBlockZ())
+							.fromConfiguration(inventories)
+							.setKingdom(kingdom)
+							.build();
 				} else {
-					SimpleChunkLocation chunk = new SimpleChunkLocation(sc.getWorld(),sc.getX()+x,sc.getZ()+z);
-					Land land = Kingdoms.getManagers().getLandManager().getLand(chunk);
-					OfflineKingdom landKingdom = land.getKingdomOwner();
-					String kname = land.getOwner();
-					if (kname == null) {
-						kname = Kingdoms.getLang().getString("Map_Unoccupied", kp.getLang());
-					}
-					item = new ItemStack(Materials.WHITE_STAINED_GLASS_PANE.parseMaterial());
-					ItemMeta meta = item.getItemMeta();
-					ArrayList<String> lore = new ArrayList<>();
-					meta.setDisplayName(Kingdoms.getLang().getString("Guis_SiegeEngine_Land_Title", kp.getLang())
-							.replaceAll("%x%",""+(sc.getX()+x))
-							.replaceAll("%z%",""+(sc.getZ()+z))
-							.replaceAll("%tag%",""+ChatColor.RED + kname));
-					if (!engine.isReadyToFire()) {
-						lore.add(Kingdoms.getLang().getString("Guis_SiegeEngine_Land_Reloading", kp.getLang()));
-						lore.add(ChatColor.RED + TimeUtils.parseTimeMinutes(engine.getConcBlastCD()));
-					} else if (landKingdom == null) {
-						lore.add(Kingdoms.getLang().getString("Guis_SiegeEngine_Land_Invalid_Target", kp.getLang()));
-					} else if (landKingdom.equals(kingdom) || kingdom.getAllies().contains(landKingdom)) {
-						lore.add(Kingdoms.getLang().getString("Guis_SiegeEngine_Land_Your_Land", kp.getLang()));
-					}else if (landKingdom.isShieldUp()) {
+					item = new ItemStackBuilder(section.getConfigurationSection("unoccupied"))
+							.replace("%time%", IntervalUtils.getSeconds(engine.getCooldownTimeLeft()))
+							.setPlaceholderObject(kingdomPlayer)
+							.replace("x", location.getBlockX())
+							.replace("y", location.getBlockY())
+							.replace("z", location.getBlockZ())
+							.fromConfiguration(inventories)
+							.setKingdom(kingdom)
+							.build();
+					if (landKingdom == null) {
+						item = new ItemStackBuilder(section.getConfigurationSection("no-target"))
+								.replace("%time%", IntervalUtils.getSeconds(engine.getCooldownTimeLeft()))
+								.setPlaceholderObject(kingdomPlayer)
+								.replace("x", location.getBlockX())
+								.replace("y", location.getBlockY())
+								.replace("z", location.getBlockZ())
+								.fromConfiguration(inventories)
+								.setKingdom(kingdom)
+								.build();
+					} else if (!engine.isReady()) {
+						item = new ItemStackBuilder(section.getConfigurationSection("reloading"))
+								.replace("%time%", IntervalUtils.getSeconds(engine.getCooldownTimeLeft()))
+								.setPlaceholderObject(kingdomPlayer)
+								.replace("x", location.getBlockX())
+								.replace("y", location.getBlockY())
+								.replace("z", location.getBlockZ())
+								.fromConfiguration(inventories)
+								.setKingdom(landKingdom)
+								.build();
+					} else if (kingdom.equals(landKingdom) || kingdom.getAllies().contains(landKingdom)) {
+						item = new ItemStackBuilder(section.getConfigurationSection("friendly"))
+								.replace("%time%", IntervalUtils.getSeconds(engine.getCooldownTimeLeft()))
+								.setPlaceholderObject(kingdomPlayer)
+								.replace("x", location.getBlockX())
+								.replace("y", location.getBlockY())
+								.replace("z", location.getBlockZ())
+								.fromConfiguration(inventories)
+								.setKingdom(landKingdom)
+								.build();
+					// TODO shield
+					/*} else if (landKingdom.isShieldUp()) {
 						lore.add(Kingdoms.getLang().getString("Guis_SiegeEngine_Land_Invade_Shield", kp.getLang()));
+						*/
 					} else {
-						int cost = Config.getConfig().getInt("siege.fire.cost");
-						if (landKingdom.isWithinNexusShieldRange(chunk))
+						int cost = structures.getInt("cost-per-shot", 10);
+						/*if (landKingdom.isWithinNexusShieldRange(chunk))
 							lore.add(Kingdoms.getLang().getString("Guis_SiegeEngine_Shield", kp.getLang())
 								.replaceAll("%value%", ""+landKingdom.getShieldValue())
 								.replaceAll("%max%", ""+landKingdom.getShieldMax()));
-						
-						//Allowed to Fire.
-						lore.add(Kingdoms.getLang().getString("Guis_SiegeEngine_Land_Click_To_Fire", kp.getLang()));
-						lore.add(Kingdoms.getLang().getString("Guis_Cost_Text", kp.getLang())
-								.replaceAll("%cost%",""+cost));
+						*/
+						item = new ItemStackBuilder(section.getConfigurationSection("ready"))
+								.replace("%time%", IntervalUtils.getSeconds(engine.getCooldownTimeLeft()))
+								.setPlaceholderObject(kingdomPlayer)
+								.replace("x", location.getBlockX())
+								.replace("y", location.getBlockY())
+								.replace("z", location.getBlockZ())
+								.fromConfiguration(inventories)
+								.replace("%cost%", cost)
+								.setKingdom(landKingdom)
+								.build();
 						setAction((1 + x) + (9 * (z + 1)), event -> {
 							player.closeInventory();
-							getSiegeEngineManager().fireSiegeEngine(engine, land, kingdom, landKingdom);
+							siegeEngineManager.fireSiegeEngine(engine, land, kingdom, landKingdom);
 						});
 					}
-					meta.setLore(LoreOrganizer.organize(lore));
-					item.setItemMeta(meta);
 				}
-				inventory.setItem((1+x)+(9*(z+1)), item);
+				inventory.setItem((1 + x) + (9 * (z + 1)), item);
 			}
 			openInventory(player);
 		}
-		ItemStack r = new ItemStack(Material.HAY_BLOCK);
-		ItemMeta rm = r.getItemMeta();
-		rm.setDisplayName(Kingdoms.getLang().getString("Guis_ResourcePoints_Title", kp.getLang()));
-		ArrayList rl = new ArrayList();
-		rl.add(Kingdoms.getLang().getString("Guis_ResourcePoints_Desc", kp.getLang()));
-		rl.add(Kingdoms.getLang().getString("Guis_ResourcePoints_Count", kp.getLang()).replaceAll("%amount%", ""+kingdom.getResourcepoints()));
-		rm.setLore(LoreOrganizer.organize(rl));
-		r.setItemMeta(rm);
-
-		inventory.setItem(8, r);
-
+		inventory.setItem(8, new ItemStackBuilder("inventories.resource-points")
+				.setPlaceholderObject(kingdomPlayer)
+				.fromConfiguration(inventories)
+				.setKingdom(kingdom)
+				.build());
 	}
 
 }

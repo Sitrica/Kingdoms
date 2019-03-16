@@ -1,20 +1,10 @@
 package com.songoda.kingdoms.objects.kingdom;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import com.songoda.kingdoms.Kingdoms;
-import com.songoda.kingdoms.utils.DeprecationUtils;
-import com.songoda.kingdoms.utils.Formatting;
-import com.songoda.kingdoms.utils.Utils;
+import com.songoda.kingdoms.utils.ItemStackBuilder;
 
 public enum DefenderUpgrade {
 	
@@ -25,13 +15,10 @@ public enum DefenderUpgrade {
 	HEALTH("health"),
 	THROW("throw"),
 	SPEED("speed"),
-	ARMOR("armor");
+	ARMOR("armor"),
+	DRAG("drag");
 	
 	/*
-	DRAG(Kingdoms.getLang().getString("Guis_ChampionUpgrades_Drag_Curr"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Drag_Desc"),
-			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Drag_Title"),
-			Material.FISHING_ROD,1,true),
 	MOCK(Kingdoms.getLang().getString("Guis_ChampionUpgrades_Mock_Curr"),
 			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Mock_Desc"),
 			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Mock_Title"),
@@ -73,7 +60,7 @@ public enum DefenderUpgrade {
 			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Aqua_Desc"),
 			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Aqua_Title"),
 			Material.IRON_BOOTS,1,
-			true), 
+			true),
 	DETERMINATION(Kingdoms.getLang().getString("Guis_ChampionUpgrades_Determination_Curr"),
 			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Determination_Desc"),
 			Kingdoms.getLang().getString("Guis_ChampionUpgrades_Determination_Title"),
@@ -86,30 +73,18 @@ public enum DefenderUpgrade {
             Config.getConfig().getInt("magnitude.champion.determinationII"));
     */
 
-	private final List<String> description = new ArrayList<>();
 	private final int max, value, cost, multiplier;
-	private final boolean glowing, enabled;
-	private final String node, title, meta;
-	private final Material material;
+	private final ConfigurationSection section;
+	private final boolean enabled;
 	
 	private DefenderUpgrade(String node) {
 		FileConfiguration configuration = Kingdoms.getInstance().getConfiguration("defender-upgrades").get();
-		ConfigurationSection section = configuration.getConfigurationSection("upgrades." + node);
-		this.material = Utils.materialAttempt(section.getString("material", "WOODEN_SWORD"), "WOOD_SWORD");
-		this.description.addAll(section.getStringList("description"));
-		this.multiplier = section.getInt("cost-multiplier", 10);
-		this.glowing = section.getBoolean("glowing", false);
+		this.section = configuration.getConfigurationSection("upgrades." + node);
+		this.multiplier = section.getInt("cost-multiplier", 0);
 		this.enabled = section.getBoolean("enabled", false);
-		this.title = section.getString("title", "Not set");
-		this.meta = section.getString("material-meta", "");
 		this.max = section.getInt("max-level", 0);
 		this.value = section.getInt("value", 1);
 		this.cost = section.getInt("cost", 10);
-		this.node = node;
-	}
-	
-	public List<String> getDescription() {
-		return description;
 	}
 	
 	public int getCostAt(int level) {
@@ -120,28 +95,12 @@ public enum DefenderUpgrade {
 		return multiplier;
 	}
 	
-	public Material getMaterial() {
-		return material;
-	}
-	
 	public boolean isEnabled() {
 		return enabled;
-	}
-
-	public boolean isGlowing() {
-		return glowing;
 	}
 	
 	public int getMaxLevel() {
 		return max;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public String getNode() {
-		return node;
 	}
 	
 	public int getValue() {
@@ -152,23 +111,10 @@ public enum DefenderUpgrade {
 		return cost;
 	}
 	
-	public ItemStack build(OfflineKingdom kingdom, boolean shop) {
-		ItemStack itemstack = new ItemStack(material);
-		ItemMeta itemmeta = itemstack.getItemMeta();
-		itemmeta.setDisplayName(Formatting.color(title));
-		List<String> lores = new ArrayList<>();
-		description.forEach(message -> lores.add(Formatting.color(message)));
-		itemmeta.setLore(lores);
-		if (glowing) {
-			if (material == Material.BOW) {
-				itemstack.addUnsafeEnchantment(Enchantment.WATER_WORKER, 69);
-			} else {
-				itemstack.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, 69);
-			}
-			itemmeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-		}
-		itemstack.setItemMeta(itemmeta);
-		return DeprecationUtils.setupItemMeta(itemstack, meta);
+	public ItemStackBuilder build(OfflineKingdom kingdom, boolean shop) {
+		return new ItemStackBuilder(section)
+					.replace("%enabled%", enabled)
+					.replace("%value%", value);
 	}
 
 }

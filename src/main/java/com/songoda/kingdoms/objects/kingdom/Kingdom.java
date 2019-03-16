@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
-import com.songoda.kingdoms.objects.turrets.TurretUpgradeInfo;
 import com.songoda.kingdoms.manager.managers.WorldManager;
 
 import org.bukkit.Bukkit;
@@ -23,7 +22,6 @@ public class Kingdom extends OfflineKingdom {
 	int maxMember = 10;
 	ArmyInfo armyInfo = new ArmyInfo();
 	AggressorInfo aggressorInfo = new AggressorInfo();
-	TurretUpgradeInfo turretUpgrades = new TurretUpgradeInfo();
 	
 	// Only used for BotKingdoms.
 	protected Kingdom() {
@@ -63,11 +61,28 @@ public class Kingdom extends OfflineKingdom {
 						Kingdom playerKingdom = kingdomPlayer.getKingdom();
 						if (playerKingdom == null)
 							continue;
-						if (this.isAllianceWith(playerKingdom) && playerKingdom.isAllianceWith(this))
+						if (isAllianceWith(playerKingdom) && playerKingdom.isAllianceWith(this))
 							allies.add(kingdomPlayer);
 					}
 				});
 		return allies;
+	}
+	
+	public Set<KingdomPlayer> getOnlineEnemies() {
+		Set<KingdomPlayer> enemies = new HashSet<>();
+		Bukkit.getWorlds().parallelStream()
+				.filter(world -> worldManager.acceptsWorld(world))
+				.forEach(world -> {
+					for (Player player : world.getPlayers()) {
+						KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+						Kingdom playerKingdom = kingdomPlayer.getKingdom();
+						if (playerKingdom == null)
+							continue;
+						if (isEnemyWith(playerKingdom))
+							enemies.add(kingdomPlayer);
+					}
+				});
+		return enemies;
 	}
 	
 	

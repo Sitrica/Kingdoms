@@ -85,6 +85,8 @@ structures:
         cooldown: "60 seconds"
         title: "&bSiege Engine"
         material: "DISPENSER"
+        cost-per-shot: 10
+        explosion-radius: 7.0
         inventory-material: "MUSIC_DISC_11"
         description:
             - "&7Siege structure. Place next to target land, and fire from the GUI. Siege Engines have."

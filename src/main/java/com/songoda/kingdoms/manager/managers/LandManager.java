@@ -50,6 +50,7 @@ import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.ManagerHandler;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
+import com.songoda.kingdoms.manager.managers.external.DynmapManager;
 import com.songoda.kingdoms.manager.managers.external.WorldGuardManager;
 
 import org.bukkit.Bukkit;
@@ -99,6 +100,7 @@ public class LandManager extends Manager {
 	private final CitizensManager citizensManager;
 	private final KingdomManager kingdomManager;
 	private final PlayerManager playerManager;
+	private final DynmapManager dynmapManager;
 	private final WorldManager worldManager;
 	private final LandManager landManager;
 	private static Database<Land> database;
@@ -116,6 +118,7 @@ public class LandManager extends Manager {
 		this.structureManager = instance.getManager("structure", StructureManager.class);
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.dynmapManager = instance.getManager("dynmap", DynmapManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
@@ -422,9 +425,7 @@ public class LandManager extends Manager {
 			land.setKingdomOwner(kingdom);
 			String name = LocationUtils.chunkToString(land.getChunk());
 			database.save(name, land);
-			//Dynmap object here
-			if (GameManagement.getDynmapManager() != null)
-				GameManagement.getDynmapManager().updateClaimMarker(chunk);
+			dynmapManager.update(chunk);
 		}
 	}
 
@@ -459,9 +460,7 @@ public class LandManager extends Manager {
 						}
 					});
 				}
-				//Dynmap object here
-				if (GameManagement.getDynmapManager() != null)
-					GameManagement.getDynmapManager().updateClaimMarker(chunk);
+				dynmapManager.update(chunk);
 			}
 		}
 	}

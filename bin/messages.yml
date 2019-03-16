@@ -85,6 +85,12 @@ structures:
     # Special placeholders are %cost% and %max% for max members allowed.
     nexus-max-member-cant-afford: "&cYour Kingdom does not currently have %cost% resource points to upgrade!"
     max-members-reached: "&cMaximum member count already reached!"
+    # Special placeholders: %warp% (old name) and %location%
+    rename-warp: "&bType in chat the new name for this warp. Type 'cancel' to cancel rename."
+    # Special placeholders: %old% (old name), %new% (new name), and %location%
+    rename-success: "&bThe name of this warp has been changed from %old% to %new%"
+    siege-warning: "&c&lYour Kingdom land at %chunk% was sieged by %kingdom%!"
+    siege-success: "&a&lSiege cannon hit %kingdom%."
 
 # All messages relating to Kingdoms.
 kingdoms:
@@ -150,6 +156,8 @@ kingdoms:
     donated-self: "&aYou donated items to Kingdom %kingdom% worth a total of %amount% resource points!"
     donated-kingdom: "&aKingdom member %player% has just donated %amount% resource points to the Kingdom!"
     donated-alliance: "&aAlliance member %player% has just donated %amount% resource points to the Kingdom!"
+    member-join: "&8[&7%player%&8] is now &aonline!"
+    member-leave: '&8[&7%player%&8] is now &coffline!"
 
 # All messages relating to maps and chunks.
 map:
@@ -620,8 +628,6 @@ Misc_KP_Not_Loaded: '&cYour data is not loaded yet! Please wait a little longer.
 Misc_Announcer_Nameless_Format: '&b[%kingdom%] &7%message%'
 Misc_Announcer_Named_Format: '&b[%kingdom% &8([%rank%]%player%)] &7%message%'
 Misc_Announcer_King_Online: King [%player%] is now &aOnline!
-Misc_Announcer_Online: '[%player%] is now &aOnline!'
-Misc_Announcer_Offline: '[%player%] is now &cOffline!'
 Misc_Announcer_Left_Kingdom: '[%player%] has left the kingdom!'
 Misc_Resourceplot_Reward_Message: Your kingdom received %amount% from resourceplot %plot%
 Misc_Resourceplot_Reset_Broadcast: ALL RESOURCE PLOTS HAVE BEEN RESET!
@@ -799,19 +805,6 @@ Guis_BoostShop_CombatBoost_Activation_Message: '&a&lCombat Boost has been activa
 Guis_BoostShop_Sentinel_Activation_Message: '&a&lSentinel has been activated for 60 minutes! May our sentinel tear our foes apart!'
 Guis_Extractor_Refresh_Title: '&bRefresh'
 Guis_Extractor_Refresh_Desc: '&aClick to refresh timings displayed here'
-Guis_WarpPad_Click_To_Tp: '&aClick to teleport to the location above'
-Guis_WarpPad_You_Are_Here: '&cYou are here'
-Guis_SiegeEngine_Land_Title: '&b[&e%x%&b, &e%z%&b] %tag%'
-Guis_SiegeEngine_Land_Click_To_Fire: '&cClick to fire at this land'
-Guis_SiegeEngine_Land_Invalid_Target: '&cThis land is not shielded and cannot be fired at.'
-Guis_SiegeEngine_Land_Invade_Shield: '&cThis kingdom currently has an invasion shield, and cannot be attacked.'
-Guis_SiegeEngine_Land_Your_Land: '&aFriendly territory'
-Guis_SiegeEngine_Shield: '&bShield Value: &e%value%/%max%'
-Guis_SiegeEngine_Land_Reloading: '&cSiege engine is reloading.'
-Guis_SiegeEngine_ConcentratedBlast_Desc: '&aFires at a specific location, causing a small explsion, destroying blocks. Structures will also be destroyed by this method.'
-Guis_SiegeEngine_ShieldShatter: '&bShield Shatter'
-Guis_SiegeEngine_ShieldShatter_Desc: '&aFires at kingdom land. The attack will deal %damage% to the kingdom''s shield'
-Guis_SiegeEngine_Deploy_Instructions: '&cRight click on enemy territory to begin attack'
 Guis_Misc_ToggledOn: '&aUpgrade is toggled on. Click to toggle off'
 Guis_Misc_ToggledOff: '&cUpgrade is toggled off. Click to toggle on'
 Guis_privateSignGUI_PrivateSign: '&dPrivateSign'
@@ -834,6 +827,12 @@ Guis_Permissions_Desc_Invade: '&bManage who can use /k invade'
 Guis_Permissions_Title_AllyFunc: '&bAlliance Functions'
 Guis_Permissions_Desc_AllyFunc: '&aManage who can use /k ally,/k enemy and /k neutral'
 Guis_Permissions_Title_Turret: '&bTurrets'
+Guis_SiegeEngine_Land_Invade_Shield: '&cThis kingdom currently has an invasion shield, and cannot be attacked.'
+Guis_SiegeEngine_Shield: '&bShield Value: &e%value%/%max%'
+Guis_SiegeEngine_ConcentratedBlast_Desc: '&aFires at a specific location, causing a small explsion, destroying blocks. Structures will also be destroyed by this method.'
+Guis_SiegeEngine_ShieldShatter: '&bShield Shatter'
+Guis_SiegeEngine_ShieldShatter_Desc: '&aFires at kingdom land. The attack will deal %damage% to the kingdom''s shield'
+Guis_SiegeEngine_Deploy_Instructions: '&cRight click on enemy territory to begin attack'
 Guis_Permissions_Desc_Turrets: '&aManage who can break turrets'
 Guis_Permissions_Title_Sethome: '&b/k sethome'
 Guis_Permissions_Desc_Sethome: '&aManage who can use /k sethome'
@@ -873,9 +872,7 @@ PChest_NotYourKingdomChest: '&cThis chest is property of [%kingdom%].'
 Kingdom_Command_Denied_Enemy: '&cThis command is cannot be used in kingdom who against you.'
 Guis_Misc_Enabled: '&aEnabled'
 Guis_Misc_Disabled: '&cDisabled'
-Siege_Success: '&a&lSiege cannon hit %kingdom%.'
 Siege_Success_Shielded: '&b&l[&c&l%value%&b&l/&c&lmax&b&l]&a&lSiege cannon damaged %kingdom%''s shields.'
-Siege_Warning: '&c&lOur land at %chunk% was sieged by %kingdom%!'
 Siege_Warning_Shielded: '&b&l[&c&l%value%&b&l/&e&lmax&b&l]&c&lOur shielded was damaged by %kingdom%!'
 Command_Admin_Blacklist_AlreadyInlist: '&cThat name is already on the blacklist!'
 Command_Admin_Blacklist_NameAdded: '&aAdded to the blacklist!'

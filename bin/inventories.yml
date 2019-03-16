@@ -23,8 +23,27 @@ scroller:
         material-meta: "MHF_ArrowRight"
         lore:
             - "&7Click to go to the next page. &8(&a%next%&7/&2%total%&8)"
+    previous-item:
+        title: "&c&lPrevious page"
+        # Use SKULL for 1.8...
+        material: "SKELETON_SKULL"
+        material-meta: "MHF_ArrowLeft"
+        lore:
+            - "&7Click to go to the previous page. &8(&c%previous%&7/&4%total%&8)"
+
 # All configurations relating to structures.
 inventories:
+    resource-points:
+        title: "&bResource Points"
+        material: "HAY_BLOCK"
+        # Explained in other configurations.
+        material-meta: ""
+        # If the itemstack should have the glowing enchantment effect on it.
+        glowing: false
+        # Lore is the text attached to the itemstack under the name.
+        lore:
+            - "&7Your kingdom currently has"
+            - "&e%amount% &7resource points."
     nexus-chest:
         title: "&4%kingdom%'s Nexus Chest"
     extractor:
@@ -248,13 +267,115 @@ inventories:
             material-meta: ""
             glowing: false
             lore:
-                - "&7Buy an experience bottle for %cost% resource points."
-                
-                
-Guis_Regulator_CanBuild_Title: '&aCan build in this land'
-Guis_Regulator_CannotBuild_Title: '&cCannot build in this land'
-Guis_Regulator_CanInteract_Title: '&aCan interact in this land'
-Guis_Regulator_CannotInteract_Title: '&cCannot interact in this land'
-Guis_Regulator_WhoCanInteract_Title: '&bClick to manage who can interact here'
-Guis_Regulator_CanMonstersSpawn_Title: '&bMonster spawning in this land'
-Guis_Regulator_CanAnimalsSpawn_Title: '&bAnimal spawning in this land'
+                - "&7Opens an inventory displaying all the members who can build in this regulator chunk."
+         # The item that represents the build permission item.
+        interact:
+            title: "&bClick to manage who can interact here"
+            # Use WOOL for 1.8... and set the color id in the meta.
+            material: "ORANGE_WOOL"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Opens an inventory displaying all the members who can interact in this regulator chunk."
+        monsters-can-spawn:
+            title: "&bMonster spawning in this land"
+            material: "ROTTEN_FLESH"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Monsters currently &a&lCAN &7spawn in this regulator chunk."
+        monsters-cannot-spawn:
+            title: "&bMonster spawning in this land"
+            material: "ROTTEN_FLESH"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Monsters currently &c&lCANNOT &7spawn in this regulator chunk."
+    # The menu that shows all the players who have permissions in this land with the regulator.
+    regulator-viewer:
+        build-title: "&4Click to manage who can build here"
+        can-build:
+            title: "&b%player%"
+            # Use WOOL for 1.8... and set the color id in the meta.
+            material: "GREEN_WOOL"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&aCan build in this land."
+        cannot-build:
+            title: "&b%player%"
+            # Use WOOL for 1.8... and set the color id in the meta.
+            material: "RED_WOOL"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&cCannot build in this land."
+        interact-title: "&4Click to manage who can interact here"
+        can-interact:
+            title: "&b%player%"
+            # Use WOOL for 1.8... and set the color id in the meta.
+            material: "GREEN_WOOL"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&aCan interact in this land."
+        cannot-interact:
+            title: "&b%player%"
+            # Use WOOL for 1.8... and set the color id in the meta.
+            material: "RED_WOOL"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&cCannot interact in this land."
+    warp-pad:
+        # Special Placeholders: %location% and %warp%
+        warp-item:
+            title: "&bWarp: &l%warp%"
+            material: "ENDER_PORTAL_FRAME"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Warp Location: &r%location%"
+                - "&fLeft-click &7to warp to this location."
+                - "&fRight-click &7to rename this warp."
+    siege-engine:
+        # Special Placeholders: %time%, %x%, %y%, and %z%
+        unoccupied:
+            title: "&b[&e%x%&b, &e%z%&b] %kingdom%"
+            material: "WHITE_GLASS_PANE"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Unoccupied land."
+        reloading:
+            title: "&b[&e%x%&b, &e%z%&b] %kingdom%"
+            material: "RED_STAINED_GLASS_PANE"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&cSiege engine is reloading."
+                - "&fTime left: %time%"
+        no-target:
+            title: "&b[&e%x%&b, &e%z%&b] %kingdom%"
+            material: "ORANGE_STAINED_GLASS_PANE"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&cThis land is not shielded and cannot be fired at."
+        # Alliance or own
+        friendly:
+            title: "&b[&e%x%&b, &e%z%&b] %kingdom%"
+            material: "BLUE_STAINED_GLASS_PANE"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&aFriendly territory"
+        ready:
+            title: "&b[&e%x%&b, &e%z%&b] %kingdom%"
+            material: "LIME_STAINED_GLASS_PANE"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&aClick to fire at this land!"
+                - "&7Each shot cost %cost%."
+

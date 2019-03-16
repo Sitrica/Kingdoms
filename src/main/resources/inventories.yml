@@ -33,6 +33,17 @@ scroller:
 
 # All configurations relating to structures.
 inventories:
+    resource-points:
+        title: "&bResource Points"
+        material: "HAY_BLOCK"
+        # Explained in other configurations.
+        material-meta: ""
+        # If the itemstack should have the glowing enchantment effect on it.
+        glowing: false
+        # Lore is the text attached to the itemstack under the name.
+        lore:
+            - "&7Your kingdom currently has"
+            - "&e%amount% &7resource points."
     nexus-chest:
         title: "&4%kingdom%'s Nexus Chest"
     extractor:
@@ -327,3 +338,44 @@ inventories:
                 - "&7Warp Location: &r%location%"
                 - "&fLeft-click &7to warp to this location."
                 - "&fRight-click &7to rename this warp."
+    siege-engine:
+        # Special Placeholders: %time%, %x%, %y%, and %z%
+        unoccupied:
+            title: "&b[&e%x%&b, &e%z%&b] %kingdom%"
+            material: "WHITE_GLASS_PANE"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&7Unoccupied land."
+        reloading:
+            title: "&b[&e%x%&b, &e%z%&b] %kingdom%"
+            material: "RED_STAINED_GLASS_PANE"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&cSiege engine is reloading."
+                - "&fTime left: %time%"
+        no-target:
+            title: "&b[&e%x%&b, &e%z%&b] %kingdom%"
+            material: "ORANGE_STAINED_GLASS_PANE"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&cThis land is not shielded and cannot be fired at."
+        # Alliance or own
+        friendly:
+            title: "&b[&e%x%&b, &e%z%&b] %kingdom%"
+            material: "BLUE_STAINED_GLASS_PANE"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&aFriendly territory"
+        ready:
+            title: "&b[&e%x%&b, &e%z%&b] %kingdom%"
+            material: "LIME_STAINED_GLASS_PANE"
+            material-meta: ""
+            glowing: false
+            lore:
+                - "&aClick to fire at this land!"
+                - "&7Each shot cost %cost%."
+

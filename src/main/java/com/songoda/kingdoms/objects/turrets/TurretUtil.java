@@ -1,23 +1,8 @@
 package com.songoda.kingdoms.objects.turrets;
 
-import com.songoda.kingdoms.objects.kingdom.Kingdom;
-import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
-import com.songoda.kingdoms.Kingdoms;
-import org.bukkit.event.entity.EntityRegainHealthEvent;
-import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
-import org.bukkit.inventory.EntityEquipment;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.util.Vector;
-
-import java.util.concurrent.ConcurrentHashMap;
-
-
 public class TurretUtil {
 
-	public static final String turretDecal = ChatColor.GOLD + "Kingdoms Turret";
+	/*public static final String turretDecal = ChatColor.GOLD + "Kingdoms Turret";
 
 	public static void volley(Kingdom shooter, Location target, Location origin) {
 		Location fromLoc = origin.clone().add(0.5D, 1.0D, 0.5D);
@@ -153,5 +138,6 @@ public class TurretUtil {
 		}
 		return red;
 	}
+	*/
 
 }
