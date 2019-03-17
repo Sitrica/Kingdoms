@@ -164,7 +164,9 @@ unreplaceable-blocks:
 # All Kingdom and chunk related configurations.
 kingdoms:
     # Allow Kingdoms to become passive if they want.
-    allow-pacifist: false
+    allow-pacifist: true
+    # Kingdoms with pacifist enabled can't fight in their own land.
+    pacifist-cannot-fight-in-land: true
     # If a Kingdom is a pacifist, should they be hidden from the leaderboard?
     leaderboard-hide-pacifists: false
     # Set if liquids can flow into the Kingdom or not.

@@ -43,6 +43,9 @@ messages:
     # Placeholders: All KingdomPlayer placeholders.
     inventory-full: "&cYour inventory is full, you need at least one empty slot in your inventory."
 
+defenders:
+    drag: "&cThe champion dragged you back!"
+
 # All messages relating to masswar.
 masswar:
     start:
@@ -183,6 +186,15 @@ map:
     enemy-land:
         actionbar: "&c&lEnemy's Land - &4(&f%kingdom%&4)"
         message: "&eYou have entered %kingdom%'s kingdom and they're an enemy with you!%newline%&7%lore%"
+    you: "You"
+    nexus: "Nexus Chunk"
+    kingdom: "Your Kingdom"
+    outpost: "Outpost Chunk"
+    enemies: "Enemy Kingdoms"
+    alliance: "Allied Kingdoms"
+    powercell: "PowerCell Chunk"
+    unoccupied: "Unoccupied Land"
+    unidentified: "Unidentified Kingdom"
 
 # All messages relating to claiming.
 claiming:
@@ -678,18 +690,9 @@ Misc_Cannot_Invade_Shielded: '&cYou cannot invade a shielded kingdom! Their shie
 Misc_Neutral_Cannot_Invade: '&cPacifist kingdoms cannot invade!'
 Misc_Neutral_Cannot_Be_Invaded: '&cYou can''t invade pacifist kingdoms!'
 Misc_Can_Only_Invade_During_Mass_War: '&cYou can only invade during a mass war!'
-Champion_Drag: '&cThe champion dragged you back!'
 Champion_Thor: '&cThe champion smites you!'
 Champion_Determination: '&c&lChampion Determination: &a&l[&c&l%amt%&a&l/&c&l%max%&a&l]'
 Soldier_Name: '&cKingdom Guard'
-Map_Your_Kingdom: Your Kingdom
-Map_Unidentified: Unidentified Kingdom
-Map_Enemies: Enemy Kingdoms
-Map_Allies: Allied Kingdoms
-Map_You: You
-Map_NexusChunk: Nexus Chunk
-Map_Powercell: PowerCell Chunk
-Map_Outpost: Outpost Chunk
 Guis_Enabled: 'Enabled: %enabled%'
 Guis_NextPage: '&6Next Page'
 Guis_PreviousPage: '&6Previous Page'

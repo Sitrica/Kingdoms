@@ -32,6 +32,7 @@ public class InvadingSurrenderEvent extends Event {
 		return challenger;
 	}
 
+	@Override
 	public HandlerList getHandlers() {
 		return handlers;
 	}

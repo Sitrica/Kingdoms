@@ -1,9 +1,13 @@
 package com.songoda.kingdoms.manager.managers;
 
+import com.songoda.kingdoms.events.DefenderDamageByPlayerEvent;
 import com.songoda.kingdoms.events.DefenderDamageMaxedEvent;
+import com.songoda.kingdoms.events.DefenderDragEvent;
 import com.songoda.kingdoms.events.DefenderFocusEvent;
 import com.songoda.kingdoms.events.DefenderKnockbackEvent;
 import com.songoda.kingdoms.events.DefenderMockEvent;
+import com.songoda.kingdoms.events.DefenderPlowEvent;
+import com.songoda.kingdoms.events.DefenderTargetEvent;
 import com.songoda.kingdoms.events.InvadingSurrenderEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
@@ -30,6 +34,7 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
@@ -92,6 +97,7 @@ public class InvadingManager extends Manager {
 	private final Map<UUID, Integer> thorTasks = new HashMap<>();
 	private final Map<UUID, Integer> plowTasks = new HashMap<>();
 	private final Map<Land, UUID> invading = new HashMap<>();
+	private final FileConfiguration defenderUpgrades;
 	private final CitizensManager citizensManager;
 	private final Random random = new Random();
 	private final TurretManager turretManager;
@@ -101,6 +107,7 @@ public class InvadingManager extends Manager {
 
 	protected InvadingManager() {
 		super(true);
+		this.defenderUpgrades = instance.getConfiguration("defender-upgrades").get();
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 		this.turretManager = instance.getManager("turret", TurretManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
@@ -323,11 +330,14 @@ public class InvadingManager extends Manager {
 				@Override
 				public void run() {				
 					if (!player.isDead() && !defender.isDead() && defender.isValid() && player.isOnline()) {
-						ChampionDragEvent event = new ChampionDragEvent(defender, challenger);
+						DefenderDragEvent event = new DefenderDragEvent(kingdom, defender, challenger, defenderUpgrades.getDouble("upgrades.drag.range", 7));
 						Bukkit.getPluginManager().callEvent(event);
-						if (!event.isCancelled() && player.getLocation().distance(location) > event.getDragRange() + (2 * drag)) {
+						if (!event.isCancelled() && player.getLocation().distance(location) > event.getRange() + (2 * drag)) {
 							player.teleport(location); //TODO remake this to have a pulling animation.
-							player.sendMessage(Kingdoms.getLang().getString("Champion_Drag", kp.getLang()));
+							new MessageBuilder("defenders.drag")
+									.setPlaceholderObject(player)
+									.setKingdom(kingdom)
+									.send(player);
 						}
 					}
 				}
@@ -347,11 +357,10 @@ public class InvadingManager extends Manager {
 								for (int z = -radius; z <= radius; z++) {
 									Block block = location.getBlock().getRelative(x, y, z);
 									Material type = block.getType();
-									if (type == Materials.COBWEB.parseMaterial() || type == Material.LAVA) {
-										ChampionPlowEvent plowEvent = new ChampionPlowEvent(champion, block);
-										if (!plowEvent.isCancelled()) {
+									if (type == Utils.materialAttempt("COBWEB", "WEB") || type == Material.LAVA) {
+										DefenderPlowEvent plowEvent = new DefenderPlowEvent(kingdom, defender, block);
+										if (!plowEvent.isCancelled())
 											location.getBlock().setType(Material.AIR);
-										}
 									}
 								}
 							}
@@ -360,39 +369,31 @@ public class InvadingManager extends Manager {
 				}
 			}, 1L, 5L));
 		}
-
-		//champ.aqua champ teleport to challenger in water
-		//int aqua = info.get (?)
-
-		//champ.thor struct lightning and damage manually, 6 dmg, 8dmg all around 7,7,7 area if not ally
 		int thor = info.getThor();
 		if (thor > 0) {
-			thorTasks.put(defender.getUniqueId(), Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
-				@Override
-				public void run() {
-					if (!player.isDead() && !defender.isDead() && defender.isValid() && player.isOnline()) {
-						sendLightning(player, player.getLocation());
-						p.damage(kingdom.getChampionInfo().getThor(), champion);
-	
-						p.sendMessage(Kingdoms.getLang().getString("Champion_Thor", GameManagement.getPlayerManager().getSession(p).getLang()));
+			thorTasks.put(defender.getUniqueId(), Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, () -> {
+				if (!player.isDead() && !defender.isDead() && defender.isValid() && player.isOnline()) {
+					sendLightning(player, player.getLocation());
+					player.damage(kingdom.getChampionInfo().getThor(), champion);
+
+					p.sendMessage(Kingdoms.getLang().getString("Champion_Thor", GameManagement.getPlayerManager().getSession(p).getLang()));
+					}
+
+					for(Entity e : champion.getNearbyEntities(7, 7, 7)){
+					if(e instanceof Player && !e.getUniqueId().equals(p.getUniqueId())){
+						KingdomPlayer kpNear = GameManagement.getPlayerManager().getSession(e.getUniqueId());
+						if(kpNear.getKingdom() == null || (!kpNear.getKingdom().equals(kingdom)
+							&& !kpNear.getKingdom().isAllianceWith(kingdom))){
+						ChampionThorEvent thorEvent = new ChampionThorEvent(champion, GameManagement.getPlayerManager().getSession(p));
+						Bukkit.getPluginManager().callEvent(thorEvent);
+						if(thorEvent.isCancelled()){
+							return;
 						}
-	
-						for(Entity e : champion.getNearbyEntities(7, 7, 7)){
-						if(e instanceof Player && !e.getUniqueId().equals(p.getUniqueId())){
-							KingdomPlayer kpNear = GameManagement.getPlayerManager().getSession(e.getUniqueId());
-							if(kpNear.getKingdom() == null || (!kpNear.getKingdom().equals(kingdom)
-								&& !kpNear.getKingdom().isAllianceWith(kingdom))){
-							ChampionThorEvent thorEvent = new ChampionThorEvent(champion, GameManagement.getPlayerManager().getSession(p));
-							Bukkit.getPluginManager().callEvent(thorEvent);
-							if(thorEvent.isCancelled()){
-								return;
-							}
-							//p.getWorld().strikeLightningEffect(p.getLocation());
-							sendLightning(p, p.getLocation());
-							p.damage(thorEvent.getDmg(), champion);
-	
-							p.sendMessage(Kingdoms.getLang().getString("Champion_Thor", GameManagement.getPlayerManager().getSession(p).getLang()));
-							}
+						//p.getWorld().strikeLightningEffect(p.getLocation());
+						sendLightning(p, p.getLocation());
+						p.damage(thorEvent.getDmg(), champion);
+
+						p.sendMessage(Kingdoms.getLang().getString("Champion_Thor", GameManagement.getPlayerManager().getSession(p).getLang()));
 						}
 					}
 				}
@@ -617,7 +618,7 @@ public class InvadingManager extends Manager {
 			event.setDamage(0.0D);
 			return;
 		}
-		ChampionByPlayerDamageEvent damageEvent = new ChampionByPlayerDamageEvent(entity, challenger, event.getDamage());
+		DefenderDamageByPlayerEvent damageEvent = new DefenderDamageByPlayerEvent(kingdom, entity, challenger, event.getDamage());
 		if (damageEvent.isCancelled()) {
 			event.setCancelled(true);
 			return;
@@ -715,7 +716,7 @@ public class InvadingManager extends Manager {
 		stopFight(challenger);
 		event.getDrops().clear();
 		// Should not be the end of the invasion, should only be a Defender death event.
-		instance.getServer().getPluginManager().callEvent(new KingdomPlayerWonEvent(challenger, defenderKingdom, land));
+		//instance.getServer().getPluginManager().callEvent(new KingdomPlayerWonEvent(challenger, defenderKingdom, land));
 	}
 
 	@EventHandler
@@ -775,7 +776,7 @@ public class InvadingManager extends Manager {
 			return;
 		KingdomPlayer challenger = challengerOptional.get();
 		LivingEntity target = event.getTarget();
-		ChampionTargetChangeEvent targetEvent = new ChampionTargetChangeEvent(entity, target);
+		DefenderTargetEvent targetEvent = new DefenderTargetEvent(defenderKingdom, entity, target);
 		Bukkit.getPluginManager().callEvent(targetEvent);
 		if (targetEvent.isCancelled())
 			return;
@@ -842,8 +843,6 @@ public class InvadingManager extends Manager {
 		mock = mockEvent.getRange();
 		Location location = defender.getLocation();
 		Block block = event.getBlock();
-		int x = block.getX();
-		int z = block.getZ();
 		if (block.getLocation().distanceSquared(location) > mock * mock)
 			return;
 		if (mockEvent.isEventCancelled())

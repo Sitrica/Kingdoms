@@ -135,11 +135,27 @@ upgrades:
         cost-multiplier: 150
         description:
             - "&7Every attack, there will be a chance to knock the player into the sky. Each upgrade increases this chance by 10%"
+    # The upgrade settings for the defender's drag feature.
+    drag:
+        enabled: true
+        title: "&bDrag"
+        material: "FISHING_ROD"
+        material-meta: ""
+        glowing: false
+        current: "&cCurrent Dragging Level: %level%"
+        max-level: 1
+        cost: 100
+        description:
+            - "&7If the invading player is more than 7 blocks away from the defender, the defender will teleport the player to the defender's location"
 
+            
+            
+            
+            
+            
 # cost
     champion:
         duel: 100
-        drag: 30
         mock: 10
         thor: 300
         damagecap: 300
@@ -169,9 +185,6 @@ Guis_ChampionUpgrades_Determination_Curr: '&5Current Determination: %level%'
 Guis_ChampionUpgrades_Determination_Desc: Increases Determination by 2. Champion Determination will act as a shield that will absorb damage. Armor does not affect this shield.
 Guis_ChampionUpgrades_DeterminationII_Title: '&bDetermination II'
 Guis_ChampionUpgrades_DeterminationII_Desc: Increases Determination by 50
-Guis_ChampionUpgrades_Drag_Title: '&bDrag'
-Guis_ChampionUpgrades_Drag_Curr: '&5Enabled: %level%'
-Guis_ChampionUpgrades_Drag_Desc: If the invading player is more than 7 blocks away from the champion, the champion will teleport the player to the champion's location
 Guis_ChampionUpgrades_Mock_Title: '&bMock'
 Guis_ChampionUpgrades_Mock_Curr: '&5Current Mock Range: %level% blocks'
 Guis_ChampionUpgrades_Mock_Desc: Each upgrade increases the radius in which invading players can't build while near the champion

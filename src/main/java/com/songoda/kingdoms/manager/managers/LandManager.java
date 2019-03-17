@@ -1,36 +1,52 @@
 package com.songoda.kingdoms.manager.managers;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.naming.NamingException;
+import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerBucketEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 
-import com.google.common.collect.Sets;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.Database;
-import com.songoda.kingdoms.database.DatabaseTransferTask;
-import com.songoda.kingdoms.database.DatabaseTransferTask.TransferPair;
-import com.songoda.kingdoms.database.MySQLDatabase;
-import com.songoda.kingdoms.database.SQLiteDatabase;
-import com.songoda.kingdoms.database.YamlDatabase;
+import com.songoda.kingdoms.events.LandClaimEvent;
+import com.songoda.kingdoms.events.LandLoadEvent;
+import com.songoda.kingdoms.events.LandUnclaimEvent;
+import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
+import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.managers.RankManager.Rank;
+import com.songoda.kingdoms.manager.managers.external.CitizensManager;
+import com.songoda.kingdoms.manager.managers.external.DynmapManager;
+import com.songoda.kingdoms.manager.managers.external.WorldGuardManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
@@ -42,47 +58,6 @@ import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.utils.LocationUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
 import com.songoda.kingdoms.utils.Utils;
-import com.songoda.kingdoms.events.LandClaimEvent;
-import com.songoda.kingdoms.events.LandLoadEvent;
-import com.songoda.kingdoms.events.LandUnclaimEvent;
-import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
-import com.songoda.kingdoms.manager.Manager;
-import com.songoda.kingdoms.manager.ManagerHandler;
-import com.songoda.kingdoms.manager.managers.RankManager.Rank;
-import com.songoda.kingdoms.manager.managers.external.CitizensManager;
-import com.songoda.kingdoms.manager.managers.external.DynmapManager;
-import com.songoda.kingdoms.manager.managers.external.WorldGuardManager;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockFromToEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.player.PlayerBucketEmptyEvent;
-import org.bukkit.event.player.PlayerBucketEvent;
-import org.bukkit.event.player.PlayerBucketFillEvent;
-import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.world.WorldLoadEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 public class LandManager extends Manager {
 	
@@ -129,12 +104,7 @@ public class LandManager extends Manager {
 			database = getSQLiteDatabase(Land.class);
 		if (configuration.getBoolean("database.auto-save.enabled")) {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
-			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
-				@Override 
-				public void run() {
-					saveTask.run();
-				}
-			}, 0, IntervalUtils.getInterval(interval) * 20);
+			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, saveTask, 0, IntervalUtils.getInterval(interval) * 20);
 		}
 		initLands();
 		if (configuration.getBoolean("taxes.enabled", false)) {
@@ -205,9 +175,6 @@ public class LandManager extends Manager {
 		}
 	};
 
-	//TODO why does this exist.
-	private HashMap<Chunk, Land> toLoad = new HashMap<>();
-
 	private void initLands() {
 		Set<String> keys = database.getKeys();
 		for (String name : keys) {
@@ -218,11 +185,8 @@ public class LandManager extends Manager {
 			try{
 				Land land = database.get(name);
 				Chunk chunk = LocationUtils.stringToChunk(name);
-				if (chunk == null) {
-					if (!toLoad.containsKey(chunk))
-						toLoad.put(chunk, land);
+				if (chunk == null)
 					continue;
-				}
 				OfflineKingdom kingdom = land.getKingdomOwner();
 				if (kingdom != null) {
 					Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
@@ -238,7 +202,7 @@ public class LandManager extends Manager {
 					e.printStackTrace();
 			}
 		}
-		database.save("LandData", null);
+		database.delete("LandData");
 		Kingdoms.consoleMessage("Total of [" + getLoadedLand().size() + "] lands are initialized");
 	}
 
@@ -256,7 +220,7 @@ public class LandManager extends Manager {
 	/**
 	 * Load land if exist; create if not exist.
 	 * 
-	 * @param loc Chunk of land to get from.
+	 * @param chunk Chunk of land to get from.
 	 * @return Land even if not loaded.
 	 */
 	public Land getLand(Chunk chunk) {
@@ -265,7 +229,6 @@ public class LandManager extends Manager {
 		String name = LocationUtils.chunkToString(chunk);
 		Kingdoms.debugMessage("Fetching info for land: " + name);
 		Land land = lands.get(chunk);
-		//new land so create empty one
 		if (land == null) {
 			land = new Land(chunk);
 			if (!lands.containsKey(chunk))
@@ -749,36 +712,12 @@ public class LandManager extends Manager {
 		}
 	}
 
-	@EventHandler
-	public void onWorldLoad(WorldLoadEvent event) {
-		for (Land land : toLoad.values()) {
-			OfflineKingdom kingdom = land.getKingdomOwner();
-			Chunk chunk = land.getChunk();
-			if (kingdom != null) {
-				String name = LocationUtils.chunkToString(chunk);
-				Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
-				Kingdoms.consoleMessage("The land owner is [" + kingdom.getName() + "] but no such kingdom with the name exists");
-			}
-			if (!lands.containsKey(chunk))
-				lands.put(chunk, land);
-			Bukkit.getPluginManager().callEvent(new LandLoadEvent(land));
-			toLoad.remove(land);
-		}
-	}
-
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onChunkChange(PlayerChangeChunkEvent event) {
 		Player player = event.getPlayer();
 		if (citizensManager.isCitizen(player))
 			return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		if (kingdomPlayer.isKMapOn()) {
-			Bukkit.getScheduler().scheduleSyncDelayedTask(Kingdoms.getInstance(), new Runnable() {
-				public void run() {
-					GUIManagement.getMapManager().displayMap(player, false);
-				}
-			}, 1L);
-		}
 		if (kingdomPlayer.isAutoClaiming()){
 			Bukkit.getScheduler().scheduleSyncDelayedTask(Kingdoms.getInstance(), new Runnable() {
 				public void run() {
@@ -819,8 +758,6 @@ public class LandManager extends Manager {
 			return;
 		if (!worldManager.canBuildInUnoccupied(world))
 			return;
-		if (Kingdoms.getManagers().getConquestManager() != null && world.equals(ConquestManager.world))
-			return;
 		Location location = block.getLocation();
 		Land land = getLand(location.getChunk());
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
@@ -843,8 +780,6 @@ public class LandManager extends Manager {
 		if (!worldManager.acceptsWorld(world))
 			return;
 		if (!worldManager.canBuildInUnoccupied(world))
-			return;
-		if (Kingdoms.getManagers().getConquestManager() != null && world.equals(ConquestManager.world))
 			return;
 		Location location = block.getLocation();
 		Land land = getLand(location.getChunk());

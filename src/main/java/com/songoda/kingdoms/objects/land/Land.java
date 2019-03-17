@@ -30,6 +30,14 @@ public class Land {
 		this.landManager = instance.getManager("land", LandManager.class);
 	}
 	
+	public int getX() {
+		return chunk.getX();
+	}
+	
+	public int getZ() {
+		return chunk.getZ();
+	}
+	
 	public Chunk getChunk() {
 		return chunk;
 	}

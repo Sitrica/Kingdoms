@@ -18,6 +18,7 @@ public class KingdomLoadEvent extends Event {
 		return kingdom;
 	}
 
+	@Override
 	public HandlerList getHandlers() {
 		return handlers;
 	}

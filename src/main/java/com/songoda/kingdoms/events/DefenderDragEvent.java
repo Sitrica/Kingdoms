@@ -8,30 +8,45 @@ import org.bukkit.event.HandlerList;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 
-public class DefenderFocusEvent extends Event implements Cancellable {
+public class DefenderDragEvent extends Event implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
 	private final OfflineKingdom kingdom;
 	private final KingdomPlayer player;
 	private final Entity defender;
+	private final double range;
 	private boolean cancelled;
 
-	public DefenderFocusEvent(OfflineKingdom kingdom, Entity defender, KingdomPlayer player) {
+	public DefenderDragEvent(OfflineKingdom kingdom, Entity defender, KingdomPlayer player, double range) {
 		this.defender = defender;
 		this.kingdom = kingdom;
 		this.player = player;
+		this.range = range;
 	}
 
+	public double getRange() {
+		return range;
+	}
+	
 	public Entity getDefender() {
 		return defender;
 	}
-	
-	public KingdomPlayer getFocusedPlayer() {
+
+	public KingdomPlayer getPlayer() {
 		return player;
 	}
 
-	public OfflineKingdom getDefenderKingdom() {
+	public OfflineKingdom getKingdom() {
 		return kingdom;
+	}
+
+	@Override
+	public HandlerList getHandlers() {
+		return handlers;
+	}
+
+	public static HandlerList getHandlerList() {
+		return handlers;
 	}
 
 	@Override
@@ -43,14 +58,5 @@ public class DefenderFocusEvent extends Event implements Cancellable {
 	public void setCancelled(boolean cancelled) {
 		this.cancelled = cancelled;
 	}
-	
-	@Override
-	public HandlerList getHandlers() {
-		return handlers;
-	}
 
-	public static HandlerList getHandlerList() {
-		return handlers;
-	}
-	
 }

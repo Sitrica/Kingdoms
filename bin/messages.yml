@@ -158,6 +158,8 @@ kingdoms:
     donated-alliance: "&aAlliance member %player% has just donated %amount% resource points to the Kingdom!"
     member-join: "&8[&7%player%&8] is now &aonline!"
     member-leave: '&8[&7%player%&8] is now &coffline!"
+    pacifist-cannot-fight-in-own-land: "&cNeutral members cannot fight in their own land!"
+    pacifist-cannot-be-damaged: "&cYou cannot harm neutral members in their own land!"
 
 # All messages relating to maps and chunks.
 map:
@@ -181,6 +183,15 @@ map:
     enemy-land:
         actionbar: "&c&lEnemy's Land - &4(&f%kingdom%&4)"
         message: "&eYou have entered %kingdom%'s kingdom and they're an enemy with you!%newline%&7%lore%"
+    you: "You"
+    nexus: "Nexus Chunk"
+    kingdom: "Your Kingdom"
+    outpost: "Outpost Chunk"
+    enemies: "Enemy Kingdoms"
+    alliance: "Allied Kingdoms"
+    powercell: "PowerCell Chunk"
+    unoccupied: "Unoccupied Land"
+    unidentified: "Unidentified Kingdom"
 
 # All messages relating to claiming.
 claiming:
@@ -224,7 +235,9 @@ chat:
 commands:
     # When a command can't be executed in a neutral area based on the values in the config.
     # Placeholders: %location% and all Kingdom releated placeholders.
-    kingdom-denied-neutral: '&cThis command is cannot be used in others'' kingdom.'
+    kingdom-denied-neutral: "&cThis command cannot be used in others' Kingdoms."
+    kingdom-denied-enemy: "&cThis command cannot be used in enemy Kingdoms."
+    kingdom-denied-other: "&cThis command cannot be used here."
     # Placeholders: %location% and all Kingdom releated placeholders.
     spawn-set: '&aKingdom spawn has been set at: %location%'
     kingdoms:
@@ -673,21 +686,11 @@ Misc_Shield_Up_Invade_Warning: '&cYour Kingdom shield is still up for %time% min
 Misc_Cannot_Invade_Shielded: '&cYou cannot invade a shielded kingdom! Their shield expires in %time% minutes.'
 Misc_Neutral_Cannot_Invade: '&cPacifist kingdoms cannot invade!'
 Misc_Neutral_Cannot_Be_Invaded: '&cYou can''t invade pacifist kingdoms!'
-Misc_Neutral_Cannot_Pvp_In_Own_Land: '&cNeutral members cannot pvp in their own land!'
-Misc_Neutral_Cannot_Pvp_In_Neutral_Land: '&cYou cannot harm neutral members in their own land!'
 Misc_Can_Only_Invade_During_Mass_War: '&cYou can only invade during a mass war!'
 Champion_Drag: '&cThe champion dragged you back!'
 Champion_Thor: '&cThe champion smites you!'
 Champion_Determination: '&c&lChampion Determination: &a&l[&c&l%amt%&a&l/&c&l%max%&a&l]'
 Soldier_Name: '&cKingdom Guard'
-Map_Your_Kingdom: Your Kingdom
-Map_Unidentified: Unidentified Kingdom
-Map_Enemies: Enemy Kingdoms
-Map_Allies: Allied Kingdoms
-Map_You: You
-Map_NexusChunk: Nexus Chunk
-Map_Powercell: PowerCell Chunk
-Map_Outpost: Outpost Chunk
 Guis_Enabled: 'Enabled: %enabled%'
 Guis_NextPage: '&6Next Page'
 Guis_PreviousPage: '&6Previous Page'
@@ -869,7 +872,6 @@ LandManager_MovedWhiledRemoveAll: '&c/k remove all cancelled.'
 PChest_AlreadyProtected: '&cThis chest is already protected.'
 PChest_CostDeducted: '&aProtected sign successfully made for %cost% rp!'
 PChest_NotYourKingdomChest: '&cThis chest is property of [%kingdom%].'
-Kingdom_Command_Denied_Enemy: '&cThis command is cannot be used in kingdom who against you.'
 Guis_Misc_Enabled: '&aEnabled'
 Guis_Misc_Disabled: '&cDisabled'
 Siege_Success_Shielded: '&b&l[&c&l%value%&b&l/&c&lmax&b&l]&a&lSiege cannon damaged %kingdom%''s shields.'

@@ -1,37 +1,46 @@
 package com.songoda.kingdoms.events;
 
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
-import com.songoda.kingdoms.objects.player.KingdomPlayer;
 
-public class DefenderFocusEvent extends Event implements Cancellable {
+public class DefenderPlowEvent extends Event implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
 	private final OfflineKingdom kingdom;
-	private final KingdomPlayer player;
 	private final Entity defender;
+	private final Block block;
 	private boolean cancelled;
 
-	public DefenderFocusEvent(OfflineKingdom kingdom, Entity defender, KingdomPlayer player) {
+	public DefenderPlowEvent(OfflineKingdom kingdom, Entity defender, Block block) {
 		this.defender = defender;
 		this.kingdom = kingdom;
-		this.player = player;
+		this.block = block;
 	}
 
+	public Block getBlock() {
+		return block;
+	}
+	
 	public Entity getDefender() {
 		return defender;
 	}
-	
-	public KingdomPlayer getFocusedPlayer() {
-		return player;
+
+	public OfflineKingdom getKingdom() {
+		return kingdom;
 	}
 
-	public OfflineKingdom getDefenderKingdom() {
-		return kingdom;
+	@Override
+	public HandlerList getHandlers() {
+		return handlers;
+	}
+
+	public static HandlerList getHandlerList() {
+		return handlers;
 	}
 
 	@Override
@@ -43,14 +52,5 @@ public class DefenderFocusEvent extends Event implements Cancellable {
 	public void setCancelled(boolean cancelled) {
 		this.cancelled = cancelled;
 	}
-	
-	@Override
-	public HandlerList getHandlers() {
-		return handlers;
-	}
 
-	public static HandlerList getHandlerList() {
-		return handlers;
-	}
-	
 }
