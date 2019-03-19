@@ -163,6 +163,8 @@ kingdoms:
     member-leave: '&8[&7%player%&8] is now &coffline!"
     pacifist-cannot-fight-in-own-land: "&cNeutral members cannot fight in their own land!"
     pacifist-cannot-be-damaged: "&cYou cannot harm neutral members in their own land!"
+    soldier-name: "&cKingdom Guard"
+    siege-breaker-name: "&dKingdom Siege Breaker"
 
 # All messages relating to maps and chunks.
 map:
@@ -692,7 +694,6 @@ Misc_Neutral_Cannot_Be_Invaded: '&cYou can''t invade pacifist kingdoms!'
 Misc_Can_Only_Invade_During_Mass_War: '&cYou can only invade during a mass war!'
 Champion_Thor: '&cThe champion smites you!'
 Champion_Determination: '&c&lChampion Determination: &a&l[&c&l%amt%&a&l/&c&l%max%&a&l]'
-Soldier_Name: '&cKingdom Guard'
 Guis_Enabled: 'Enabled: %enabled%'
 Guis_NextPage: '&6Next Page'
 Guis_PreviousPage: '&6Previous Page'

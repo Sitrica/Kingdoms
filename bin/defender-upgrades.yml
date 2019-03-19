@@ -143,6 +143,7 @@ upgrades:
         material-meta: ""
         glowing: false
         current: "&cCurrent Dragging Level: %level%"
+        range: 7
         max-level: 1
         cost: 100
         description:

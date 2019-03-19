@@ -8,6 +8,7 @@ import com.songoda.kingdoms.events.DefenderKnockbackEvent;
 import com.songoda.kingdoms.events.DefenderMockEvent;
 import com.songoda.kingdoms.events.DefenderPlowEvent;
 import com.songoda.kingdoms.events.DefenderTargetEvent;
+import com.songoda.kingdoms.events.DefenderThorEvent;
 import com.songoda.kingdoms.events.InvadingSurrenderEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
@@ -102,6 +103,7 @@ public class InvadingManager extends Manager {
 	private final Random random = new Random();
 	private final TurretManager turretManager;
 	private final PlayerManager playerManager;
+	private final GuardsManager guardsManager;
 	private final WorldManager worldManager;
 	private final LandManager landManager;
 
@@ -111,6 +113,7 @@ public class InvadingManager extends Manager {
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 		this.turretManager = instance.getManager("turret", TurretManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.guardsManager = instance.getManager("guards", GuardsManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
 	}
@@ -254,8 +257,7 @@ public class InvadingManager extends Manager {
 				if (land.equals(nexusLand)) {
 					DeprecationUtils.setMaxHealth(defender, defender.getHealth() + 200);
 					if (kingdom.getMiscUpgrades().hasNexusGuard()) {
-						GameManagement.getGuardsManager().spawnNexusGuard(location, kingdom, challenger);
-						//callReinforcement(location, challenger, 50);
+						guardsManager.spawnNexusGuard(location, kingdom, challenger);
 					}
 				}
 			} else if (structure.getType() == StructureType.POWERCELL) {
@@ -374,32 +376,28 @@ public class InvadingManager extends Manager {
 			thorTasks.put(defender.getUniqueId(), Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, () -> {
 				if (!player.isDead() && !defender.isDead() && defender.isValid() && player.isOnline()) {
 					sendLightning(player, player.getLocation());
-					player.damage(kingdom.getChampionInfo().getThor(), champion);
-
+					player.damage(thor, defender);
 					p.sendMessage(Kingdoms.getLang().getString("Champion_Thor", GameManagement.getPlayerManager().getSession(p).getLang()));
-					}
-
-					for(Entity e : champion.getNearbyEntities(7, 7, 7)){
-					if(e instanceof Player && !e.getUniqueId().equals(p.getUniqueId())){
-						KingdomPlayer kpNear = GameManagement.getPlayerManager().getSession(e.getUniqueId());
-						if(kpNear.getKingdom() == null || (!kpNear.getKingdom().equals(kingdom)
-							&& !kpNear.getKingdom().isAllianceWith(kingdom))){
-						ChampionThorEvent thorEvent = new ChampionThorEvent(champion, GameManagement.getPlayerManager().getSession(p));
+				}
+				for (Entity entity : defender.getNearbyEntities(7, 7, 7)) {
+					if (!(entity instanceof Player))
+						continue;
+					if (entity.getUniqueId().equals(player.getUniqueId()))
+						continue;
+					KingdomPlayer near = playerManager.getKingdomPlayer(entity.getUniqueId());
+					Kingdom nearKingdom = near.getKingdom();
+					if (nearKingdom == null || (!nearKingdom.equals(kingdom) && !nearKingdom.isAllianceWith(kingdom))) {
+						DefenderThorEvent thorEvent = new DefenderThorEvent(kingdom, defender, playerManager.getKingdomPlayer(player));
 						Bukkit.getPluginManager().callEvent(thorEvent);
-						if(thorEvent.isCancelled()){
+						if (thorEvent.isCancelled())
 							return;
-						}
-						//p.getWorld().strikeLightningEffect(p.getLocation());
-						sendLightning(p, p.getLocation());
-						p.damage(thorEvent.getDmg(), champion);
-
+						sendLightning(player, player.getLocation());
+						player.damage(thorEvent.getDamage(), defender);
 						p.sendMessage(Kingdoms.getLang().getString("Champion_Thor", GameManagement.getPlayerManager().getSession(p).getLang()));
-						}
 					}
 				}
-			}, 1L, (long) (Config.getConfig().getDouble("champion-specs.thor-delay") * 20L)));
+			}, 1L, Config.getConfig().getDouble("champion-specs.thor-delay") * 20L));
 		}
-		
 		return defender;
 	}
 
