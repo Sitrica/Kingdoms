@@ -155,7 +155,7 @@ public class PlayerMovementManager extends Manager {
 			}
 		}
 		if (chunkTo != chunkFrom) {
-			if (configuration.getBoolean("kingdoms.invading.invading-deny-chunk-change", true)) {
+			if (configuration.getBoolean("invading.invading-deny-chunk-change", true)) {
 				KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 				if (kingdomPlayer.isInvading()) {
 					// Direction from to to.
@@ -165,7 +165,7 @@ public class PlayerMovementManager extends Manager {
 					player.setVelocity(vector);
 					player.setFallDistance(0);
 					event.setCancelled(true);
-					new MessageBuilder("kingdoms.invading.invading-deny-chunk-change")
+					new MessageBuilder("invading.invading-deny-chunk-change")
 							.replace("%chunkFrom%", LocationUtils.chunkToString(chunkFrom))
 							.replace("%chunkTo%", LocationUtils.chunkToString(chunkTo))
 							.setKingdom(kingdomPlayer.getKingdom())

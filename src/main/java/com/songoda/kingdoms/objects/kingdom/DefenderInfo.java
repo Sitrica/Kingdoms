@@ -12,6 +12,7 @@ public class DefenderInfo implements Serializer<DefenderInfo> {
 	
 	private final OfflineKingdom kingdom;
 	private int reinforcements = 0;
+	private int megaHealth = 0;
 	private int absorption = 0;
 	private int resistance = 0;
 	private int specials = 0;
@@ -20,6 +21,7 @@ public class DefenderInfo implements Serializer<DefenderInfo> {
 	private int damage = 1;
 	private int weapon = 0;
 	private int summon = 0;
+	private int thrown = 0;
 	private int speed = 0;
 	private int armor = 0;
 	private int mimic = 0;
@@ -162,12 +164,28 @@ public class DefenderInfo implements Serializer<DefenderInfo> {
 		this.summon = summon;
 	}
 	
+	public int getThrow() {
+		return thrown;
+	}
+	
+	public void setThrow(int thrown) {
+		this.thrown = thrown;
+	}
+	
 	public int getDamage() {
 		return damage;
 	}
 	
 	public void setDamage(int damage) {
 		this.damage = damage;
+	}
+	
+	public int getMegaHealth() {
+		return megaHealth;
+	}
+	
+	public void setMegaHealth(int megaHealth) {
+		this.megaHealth = megaHealth;
 	}
 	
 	public int getSpecials() {
@@ -227,11 +245,9 @@ public class DefenderInfo implements Serializer<DefenderInfo> {
 			case ARMOR:
 				return armor;
 			case DAMAGE_CAP:
-				return maxDamage;
+				return limit;
 			case DEATH_DUEL:
 				return duel;
-			case DETERMINATION:
-				return determination;
 			case DRAG:
 				return drag;
 			case FOCUS:
@@ -256,6 +272,10 @@ public class DefenderInfo implements Serializer<DefenderInfo> {
 				return thor;
 			case WEAPON:
 				return weapon;
+			case MEGA_HEALTH:
+				return megaHealth;
+			case THROW:
+				return thrown;
 		}
 		return 0;
 	}
@@ -271,13 +291,10 @@ public class DefenderInfo implements Serializer<DefenderInfo> {
 				this.armor = level; 
 				break;
 			case DAMAGE_CAP:
-				this.maxDamage = level; 
+				this.limit = level; 
 				break;
 			case DEATH_DUEL:
 				this.duel = level;  
-				break;
-			case DETERMINATION:
-				this.determination = level;
 				break;
 			case DRAG:
 				this.drag = level; 
@@ -313,6 +330,12 @@ public class DefenderInfo implements Serializer<DefenderInfo> {
 				break;
 			case WEAPON:
 				this.weapon = level; 
+				break;
+			case MEGA_HEALTH:
+				this.megaHealth = level;
+				break;
+			case THROW:
+				this.thrown = level;
 				break;
 		}
 	}

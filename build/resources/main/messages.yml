@@ -1,15 +1,15 @@
 #!     ▄█   ▄█▄  ▄█  ███▄▄▄▄      ▄██████▄  ████████▄   ▄██████▄    ▄▄▄▄███▄▄▄▄      ▄████████ 
 #!    ███ ▄███▀ ███  ███▀▀▀██▄   ███    ███ ███   ▀███ ███    ███ ▄██▀▀▀███▀▀▀██▄   ███    ███ 
-#!    ███▐██▀   ███▌ ███   ███   ███    █▀  ███    ███ ███    ███ ███   ███   ███   ███    █▀  
+#!    ███�?██▀   ███▌ ███   ███   ███    █▀  ███    ███ ███    ███ ███   ███   ███   ███    █▀  
 #!   ▄█████▀    ███▌ ███   ███  ▄███        ███    ███ ███    ███ ███   ███   ███   ███        
 #!  ▀▀█████▄    ███▌ ███   ███ ▀▀███ ████▄  ███    ███ ███    ███ ███   ███   ███ ▀███████████ 
-#!    ███▐██▄   ███  ███   ███   ███    ███ ███    ███ ███    ███ ███   ███   ███          ███ 
+#!    ███�?██▄   ███  ███   ███   ███    ███ ███    ███ ███    ███ ███   ███   ███          ███ 
 #!    ███ ▀███▄ ███  ███   ███   ███    ███ ███   ▄███ ███    ███ ███   ███   ███    ▄█    ███ 
 #!    ███   ▀█▀ █▀    ▀█   █▀    ████████▀  ████████▀   ▀██████▀   ▀█   ███   █▀   ▄████████▀  
 #!    ▀                                                                                        
 #!
 # The version is to help determine which version this config is. Please don't modify this value.
-version: "@version@"
+version: "2.0.0"
 
 # Information: Placeholders that are available for each message will be commented above it.
 # Default placeholders that exist on every message are %prefix% and %newline%/%nl%
@@ -45,6 +45,7 @@ messages:
 
 defenders:
     drag: "&cThe champion dragged you back!"
+    defender-thor: "&cThe defender smites you!"
 
 # All messages relating to masswar.
 masswar:
@@ -97,11 +98,6 @@ structures:
 
 # All messages relating to Kingdoms.
 kingdoms:
-    # TODO move this into the invading area not here.
-    invading:
-        # Placeholders: %player%, %chunkTo%, %chunkFrom%, %land% and %kingdom%
-        invading-deny-chunk-change: "&cYou can not leave the Kingdom while invading!"
-        # TODO remove this above and place into the invading category.
     deleted: "&eYour Kingdom %kingdom% has been disbanded."
     no-kingdom: "&cYou are not apart of any Kingdom!"
     creation: "&aYou have successfully created a Kingdom with the name %kingdom%!"
@@ -177,7 +173,7 @@ map:
     # Placeholders: %player%, %kingdom%, %lore%, %world%, %color% and %chunk% - which is the chunk the player is walking into.
     neutral-land:
         actionbar: "&a&lNeutral Land - &2(&f%kingdom%&2)"
-        message: "&aYou have entered %kingdom%'s kingdom and they're neutral with you.%newline%&7%lore%"
+        message: "&aYou have entered %kingdom%'s kingdom and they are neutral with you.%newline%&7%lore%"
     # Called when a user walks into an allience's kingdom.
     # Placeholders: %player%, %kingdom%, %lore%, %world%, %color% and %chunk% - which is the chunk the player is walking into.
     allience-land:
@@ -312,6 +308,8 @@ invading:
     break-nexus-add: "&aYour Kingdom has earned %amount% resource points for mining the enemys' nexus!"
     # When a player invades a Kingdom ,it will spawn a Zombie, this will be the name of the Zombie.
     defenders-name: "&4%kingdom%'s Defender"
+    # Placeholders: %player%, %chunkTo%, %chunkFrom%, %land% and %kingdom%
+    invading-deny-chunk-change: "&cYou can not leave the Kingdom while invading!"
     
     
 
@@ -692,7 +690,6 @@ Misc_Cannot_Invade_Shielded: '&cYou cannot invade a shielded kingdom! Their shie
 Misc_Neutral_Cannot_Invade: '&cPacifist kingdoms cannot invade!'
 Misc_Neutral_Cannot_Be_Invaded: '&cYou can''t invade pacifist kingdoms!'
 Misc_Can_Only_Invade_During_Mass_War: '&cYou can only invade during a mass war!'
-Champion_Thor: '&cThe champion smites you!'
 Champion_Determination: '&c&lChampion Determination: &a&l[&c&l%amt%&a&l/&c&l%max%&a&l]'
 Guis_Enabled: 'Enabled: %enabled%'
 Guis_NextPage: '&6Next Page'

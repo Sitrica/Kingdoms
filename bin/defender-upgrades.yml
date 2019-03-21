@@ -135,6 +135,16 @@ upgrades:
         cost-multiplier: 150
         description:
             - "&7Every attack, there will be a chance to knock the player into the sky. Each upgrade increases this chance by 10%"
+    aqua:
+        enabled: true
+        title: "&bAqua"
+        material: "WATER_BUCKET"
+        material-meta: ""
+        glowing: false
+        current: "&cCurrent Aqua Level: %level%"
+        cost: 500
+        description:
+            - "&7The defender gets depth strider boots."
     # The upgrade settings for the defender's drag feature.
     drag:
         enabled: true
@@ -144,10 +154,54 @@ upgrades:
         glowing: false
         current: "&cCurrent Dragging Level: %level%"
         range: 7
-        max-level: 1
         cost: 100
         description:
             - "&7If the invading player is more than 7 blocks away from the defender, the defender will teleport the player to the defender's location"
+    mimic:
+        enabled: true
+        title: "&bMimic"
+        # use THIN_GLASS for 1.8...
+        material: "GLASS_PANE"
+        material-meta: ""
+        glowing: false
+        current: "&cCurrent Mimic Level: %level%"
+        cost: 600
+        description:
+            - "&7The champion gains the invader's helmet, leggings and boots."
+    mock:
+        enabled: true
+        title: "&bMock"
+        material: "STONE"
+        material-meta: ""
+        glowing: false
+        current: "&5Current Mock Range: %level% blocks"
+        max-level: 5
+        cost: 25
+        cost-multiplier: 25
+        description:
+            - "&7Each upgrade increases the radius in which invading players can't build while near the defender."
+    death-duel:
+        enabled: true
+        title: "&bDeath Duel"
+        # Use GOLD_SWORD for 1.8...
+        material: "GOLDEN_SWORD"
+        material-meta: ""
+        glowing: false
+        current: "&5Current Duel Level: %level%"
+        cost: 100
+        description:
+            - "&7All players except the invader will deal 50% less damage to the defender. The defender will also deal double damage to all players except the invader."
+    damage-cap:
+        enabled: true
+        title: "&bDamage Cap"
+        # Use GOLD_SWORD for 1.8...
+        material: "DIAMOND_CHESTPLATE"
+        material-meta: ""
+        glowing: false
+        current: "&5Current Damage Cap: %level%"
+        cost: 300
+        description:
+            - "&7Your defender can only receive up to 15 damage at any attack.."
 
             
             
@@ -156,15 +210,10 @@ upgrades:
             
 # cost
     champion:
-        duel: 100
-        mock: 10
         thor: 300
-        damagecap: 300
         plow: 600
         reinforcements: 800
-        mimic: 600
         focus: 700
-        aqua: 500
         determination: 5
         
 # level max
@@ -172,9 +221,7 @@ upgrades:
         determination: 2048
         duel: 1
         drag: 1
-        mock: 6
         thor: 10
-        damagecap: 1
         plow: 1
         reinforcements: 2
         mimic: 1
@@ -186,30 +233,15 @@ Guis_ChampionUpgrades_Determination_Curr: '&5Current Determination: %level%'
 Guis_ChampionUpgrades_Determination_Desc: Increases Determination by 2. Champion Determination will act as a shield that will absorb damage. Armor does not affect this shield.
 Guis_ChampionUpgrades_DeterminationII_Title: '&bDetermination II'
 Guis_ChampionUpgrades_DeterminationII_Desc: Increases Determination by 50
-Guis_ChampionUpgrades_Mock_Title: '&bMock'
-Guis_ChampionUpgrades_Mock_Curr: '&5Current Mock Range: %level% blocks'
-Guis_ChampionUpgrades_Mock_Desc: Each upgrade increases the radius in which invading players can't build while near the champion
-Guis_ChampionUpgrades_DeathDuel_Title: '&bDeath Duel'
-Guis_ChampionUpgrades_DeathDuel_Curr: '&5Enabled: %level%'
-Guis_ChampionUpgrades_DeathDuel_Desc: All players except the invader will deal 50% less damage to the champion. The champion will also deal double damage to all players except the invader
 Guis_ChampionUpgrades_Thor_Title: '&bThor'
 Guis_ChampionUpgrades_Thor_Curr: '&5Current Thor Damage: %level%'
 Guis_ChampionUpgrades_Thor_Desc: Every 3 seconds, strike lightning down at the invading player and all nearby non-allied players, dealing damage, and knocking the player back
-Guis_ChampionUpgrades_DamageCap_Title: '&bDamage Cap'
-Guis_ChampionUpgrades_DamageCap_Curr: '&5Enabled: %level%'
-Guis_ChampionUpgrades_DamageCap_Desc: Your champion can only receive up to 15 damage at any attack.
 Guis_ChampionUpgrades_Plow_Title: '&bPlow'
 Guis_ChampionUpgrades_Plow_Curr: '&5Enabled: %level%'
 Guis_ChampionUpgrades_Plow_Desc: Your champion will try to clear lava and webs
 Guis_ChampionUpgrades_Reinforcements_Title: '&bReinforcements'
 Guis_ChampionUpgrades_Reinforcements_Curr: '&5Number of reinforcements: %level%'
 Guis_ChampionUpgrades_Reinforcements_Desc: 'Each upgrade allows only the &c&lNexus Champion &ato spawn an additonal nexus guard. Maximum level: 2'
-Guis_ChampionUpgrades_Mimic_Title: '&bMimic'
-Guis_ChampionUpgrades_Mimic_Curr: '&5Enabled: %level%'
-Guis_ChampionUpgrades_Mimic_Desc: The champion gains the invader's helmet, leggings and boots
 Guis_ChampionUpgrades_Focus_Title: '&bFocus'
 Guis_ChampionUpgrades_Focus_Curr: '&5Current Focus Level: %level%'
 Guis_ChampionUpgrades_Focus_Desc: Players hit by the champion (including Thor) will have 1 second removed from all their active potion effects
-Guis_ChampionUpgrades_Aqua_Title: '&bAqua'
-Guis_ChampionUpgrades_Aqua_Curr: '&5Enabled: %level%'
-Guis_ChampionUpgrades_Aqua_Desc: The champion gets depth strider boots

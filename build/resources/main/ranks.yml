@@ -1,0 +1,142 @@
+#!
+#!     ▄█   ▄█▄  ▄█  ███▄▄▄▄      ▄██████▄  ████████▄   ▄██████▄    ▄▄▄▄███▄▄▄▄      ▄████████ 
+#!    ███ ▄███▀ ███  ███▀▀▀██▄   ███    ███ ███   ▀███ ███    ███ ▄██▀▀▀███▀▀▀██▄   ███    ███ 
+#!    ███�?██▀   ███▌ ███   ███   ███    █▀  ███    ███ ███    ███ ███   ███   ███   ███    █▀  
+#!   ▄█████▀    ███▌ ███   ███  ▄███        ███    ███ ███    ███ ███   ███   ███   ███        
+#!  ▀▀█████▄    ███▌ ███   ███ ▀▀███ ████▄  ███    ███ ███    ███ ███   ███   ███ ▀███████████ 
+#!    ███�?██▄   ███  ███   ███   ███    ███ ███    ███ ███    ███ ███   ███   ███          ███ 
+#!    ███ ▀███▄ ███  ███   ███   ███    ███ ███   ▄███ ███    ███ ███   ███   ███    ▄█    ███ 
+#!    ███   ▀█▀ █▀    ▀█   █▀    ████████▀  ████████▀   ▀██████▀   ▀█   ███   █▀   ▄████████▀  
+#!    ▀                                                                                        
+#!
+# The version is to help determine which version this config is. Please don't modify this value.
+version: "2.0.0"
+
+# All configurations related to ranks, you can add ranks and manager their priority in this section.
+ranks-use-prefix: true
+# Use the chat-color option.
+ranks-use-chat-color: true
+ranks:
+    # The king is usally the owner.
+    king:
+        # The priority of this rank. The lower the value the higher their power in the kingdom they have.
+        priority: 0
+        # The color the rank gets. Colors can be viewed here https://hub.spigotmc.org/javadocs/spigot/org/bukkit/ChatColor.html
+        color: "RED"
+        chat-color: "GRAY"
+        # Ranks can have a CSS unicode as their symbol in Minecraft.
+        # The kings unicode is a crown. You can view unicodes here: https://unicode-table.com
+        # Chess symbols work good https://unicode-table.com/en/blocks/miscellaneous-symbols/
+        unicode-icon: "\u265a"
+        name: "King"
+        # Placeholders: %player%, %kingdom%, %priority%, %name% (rank name), %unicode%/%icon%, %player% and all Kingdom related placeholders.
+        prefix: "&8[&c%unicode%&8][&7%kingdom%&8] &7"
+# If you want to have queens aswell you can add this rank.
+#    queen:
+#        priority: 1
+#        color: "LIGHT_PURPLE"
+#        # Queen symbol
+#        unicode-icon: "\265B"
+#        name: "Queen"
+#        # Placeholders: %player%, %kingdom%, %priority%, %name% (rank name), %unicode%/%icon%, %player% and all Kingdom related placeholders.
+#        prefix: "&8[&d%unicode%&8][&7%kingdom%&8]"
+    general:
+        priority: 2
+        color: "GOLD"
+        chat-color: "GRAY"
+        unicode-icon: "\u265b"
+        name: "General"
+        # Placeholders: %player%, %kingdom%, %priority%, %name% (rank name), %unicode%/%icon%, %player% and all Kingdom related placeholders.
+        prefix: "&8[&6%unicode%&8][&7%kingdom%&8]"
+        # Default permissions are the base permission set when a new Kingdom is created.
+        # If the default permissions aren't set they will be assumed true, just like in the King's section.
+        # All permissions can be changed via the Kingdom permissions manager.
+        default-permissions:
+            # If the rank can access protected chests.
+            protected-chests: false
+            nexus-access: false
+            # If the rank can build in the nexus chunk.
+            nexus-build: true
+            chest-access: true
+            unclaiming: true
+            # If the rank can go into an outpost and transfer resource points into experience botttles.
+            xp-bottles: true
+            # If the rank can break and place structures.
+            structures: true
+            # If the rank can set the spawn location of the Kingdom
+            set-spawn: false
+            # If the rank can use the spawn of the Kingdom.
+            use-spawn: true
+            # If the rank can use the broadcast command for the Kingdom.
+            broadcast: true
+            # If the rank can set alliance state with other Kingdoms.
+            alliance: true
+            claiming: true
+            # If the rank can use the turrets.
+            turrets: true
+            # If the rank can invite new players.
+            invite: true
+            # The maximum amount of claims a rank can claim. Set to -1 to have an infinite amount.
+            max-claims: 5
+            # If the rank can initiate an invade on another Kingdom.
+            invade: true
+            # If the rank can build within the Kingdom.
+            build: true
+    # Knights was previously called moderators.
+    knight:
+        priority: 3
+        color: "BLUE"
+        chat-color: "GRAY"
+        unicode-icon: "\u2694"
+        name: "Knight"
+        # Placeholders: %player%, %kingdom%, %priority%, %name% (rank name), %unicode%/%icon%, %player% and all Kingdom related placeholders.
+        prefix: "&8[&9%unicode%&8][&7%kingdom%&8]"
+        # Default permissions are the base permission set when a new Kingdom is created.
+        # If the default permissions aren't set they will be assumed true, just like in the King's section.
+        default-permissions:
+            protected-chests: false
+            nexus-access: false
+            nexus-build: false
+            chest-access: true
+            xp-bottles: false
+            unclaiming: true
+            structures: true
+            set-spawn: false
+            use-spawn: true
+            broadcast: false
+            alliance: true
+            claiming: true
+            turrets: true
+            invite: false
+            max-claims: 5
+            invade: true
+            build: true
+    member:
+        # Default it's going to be the lowest priority.
+        priority: 99
+        color: "GREEN"
+        chat-color: "GRAY"
+        unicode-icon: "\u265f"
+        name: "Member"
+        # Placeholders: %player%, %kingdom%, %priority%, %name% (rank name), %unicode%/%icon%, %player% and all Kingdom related placeholders.
+        prefix: "&8[&7%kingdom%&8]"
+        # Default permissions are the base permission set when a new Kingdom is created.
+        # If the default permissions aren't set they will be assumed true, just like in the King's section.
+        default-permissions:
+            protected-chests: false
+            nexus-access: false
+            nexus-build: false
+            chest-access: false
+            xp-bottles: false
+            unclaiming: false
+            structures: false
+            set-spawn: false
+            use-spawn: true
+            broadcast: false
+            alliance: false
+            claiming: false
+            turrets: false
+            invite: false
+            max-claims: 3
+            invade: true
+            build: true

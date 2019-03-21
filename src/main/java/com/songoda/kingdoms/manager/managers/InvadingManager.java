@@ -1,18 +1,20 @@
 package com.songoda.kingdoms.manager.managers;
 
 import com.songoda.kingdoms.events.DefenderDamageByPlayerEvent;
+import com.songoda.kingdoms.events.DefenderDamageEvent;
+import com.songoda.kingdoms.events.DefenderDamageEvent.DefenderDamageCause;
 import com.songoda.kingdoms.events.DefenderDamageMaxedEvent;
 import com.songoda.kingdoms.events.DefenderDragEvent;
 import com.songoda.kingdoms.events.DefenderFocusEvent;
 import com.songoda.kingdoms.events.DefenderKnockbackEvent;
 import com.songoda.kingdoms.events.DefenderMockEvent;
 import com.songoda.kingdoms.events.DefenderPlowEvent;
+import com.songoda.kingdoms.events.DefenderStrengthEvent;
 import com.songoda.kingdoms.events.DefenderTargetEvent;
 import com.songoda.kingdoms.events.DefenderThorEvent;
 import com.songoda.kingdoms.events.InvadingSurrenderEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
-import com.songoda.kingdoms.manager.managers.external.HolographicDisplaysManager;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.MiscUpgradeType;
@@ -21,7 +23,6 @@ import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.structures.Structure;
 import com.songoda.kingdoms.objects.structures.StructureType;
-import com.songoda.kingdoms.objects.turrets.TurretUtil;
 import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.HologramBuilder;
 import com.songoda.kingdoms.utils.MessageBuilder;
@@ -33,21 +34,17 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.ThrownPotion;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -60,12 +57,9 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Constructor;
@@ -75,11 +69,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class InvadingManager extends Manager {
 
@@ -374,29 +366,37 @@ public class InvadingManager extends Manager {
 		int thor = info.getThor();
 		if (thor > 0) {
 			thorTasks.put(defender.getUniqueId(), Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, () -> {
+				KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 				if (!player.isDead() && !defender.isDead() && defender.isValid() && player.isOnline()) {
 					sendLightning(player, player.getLocation());
 					player.damage(thor, defender);
-					p.sendMessage(Kingdoms.getLang().getString("Champion_Thor", GameManagement.getPlayerManager().getSession(p).getLang()));
+					new MessageBuilder("defenders.defender-thor")
+							.setPlaceholderObject(kingdomPlayer)
+							.setKingdom(kingdom)
+							.send(player);
 				}
 				for (Entity entity : defender.getNearbyEntities(7, 7, 7)) {
 					if (!(entity instanceof Player))
 						continue;
 					if (entity.getUniqueId().equals(player.getUniqueId()))
 						continue;
-					KingdomPlayer near = playerManager.getKingdomPlayer(entity.getUniqueId());
-					Kingdom nearKingdom = near.getKingdom();
+					Player p = (Player) entity;
+					kingdomPlayer = playerManager.getKingdomPlayer(p);
+					Kingdom nearKingdom = kingdomPlayer.getKingdom();
 					if (nearKingdom == null || (!nearKingdom.equals(kingdom) && !nearKingdom.isAllianceWith(kingdom))) {
-						DefenderThorEvent thorEvent = new DefenderThorEvent(kingdom, defender, playerManager.getKingdomPlayer(player));
+						DefenderThorEvent thorEvent = new DefenderThorEvent(kingdom, defender, kingdomPlayer);
 						Bukkit.getPluginManager().callEvent(thorEvent);
 						if (thorEvent.isCancelled())
 							return;
-						sendLightning(player, player.getLocation());
-						player.damage(thorEvent.getDamage(), defender);
-						p.sendMessage(Kingdoms.getLang().getString("Champion_Thor", GameManagement.getPlayerManager().getSession(p).getLang()));
+						sendLightning(p, p.getLocation());
+						p.damage(thorEvent.getDamage(), defender);
+						new MessageBuilder("defenders.defender-thor")
+								.setPlaceholderObject(kingdomPlayer)
+								.setKingdom(kingdom)
+								.send(p);
 					}
 				}
-			}, 1L, Config.getConfig().getDouble("champion-specs.thor-delay") * 20L));
+			}, 1L, (long) configuration.getDouble("kingdoms.defenders.thor-delay") * 20L));
 		}
 		return defender;
 	}
@@ -421,7 +421,7 @@ public class InvadingManager extends Manager {
 		if (plowTask != null)
 			Bukkit.getScheduler().cancelTask(plowTask);
 		entities.remove(uuid);
-		fighting.remove(uuid);
+		fighting.remove(challenger);
 		invading.remove(challenger.getInvadingLand());
 		challenger.setInvadingLand(null);
 		defender.remove();
@@ -526,41 +526,6 @@ public class InvadingManager extends Manager {
 		event.setCancelled(true);
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onDefenderDamage(EntityDamageEvent event) {
-		Entity entity = event.getEntity();
-		if (citizensManager.isCitizen(entity))
-			return;
-		World world = entity.getWorld();
-		if (!worldManager.acceptsWorld(world))
-			return;
-		if (!entities.containsKey(entity.getUniqueId()))
-			return;
-		if(!(entity instanceof Damageable))
-			return;
-		Damageable defender = (Damageable) entity;
-		OfflineKingdom kingdom = entities.get(defender.getUniqueId());
-		//String name = new MessageBuilder("invading.defenders-name")
-		//		.setPlaceholderObject(defender)
-		//		.setKingdom(kingdom)
-		//		.get();
-		String name = ChatColor.RED + kingdom.getKingdomName() + "'s Champion "
-			+ ChatColor.GRAY + "[" +
-			ChatColor.GREEN + ((int) (champion.getHealth() - e.getFinalDamage())) +
-			ChatColor.AQUA + "/" +
-			ChatColor.GREEN + champion.getMaxHealth() +
-			ChatColor.GRAY + "]";
-		if (kingdom.getChampionInfo().getDetermination() > 0) {
-			name += ChatColor.GRAY + "[" + ChatColor.RED
-				+ determination.get(e.getEntity().getEntityId())
-				+ ChatColor.AQUA + "/"
-				+ ChatColor.RED
-				+ kingdom.getChampionInfo().getDetermination() + ChatColor.GRAY + "]";
-		}
-		defender.setCustomName(name);
-		defender.setCustomNameVisible(true);
-	}
-
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onDefenderVoidDamage(EntityDamageEvent event) {
 		if (event.getCause() != DamageCause.VOID)
@@ -645,7 +610,7 @@ public class InvadingManager extends Manager {
 			event.setDamage(0);
 			return;
 		}
-		ChampionDamageEvent damageEvent = new ChampionDamageEvent(victim, event.getDamage(), ChampionDamageEvent.ChampionDamageCause.TURRET);
+		DefenderDamageEvent damageEvent = new DefenderDamageEvent(defenderKingdom, victim, event.getDamage(), DefenderDamageCause.TURRET);
 		Bukkit.getPluginManager().callEvent(damageEvent);
 		if (!damageEvent.isCancelled())
 			event.setDamage(damageEvent.getDamage());
@@ -692,7 +657,6 @@ public class InvadingManager extends Manager {
 		Optional<OfflineKingdom> optional = turretManager.getProjectileKingdom(victim);
 		if (!optional.isPresent())
 			return;
-		OfflineKingdom defenderKingdom = optional.get();
 		Player attacker = victim.getKiller();
 		if (attacker == null)
 			return;
@@ -971,8 +935,8 @@ public class InvadingManager extends Manager {
 		int strength = info.getStrength();
 		if (strength <= 0)
 			return;
-		if (ProbabilityTool.testProbability100(strength)) {
-			ChampionStrengthEvent strengthEvent = new ChampionStrengthEvent(defenderKingdom, attacker, playerManager.getKingdomPlayer(player));
+		if (new Random().nextInt(100) <= strength) {
+			DefenderStrengthEvent strengthEvent = new DefenderStrengthEvent(defenderKingdom, attacker, playerManager.getKingdomPlayer(player), strength);
 			Bukkit.getPluginManager().callEvent(strengthEvent);
 			if (strengthEvent.isCancelled())
 				return;

@@ -15,7 +15,6 @@ import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.Flags;
-import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
 import com.songoda.kingdoms.manager.Manager;
@@ -83,6 +82,7 @@ public class WorldGuardManager extends Manager {
 	public boolean isInRegion(Location location) {
 		if (!enabled)
 			return true;
+		/*
 		if (version6) {
 			RegionManager manager;
 			try {
@@ -102,6 +102,7 @@ public class WorldGuardManager extends Manager {
 			}
 			return false;
 		}
+		*/
 		RegionQuery query = worldGuard.getPlatform().getRegionContainer().createQuery();
 		ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(location));
 		Set<ProtectedRegion> regions = set.getRegions();
@@ -111,6 +112,7 @@ public class WorldGuardManager extends Manager {
 	public boolean canClaim(Location location) {
 		if (!enabled)
 			return true;
+		/*
 		if (version6) {
 			RegionManager manager;
 			try {
@@ -135,6 +137,7 @@ public class WorldGuardManager extends Manager {
 			}
 			return false;
 		}
+		*/
 		RegionQuery query = worldGuard.getPlatform().getRegionContainer().createQuery();
 		ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(location));
 		return set.getRegions().parallelStream()

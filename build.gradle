@@ -52,7 +52,9 @@ repositories {
 dependencies {
 	
 	// HolographicDisplays
-	implementation (group: 'com.gmail.filoghost.holographicdisplays', name: 'holographicdisplays-plugin', version: '2.3.3-SNAPSHOT')
+	implementation (group: 'com.gmail.filoghost.holographicdisplays', name: 'holographicdisplays-plugin', version: '2.3.3-SNAPSHOT') {
+		exclude group: 'org.bstats', module: 'bstats-bukkit-lite'
+	}
 	
 	// Citizens
 	implementation (group: 'net.citizensnpcs', name: 'citizensapi', version: '2.0.24-SNAPSHOT')
@@ -66,7 +68,7 @@ dependencies {
 	// WorldGuard
 	implementation (group: 'com.sk89q', name: "worldguard", version: '7.0.0')
 	
-	// WorldGuard
+	// WorldEdit
 	implementation (group: 'com.sk89q', name: "worldedit", version: '7.0.0')
 	
 	// Vault
@@ -77,6 +79,10 @@ dependencies {
 
 }
 
+configurations {
+	runtime.exclude group: 'org.bstats', module: 'bstats-bukkit-lite'
+}
+
 processResources {
 	filter ReplaceTokens, tokens: ["version": project.property("version")]
 	from (sourceSets.main.resources.srcDirs) {
@@ -85,9 +91,11 @@ processResources {
 }
 
 jar {
-    configurations.shade.each { dep ->
-        from (project.zipTree(dep)) {
-            exclude 'META-INF', 'META-INF/**'
-        }
-    }
+	configurations.shade.each { dep ->
+		from (project.zipTree(dep)) {
+			exclude '**/*.php'
+			exclude '**/*.yml'
+			exclude 'META-INF', 'META-INF/**'
+		}
+	}
 }
