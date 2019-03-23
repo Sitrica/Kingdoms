@@ -23,7 +23,7 @@ public class SiegeEngineInventory extends StructureInventory {
 	private final SiegeEngineManager siegeEngineManager;
 	private final LandManager landManager;
 	
-	protected SiegeEngineInventory() {
+	public SiegeEngineInventory() {
 		super(InventoryType.CHEST, "siege-engine", 27);
 		this.landManager = instance.getManager("land", LandManager.class);
 		this.siegeEngineManager = instance.getManager("siege-engine", SiegeEngineManager.class);

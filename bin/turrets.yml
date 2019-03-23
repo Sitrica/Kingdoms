@@ -13,15 +13,15 @@
 version: "@version@"
 
 #turrets:
-    nexustower: 300
-    flameturret: 150
-    pressuremine: 2
-    chemicalmine: 1
-    healingstation: 100
-    psionictotem: 250
-    soldierspawner: 500
-    hellfireturret: 300
-    heatbeamturret: 200
+#    nexustower: 300
+#    flameturret: 150
+#    pressuremine: 2
+#    chemicalmine: 1
+#    healingstation: 100
+#    psionictotem: 250
+#    soldierspawner: 500
+#    hellfireturret: 300
+#    heatbeamturret: 200
 turret-specs:
     attack-mobs: true
     nexustower:

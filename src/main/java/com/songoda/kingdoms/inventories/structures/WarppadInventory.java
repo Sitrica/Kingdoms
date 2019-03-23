@@ -20,7 +20,7 @@ public class WarppadInventory extends StructureInventory {
 	
 	private final RenameManager renameManager;
 	
-	protected WarppadInventory() {
+	public WarppadInventory() {
 		super(InventoryType.CHEST, "warp-pad", 54);
 		this.renameManager = instance.getManager("rename", RenameManager.class);
 	}

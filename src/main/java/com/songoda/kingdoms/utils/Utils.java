@@ -106,13 +106,19 @@ public class Utils {
 				String name = jarEntry.nextElement().getName();
 				if (name.startsWith(basePackage) && name.endsWith(".class")) {
 					String className = name.replace("/", ".").substring(0, name.length() - 6);
-					Class<?> clazz = Class.forName(className, true, instance.getClass().getClassLoader());
+					Class<?> clazz = null;
+					try {
+						clazz = Class.forName(className, true, instance.getClass().getClassLoader());
+					} catch (ExceptionInInitializerError | ClassNotFoundException e) {
+						Kingdoms.consoleMessage("TEST " + className);
+						e.printStackTrace();
+					}
+					if (clazz == null)
+						continue;
 					if (type.isAssignableFrom(clazz))
 						classes.add((Class<T>) clazz);
 				}
 			}
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
 		} finally {
 			try {
 				jar.close();

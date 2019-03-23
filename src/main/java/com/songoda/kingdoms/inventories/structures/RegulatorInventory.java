@@ -24,7 +24,7 @@ public class RegulatorInventory extends StructureInventory {
 	
 	private final ScrollerManager scrollerManager;
 	
-	protected RegulatorInventory() {
+	public RegulatorInventory() {
 		super(InventoryType.HOPPER, "regulator", 69);
 		this.scrollerManager = instance.getManager("scroller", ScrollerManager.class);
 	}

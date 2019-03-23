@@ -127,7 +127,7 @@ upgrades:
         material: "COOKED_PORKCHOP"
         material-meta: ""
         glowing: false
-        current: "&cCurrent Throwing Level: %level%"
+        current: "&6Current Throwing Level: %level%"
         max-level: 50
         # Value will represent the percentage in which is increased.
         value: 10
@@ -141,7 +141,7 @@ upgrades:
         material: "WATER_BUCKET"
         material-meta: ""
         glowing: false
-        current: "&cCurrent Aqua Level: %level%"
+        current: "&9Current Aqua Level: %level%"
         cost: 500
         description:
             - "&7The defender gets depth strider boots."
@@ -152,7 +152,7 @@ upgrades:
         material: "FISHING_ROD"
         material-meta: ""
         glowing: false
-        current: "&cCurrent Dragging Level: %level%"
+        current: "&dCurrent Dragging Level: %level%"
         range: 7
         cost: 100
         description:
@@ -164,7 +164,7 @@ upgrades:
         material: "GLASS_PANE"
         material-meta: ""
         glowing: false
-        current: "&cCurrent Mimic Level: %level%"
+        current: "&aCurrent Mimic Level: %level%"
         cost: 600
         description:
             - "&7The champion gains the invader's helmet, leggings and boots."
@@ -174,7 +174,7 @@ upgrades:
         material: "STONE"
         material-meta: ""
         glowing: false
-        current: "&5Current Mock Range: %level% blocks"
+        current: "&2Current Mock Range: %level% blocks"
         max-level: 5
         cost: 25
         cost-multiplier: 25
@@ -194,54 +194,57 @@ upgrades:
     damage-cap:
         enabled: true
         title: "&bDamage Cap"
-        # Use GOLD_SWORD for 1.8...
         material: "DIAMOND_CHESTPLATE"
         material-meta: ""
         glowing: false
-        current: "&5Current Damage Cap: %level%"
+        current: "&eCurrent Damage Cap: %level%"
         cost: 300
         description:
-            - "&7Your defender can only receive up to 15 damage at any attack.."
-
-            
-            
-            
-            
-            
-# cost
-    champion:
-        thor: 300
-        plow: 600
-        reinforcements: 800
-        focus: 700
-        determination: 5
-        
-# level max
-    champion:
-        determination: 2048
-        duel: 1
-        drag: 1
-        thor: 10
-        plow: 1
-        reinforcements: 2
-        mimic: 1
-        focus: 1
-
-Guis_ChampionUpgrades_Title: '&bChampion Upgrades'
-Guis_ChampionUpgrades_Determination_Title: '&bDetermination'
-Guis_ChampionUpgrades_Determination_Curr: '&5Current Determination: %level%'
-Guis_ChampionUpgrades_Determination_Desc: Increases Determination by 2. Champion Determination will act as a shield that will absorb damage. Armor does not affect this shield.
-Guis_ChampionUpgrades_DeterminationII_Title: '&bDetermination II'
-Guis_ChampionUpgrades_DeterminationII_Desc: Increases Determination by 50
-Guis_ChampionUpgrades_Thor_Title: '&bThor'
-Guis_ChampionUpgrades_Thor_Curr: '&5Current Thor Damage: %level%'
-Guis_ChampionUpgrades_Thor_Desc: Every 3 seconds, strike lightning down at the invading player and all nearby non-allied players, dealing damage, and knocking the player back
-Guis_ChampionUpgrades_Plow_Title: '&bPlow'
-Guis_ChampionUpgrades_Plow_Curr: '&5Enabled: %level%'
-Guis_ChampionUpgrades_Plow_Desc: Your champion will try to clear lava and webs
-Guis_ChampionUpgrades_Reinforcements_Title: '&bReinforcements'
-Guis_ChampionUpgrades_Reinforcements_Curr: '&5Number of reinforcements: %level%'
-Guis_ChampionUpgrades_Reinforcements_Desc: 'Each upgrade allows only the &c&lNexus Champion &ato spawn an additonal nexus guard. Maximum level: 2'
-Guis_ChampionUpgrades_Focus_Title: '&bFocus'
-Guis_ChampionUpgrades_Focus_Curr: '&5Current Focus Level: %level%'
-Guis_ChampionUpgrades_Focus_Desc: Players hit by the champion (including Thor) will have 1 second removed from all their active potion effects
+            - "&7Your defender can only receive up to 15 damage at any attack."
+    thor:
+        enabled: true
+        title: "&bThor"
+        material: "DIAMOND_AXE"
+        material-meta: ""
+        glowing: false
+        current: "&5Current Thor Level: %level%"
+        max-level: 10
+        cost: 300
+        cost-multiplier: 150
+        description:
+            - "&7Every 3 seconds, lightning strikes the invading player and all nearby non-allied players"
+            - "&7Deals damage, and knocks the players back."
+    plow:
+        enabled: true
+        title: "&bPlow"
+        # Use WEB for 1.8...
+        material: "COBWEB"
+        material-meta: ""
+        glowing: false
+        current: "&5Current Plow Level: %level%"
+        cost: 600
+        description:
+            - "&7Your defender will try to clear lava and webs."
+    reinforcements:
+        enabled: true
+        title: "&bReinforcements"
+        # Use SKULL for 1.8... And meta data number for type or skin owner.
+        material: "ZOMBIE_HEAD"
+        material-meta: ""
+        glowing: false
+        current: "&4Number of reinforcements: %level%"
+        max-level: 3
+        cost: 800
+        cost-multiplier: 200
+        description:
+            - "&7Each upgrade allows only the &c&lNexus Defender &ato spawn an additonal nexus guard. Maximum level: %level%."
+    focus:
+        enabled: true
+        title: "&bFocus"
+        material: "ENDER_EYE"
+        material-meta: ""
+        glowing: false
+        current: "&fCurrent Focus Level: %level%"
+        cost: 700
+        description:
+            - "&7Players hit by the Defender will have 1 second removed from all their active potion effects."

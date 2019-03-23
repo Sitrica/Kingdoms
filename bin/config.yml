@@ -307,6 +307,8 @@ kingdoms:
     invading:
         # Should players not be allowed to leave a Kingdoms land if they're invading?
         invading-deny-chunk-change: true
+    defenders:
+        thor-delay: 5.0
 
 # Names that aren't allowed.
 # Supports Regex if you want.
@@ -568,7 +570,6 @@ disable-join-messages: false
 #    canAttackCapitalInFullyOccupiedLand: false
 #    attack-cooldown-in-minutes: 30
 champion-specs:
-    thor-delay: 5.0
     drag-min-range: 7.0
     invader-lose-on-champion-void-damage: true
 economy:

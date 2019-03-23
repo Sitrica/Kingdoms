@@ -17,7 +17,7 @@ public class ManagerHandler {
 	private final static Map<String, Manager> managers = new HashMap<>();
 	
 	public ManagerHandler(Kingdoms instance) {
-		classes.addAll(Utils.getClassesOf(instance, instance.getPackageName(), Manager.class));
+		classes.addAll(Utils.getClassesOf(instance, instance.getPackageName() + ".manager", Manager.class));
 	}
 
 	public static void registerManager(String name, Manager manager) {

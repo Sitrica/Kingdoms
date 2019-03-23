@@ -17,6 +17,7 @@ public class CitizensManager extends Manager {
 	
 	protected CitizensManager() {
 		super(false);
+		if (instance.getServer().getPluginManager().isPluginEnabled("Citizens"))
 		citizens = CitizensAPI.getPlugin();
 		if (citizens != null)
 			Kingdoms.consoleMessage("Hooked into Citizens!");

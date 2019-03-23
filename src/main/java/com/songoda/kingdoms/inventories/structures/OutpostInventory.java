@@ -18,7 +18,7 @@ import com.songoda.kingdoms.utils.Utils;
 
 public class OutpostInventory extends StructureInventory {
 
-	protected OutpostInventory() {
+	public OutpostInventory() {
 		super(InventoryType.HOPPER, "outpost", 69);
 	}
 

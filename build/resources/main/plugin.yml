@@ -19,4 +19,4 @@ permissions:
       kingdoms.use: true
   kingdoms.use:
     description: Gives access to view the kingdoms command.
-    default: no op
+    default: not op

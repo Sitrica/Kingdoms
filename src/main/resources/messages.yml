@@ -156,7 +156,7 @@ kingdoms:
     donated-kingdom: "&aKingdom member %player% has just donated %amount% resource points to the Kingdom!"
     donated-alliance: "&aAlliance member %player% has just donated %amount% resource points to the Kingdom!"
     member-join: "&8[&7%player%&8] is now &aonline!"
-    member-leave: '&8[&7%player%&8] is now &coffline!"
+    member-leave: "&8[&7%player%&8] is now &coffline!"
     pacifist-cannot-fight-in-own-land: "&cNeutral members cannot fight in their own land!"
     pacifist-cannot-be-damaged: "&cYou cannot harm neutral members in their own land!"
     soldier-name: "&cKingdom Guard"
