@@ -10,10 +10,6 @@ import org.bukkit.event.world.WorldLoadEvent;
 import com.songoda.kingdoms.manager.Manager;
 
 public class WorldManager extends Manager {
-
-	static {
-		registerManager("world", new WorldManager());
-	}
 	
 	private final Set<String> unoccupied = new HashSet<>();
 	private final boolean whitelist, whitelistUnoccupied;
@@ -21,7 +17,7 @@ public class WorldManager extends Manager {
 	private final Set<String> names = new HashSet<>();
 	
 	protected WorldManager() {
-		super(true);
+		super("world", true);
 		this.unoccupied.addAll(configuration.getStringList("worlds.worlds-with-no-building-in-unoccupied"));
 		this.whitelistUnoccupied = configuration.getBoolean("worlds.unoccupied-list-is-whitelist", true);
 		this.whitelist = configuration.getBoolean("worlds.list-is-whitelist", true);

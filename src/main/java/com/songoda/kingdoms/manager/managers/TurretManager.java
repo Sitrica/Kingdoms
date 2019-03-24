@@ -69,10 +69,6 @@ import java.util.UUID;
 
 public class TurretManager extends Manager {
 	
-	static {
-		registerManager("turret", new TurretManager());
-	}
-	
 	private final Set<TurretType> types = new HashSet<>();
 	public final String METADATA_CONQUEST = "conquest-arrow";
 	public final String METADATA_KINGDOM = "turret-kingdom";
@@ -89,7 +85,7 @@ public class TurretManager extends Manager {
 	private final Kingdoms instance;
 	
 	protected TurretManager() {
-		super(true);
+		super("turret", true);
 		this.instance = Kingdoms.getInstance();
 		this.landManager = instance.getManager("land", LandManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);

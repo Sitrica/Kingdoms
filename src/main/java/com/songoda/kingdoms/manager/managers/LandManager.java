@@ -61,10 +61,6 @@ import com.songoda.kingdoms.utils.Utils;
 
 public class LandManager extends Manager {
 	
-	static {
-		registerManager("land", new LandManager());
-	}
-	
 	private final List<String> unclaiming = new ArrayList<>(); //TODO test if this is even required. It's a queue to avoid claiming and removing at same time.
 	private final Map<Chunk, Land> lands = new HashMap<>();
 	private final Set<String> forbidden = new HashSet<>();
@@ -84,7 +80,7 @@ public class LandManager extends Manager {
 
 	@SuppressWarnings("deprecation")
 	public LandManager() {
-		super(true);
+		super("land", true);
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
 		this.forbidden.addAll(configuration.getStringList("kingdoms.forbidden-inventories"));

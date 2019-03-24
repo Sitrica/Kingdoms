@@ -20,15 +20,11 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class SoldierTurretManager extends Manager {
 	
-	static {
-		registerManager("soldier-turret", new SoldierTurretManager());
-	}
-	
 	private final Set<Soldier> soldiers = new HashSet<>();
 	private final GuardsManager guardsManager;
 
 	protected SoldierTurretManager() {
-		super(false);
+		super("soldier-turret", false);
 		this.guardsManager = instance.getManager("guards", GuardsManager.class);
 	}
 	

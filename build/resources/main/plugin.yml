@@ -1,0 +1,22 @@
+name: Kingdoms
+description: Conquer lands with a mighty Kingdom!
+authors: [LimeGlass, Hex_27, DiamondDagger, TheCreeperCow]
+main: com.songoda.kingdoms.Kingdoms
+version: 2.0.0
+api-version: 1.13
+load: POSTWORLD
+softdepend: [WorldGuard, WorldEdit, ScoreboardStats, Dynmap, PlaceholderAPI, MVdWPlaceholderAPI, GriefPrevention, Citizens, Citizens2, Multiworld, Multiverse-Core, Vault, ItemBox, HolographicDisplays]
+commands:
+  Kingdoms:
+    description: View information on the Kingdoms plugin.
+    default: true
+    aliases: [k]
+    usage: /k
+permissions:
+  kingdoms.*:
+    description: Gives access to all Kingdom commands.
+    children:
+      kingdoms.use: true
+  kingdoms.use:
+    description: Gives access to view the kingdoms command.
+    default: not op

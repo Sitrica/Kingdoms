@@ -10,16 +10,12 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 
 public class ActionbarManager extends Manager {
-
-	static {
-		registerManager("actionbar", new ActionbarManager());
-	}
 	
 	// Caching
 	private final boolean classes, method;
 	
 	protected ActionbarManager() {
-		super(false);
+		super("actionbar", false);
 		this.classes = Utils.classExists("net.md_5.bungee.api.ChatMessageType") && Utils.classExists("net.md_5.bungee.api.chat.TextComponent");
 		if (!classes) {
 			method = false;

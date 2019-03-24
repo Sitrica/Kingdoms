@@ -21,10 +21,6 @@ import com.songoda.kingdoms.utils.Utils;
 
 public class CommandCreateKingdom extends AbstractCommand {
 	
-	static {
-		registerCommand(new CommandCreateKingdom());
-	}
-	
 	protected CommandCreateKingdom() {
 		super("create", false);
 	}

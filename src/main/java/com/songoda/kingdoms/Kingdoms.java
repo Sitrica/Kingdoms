@@ -125,6 +125,10 @@ public class Kingdoms extends JavaPlugin {
 		return commandHandler;
 	}
 	
+	public ManagerHandler getManagerHandler() {
+		return managerHandler;
+	}
+	
 	public static Kingdoms getInstance() {
 		return instance;
 	}

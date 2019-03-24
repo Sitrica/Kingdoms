@@ -32,10 +32,6 @@ import org.bukkit.metadata.FixedMetadataValue;
 
 public class ArsenalManager extends Manager {
 	
-	static {
-		registerManager("arsenal", new ArsenalManager());
-	}
-	
 	private final String ROCKET_META = "kingdoms-siege-rocket";
 	private final TurretManager turretManager;
 	private final PlayerManager playerManager;
@@ -44,7 +40,7 @@ public class ArsenalManager extends Manager {
 	private final LandManager landManager;
 	
 	protected ArsenalManager() {
-		super(true);
+		super("arsenal", true);
 		this.turretManager = instance.getManager("turret", TurretManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);

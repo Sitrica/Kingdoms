@@ -29,10 +29,6 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class PlayerManager extends Manager {
 	
-	static {
-		registerManager("player", new PlayerManager());
-	}
-	
 	private final Set<OfflineKingdomPlayer> users = new HashSet<>();
 	private Database<OfflineKingdomPlayer> database;
 	private final CitizensManager citizensManager;
@@ -40,7 +36,7 @@ public class PlayerManager extends Manager {
 	private BukkitTask autoSaveThread;
 
 	protected PlayerManager() {
-		super(true);
+		super("player", true);
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		if (configuration.getBoolean("database.mysql.enabled", false))

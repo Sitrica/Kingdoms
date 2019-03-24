@@ -24,14 +24,10 @@ import de.slikey.effectlib.util.DynamicLocation;
 
 public class EffectLibManager extends Manager {
 	
-	static {
-		registerManager("effectlib", new EffectLibManager());
-	}
-	
 	private final EffectManager effectManager;
 	
-	public EffectLibManager() {
-		super(false);
+	protected EffectLibManager() {
+		super("effectlib", false);
 		effectManager = new EffectManager(instance);
 	}
 	

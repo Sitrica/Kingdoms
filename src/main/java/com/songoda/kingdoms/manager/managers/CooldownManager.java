@@ -9,14 +9,10 @@ import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 
 public class CooldownManager extends Manager {
 
-	static {
-		registerManager("cooldown", new CooldownManager());
-	}
-
 	private final static Map<String, KingdomCooldown> cooldowns = new HashMap<>();
 	
 	protected CooldownManager() {
-		super(false);
+		super("cooldown", false);
 	}
 
 	public boolean isInCooldown(OfflineKingdom kingdom, String name) {

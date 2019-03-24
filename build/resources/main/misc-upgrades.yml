@@ -1,0 +1,75 @@
+#!
+#!     ▄█   ▄█▄  ▄█  ███▄▄▄▄      ▄██████▄  ████████▄   ▄██████▄    ▄▄▄▄███▄▄▄▄      ▄████████ 
+#!    ███ ▄███▀ ███  ███▀▀▀██▄   ███    ███ ███   ▀███ ███    ███ ▄██▀▀▀███▀▀▀██▄   ███    ███ 
+#!    ███�?██▀   ███▌ ███   ███   ███    █▀  ███    ███ ███    ███ ███   ███   ███   ███    █▀  
+#!   ▄█████▀    ███▌ ███   ███  ▄███        ███    ███ ███    ███ ███   ███   ███   ███        
+#!  ▀▀█████▄    ███▌ ███   ███ ▀▀███ ████▄  ███    ███ ███    ███ ███   ███   ███ ▀███████████ 
+#!    ███�?██▄   ███  ███   ███   ███    ███ ███    ███ ███    ███ ███   ███   ███          ███ 
+#!    ███ ▀███▄ ███  ███   ███   ███    ███ ███   ▄███ ███    ███ ███   ███   ███    ▄█    ███ 
+#!    ███   ▀█▀ █▀    ▀█   █▀    ████████▀  ████████▀   ▀██████▀   ▀█   ███   █▀   ▄████████▀  
+#!    ▀                                                                                        
+#!
+# The version is to help determine which version this config is. Please don't modify this value.
+version: "2.0.0"
+
+# All configurations relating to misc upgrades.
+misc-upgrades:
+    anti-creeper:
+        enabled: true
+        # If the upgrade should be applied for free by default on newly created Kingdoms.
+        default: false
+        title: "&bAnti-Creeper"
+        # Use SULPHUR for 1.8...
+        material: "GUNPOWDER"
+        material-meta: ""
+        # Glowing can be used here if wanted.
+        # glowing: false
+        cost: 50
+        description:
+            - "&7If a creeper explodes in your land, it will do no block damage or damage your members."
+    anti-trample:
+        enabled: true
+        default: false
+        title: "&bAnti-Trample"
+        # Use SEEDS for 1.8...
+        material: "WHEAT_SEEDS"
+        material-meta: ""
+        cost: 50
+        description:
+            - "&7Your tilled soil cannot be trampled by players."
+    nexus-guard:
+        enabled: true
+        default: false
+        title: "&bNexus Guard"
+        material: "IRON_AXE"
+        material-meta: ""
+        cost: 150
+        description:
+            - "&7When someone mines your nexus, a zombie with light armor and your defender's weapon will spawn."
+    bomb-shards:
+        enabled: true
+        default: false
+        title: "&bBomb Expertise"
+        material: "TNT"
+        material-meta: ""
+        cost: 1000
+        description:
+            - "&7TNT can no longer damage your land, but will cause damage to nearby non-allies and non-members."
+    insanity:
+        enabled: true
+        default: false
+        title: "&bInsanity"
+        material: "REDSTONE"
+        material-meta: ""
+        cost: 500
+        description:
+            - "&7Defenders and Nexus guards spawned on powercell land will have Strength I for 10 seconds"
+    glory:
+        enabled: true
+        default: false
+        title: "&bGlory"
+        material: "NETHER_STAR"
+        material-meta: ""
+        cost: 250
+        description:
+            - "&7Killing non-players on your land yields x3 experience."

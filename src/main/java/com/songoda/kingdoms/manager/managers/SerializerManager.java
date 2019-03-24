@@ -9,15 +9,11 @@ import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.utils.Utils;
 
 public class SerializerManager extends Manager {
-
-	static {
-		registerManager("serializer", new SerializerManager());
-	}
 	
 	private final Set<Serializer<?>> serializers = new HashSet<>();
 	
 	protected SerializerManager() {
-		super(false);
+		super("serializer", false);
 		Utils.getClassesOf(instance, instance.getPackageName(), Serializer.class).forEach(serializer -> {
 			try {
 				serializers.add(serializer.newInstance());

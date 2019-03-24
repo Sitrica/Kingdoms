@@ -24,10 +24,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class CommandUnclaim extends AbstractCommand {
-
-	static {
-		registerCommand(new CommandUnclaim());
-	}
 	
 	private final Set<KingdomPlayer> confirmations = new HashSet<>();
 	

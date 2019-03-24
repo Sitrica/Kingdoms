@@ -21,15 +21,11 @@ import com.songoda.kingdoms.utils.Formatting;
 
 public class HolographicDisplaysManager extends Manager {
 
-	static {
-		registerManager("holographic-displays", new HolographicDisplaysManager());
-	}
-
 	private BackendAPI holographic;
 	private final boolean enabled;
 
 	protected HolographicDisplaysManager() {
-		super(false);
+		super("holographic-displays", false);
 		enabled = instance.getServer().getPluginManager().isPluginEnabled("HolographicDisplays");
 		if (!enabled)
 			return;
@@ -37,6 +33,7 @@ public class HolographicDisplaysManager extends Manager {
 		PlayerManager playerManager = instance.getManager("player", PlayerManager.class);
 		LandManager landManager = instance.getManager("land", LandManager.class);
 		FileConfiguration messages = instance.getConfiguration("messages").get();
+		/*
 		RelativePlaceholder.register(new RelativePlaceholder("{kingdom}") {
 			@Override
 			public String getReplacement(Player player) {
@@ -81,6 +78,7 @@ public class HolographicDisplaysManager extends Manager {
 				return kingdom != null ? kingdom.getName() : notFound;
 			}
 		});
+		*/
 	}
 
 	/**

@@ -72,7 +72,7 @@ public class StructureManager extends Manager {
 	private final BukkitTask task;
 	
 	protected StructureManager() {
-		super(true);
+		super("structure", true);
 		this.landManager = instance.getManager("land", LandManager.class);
 		this.nexusManager = instance.getManager("neuxs", NexusManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);

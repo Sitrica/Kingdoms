@@ -17,15 +17,11 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 public class ChatManager extends Manager {
 	
-	static {
-		registerManager("chat", new ChatManager());
-	}
-	
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
 	
 	protected ChatManager() {
-		super(true);
+		super("chat", true);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("land", WorldManager.class);
 	}

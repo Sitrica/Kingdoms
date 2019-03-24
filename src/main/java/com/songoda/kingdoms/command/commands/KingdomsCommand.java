@@ -9,10 +9,6 @@ import org.bukkit.command.CommandSender;
 
 public class KingdomsCommand extends AbstractCommand {
 	
-	static {
-		registerCommand(new KingdomsCommand());
-	}
-	
 	public KingdomsCommand() {
 		super("kingdoms", true);
 	}

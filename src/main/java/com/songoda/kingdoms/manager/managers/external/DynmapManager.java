@@ -24,10 +24,6 @@ import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.LocationUtils;
 
 public class DynmapManager extends Manager {
-
-	static {
-		registerManager("dynmap", new DynmapManager());
-	}
 	
 	private final String base = "<div>"
 			+ "This land is owned by: <span style=\"font-weight:bold;color:black\">%kingdomName% </span><br>"
@@ -39,8 +35,8 @@ public class DynmapManager extends Manager {
 	private final LandManager landManager;
 	private DynmapAPI dynmap;
 	
-	public DynmapManager() {
-		super(true);
+	protected DynmapManager() {
+		super("dynmap", true);
 		this.landManager = instance.getManager("land", LandManager.class);
 		Server server = instance.getServer();
 		PluginManager pluginManager = server.getPluginManager();

@@ -42,10 +42,6 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 import com.songoda.kingdoms.utils.Utils;
 
 public class GuardsManager extends Manager {
-
-	static {
-		registerManager("guards", new GuardsManager());
-	}
 	
 	private final Map<Monster, Player> targets = new HashMap<>();
 	private final SoldierTurretManager soldierTurretManager;
@@ -53,7 +49,7 @@ public class GuardsManager extends Manager {
 	private final KingdomManager kingdomManager;
 	
 	protected GuardsManager() {
-		super(true);
+		super("guards", true);
 		this.soldierTurretManager = instance.getManager("soldier-turret", SoldierTurretManager.class);
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		instance.getServer().getScheduler().runTaskTimerAsynchronously(instance, () -> {

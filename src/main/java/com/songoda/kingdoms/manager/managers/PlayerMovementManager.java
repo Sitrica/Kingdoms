@@ -46,7 +46,7 @@ public class PlayerMovementManager extends Manager {
 	private final LandManager landManager;
 	
 	public PlayerMovementManager() {
-		super(true);
+		super("player-movement", true);
 		this.landManager = instance.getManager("land", LandManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);

@@ -37,10 +37,6 @@ import org.bukkit.metadata.FixedMetadataValue;
 
 public class NexusManager extends Manager {
 
-	static {
-		registerManager("nexus", new NexusManager());
-	}
-
 	private final Set<KingdomPlayer> placing = new HashSet<>();
 	private final StructureType type = StructureType.NEXUS;
 	private final WorldGuardManager worldGuardManager;
@@ -50,7 +46,7 @@ public class NexusManager extends Manager {
 	private final LandManager landManager;
 
 	protected NexusManager() {
-		super(true);
+		super("nexus", true);
 		this.worldGuardManager = instance.getManager("worldguard", WorldGuardManager.class);
 		this.inventoryManager = instance.getManager("inventory", InventoryManager.class);
 		this.turretManager = instance.getManager("turret", TurretManager.class);

@@ -21,10 +21,6 @@ import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.utils.Utils;
 
 public class WorldGuardManager extends Manager {
-
-	static {
-		registerManager("worldguard", new WorldGuardManager());
-	}
 	
 	private final List<String> list = new ArrayList<>();
 	private Method canBuild, getRegionManager;
@@ -34,7 +30,7 @@ public class WorldGuardManager extends Manager {
 	private boolean version6;
 	
 	protected WorldGuardManager() {
-		super(false);
+		super("worldguard", false);
 		if (!instance.getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
 			enabled = false;
 			return;

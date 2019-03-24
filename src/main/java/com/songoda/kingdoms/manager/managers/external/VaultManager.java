@@ -9,14 +9,10 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 
 public class VaultManager extends Manager {
 	
-	static {
-		registerManager("vault", new VaultManager());
-	}
-	
 	private Economy economy;
 
 	protected VaultManager() {
-		super(false);
+		super("vault", false);
 		RegisteredServiceProvider<Economy> rsp = Bukkit.getServicesManager().getRegistration(Economy.class);
 		if (rsp != null) {
 			economy = rsp.getProvider();

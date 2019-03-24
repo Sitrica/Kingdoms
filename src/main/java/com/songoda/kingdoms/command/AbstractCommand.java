@@ -39,10 +39,6 @@ public abstract class AbstractCommand {
 		this.invadingManager = instance.getManager("invading", InvadingManager.class);
 	}
 	
-	protected static void registerCommand(AbstractCommand command) {
-		Kingdoms.getInstance().getCommandHandler().registerCommand(command);
-	}
-	
 	protected enum ReturnType {
 		SUCCESS,
 		FAILURE,

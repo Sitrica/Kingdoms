@@ -4,17 +4,18 @@ import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.ManagerHandler;
 
 public class ManagerOptional<T extends Manager> {
 
+	private final ManagerHandler managerHandler;
 	private final Optional<T> optional;
-	private final String name;
 	
-	public ManagerOptional(String name, Optional<T> optional) {
+	public ManagerOptional(Optional<T> optional) {
+		this.managerHandler = Kingdoms.getInstance().getManagerHandler();
 		this.optional = optional;
-		this.name = name;
 	}
 	
 	public Object ifNotPresent(Supplier<? extends Object> supplier) {
@@ -30,7 +31,7 @@ public class ManagerOptional<T extends Manager> {
 		} catch (InstantiationException | IllegalAccessException e) {
 			return null;
 		}
-		ManagerHandler.registerManager(name, manager);
+		managerHandler.registerManager(manager);
 		return manager;
 	}
 	

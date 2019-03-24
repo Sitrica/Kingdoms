@@ -11,15 +11,11 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import com.songoda.kingdoms.manager.Manager;
 
 public class RenameManager extends Manager {
-
-	static {
-		registerManager("rename", new RenameManager());
-	}
 	
 	private final Map<Player, Consumer<AsyncPlayerChatEvent>> waiting = new HashMap<>();
 	
 	protected RenameManager() {
-		super(true);
+		super("rename", true);
 	}
 	
 	public void rename(Player player, Consumer<AsyncPlayerChatEvent> consumer) {

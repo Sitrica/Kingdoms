@@ -1,10 +1,7 @@
 package com.songoda.kingdoms.manager;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import com.songoda.kingdoms.Kingdoms;
@@ -13,27 +10,32 @@ import com.songoda.kingdoms.utils.Utils;
 
 public class ManagerHandler {
 
-	private final Set<Class<? extends Manager>> classes = new HashSet<>();
-	private final static Map<String, Manager> managers = new HashMap<>();
+	private final Set<Manager> managers = new HashSet<>();
 	
 	public ManagerHandler(Kingdoms instance) {
-		classes.addAll(Utils.getClassesOf(instance, instance.getPackageName() + ".manager", Manager.class));
+		Utils.getClassesOf(instance, instance.getPackageName(), Manager.class).forEach(clazz -> {
+			try {
+				Manager manager = clazz.newInstance();
+				managers.add(manager);
+			} catch (InstantiationException | IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		});
 	}
 
-	public static void registerManager(String name, Manager manager) {
-		managers.put(name, manager);
-	}
-	
-	public Set<Class<? extends Manager>> getManagerClasses() {
-		return classes;
+	public void registerManager(Manager manager) {
+		if (!getManager(manager.getName()).isPresent())
+			managers.add(manager);
 	}
 	
 	public ManagerOptional<Manager> getManager(String name) {
-		return new ManagerOptional<Manager>(name, Optional.ofNullable(managers.get(name)));
+		return new ManagerOptional<Manager>(managers.parallelStream()
+				.filter(manager -> manager.getName().equalsIgnoreCase(name))
+				.findFirst());
 	}
 
-	public Map<String, Manager> getManagers() {
-		return Collections.unmodifiableMap(managers);
+	public Set<Manager> getManagers() {
+		return Collections.unmodifiableSet(managers);
 	}
 
 }

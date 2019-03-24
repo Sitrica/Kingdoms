@@ -43,10 +43,6 @@ import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class KingdomManager extends Manager {
-
-	static {
-		registerManager("kingdom", new KingdomManager());
-	}
 	
 	public static Set<OfflineKingdom> kingdoms = new HashSet<>(); // All Kingdoms contained in this Set that aren't bot kingdoms are actually online kingdoms.
 	private final Set<String> processing = new HashSet<>(); // Names that are currently being created. Can't take these names.
@@ -61,7 +57,7 @@ public class KingdomManager extends Manager {
 	private BukkitTask autoSaveThread;
 
 	protected KingdomManager() {
-		super(true);
+		super("kingdom", true);
 		this.landManager = instance.getManager("land", LandManager.class);
 		this.rankManager = instance.getManager("rank", RankManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);

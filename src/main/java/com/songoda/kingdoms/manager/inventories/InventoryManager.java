@@ -18,19 +18,16 @@ import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.utils.Utils;
 
 public class InventoryManager extends Manager {
-	
-	static {
-		registerManager("inventory", new InventoryManager());
-	}
 
 	private final Map<UUID, KingdomInventory> opened = new HashMap<>();
 	private final Set<KingdomInventory> inventories = new HashSet<>();
 	
-	protected InventoryManager() {
-		super(true);
-		Utils.getClassesOf(instance, instance.getPackageName() + ".inventories", KingdomInventory.class).forEach(inventory -> {
+	public InventoryManager() {
+		super("inventory", true);
+		Utils.getClassesOf(instance, instance.getPackageName() + ".inventories", KingdomInventory.class).forEach(clazz -> {
 			try {
-				inventories.add(inventory.newInstance());
+				KingdomInventory inventory = clazz.newInstance();
+				inventories.add(inventory);
 			} catch (InstantiationException | IllegalAccessException e) {
 				e.printStackTrace();
 			}

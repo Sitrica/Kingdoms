@@ -23,11 +23,14 @@ public class CommandHandler implements CommandExecutor {
 	public CommandHandler(Kingdoms instance) {
 		this.instance = instance;
 		instance.getCommand("Kingdoms").setExecutor(this);
-		Utils.loadClasses(instance, instance.getPackageName() + ".command", "commands");
-	}
-
-	protected void registerCommand(AbstractCommand abstractCommand) {
-		commands.add(abstractCommand);
+		Utils.getClassesOf(instance, instance.getPackageName() + ".command.commands", AbstractCommand.class).forEach(clazz -> {
+			try {
+				AbstractCommand command = clazz.newInstance();
+				commands.add(command);
+			} catch (InstantiationException | IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		});
 	}
 
 	@Override

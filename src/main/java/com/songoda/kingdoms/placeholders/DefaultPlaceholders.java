@@ -16,8 +16,8 @@ import com.songoda.kingdoms.utils.LocationUtils;
 
 public class DefaultPlaceholders extends Manager {
 
-	static {
-		registerManager("defaultplaceholders", new DefaultPlaceholders());
+	public DefaultPlaceholders() {
+		super("defaultplaceholders", false);
 		Placeholders.registerPlaceholder(new SimplePlaceholder("%prefix%") {
 			@Override
 			public String get() {
@@ -99,10 +99,6 @@ public class DefaultPlaceholders extends Manager {
 				return LocationUtils.chunkToString(chunk);
 			}
 		});
-	}
-	
-	protected DefaultPlaceholders() {
-		super(false);
 	}
 
 	@Override

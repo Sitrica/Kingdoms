@@ -17,16 +17,12 @@ import com.songoda.kingdoms.objects.structures.SiegeEngine;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class SiegeEngineManager extends Manager {
-
-	static {
-		registerManager("siege-engine", new SiegeEngineManager());
-	}
 	
 	private final Map<Integer, Integer> crucial = new HashMap<>();
 	private final FileConfiguration structures;
 	
 	protected SiegeEngineManager() {
-		super(false);
+		super("siege-engine", false);
 		crucial.put(4, 4);
 		crucial.put(4, 8);
 		crucial.put(4, 12);

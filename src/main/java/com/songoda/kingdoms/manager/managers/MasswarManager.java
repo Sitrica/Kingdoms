@@ -10,10 +10,6 @@ import com.songoda.kingdoms.utils.ListMessageBuilder;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class MasswarManager extends Manager {
-
-	static {
-		registerManager("masswar", new MasswarManager());
-	}
 	
 	private final SimpleDateFormat format = new SimpleDateFormat("HH'h' mm'm' ss's'");
 	private final WorldManager worldManager;
@@ -21,7 +17,7 @@ public class MasswarManager extends Manager {
 	private int time; //in seconds
 	
 	public MasswarManager() {
-		super(true);
+		super("masswar", true);
 		format.setTimeZone(TimeZone.getTimeZone("GMT+0"));
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		instance.getServer().getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {

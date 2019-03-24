@@ -110,7 +110,7 @@ public class Utils {
 					try {
 						clazz = Class.forName(className, true, instance.getClass().getClassLoader());
 					} catch (ExceptionInInitializerError | ClassNotFoundException e) {
-						Kingdoms.consoleMessage("TEST " + className);
+						Kingdoms.consoleMessage("Class " + className + " was formatted incorrectly, report this to the developers or an addon developer for Kingdoms.");
 						e.printStackTrace();
 					}
 					if (clazz == null)

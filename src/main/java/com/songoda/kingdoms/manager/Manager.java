@@ -22,13 +22,14 @@ public abstract class Manager implements Listener {
 	private final Map<Class<?>, Database<?>> databases = new HashMap<>();
 	protected final FileConfiguration configuration;
 	protected final Kingdoms instance;
+	protected final String name;
 	
-	protected Manager(boolean listener) {
+	protected Manager(String name, boolean listener) {
+		this.name = name;
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
 		if (listener)
 			Bukkit.getPluginManager().registerEvents(this, instance);
-		
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -82,8 +83,8 @@ public abstract class Manager implements Listener {
 		return database;
 	}
 	
-	protected static void registerManager(String name, Manager manager) {
-		ManagerHandler.registerManager(name, manager);
+	public String getName() {
+		return name;
 	}
 	
 	public abstract void onDisable();

@@ -8,15 +8,11 @@ import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 
 public class CitizensManager extends Manager {
-
-	static {
-		registerManager("citizens", new CitizensManager());
-	}
 	
 	private Plugin citizens;
 	
 	protected CitizensManager() {
-		super(false);
+		super("citizens", false);
 		if (!instance.getServer().getPluginManager().isPluginEnabled("Citizens")) {
 			citizens = null;
 			return;

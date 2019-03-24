@@ -18,16 +18,12 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 import net.md_5.bungee.api.ChatColor;
 
 public class RankManager extends Manager {
-
-	static {
-		registerManager("rank", new RankManager());
-	}
 	
 	private final List<Rank> ranks = new ArrayList<>();
 	private final ConfigurationSection section;
 	
 	protected RankManager() {
-		super(false);
+		super("rank", false);
 		this.section = instance.getConfiguration("ranks").get().getConfigurationSection("ranks");
 		for (String rank : section.getKeys(false)) {
 			ChatColor chat = ChatColor.valueOf(section.getString(rank + ".chat-color", "WHITE"));

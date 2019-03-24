@@ -27,10 +27,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 public class VisualizerManager extends Manager {
-
-	static {
-		registerManager("visualizer", new VisualizerManager());
-	}
 	
 	private final Map<KingdomPlayer, Set<Location>> changes = new HashMap<>();
 	private final PlayerManager playerManager;
@@ -38,7 +34,7 @@ public class VisualizerManager extends Manager {
 	private final LandManager landManager;
 	
 	protected VisualizerManager() {
-		super(true);
+		super("visualizer", true);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);

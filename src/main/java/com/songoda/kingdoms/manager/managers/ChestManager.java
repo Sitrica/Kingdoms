@@ -24,14 +24,10 @@ import org.bukkit.inventory.ItemStack;
 
 public class ChestManager extends Manager {
 	
-	static {
-		registerManager("chest", new ChestManager());
-	}
-	
 	private final Map<Player, KingdomChest> viewing = new HashMap<>();
 	
 	protected ChestManager() {
-		super(true);
+		super("chest", true);
 		instance.getServer().getPluginManager().registerEvents(new StoreListener(), instance);
 	}
 	

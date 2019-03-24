@@ -1,0 +1,250 @@
+#!
+#!     ▄█   ▄█▄  ▄█  ███▄▄▄▄      ▄██████▄  ████████▄   ▄██████▄    ▄▄▄▄███▄▄▄▄      ▄████████ 
+#!    ███ ▄███▀ ███  ███▀▀▀██▄   ███    ███ ███   ▀███ ███    ███ ▄██▀▀▀███▀▀▀██▄   ███    ███ 
+#!    ███�?██▀   ███▌ ███   ███   ███    █▀  ███    ███ ███    ███ ███   ███   ███   ███    █▀  
+#!   ▄█████▀    ███▌ ███   ███  ▄███        ███    ███ ███    ███ ███   ███   ███   ███        
+#!  ▀▀█████▄    ███▌ ███   ███ ▀▀███ ████▄  ███    ███ ███    ███ ███   ███   ███ ▀███████████ 
+#!    ███�?██▄   ███  ███   ███   ███    ███ ███    ███ ███    ███ ███   ███   ███          ███ 
+#!    ███ ▀███▄ ███  ███   ███   ███    ███ ███   ▄███ ███    ███ ███   ███   ███    ▄█    ███ 
+#!    ███   ▀█▀ █▀    ▀█   █▀    ████████▀  ████████▀   ▀██████▀   ▀█   ███   █▀   ▄████████▀  
+#!    ▀                                                                                        
+#!
+# The version is to help determine which version this config is. Please don't modify this value.
+version: "2.0.0"
+
+# All configurations relating to upgrades on the defenders.
+upgrades:
+    # The upgrade settings for the defender's weapon.
+    weapon:
+        enabled: true
+        # The title of the item in the inventory.
+        title: "&bDefender Weapon"
+        # The block material that will be used.
+        # https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+        material: "DIAMOND_SWORD"
+        material-meta: ""
+        # If the material should be shiny like an enchantment in the inventory.
+        glowing: false
+        # The message that states it's current state.
+        current: "&7Current Weapon Level: %level%"
+        # Level 1 is wood sword, 2 is stone and so on, until diamond, then it's level - 4 sharpness
+        max-level: 10
+        # The amount of resource points it takes to level up.
+        cost: 50
+        # For every level add this much on. E.G level 5 would (cost + (5 * multiplier)) = 100 by default.
+        cost-multiplier: 10
+        description:
+            - "&7Provides your Defender with a better weapon each upgrade. Max level is %value%."
+    # The upgrade settings for the defender's health.
+    health:
+        enabled: true
+        title: "&bDefender Health"
+        material: "GLISTERING_MELON_SLICE"
+        material-meta: ""
+        glowing: false
+        current: "&dCurrent Health Level: %level%"
+        # Value will represent the health per this upgrade.
+        value: 2
+        # If the max-level node isn't present, it will be infinite.
+        # max-level: 10
+        cost: 10
+        cost-multiplier: 5
+        description:
+            - "&7Increases Defender's Health by &d%value%&7."
+    mega-health:
+        enabled: true
+        title: "&bDefender Health II"
+        material: "GLISTERING_MELON_SLICE"
+        material-meta: ""
+        glowing: true
+        current: "&dCurrent Health Level: %level%"
+        # Value will represent the health per this upgrade.
+        value: 50
+        cost: 150
+        cost-multiplier: 200
+        description:
+            - "&7Increases Defender's Health by &d%value%&7."
+    # The upgrade settings for the defender's resistance.
+    resistance:
+        enabled: true
+        title: "&bResistance"
+        material: "BRICK"
+        material-meta: ""
+        glowing: false
+        current: "&fCurrent Resistance: %level%%"
+        max-level: 10
+        # Value will represent the percentage in which is increased.
+        # If you adjust this value, adjust the max-level to accomidate for it.
+        value: 10
+        cost: 50
+        cost-multiplier: 15
+        description:
+            - "&7Each upgrade adds %value%% chance that the champion won't be knocked back by an attack. Max is 100%"
+    # The upgrade settings for the defender's speed.
+    speed:
+        enabled: true
+        title: "&bSpeed"
+        # Setting the material to be a potion and set it's meta to be Speed.
+        material: "POTION"
+        material-meta: "SPEED"
+        glowing: false
+        current: "&bCurrent Speed: %level%"
+        max-level: 5
+        cost: 20
+        cost-multiplier: 15
+        description:
+            - "&7Increases Defender's Speed. Max is %max%"
+    # The upgrade settings for the defender's armor.
+    armor:
+        enabled: true
+        title: "&bArmor"
+        material: "DIAMOND_CHESTPLATE"
+        material-meta: ""
+        glowing: false
+        current: "&eCurrent Armor Level: %level%"
+        max-level: 5
+        cost: 300
+        cost-multiplier: 150
+        description:
+            - "&7Each upgrade adds a level of protection to the Defender's chestplate"
+    # The upgrade settings for the defender's strength.
+    strength:
+        enabled: true
+        title: "&bStrength"
+        material: "ANVIL"
+        material-meta: ""
+        glowing: false
+        current: "&cCurrent Strength Level: %level%"
+        max-level: 3
+        cost: 500
+        cost-multiplier: 200
+        description:
+            - "&7Strength potion added to the Defender and will be amplified each level."
+    # The upgrade settings for the defender's throw.
+    throw:
+        enabled: true
+        title: "&bThrow"
+        material: "COOKED_PORKCHOP"
+        material-meta: ""
+        glowing: false
+        current: "&6Current Throwing Level: %level%"
+        max-level: 50
+        # Value will represent the percentage in which is increased.
+        value: 10
+        cost: 200
+        cost-multiplier: 150
+        description:
+            - "&7Every attack, there will be a chance to knock the player into the sky. Each upgrade increases this chance by 10%"
+    aqua:
+        enabled: true
+        title: "&bAqua"
+        material: "WATER_BUCKET"
+        material-meta: ""
+        glowing: false
+        current: "&9Current Aqua Level: %level%"
+        cost: 500
+        description:
+            - "&7The defender gets depth strider boots."
+    # The upgrade settings for the defender's drag feature.
+    drag:
+        enabled: true
+        title: "&bDrag"
+        material: "FISHING_ROD"
+        material-meta: ""
+        glowing: false
+        current: "&dCurrent Dragging Level: %level%"
+        range: 7
+        cost: 100
+        description:
+            - "&7If the invading player is more than 7 blocks away from the defender, the defender will teleport the player to the defender's location"
+    mimic:
+        enabled: true
+        title: "&bMimic"
+        # use THIN_GLASS for 1.8...
+        material: "GLASS_PANE"
+        material-meta: ""
+        glowing: false
+        current: "&aCurrent Mimic Level: %level%"
+        cost: 600
+        description:
+            - "&7The champion gains the invader's helmet, leggings and boots."
+    mock:
+        enabled: true
+        title: "&bMock"
+        material: "STONE"
+        material-meta: ""
+        glowing: false
+        current: "&2Current Mock Range: %level% blocks"
+        max-level: 5
+        cost: 25
+        cost-multiplier: 25
+        description:
+            - "&7Each upgrade increases the radius in which invading players can't build while near the defender."
+    death-duel:
+        enabled: true
+        title: "&bDeath Duel"
+        # Use GOLD_SWORD for 1.8...
+        material: "GOLDEN_SWORD"
+        material-meta: ""
+        glowing: false
+        current: "&5Current Duel Level: %level%"
+        cost: 100
+        description:
+            - "&7All players except the invader will deal 50% less damage to the defender. The defender will also deal double damage to all players except the invader."
+    damage-cap:
+        enabled: true
+        title: "&bDamage Cap"
+        material: "DIAMOND_CHESTPLATE"
+        material-meta: ""
+        glowing: false
+        current: "&eCurrent Damage Cap: %level%"
+        cost: 300
+        description:
+            - "&7Your defender can only receive up to 15 damage at any attack."
+    thor:
+        enabled: true
+        title: "&bThor"
+        material: "DIAMOND_AXE"
+        material-meta: ""
+        glowing: false
+        current: "&5Current Thor Level: %level%"
+        max-level: 10
+        cost: 300
+        cost-multiplier: 150
+        description:
+            - "&7Every 3 seconds, lightning strikes the invading player and all nearby non-allied players"
+            - "&7Deals damage, and knocks the players back."
+    plow:
+        enabled: true
+        title: "&bPlow"
+        # Use WEB for 1.8...
+        material: "COBWEB"
+        material-meta: ""
+        glowing: false
+        current: "&5Current Plow Level: %level%"
+        cost: 600
+        description:
+            - "&7Your defender will try to clear lava and webs."
+    reinforcements:
+        enabled: true
+        title: "&bReinforcements"
+        # Use SKULL for 1.8... And meta data number for type or skin owner.
+        material: "ZOMBIE_HEAD"
+        material-meta: ""
+        glowing: false
+        current: "&4Number of reinforcements: %level%"
+        max-level: 3
+        cost: 800
+        cost-multiplier: 200
+        description:
+            - "&7Each upgrade allows only the &c&lNexus Defender &ato spawn an additonal nexus guard. Maximum level: %level%."
+    focus:
+        enabled: true
+        title: "&bFocus"
+        material: "ENDER_EYE"
+        material-meta: ""
+        glowing: false
+        current: "&fCurrent Focus Level: %level%"
+        cost: 700
+        description:
+            - "&7Players hit by the Defender will have 1 second removed from all their active potion effects."

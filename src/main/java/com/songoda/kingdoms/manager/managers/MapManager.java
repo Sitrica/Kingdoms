@@ -19,15 +19,11 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class MapManager extends Manager {
 
-	static {
-		registerManager("map", new MapManager());
-	}
-
 	private final PlayerManager playerManager;
 	private final LandManager landManager;
 
 	protected MapManager() {
-		super(true);
+		super("map", true);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
 	}

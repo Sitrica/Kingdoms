@@ -75,10 +75,6 @@ import java.util.UUID;
 
 public class InvadingManager extends Manager {
 
-	static {
-		registerManager("invading", new InvadingManager());
-	}
-
 	//private final Map<Integer, KingdomPlayer> targets = new ConcurrentHashMap<>();
 	//private final Map<Integer, Integer> determination = new HashMap<>();
 
@@ -100,7 +96,7 @@ public class InvadingManager extends Manager {
 	private final LandManager landManager;
 
 	protected InvadingManager() {
-		super(true);
+		super("invading", true);
 		this.defenderUpgrades = instance.getConfiguration("defender-upgrades").get();
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 		this.turretManager = instance.getManager("turret", TurretManager.class);
