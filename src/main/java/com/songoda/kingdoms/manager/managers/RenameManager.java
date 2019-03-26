@@ -14,7 +14,7 @@ public class RenameManager extends Manager {
 	
 	private final Map<Player, Consumer<AsyncPlayerChatEvent>> waiting = new HashMap<>();
 	
-	protected RenameManager() {
+	public RenameManager() {
 		super("rename", true);
 	}
 	

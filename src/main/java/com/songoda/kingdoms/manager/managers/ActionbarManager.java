@@ -14,7 +14,7 @@ public class ActionbarManager extends Manager {
 	// Caching
 	private final boolean classes, method;
 	
-	protected ActionbarManager() {
+	public ActionbarManager() {
 		super("actionbar", false);
 		this.classes = Utils.classExists("net.md_5.bungee.api.ChatMessageType") && Utils.classExists("net.md_5.bungee.api.chat.TextComponent");
 		if (!classes) {

@@ -39,7 +39,7 @@ public class ArsenalManager extends Manager {
 	private final FileConfiguration arsenal;
 	private final LandManager landManager;
 	
-	protected ArsenalManager() {
+	public ArsenalManager() {
 		super("arsenal", true);
 		this.turretManager = instance.getManager("turret", TurretManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);

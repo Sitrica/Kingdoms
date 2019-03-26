@@ -33,7 +33,7 @@ public class VisualizerManager extends Manager {
 	private final WorldManager worldManager;
 	private final LandManager landManager;
 	
-	protected VisualizerManager() {
+	public VisualizerManager() {
 		super("visualizer", true);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);

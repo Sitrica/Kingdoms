@@ -50,6 +50,7 @@ public class Kingdoms extends JavaPlugin {
 			configurations.put(name, configuration);
 		}
 		managerHandler = new ManagerHandler(instance);
+		managerHandler.start();
 		commandHandler = new CommandHandler(this);
 		consoleMessage("&a=============================");
 		consoleMessage("&7Kingdoms " + getDescription().getVersion() + " by &5Songoda <3&7!");
@@ -109,9 +110,8 @@ public class Kingdoms extends JavaPlugin {
 		return Optional.ofNullable(configurations.get(configuration));
 	}
 	
-	@SuppressWarnings("unchecked")
 	public <T extends Manager> T getManager(String name, Class<T> expected) {
-		return (T) getManager(name).orElseCreate();
+		return (T) getManager(name).orElseCreate(expected);
 	}
 	
 	public ManagerOptional<Manager> getManager(String name) {

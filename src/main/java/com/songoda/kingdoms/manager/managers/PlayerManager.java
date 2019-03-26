@@ -35,7 +35,7 @@ public class PlayerManager extends Manager {
 	private final WorldManager worldManager;
 	private BukkitTask autoSaveThread;
 
-	protected PlayerManager() {
+	public PlayerManager() {
 		super("player", true);
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);

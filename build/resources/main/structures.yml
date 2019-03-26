@@ -46,7 +46,7 @@ structures:
         description:
             - "&7Executing '/k map' while standing on land with a radar will reveal all structures."
             - "&7A radar will also start ticking sound if enemies are near."
-    output:
+    outpost:
         enabled: true
         # How much resource points this structure costs to aquire.
         cost: 250

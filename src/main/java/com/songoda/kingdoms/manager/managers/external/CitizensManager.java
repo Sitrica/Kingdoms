@@ -11,7 +11,7 @@ public class CitizensManager extends Manager {
 	
 	private Plugin citizens;
 	
-	protected CitizensManager() {
+	public CitizensManager() {
 		super("citizens", false);
 		if (!instance.getServer().getPluginManager().isPluginEnabled("Citizens")) {
 			citizens = null;

@@ -23,7 +23,7 @@ public class SoldierTurretManager extends Manager {
 	private final Set<Soldier> soldiers = new HashSet<>();
 	private final GuardsManager guardsManager;
 
-	protected SoldierTurretManager() {
+	public SoldierTurretManager() {
 		super("soldier-turret", false);
 		this.guardsManager = instance.getManager("guards", GuardsManager.class);
 	}

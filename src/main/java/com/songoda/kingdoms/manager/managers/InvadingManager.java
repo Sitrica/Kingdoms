@@ -95,7 +95,7 @@ public class InvadingManager extends Manager {
 	private final WorldManager worldManager;
 	private final LandManager landManager;
 
-	protected InvadingManager() {
+	public InvadingManager() {
 		super("invading", true);
 		this.defenderUpgrades = instance.getConfiguration("defender-upgrades").get();
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);

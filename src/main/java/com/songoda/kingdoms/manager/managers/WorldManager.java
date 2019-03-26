@@ -16,7 +16,7 @@ public class WorldManager extends Manager {
 	private final Set<World> worlds = new HashSet<>();
 	private final Set<String> names = new HashSet<>();
 	
-	protected WorldManager() {
+	public WorldManager() {
 		super("world", true);
 		this.unoccupied.addAll(configuration.getStringList("worlds.worlds-with-no-building-in-unoccupied"));
 		this.whitelistUnoccupied = configuration.getBoolean("worlds.unoccupied-list-is-whitelist", true);

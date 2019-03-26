@@ -11,7 +11,7 @@ public class CooldownManager extends Manager {
 
 	private final static Map<String, KingdomCooldown> cooldowns = new HashMap<>();
 	
-	protected CooldownManager() {
+	public CooldownManager() {
 		super("cooldown", false);
 	}
 

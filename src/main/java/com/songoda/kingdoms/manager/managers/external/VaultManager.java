@@ -11,8 +11,10 @@ public class VaultManager extends Manager {
 	
 	private Economy economy;
 
-	protected VaultManager() {
+	public VaultManager() {
 		super("vault", false);
+		if (!instance.getServer().getPluginManager().isPluginEnabled("Vault"))
+			return;
 		RegisteredServiceProvider<Economy> rsp = Bukkit.getServicesManager().getRegistration(Economy.class);
 		if (rsp != null) {
 			economy = rsp.getProvider();

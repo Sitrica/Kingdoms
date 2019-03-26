@@ -35,14 +35,14 @@ public enum StructureType {
 	private ItemStack itemstack;
 	private final long cost;
 	
-	private StructureType(String node) {
+	StructureType(String node) {
 		this(node, null);
 	}
 	
-	private StructureType(String node, String metadata) {
+	StructureType(String node, String metadata) {
 		FileConfiguration configuration = Kingdoms.getInstance().getConfiguration("structures").get();
 		ConfigurationSection section = configuration.getConfigurationSection("structures." + node);
-		this.item = Utils.materialAttempt(section.getString("inventory-material"), "RECORD_3");
+		this.item = Utils.materialAttempt(section.getString("inventory-material", "MUSIC_DISC_WAIT"), "RECORD_3");
 		this.material = Utils.materialAttempt(section.getString("material"), "REDSTONE_BLOCK");
 		this.additional.addAll(configuration.getStringList("structures.additional-lore"));
 		this.description.addAll(section.getStringList("description"));

@@ -84,7 +84,7 @@ public class TurretManager extends Manager {
 	private final LandManager landManager;
 	private final Kingdoms instance;
 	
-	protected TurretManager() {
+	public TurretManager() {
 		super("turret", true);
 		this.instance = Kingdoms.getInstance();
 		this.landManager = instance.getManager("land", LandManager.class);

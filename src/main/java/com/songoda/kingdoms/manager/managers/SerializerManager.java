@@ -12,9 +12,9 @@ public class SerializerManager extends Manager {
 	
 	private final Set<Serializer<?>> serializers = new HashSet<>();
 	
-	protected SerializerManager() {
+	public SerializerManager() {
 		super("serializer", false);
-		Utils.getClassesOf(instance, instance.getPackageName(), Serializer.class).forEach(serializer -> {
+		Utils.getClassesOf(instance, instance.getPackageName() + ".database.serializers", Serializer.class).forEach(serializer -> {
 			try {
 				serializers.add(serializer.newInstance());
 			} catch (InstantiationException | IllegalAccessException e) {

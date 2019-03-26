@@ -14,8 +14,7 @@ import com.songoda.kingdoms.utils.Formatting;
 
 public class HologramPlaceholders {
 
-	public static void register() {
-		Kingdoms instance = Kingdoms.getInstance();
+	public HologramPlaceholders(Kingdoms instance) {
 		PlayerManager playerManager = instance.getManager("player", PlayerManager.class);
 		LandManager landManager = instance.getManager("land", LandManager.class);
 		FileConfiguration messages = instance.getConfiguration("messages").get();

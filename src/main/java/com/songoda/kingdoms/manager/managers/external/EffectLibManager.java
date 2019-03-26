@@ -26,7 +26,7 @@ public class EffectLibManager extends Manager {
 	
 	private final EffectManager effectManager;
 	
-	protected EffectLibManager() {
+	public EffectLibManager() {
 		super("effectlib", false);
 		effectManager = new EffectManager(instance);
 	}

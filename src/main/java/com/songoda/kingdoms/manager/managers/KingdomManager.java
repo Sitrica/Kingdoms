@@ -56,7 +56,7 @@ public class KingdomManager extends Manager {
 	private final RankManager rankManager;
 	private BukkitTask autoSaveThread;
 
-	protected KingdomManager() {
+	public KingdomManager() {
 		super("kingdom", true);
 		this.landManager = instance.getManager("land", LandManager.class);
 		this.rankManager = instance.getManager("rank", RankManager.class);

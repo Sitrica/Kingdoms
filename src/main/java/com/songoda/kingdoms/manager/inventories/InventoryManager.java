@@ -24,6 +24,9 @@ public class InventoryManager extends Manager {
 	
 	public InventoryManager() {
 		super("inventory", true);
+	}
+	
+	public void start() {
 		Utils.getClassesOf(instance, instance.getPackageName() + ".inventories", KingdomInventory.class).forEach(clazz -> {
 			try {
 				KingdomInventory inventory = clazz.newInstance();

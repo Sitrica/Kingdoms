@@ -22,7 +22,7 @@ public class RankManager extends Manager {
 	private final List<Rank> ranks = new ArrayList<>();
 	private final ConfigurationSection section;
 	
-	protected RankManager() {
+	public RankManager() {
 		super("rank", false);
 		this.section = instance.getConfiguration("ranks").get().getConfigurationSection("ranks");
 		for (String rank : section.getKeys(false)) {

@@ -11,9 +11,14 @@ import com.songoda.kingdoms.utils.Utils;
 public class ManagerHandler {
 
 	private final Set<Manager> managers = new HashSet<>();
+	private final Kingdoms instance;
 	
 	public ManagerHandler(Kingdoms instance) {
-		Utils.getClassesOf(instance, instance.getPackageName(), Manager.class).forEach(clazz -> {
+		this.instance = instance;
+	}
+	
+	public void start() {
+		Utils.getClassesOf(instance, instance.getPackageName() + ".manager", Manager.class).forEach(clazz -> {
 			try {
 				Manager manager = clazz.newInstance();
 				managers.add(manager);

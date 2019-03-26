@@ -13,22 +13,20 @@ import com.songoda.kingdoms.placeholders.HologramPlaceholders;
 public class HolographicDisplaysManager extends Manager {
 
 	private BackendAPI holographic;
-	private final boolean enabled;
 
-	protected HolographicDisplaysManager() {
+	public HolographicDisplaysManager() {
 		super("holographic-displays", false);
-		enabled = instance.getServer().getPluginManager().isPluginEnabled("HolographicDisplays");
-		if (!enabled)
+		if (!instance.getServer().getPluginManager().isPluginEnabled("HolographicDisplays"))
 			return;
 		holographic = BackendAPI.getImplementation();
-		HologramPlaceholders.register();
+		new HologramPlaceholders(instance);
 	}
 
 	/**
 	 * @return boolean if HolographicDisplays is enabled.
 	 */
 	public boolean isEnabled() {
-		return enabled;
+		return holographic != null;
 	}
 
 	/**

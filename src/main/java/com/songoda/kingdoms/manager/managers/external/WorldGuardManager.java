@@ -17,7 +17,7 @@ public class WorldGuardManager extends Manager implements WorldGuardKingdoms {
 	private WorldGuardKingdoms worldGuard;
 	private boolean blacklist;
 
-	protected WorldGuardManager() {
+	public WorldGuardManager() {
 		super("worldguard", false);
 		if (!instance.getServer().getPluginManager().isPluginEnabled("WorldGuard"))
 			return;

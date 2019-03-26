@@ -70,7 +70,6 @@ dependencies {
 	
 	// WorldEdit
 	implementation (group: 'com.sk89q', name: "worldedit", version: '7.0.0')
-	implementation (group: 'com.sk89q', name: "worldedit", version: '6.1.6')
 	
 	// Vault
 	implementation (group: 'net.milkbowl', name: 'vault', version: '1.7.1')

@@ -35,7 +35,7 @@ public class DynmapManager extends Manager {
 	private final LandManager landManager;
 	private DynmapAPI dynmap;
 	
-	protected DynmapManager() {
+	public DynmapManager() {
 		super("dynmap", true);
 		this.landManager = instance.getManager("land", LandManager.class);
 		Server server = instance.getServer();

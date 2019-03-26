@@ -1,6 +1,5 @@
 package com.songoda.kingdoms.objects;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -22,17 +21,14 @@ public class ManagerOptional<T extends Manager> {
 		return supplier.get();
 	}
 	
-	public T orElseCreate() {
-		@SuppressWarnings("unchecked")
-		Class<T> clazz = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
-		T manager;
+	public <M extends Manager> M orElseCreate(Class<M> expected) {
 		try {
-			manager = clazz.newInstance();
+			M manager = expected.newInstance();
+			managerHandler.registerManager(manager);
+			return manager;
 		} catch (InstantiationException | IllegalAccessException e) {
 			return null;
 		}
-		managerHandler.registerManager(manager);
-		return manager;
 	}
 	
 	public Optional<T> getOptional() {

@@ -21,7 +21,7 @@ public class SiegeEngineManager extends Manager {
 	private final Map<Integer, Integer> crucial = new HashMap<>();
 	private final FileConfiguration structures;
 	
-	protected SiegeEngineManager() {
+	public SiegeEngineManager() {
 		super("siege-engine", false);
 		crucial.put(4, 4);
 		crucial.put(4, 8);

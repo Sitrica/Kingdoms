@@ -17,6 +17,7 @@ public class PlayerWaterlogEvent extends PlayerBucketEvent implements Cancellabl
 		super(who, blockClicked, blockFace, bucket, itemInHand);
 	}
 
+	@Override
 	public HandlerList getHandlers() {
 		return handlers;
 	}

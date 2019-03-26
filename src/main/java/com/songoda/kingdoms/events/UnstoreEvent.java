@@ -71,4 +71,8 @@ public class UnstoreEvent extends Event implements Cancellable {
 		return handlers;
 	}
 
+	public static HandlerList getHandlerList() {
+		return handlers;
+	}
+
 }

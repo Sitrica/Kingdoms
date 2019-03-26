@@ -41,6 +41,7 @@ public class PlayerChangeChunkEvent extends Event implements Cancellable {
 		this.cancelled = cancelled;
 	}
 
+	@Override
 	public HandlerList getHandlers() {
 		return handlers;
 	}

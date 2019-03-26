@@ -48,7 +48,7 @@ public class GuardsManager extends Manager {
 	public final String GUARD_KINGDOM = "kingdom-guard";
 	private final KingdomManager kingdomManager;
 	
-	protected GuardsManager() {
+	public GuardsManager() {
 		super("guards", true);
 		this.soldierTurretManager = instance.getManager("soldier-turret", SoldierTurretManager.class);
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);

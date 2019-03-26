@@ -20,7 +20,7 @@ public class ChatManager extends Manager {
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
 	
-	protected ChatManager() {
+	public ChatManager() {
 		super("chat", true);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("land", WorldManager.class);

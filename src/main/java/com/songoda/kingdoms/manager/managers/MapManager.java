@@ -22,7 +22,7 @@ public class MapManager extends Manager {
 	private final PlayerManager playerManager;
 	private final LandManager landManager;
 
-	protected MapManager() {
+	public MapManager() {
 		super("map", true);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);

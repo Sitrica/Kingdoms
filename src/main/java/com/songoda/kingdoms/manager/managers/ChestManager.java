@@ -26,7 +26,7 @@ public class ChestManager extends Manager {
 	
 	private final Map<Player, KingdomChest> viewing = new HashMap<>();
 	
-	protected ChestManager() {
+	public ChestManager() {
 		super("chest", true);
 		instance.getServer().getPluginManager().registerEvents(new StoreListener(), instance);
 	}

@@ -45,7 +45,7 @@ public class NexusManager extends Manager {
 	private final PlayerManager playerManager;
 	private final LandManager landManager;
 
-	protected NexusManager() {
+	public NexusManager() {
 		super("nexus", true);
 		this.worldGuardManager = instance.getManager("worldguard", WorldGuardManager.class);
 		this.inventoryManager = instance.getManager("inventory", InventoryManager.class);

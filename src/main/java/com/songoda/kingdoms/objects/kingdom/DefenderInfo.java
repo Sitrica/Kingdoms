@@ -1,14 +1,6 @@
 package com.songoda.kingdoms.objects.kingdom;
 
-import java.lang.reflect.Type;
-
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonSerializationContext;
-import com.songoda.kingdoms.database.Serializer;
-
-public class DefenderInfo implements Serializer<DefenderInfo> {
+public class DefenderInfo {
 	
 	private final OfflineKingdom kingdom;
 	private int reinforcements = 0;
@@ -338,16 +330,6 @@ public class DefenderInfo implements Serializer<DefenderInfo> {
 				this.thrown = level;
 				break;
 		}
-	}
-
-	@Override
-	public DefenderInfo deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws JsonParseException {
-		return null;
-	}
-
-	@Override
-	public JsonElement serialize(DefenderInfo src, Type type, JsonSerializationContext context) {
-		return null;
 	}
 
 }
