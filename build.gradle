@@ -70,12 +70,15 @@ dependencies {
 	
 	// WorldEdit
 	implementation (group: 'com.sk89q', name: "worldedit", version: '7.0.0')
+	implementation (group: 'com.sk89q', name: "worldedit", version: '6.1.6')
 	
 	// Vault
 	implementation (group: 'net.milkbowl', name: 'vault', version: '1.7.1')
 	
 	// EffectLib
 	shade (group: 'de.slikey', name: 'EffectLib', version: '6.2-SNAPSHOT')
+	
+	shade fileTree(dir: 'libraries', include: '*.jar')
 
 }
 
@@ -91,6 +94,7 @@ processResources {
 }
 
 jar {
+	from 'kingdoms-worldguard6/java/main'
 	configurations.shade.each { dep ->
 		from (project.zipTree(dep)) {
 			exclude '**/*.php'
