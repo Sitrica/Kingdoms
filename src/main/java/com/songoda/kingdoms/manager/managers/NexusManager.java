@@ -39,14 +39,18 @@ public class NexusManager extends Manager {
 
 	private final Set<KingdomPlayer> placing = new HashSet<>();
 	private final StructureType type = StructureType.NEXUS;
-	private final WorldGuardManager worldGuardManager;
-	private final InventoryManager inventoryManager;
-	private final TurretManager turretManager;
-	private final PlayerManager playerManager;
-	private final LandManager landManager;
+	private WorldGuardManager worldGuardManager;
+	private InventoryManager inventoryManager;
+	private TurretManager turretManager;
+	private PlayerManager playerManager;
+	private LandManager landManager;
 
 	public NexusManager() {
 		super("nexus", true);
+	}
+
+	@Override
+	public void initalize() {
 		this.worldGuardManager = instance.getManager("worldguard", WorldGuardManager.class);
 		this.inventoryManager = instance.getManager("inventory", InventoryManager.class);
 		this.turretManager = instance.getManager("turret", TurretManager.class);

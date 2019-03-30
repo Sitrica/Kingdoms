@@ -21,13 +21,17 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 public class SoldierTurretManager extends Manager {
 	
 	private final Set<Soldier> soldiers = new HashSet<>();
-	private final GuardsManager guardsManager;
+	private GuardsManager guardsManager;
 
 	public SoldierTurretManager() {
 		super("soldier-turret", false);
+	}
+
+	@Override
+	public void initalize() {
 		this.guardsManager = instance.getManager("guards", GuardsManager.class);
 	}
-	
+
 	public Zombie spawnSoldier(Kingdom owner, Location location, Location origin, int damage, Player target) {
 		soldiers.parallelStream()
 				.filter(soldier -> soldier.getSpawnLocation().equals(location))
@@ -53,11 +57,11 @@ public class SoldierTurretManager extends Manager {
 		guardsManager.getTargets().put(soldier, target);
 		return soldier;
 	}
-	
+
 	public Set<Soldier> getSoldiers() {
 		return soldiers;
 	}
-	
+
 	public class Soldier {
 		
 		private final LivingEntity target;
@@ -83,7 +87,7 @@ public class SoldierTurretManager extends Manager {
 		}
 		
 	}
-	
+
 	@Override
 	public void onDisable() {
 		soldiers.clear();

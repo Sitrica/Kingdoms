@@ -29,12 +29,16 @@ import org.bukkit.event.player.PlayerInteractEvent;
 public class VisualizerManager extends Manager {
 	
 	private final Map<KingdomPlayer, Set<Location>> changes = new HashMap<>();
-	private final PlayerManager playerManager;
-	private final WorldManager worldManager;
-	private final LandManager landManager;
+	private PlayerManager playerManager;
+	private WorldManager worldManager;
+	private LandManager landManager;
 	
 	public VisualizerManager() {
 		super("visualizer", true);
+	}
+
+	@Override
+	public void initalize() {
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);

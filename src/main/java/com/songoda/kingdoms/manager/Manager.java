@@ -3,11 +3,15 @@ package com.songoda.kingdoms.manager;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
+
+import com.google.common.collect.Sets;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.Database;
 import com.songoda.kingdoms.database.DatabaseTransferTask;
@@ -17,12 +21,13 @@ import com.songoda.kingdoms.database.YamlDatabase;
 import com.songoda.kingdoms.database.DatabaseTransferTask.TransferPair;
 import com.songoda.kingdoms.objects.land.Land;
 
-public abstract class Manager implements Listener {
+public abstract class Manager implements Listener, Comparable<Manager> {
 	
 	private final Map<Class<?>, Database<?>> databases = new HashMap<>();
 	protected final FileConfiguration configuration;
 	protected final Kingdoms instance;
 	protected final String name;
+	private String[] after;
 	
 	protected Manager(String name, boolean listener) {
 		this.name = name;
@@ -32,8 +37,13 @@ public abstract class Manager implements Listener {
 			Bukkit.getPluginManager().registerEvents(this, instance);
 	}
 	
+	protected Manager(String name, boolean listener, String... after) {
+		this(name, listener);
+		this.after = after;
+	}
+	
 	@SuppressWarnings("unchecked")
-	protected <T> Database<T> getMySQLDatabase(Class<T> type){
+	protected <T> Database<T> getMySQLDatabase(Class<T> type) {
 		if (databases.containsKey(type))
 			return (MySQLDatabase<T>) databases.get(type);
 		ConfigurationSection section = instance.getConfig().getConfigurationSection("database");
@@ -82,10 +92,30 @@ public abstract class Manager implements Listener {
 		}
 		return database;
 	}
+
+	@Override
+	public int compareTo(Manager manager) {
+		Optional<String> optional = manager.after().parallelStream()
+				.filter(after -> after.equalsIgnoreCase(name))
+				.findFirst();
+		if (optional.isPresent())
+			return 1;
+		return 0;
+	}
+	
+	public Set<String> after() {
+		return Sets.newHashSet(after);
+	}
 	
 	public String getName() {
 		return name;
 	}
+	
+	/**
+	 * Used for grabbing other instances of Managers.
+	 * Can't grab other managers within the constructor.
+	 */
+	public abstract void initalize();
 	
 	public abstract void onDisable();
 

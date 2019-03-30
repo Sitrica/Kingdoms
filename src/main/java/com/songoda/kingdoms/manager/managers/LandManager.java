@@ -64,16 +64,16 @@ public class LandManager extends Manager {
 	private final List<String> unclaiming = new ArrayList<>(); //TODO test if this is even required. It's a queue to avoid claiming and removing at same time.
 	private final Map<Chunk, Land> lands = new HashMap<>();
 	private final Set<String> forbidden = new HashSet<>();
-	private final WorldGuardManager worldGuardManager;
-	private final VisualizerManager visualizerManager;
-	private final StructureManager structureManager;
 	private final FileConfiguration configuration;
-	private final CitizensManager citizensManager;
-	private final KingdomManager kingdomManager;
-	private final PlayerManager playerManager;
-	private final DynmapManager dynmapManager;
-	private final WorldManager worldManager;
-	private final LandManager landManager;
+	private WorldGuardManager worldGuardManager;
+	private VisualizerManager visualizerManager;
+	private StructureManager structureManager;
+	private CitizensManager citizensManager;
+	private KingdomManager kingdomManager;
+	private PlayerManager playerManager;
+	private DynmapManager dynmapManager;
+	private WorldManager worldManager;
+	private LandManager landManager;
 	private static Database<Land> database;
 	private BukkitTask autoSaveThread;
 	private Kingdoms instance;
@@ -84,15 +84,6 @@ public class LandManager extends Manager {
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
 		this.forbidden.addAll(configuration.getStringList("kingdoms.forbidden-inventories"));
-		this.worldGuardManager = instance.getManager("worldguard", WorldGuardManager.class);
-		this.visualizerManager = instance.getManager("visualizer", VisualizerManager.class);
-		this.structureManager = instance.getManager("structure", StructureManager.class);
-		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
-		this.dynmapManager = instance.getManager("dynmap", DynmapManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
-		this.landManager = instance.getManager("land", LandManager.class);
 		instance.getManager("rank", RankManager.class);
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(Land.class);
@@ -138,6 +129,19 @@ public class LandManager extends Manager {
 				}
 			}, time, time);
 		}
+	}
+
+	@Override
+	public void initalize() {
+		this.worldGuardManager = instance.getManager("worldguard", WorldGuardManager.class);
+		this.visualizerManager = instance.getManager("visualizer", VisualizerManager.class);
+		this.structureManager = instance.getManager("structure", StructureManager.class);
+		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.dynmapManager = instance.getManager("dynmap", DynmapManager.class);
+		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.worldManager = instance.getManager("world", WorldManager.class);
+		this.landManager = instance.getManager("land", LandManager.class);
 	}
 	
 	private final Runnable saveTask = new Runnable() {

@@ -48,22 +48,16 @@ public class KingdomManager extends Manager {
 	private final Set<String> processing = new HashSet<>(); // Names that are currently being created. Can't take these names.
 	private final Set<BotKingdom> bots = new HashSet<>();
 	private final Database<OfflineKingdom> database;
-	private final CitizensManager citizensManager;
-	private final PlayerManager playerManager;
-	private final WorldManager worldManager;
-	private final CooldownManager cooldowns;
-	private final LandManager landManager;
-	private final RankManager rankManager;
+	private CitizensManager citizensManager;
+	private PlayerManager playerManager;
+	private WorldManager worldManager;
+	private CooldownManager cooldowns;
+	private LandManager landManager;
+	private RankManager rankManager;
 	private BukkitTask autoSaveThread;
 
 	public KingdomManager() {
 		super("kingdom", true);
-		this.landManager = instance.getManager("land", LandManager.class);
-		this.rankManager = instance.getManager("rank", RankManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
-		this.cooldowns = instance.getManager("cooldown", CooldownManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(OfflineKingdom.class);
 		else
@@ -72,6 +66,16 @@ public class KingdomManager extends Manager {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
 			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, saveTask, 0, IntervalUtils.getInterval(interval) * 20);
 		}
+	}
+	
+	@Override
+	public void initalize() {
+		this.landManager = instance.getManager("land", LandManager.class);
+		this.rankManager = instance.getManager("rank", RankManager.class);
+		this.worldManager = instance.getManager("world", WorldManager.class);
+		this.cooldowns = instance.getManager("cooldown", CooldownManager.class);
+		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 	}
 	
 	private final Runnable saveTask = new Runnable() {

@@ -39,19 +39,23 @@ import java.util.Set;
 public class PlayerMovementManager extends Manager {
 
 	private long spam = System.currentTimeMillis();
-	private final WorldGuardManager worldGuardManager;
-	private final CitizensManager citizensManager;
-	private final PlayerManager playerManager;
-	private final WorldManager worldManager;
-	private final LandManager landManager;
+	private WorldGuardManager worldGuardManager;
+	private CitizensManager citizensManager;
+	private PlayerManager playerManager;
+	private WorldManager worldManager;
+	private LandManager landManager;
 	
 	public PlayerMovementManager() {
 		super("player-movement", true);
-		this.landManager = instance.getManager("land", LandManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+	}
+
+	@Override
+	public void initalize() {
 		this.worldGuardManager = instance.getManager("worldguard", WorldGuardManager.class);
+		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.worldManager = instance.getManager("world", WorldManager.class);
+		this.landManager = instance.getManager("land", LandManager.class);
 	}
 	
 	@EventHandler

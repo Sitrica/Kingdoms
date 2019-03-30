@@ -34,6 +34,9 @@ public class RenameManager extends Manager {
 	}
 
 	@Override
+	public void initalize() {}
+
+	@Override
 	public void onDisable() {}
 
 }

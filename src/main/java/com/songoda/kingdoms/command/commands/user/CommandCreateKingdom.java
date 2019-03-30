@@ -21,7 +21,7 @@ import com.songoda.kingdoms.utils.Utils;
 
 public class CommandCreateKingdom extends AbstractCommand {
 	
-	protected CommandCreateKingdom() {
+	public CommandCreateKingdom() {
 		super("create", false);
 	}
 

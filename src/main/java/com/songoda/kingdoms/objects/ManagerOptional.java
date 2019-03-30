@@ -22,13 +22,7 @@ public class ManagerOptional<T extends Manager> {
 	}
 	
 	public <M extends Manager> M orElseCreate(Class<M> expected) {
-		try {
-			M manager = expected.newInstance();
-			managerHandler.registerManager(manager);
-			return manager;
-		} catch (InstantiationException | IllegalAccessException e) {
-			return null;
-		}
+		return managerHandler.createManager(expected);
 	}
 	
 	public Optional<T> getOptional() {

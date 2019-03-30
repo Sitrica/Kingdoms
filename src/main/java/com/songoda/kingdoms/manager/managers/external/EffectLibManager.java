@@ -23,14 +23,14 @@ import de.slikey.effectlib.effect.LineEffect;
 import de.slikey.effectlib.util.DynamicLocation;
 
 public class EffectLibManager extends Manager {
-	
+
 	private final EffectManager effectManager;
-	
+
 	public EffectLibManager() {
 		super("effectlib", false);
 		effectManager = new EffectManager(instance);
 	}
-	
+
 	public class LineBuilder {
 		
 		private final Location start, end;
@@ -97,7 +97,7 @@ public class EffectLibManager extends Manager {
 		}
 		
 	}
-	
+
 	public void shootParticle(Turret turret, Location from, LivingEntity target, Runnable runnable) {
 		TurretType type = turret.getType();
 		ParticleProjectile projectile = type.getParticleProjectile();
@@ -140,6 +140,9 @@ public class EffectLibManager extends Manager {
 	public EffectManager getEffectManager() {
 		return effectManager;
 	}
+
+	@Override
+	public void initalize() {}
 
 	@Override
 	public void onDisable() {}

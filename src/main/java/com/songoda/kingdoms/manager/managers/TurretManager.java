@@ -76,26 +76,30 @@ public class TurretManager extends Manager {
 	public final String METADATA_CHANCE = "turret-chance";
 	public final String METADATA_HEALTH = "turret-health";
 	public final String METADATA_VALUE = "turret-value";
-	private final EffectLibManager effectLibManager;
-	private final InvadingManager invadingManager;
-	private final CitizensManager citizensManager;
-	private final KingdomManager kingdomManager;
-	private final PlayerManager playerManager;
-	private final LandManager landManager;
+	private EffectLibManager effectLibManager;
+	private InvadingManager invadingManager;
+	private CitizensManager citizensManager;
+	private KingdomManager kingdomManager;
+	private PlayerManager playerManager;
+	private LandManager landManager;
 	private final Kingdoms instance;
 	
 	public TurretManager() {
 		super("turret", true);
 		this.instance = Kingdoms.getInstance();
-		this.landManager = instance.getManager("land", LandManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
-		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
-		this.invadingManager = instance.getManager("invading", InvadingManager.class);
-		this.effectLibManager = instance.getManager("effectlib", EffectLibManager.class);
 		for (String turret : configuration.getConfigurationSection("turrets.turrets").getKeys(false)) {
 			types.add(new TurretType(turret));
 		}
+	}
+
+	@Override
+	public void initalize() {
+		this.effectLibManager = instance.getManager("effectlib", EffectLibManager.class);
+		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+		this.invadingManager = instance.getManager("invading", InvadingManager.class);
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.landManager = instance.getManager("land", LandManager.class);
 	}
 	
 	public boolean isHealthProjectile(Metadatable metadatable) {

@@ -99,6 +99,9 @@ public class ChestManager extends Manager {
 		}
 		return chest;
 	}
+	
+	@Override
+	public void initalize() {}
 
 	@Override
 	public void onDisable() {

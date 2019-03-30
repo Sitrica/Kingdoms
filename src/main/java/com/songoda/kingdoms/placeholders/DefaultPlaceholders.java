@@ -18,6 +18,10 @@ public class DefaultPlaceholders extends Manager {
 
 	public DefaultPlaceholders() {
 		super("defaultplaceholders", false);
+	}
+
+	@Override
+	public void initalize() {
 		Placeholders.registerPlaceholder(new SimplePlaceholder("%prefix%") {
 			@Override
 			public String get() {
@@ -103,5 +107,5 @@ public class DefaultPlaceholders extends Manager {
 
 	@Override
 	public void onDisable() {}
-	
+
 }

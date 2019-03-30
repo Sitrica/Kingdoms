@@ -87,17 +87,21 @@ public class InvadingManager extends Manager {
 	private final Map<UUID, Integer> plowTasks = new HashMap<>();
 	private final Map<Land, UUID> invading = new HashMap<>();
 	private final FileConfiguration defenderUpgrades;
-	private final CitizensManager citizensManager;
 	private final Random random = new Random();
-	private final TurretManager turretManager;
-	private final PlayerManager playerManager;
-	private final GuardsManager guardsManager;
-	private final WorldManager worldManager;
-	private final LandManager landManager;
+	private CitizensManager citizensManager;
+	private TurretManager turretManager;
+	private PlayerManager playerManager;
+	private GuardsManager guardsManager;
+	private WorldManager worldManager;
+	private LandManager landManager;
 
 	public InvadingManager() {
 		super("invading", true);
 		this.defenderUpgrades = instance.getConfiguration("defender-upgrades").get();
+	}
+	
+	@Override
+	public void initalize() {
 		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
 		this.turretManager = instance.getManager("turret", TurretManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);

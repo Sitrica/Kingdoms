@@ -31,6 +31,9 @@ public class ActionbarManager extends Manager {
 			}
 		}
 	}
+	
+	@Override
+	public void initalize() {}
 
 	@Override
 	public void onDisable() {}

@@ -44,14 +44,12 @@ import com.songoda.kingdoms.utils.Utils;
 public class GuardsManager extends Manager {
 	
 	private final Map<Monster, Player> targets = new HashMap<>();
-	private final SoldierTurretManager soldierTurretManager;
 	public final String GUARD_KINGDOM = "kingdom-guard";
-	private final KingdomManager kingdomManager;
+	private SoldierTurretManager soldierTurretManager;
+	private KingdomManager kingdomManager;
 	
 	public GuardsManager() {
 		super("guards", true);
-		this.soldierTurretManager = instance.getManager("soldier-turret", SoldierTurretManager.class);
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		instance.getServer().getScheduler().runTaskTimerAsynchronously(instance, () -> {
 			Iterator<Entry<Monster, Player>> iterator = targets.entrySet().iterator();
 		    while (iterator.hasNext()) {
@@ -74,6 +72,12 @@ public class GuardsManager extends Manager {
 				guard.setTarget((LivingEntity) target);
 		    }
 		}, 0, 20);
+	}
+	
+	@Override
+	public void initalize() {
+		this.soldierTurretManager = instance.getManager("soldier-turret", SoldierTurretManager.class);
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 	}
 	
 	public Map<Monster, Player> getTargets() {

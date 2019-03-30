@@ -64,20 +64,15 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 public class StructureManager extends Manager {
 	
 	private final Queue<Land> loadQueue = new LinkedList<Land>();
-	private final InventoryManager inventoryManager;
-	private final PlayerManager playerManager;
-	private final WorldManager worldManager;
-	private final NexusManager nexusManager;
-	private final LandManager landManager;
+	private InventoryManager inventoryManager;
+	private PlayerManager playerManager;
+	private WorldManager worldManager;
+	private NexusManager nexusManager;
+	private LandManager landManager;
 	private final BukkitTask task;
 	
 	public StructureManager() {
 		super("structure", true);
-		this.landManager = instance.getManager("land", LandManager.class);
-		this.nexusManager = instance.getManager("neuxs", NexusManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.inventoryManager = instance.getManager("ivnentory", InventoryManager.class);
 		task = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
 			@Override
 			public void run() {
@@ -114,6 +109,15 @@ public class StructureManager extends Manager {
 				}
 			}
 		}, 0, 1);
+	}
+
+	@Override
+	public void initalize() {
+		this.inventoryManager = instance.getManager("ivnentory", InventoryManager.class);
+		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.nexusManager = instance.getManager("neuxs", NexusManager.class);
+		this.worldManager = instance.getManager("world", WorldManager.class);
+		this.landManager = instance.getManager("land", LandManager.class);
 	}
 	
 	public void breakStructureAt(Land land) {

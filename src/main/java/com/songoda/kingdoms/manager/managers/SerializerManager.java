@@ -14,6 +14,10 @@ public class SerializerManager extends Manager {
 	
 	public SerializerManager() {
 		super("serializer", false);
+	}
+
+	@Override
+	public void initalize() {
 		Utils.getClassesOf(instance, instance.getPackageName() + ".database.serializers", Serializer.class).forEach(serializer -> {
 			try {
 				serializers.add(serializer.newInstance());

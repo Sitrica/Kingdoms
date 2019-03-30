@@ -150,6 +150,9 @@ public class RankManager extends Manager {
 	}
 
 	@Override
+	public void initalize() {}
+
+	@Override
 	public void onDisable() {
 		ranks.clear();
 	}

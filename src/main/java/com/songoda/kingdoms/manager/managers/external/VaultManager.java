@@ -8,7 +8,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 public class VaultManager extends Manager {
-	
+
 	private Economy economy;
 
 	public VaultManager() {
@@ -20,27 +20,30 @@ public class VaultManager extends Manager {
 			economy = rsp.getProvider();
 		}
 	}
-	
+
 	public void withdraw(OfflinePlayer player, double amount) {
 		if (economy != null)
 			economy.withdrawPlayer(player, amount);
 	}	
-	
+
 	public void deposit(OfflinePlayer player, double amount) {
 		if (economy != null)
 			economy.depositPlayer(player, amount);
 	}
-	
+
 	public double getBalance(OfflinePlayer player) {
 		if (economy == null)
 			return 0;
 		return economy.getBalance(player);
 	}
-	
+
 	public Economy getEconomy() {
 		return economy;
 	}
-	
+
+	@Override
+	public void initalize() {}
+
 	@Override
 	public void onDisable() {}
 

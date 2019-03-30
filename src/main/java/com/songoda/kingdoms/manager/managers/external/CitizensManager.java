@@ -8,9 +8,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 
 public class CitizensManager extends Manager {
-	
+
 	private Plugin citizens;
-	
+
 	public CitizensManager() {
 		super("citizens", false);
 		if (!instance.getServer().getPluginManager().isPluginEnabled("Citizens")) {
@@ -33,7 +33,10 @@ public class CitizensManager extends Manager {
 			return true;
 		return false;
 	}
-	
+
+	@Override
+	public void initalize() {}
+
 	@Override
 	public void onDisable() {}
 

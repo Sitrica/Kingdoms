@@ -31,9 +31,6 @@ public class WorldGuardManager extends Manager implements WorldGuardKingdoms {
 	}
 
 	@Override
-	public void onDisable() {}
-
-	@Override
 	public boolean canClaim(Location location) {
 		if (worldGuard == null)
 			return false;
@@ -53,5 +50,11 @@ public class WorldGuardManager extends Manager implements WorldGuardKingdoms {
 			return false;
 		return worldGuard.canBuild(player, location);
 	}
+
+	@Override
+	public void initalize() {}
+
+	@Override
+	public void onDisable() {}
 
 }

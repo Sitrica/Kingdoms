@@ -32,12 +32,11 @@ public class DynmapManager extends Manager {
 			+ "<span style=\"font-weight:italic;color:red\">%resourcepoints% </span><br>"
 			+ "<span style=\"font-weight:bold;color:black\">Members: </span><br>"
 			+ "</div>";
-	private final LandManager landManager;
+	private LandManager landManager;
 	private DynmapAPI dynmap;
 	
 	public DynmapManager() {
 		super("dynmap", true);
-		this.landManager = instance.getManager("land", LandManager.class);
 		Server server = instance.getServer();
 		PluginManager pluginManager = server.getPluginManager();
 		if (!pluginManager.isPluginEnabled("dynmap"))
@@ -50,11 +49,16 @@ public class DynmapManager extends Manager {
 			set.deleteMarkerSet();
 		server.getScheduler().runTaskTimerAsynchronously(instance, () -> landManager.getLoadedLand().forEach(chunk -> consumer.accept(chunk)), 0, 20);
 	}
-	
+
+	@Override
+	public void initalize() {
+		this.landManager = instance.getManager("land", LandManager.class);
+	}
+
 	public void update(Chunk chunk) {
 		instance.getServer().getScheduler().runTaskAsynchronously(instance, () -> consumer.accept(chunk));
 	}
-	
+
 	private final Consumer<Chunk> consumer = new Consumer<Chunk>() {
 		@Override
 		public void accept(Chunk chunk) {

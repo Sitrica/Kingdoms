@@ -19,6 +19,10 @@ public class HolographicDisplaysManager extends Manager {
 		if (!instance.getServer().getPluginManager().isPluginEnabled("HolographicDisplays"))
 			return;
 		holographic = BackendAPI.getImplementation();
+	}
+
+	@Override
+	public void initalize() {
 		new HologramPlaceholders(instance);
 	}
 

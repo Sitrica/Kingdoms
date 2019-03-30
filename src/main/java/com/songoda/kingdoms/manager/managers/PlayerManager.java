@@ -31,14 +31,12 @@ public class PlayerManager extends Manager {
 	
 	private final Set<OfflineKingdomPlayer> users = new HashSet<>();
 	private Database<OfflineKingdomPlayer> database;
-	private final CitizensManager citizensManager;
-	private final WorldManager worldManager;
+	private CitizensManager citizensManager;
+	private WorldManager worldManager;
 	private BukkitTask autoSaveThread;
 
 	public PlayerManager() {
 		super("player", true);
-		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(OfflineKingdomPlayer.class);
 		else
@@ -47,6 +45,12 @@ public class PlayerManager extends Manager {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
 			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, save, 0, IntervalUtils.getInterval(interval) * 20);
 		}
+	}
+
+	@Override
+	public void initalize() {
+		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+		this.worldManager = instance.getManager("world", WorldManager.class);
 	}
 	
 	private final Runnable save = new Runnable() {

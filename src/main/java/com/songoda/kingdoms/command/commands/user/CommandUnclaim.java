@@ -27,7 +27,7 @@ public class CommandUnclaim extends AbstractCommand {
 	
 	private final Set<KingdomPlayer> confirmations = new HashSet<>();
 	
-	protected CommandUnclaim() {
+	public CommandUnclaim() {
 		super("unclaim", false);
 	}
 

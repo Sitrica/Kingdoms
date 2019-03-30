@@ -93,7 +93,10 @@ public class SiegeEngineManager extends Manager {
 				messageSent = true;
 			}
 		}
-	}	
+	}
+
+	@Override
+	public void initalize() {}
 
 	@Override
 	public void onDisable() {

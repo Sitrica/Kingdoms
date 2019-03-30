@@ -24,7 +24,7 @@ public class WorldManager extends Manager {
 		this.names.addAll(configuration.getStringList("worlds.list"));
 		this.names.add("KingdomsConquest");
 	}
-	
+
 	public boolean acceptsWorld(World world) {
 		String name = world.getName();
 		if (whitelist) {
@@ -36,7 +36,7 @@ public class WorldManager extends Manager {
 		}
 		return true;
 	}
-	
+
 	public boolean canBuildInUnoccupied(World world) {
 		String name = world.getName();
 		if (whitelistUnoccupied) {
@@ -48,22 +48,26 @@ public class WorldManager extends Manager {
 		}
 		return true;
 	}
-	
+
 	@EventHandler
 	public void onWorldLoad(WorldLoadEvent event) {
 		World world = event.getWorld();
 		worlds.add(world);
 	}
+
 	@EventHandler
 	public void onWorldUnload(WorldLoadEvent event) {
 		World world = event.getWorld();
 		worlds.remove(world);
 	}
-	
+
+	@Override
+	public void initalize() {}
+
 	@Override
 	public void onDisable() {
 		worlds.clear();
 		names.clear();
 	}
-	
+
 }

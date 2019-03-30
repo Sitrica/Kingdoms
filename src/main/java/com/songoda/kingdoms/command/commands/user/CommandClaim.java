@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 
 public class CommandClaim extends AbstractCommand {
 
-	protected CommandClaim() {
+	public CommandClaim() {
 		super("claim", false);
 	}
 
