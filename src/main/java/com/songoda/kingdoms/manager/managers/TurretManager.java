@@ -1,6 +1,5 @@
 package com.songoda.kingdoms.manager.managers;
 
-import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.LandLoadEvent;
 import com.songoda.kingdoms.events.TurretBreakEvent;
 import com.songoda.kingdoms.events.TurretFireEvent;
@@ -76,26 +75,24 @@ public class TurretManager extends Manager {
 	public final String METADATA_CHANCE = "turret-chance";
 	public final String METADATA_HEALTH = "turret-health";
 	public final String METADATA_VALUE = "turret-value";
-	private EffectLibManager effectLibManager;
+	private Optional<EffectLibManager> effectLibManager;
+	private Optional<CitizensManager> citizensManager;
 	private InvadingManager invadingManager;
-	private CitizensManager citizensManager;
 	private KingdomManager kingdomManager;
 	private PlayerManager playerManager;
 	private LandManager landManager;
-	private final Kingdoms instance;
 	
 	public TurretManager() {
 		super("turret", true);
-		this.instance = Kingdoms.getInstance();
-		for (String turret : configuration.getConfigurationSection("turrets.turrets").getKeys(false)) {
+		for (String turret : instance.getConfiguration("turrets").get().getConfigurationSection("turrets.turrets").getKeys(false)) {
 			types.add(new TurretType(turret));
 		}
 	}
 
 	@Override
 	public void initalize() {
-		this.effectLibManager = instance.getManager("effectlib", EffectLibManager.class);
-		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+		this.effectLibManager = instance.getExternalManager("effectlib", EffectLibManager.class);
+		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		this.invadingManager = instance.getManager("invading", InvadingManager.class);
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
@@ -259,8 +256,9 @@ public class TurretManager extends Manager {
 			return false;
 		if (target.isDead() || !target.isValid())
 			return false;
-		if (citizensManager.isCitizen(target))
-			return false;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(target))
+				return false;
 		if (invadingManager.isDefender(target))
 			return false;
 		OfflineKingdom playerKingdom = null;
@@ -323,8 +321,8 @@ public class TurretManager extends Manager {
 		// Execute
 		if (turret.getAmmo() > 0) {
 			turret.useAmmo();
-			if (type.isParticleProjectile()) {
-				effectLibManager.shootParticle(turret, fromLocation, target, new Runnable() {
+			if (type.isParticleProjectile() && effectLibManager.isPresent()) {
+				effectLibManager.get().shootParticle(turret, fromLocation, target, new Runnable() {
 					@Override
 					public void run() {
 						if (type.isHealer()) {

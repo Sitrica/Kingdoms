@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -35,8 +36,8 @@ public class HologramBuilder {
 
 	private Map<Placeholder<?>, Object> placeholders = new HashMap<>();
 	private final Set<KingdomPlayer> kingdomPlayers = new HashSet<>();
+	private final Optional<HolographicDisplaysManager> holograms;
 	private final Set<Player> players = new HashSet<>();
-	private final HolographicDisplaysManager holograms;
 	private final FileConfiguration configuration;
 	private OfflineKingdomPlayer kingdomPlayer;
 	private Object defaultPlaceholderObject;
@@ -54,8 +55,8 @@ public class HologramBuilder {
 	 */
 	public HologramBuilder(Location location, String node) {
 		this.instance = Kingdoms.getInstance();
+		this.holograms = instance.getExternalManager("holographic-displays", HolographicDisplaysManager.class);
 		this.configuration = instance.getConfig();
-		this.holograms = instance.getManager("holographic-displays", HolographicDisplaysManager.class);
 		this.location = location;
 		this.node = node + ".";
 	}
@@ -267,7 +268,7 @@ public class HologramBuilder {
 	 * Sends the final product of the builder if the senders are set.
 	 */
 	public void send() {
-		if (!holograms.isEnabled())
+		if (!holograms.isPresent() || !holograms.get().isEnabled())
 			return;
 		if (!kingdomPlayers.isEmpty()) {
 			players.addAll(kingdomPlayers.parallelStream()
@@ -282,7 +283,7 @@ public class HologramBuilder {
 		long expiration = configuration.getLong(node + "expiration", defaultExpiration);
 		if (expiration <= 0)
 			expiration = defaultExpiration;
-		Hologram hologram = holograms.createHologram(location.add(x, y, z));
+		Hologram hologram = holograms.get().createHologram(location.add(x, y, z));
 		VisibilityManager visibilityManager = hologram.getVisibilityManager();
 		visibilityManager.setVisibleByDefault(false);
 		visibilityManager.resetVisibilityAll();

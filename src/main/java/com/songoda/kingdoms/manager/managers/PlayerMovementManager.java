@@ -34,13 +34,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public class PlayerMovementManager extends Manager {
 
+	private Optional<WorldGuardManager> worldGuardManager;
+	private Optional<CitizensManager> citizensManager;
 	private long spam = System.currentTimeMillis();
-	private WorldGuardManager worldGuardManager;
-	private CitizensManager citizensManager;
 	private PlayerManager playerManager;
 	private WorldManager worldManager;
 	private LandManager landManager;
@@ -51,8 +52,8 @@ public class PlayerMovementManager extends Manager {
 
 	@Override
 	public void initalize() {
-		this.worldGuardManager = instance.getManager("worldguard", WorldGuardManager.class);
-		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+		this.worldGuardManager = instance.getExternalManager("worldguard", WorldGuardManager.class);
+		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
@@ -61,8 +62,9 @@ public class PlayerMovementManager extends Manager {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
-		if (citizensManager.isCitizen(player))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(player))
+				return;
 		Bukkit.getScheduler().runTaskLater(instance, new Runnable() {
 			@Override
 			public void run() {
@@ -112,8 +114,9 @@ public class PlayerMovementManager extends Manager {
 	@EventHandler
 	public void onTeleport(PlayerTeleportEvent event) {
 		Player player = event.getPlayer();
-		if (citizensManager.isCitizen(player))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(player))
+				return;
 		Location from = event.getFrom();
 		Location to = event.getTo();
 		if (from.getChunk().equals(to.getChunk()))
@@ -130,8 +133,9 @@ public class PlayerMovementManager extends Manager {
 		World world = player.getWorld();
 		if (worldManager.acceptsWorld(world))
 			return;
-		if (citizensManager.isCitizen(player))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(player))
+				return;
 		Location from = event.getFrom();
 		Location to = event.getTo();
 		Chunk chunkFrom = from.getChunk();
@@ -194,8 +198,9 @@ public class PlayerMovementManager extends Manager {
 		if (worldManager.acceptsWorld(world))
 			return;
 		//TODO add configuration option to ignore or not regions.
-		if (worldGuardManager.isInRegion(player.getLocation()))
-			return;
+		if (worldGuardManager.isPresent())
+			if (worldGuardManager.get().isInRegion(player.getLocation()))
+				return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		Chunk chunkFrom = event.getFromChunk();
 		Chunk chunkTo = event.getToChunk();

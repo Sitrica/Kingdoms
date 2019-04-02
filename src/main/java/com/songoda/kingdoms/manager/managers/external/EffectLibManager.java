@@ -12,7 +12,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import com.google.common.collect.Sets;
-import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.ExternalManager;
 import com.songoda.kingdoms.objects.turrets.ParticleProjectile;
 import com.songoda.kingdoms.objects.turrets.Turret;
 import com.songoda.kingdoms.objects.turrets.TurretType;
@@ -22,7 +22,7 @@ import de.slikey.effectlib.EffectManager;
 import de.slikey.effectlib.effect.LineEffect;
 import de.slikey.effectlib.util.DynamicLocation;
 
-public class EffectLibManager extends Manager {
+public class EffectLibManager extends ExternalManager {
 
 	private final EffectManager effectManager;
 
@@ -140,9 +140,6 @@ public class EffectLibManager extends Manager {
 	public EffectManager getEffectManager() {
 		return effectManager;
 	}
-
-	@Override
-	public void initalize() {}
 
 	@Override
 	public void onDisable() {}

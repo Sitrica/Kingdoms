@@ -1,22 +1,17 @@
 package com.songoda.kingdoms.manager.managers.external;
 
 import com.songoda.kingdoms.Kingdoms;
-import com.songoda.kingdoms.manager.Manager;
-
+import com.songoda.kingdoms.manager.ExternalManager;
 import net.citizensnpcs.api.CitizensAPI;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 
-public class CitizensManager extends Manager {
+public class CitizensManager extends ExternalManager {
 
 	private Plugin citizens;
 
 	public CitizensManager() {
 		super("citizens", false);
-		if (!instance.getServer().getPluginManager().isPluginEnabled("Citizens")) {
-			citizens = null;
-			return;
-		}
 		citizens = CitizensAPI.getPlugin();
 		if (citizens != null)
 			Kingdoms.consoleMessage("Hooked into Citizens!");
@@ -33,9 +28,6 @@ public class CitizensManager extends Manager {
 			return true;
 		return false;
 	}
-
-	@Override
-	public void initalize() {}
 
 	@Override
 	public void onDisable() {}

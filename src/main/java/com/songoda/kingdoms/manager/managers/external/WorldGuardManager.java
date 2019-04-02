@@ -5,13 +5,13 @@ import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.ExternalManager;
 import com.songoda.kingdoms.utils.Utils;
 import com.songoda.kingdoms.worldguard.WorldGuard6;
 import com.songoda.kingdoms.worldguard.WorldGuard7;
 import com.songoda.kingdoms.worldguard.WorldGuardKingdoms;
 
-public class WorldGuardManager extends Manager implements WorldGuardKingdoms {
+public class WorldGuardManager extends ExternalManager implements WorldGuardKingdoms {
 
 	private final List<String> list = new ArrayList<>();
 	private WorldGuardKingdoms worldGuard;
@@ -50,9 +50,6 @@ public class WorldGuardManager extends Manager implements WorldGuardKingdoms {
 			return false;
 		return worldGuard.canBuild(player, location);
 	}
-
-	@Override
-	public void initalize() {}
 
 	@Override
 	public void onDisable() {}

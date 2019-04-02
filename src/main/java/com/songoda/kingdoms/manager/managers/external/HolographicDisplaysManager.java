@@ -7,10 +7,10 @@ import org.bukkit.entity.Entity;
 import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.internal.BackendAPI;
 import com.gmail.filoghost.holographicdisplays.api.placeholder.PlaceholderReplacer;
-import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.ExternalManager;
 import com.songoda.kingdoms.placeholders.HologramPlaceholders;
 
-public class HolographicDisplaysManager extends Manager {
+public class HolographicDisplaysManager extends ExternalManager {
 
 	private BackendAPI holographic;
 
@@ -19,10 +19,6 @@ public class HolographicDisplaysManager extends Manager {
 		if (!instance.getServer().getPluginManager().isPluginEnabled("HolographicDisplays"))
 			return;
 		holographic = BackendAPI.getImplementation();
-	}
-
-	@Override
-	public void initalize() {
 		new HologramPlaceholders(instance);
 	}
 

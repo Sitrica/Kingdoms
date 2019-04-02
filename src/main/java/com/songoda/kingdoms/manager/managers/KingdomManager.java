@@ -47,8 +47,8 @@ public class KingdomManager extends Manager {
 	public static Set<OfflineKingdom> kingdoms = new HashSet<>(); // All Kingdoms contained in this Set that aren't bot kingdoms are actually online kingdoms.
 	private final Set<String> processing = new HashSet<>(); // Names that are currently being created. Can't take these names.
 	private final Set<BotKingdom> bots = new HashSet<>();
+	private Optional<CitizensManager> citizensManager;
 	private final Database<OfflineKingdom> database;
-	private CitizensManager citizensManager;
 	private PlayerManager playerManager;
 	private WorldManager worldManager;
 	private CooldownManager cooldowns;
@@ -70,12 +70,12 @@ public class KingdomManager extends Manager {
 	
 	@Override
 	public void initalize() {
-		this.landManager = instance.getManager("land", LandManager.class);
-		this.rankManager = instance.getManager("rank", RankManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
+		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		this.cooldowns = instance.getManager("cooldown", CooldownManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+		this.worldManager = instance.getManager("world", WorldManager.class);
+		this.landManager = instance.getManager("land", LandManager.class);
+		this.rankManager = instance.getManager("rank", RankManager.class);
 	}
 	
 	private final Runnable saveTask = new Runnable() {
@@ -402,8 +402,11 @@ public class KingdomManager extends Manager {
 		Entity attacker = event.getDamager();
 		if (attacker.equals(victim))
 			return;
-		if (citizensManager.isCitizen(victim) || citizensManager.isCitizen(attacker))
-			return;
+		if (citizensManager.isPresent()) {
+			CitizensManager citizens = citizensManager.get();
+			if (citizens.isCitizen(victim) || citizens.isCitizen(attacker))
+				return;
+		}
 		KingdomPlayer attacked = null;
 		if (attacker instanceof Projectile) {
 			if (((Projectile) attacker).getType() == EntityType.ENDER_PEARL)
@@ -411,8 +414,9 @@ public class KingdomManager extends Manager {
 			ProjectileSource shooter = ((Projectile) attacker).getShooter();
 			if (shooter != null) {
 				if (shooter instanceof Player) {
-					if (citizensManager.isCitizen((Player) shooter))
-						return;
+					if (citizensManager.isPresent())
+						if (citizensManager.get().isCitizen((Player) shooter))
+							return;
 					attacked = playerManager.getKingdomPlayer((Player) shooter);
 				}
 			}
@@ -451,8 +455,9 @@ public class KingdomManager extends Manager {
 			return;
 		if (configuration.getBoolean("kingdoms.alliance-can-pvp", false))
 			return;
-		if (citizensManager.isCitizen(victim))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(victim))
+				return;
 		Entity attacker = event.getDamager();
 		if (attacker.getUniqueId().equals(victim.getUniqueId()))
 			return;
@@ -463,14 +468,16 @@ public class KingdomManager extends Manager {
 			if (shooter != null) {
 				if (shooter instanceof Player) {
 					Player player = (Player)shooter;
-					if (citizensManager.isCitizen(player))
-						return;
+					if (citizensManager.isPresent())
+						if (citizensManager.get().isCitizen(player))
+							return;
 					kingdomPlayer = playerManager.getKingdomPlayer(player);
 				}
 			}
 		} else if (attacker instanceof Player) {
-			if (citizensManager.isCitizen(attacker))
-				return;
+			if (citizensManager.isPresent())
+				if (citizensManager.get().isCitizen(attacker))
+					return;
 			kingdomPlayer = playerManager.getKingdomPlayer((Player)attacker);
 		}
 		if (kingdomPlayer == null)
@@ -511,8 +518,9 @@ public class KingdomManager extends Manager {
 			return;
 		if (!(victim instanceof Player))
 			return;
-		if (citizensManager.isCitizen(victim))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(victim))
+				return;
 		if (!configuration.getBoolean("allow-pacifist"))
 			return;
 		if (!configuration.getBoolean("kingdoms.pacifist-cannot-fight-in-land"))
@@ -528,13 +536,15 @@ public class KingdomManager extends Manager {
 				return;
 			if (shooter instanceof Player) {
 				Player player = (Player) shooter;
-				if (citizensManager.isCitizen(player))
-					return;
+				if (citizensManager.isPresent())
+					if (citizensManager.get().isCitizen(player))
+						return;
 				kingdomPlayer = playerManager.getKingdomPlayer(player);
 			}
 		} else if (attacker instanceof Player) {
-			if (citizensManager.isCitizen(attacker))
-				return;
+			if (citizensManager.isPresent())
+				if (citizensManager.get().isCitizen(attacker))
+					return;
 			kingdomPlayer = playerManager.getKingdomPlayer((Player) attacker);
 		}
 		if (kingdomPlayer == null)

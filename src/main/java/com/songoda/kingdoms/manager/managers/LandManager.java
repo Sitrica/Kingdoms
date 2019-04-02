@@ -64,14 +64,14 @@ public class LandManager extends Manager {
 	private final List<String> unclaiming = new ArrayList<>(); //TODO test if this is even required. It's a queue to avoid claiming and removing at same time.
 	private final Map<Chunk, Land> lands = new HashMap<>();
 	private final Set<String> forbidden = new HashSet<>();
+	private Optional<WorldGuardManager> worldGuardManager;
+	private Optional<CitizensManager> citizensManager;
 	private final FileConfiguration configuration;
-	private WorldGuardManager worldGuardManager;
 	private VisualizerManager visualizerManager;
 	private StructureManager structureManager;
-	private CitizensManager citizensManager;
 	private KingdomManager kingdomManager;
 	private PlayerManager playerManager;
-	private DynmapManager dynmapManager;
+	private Optional<DynmapManager> dynmapManager;
 	private WorldManager worldManager;
 	private LandManager landManager;
 	private static Database<Land> database;
@@ -133,12 +133,12 @@ public class LandManager extends Manager {
 
 	@Override
 	public void initalize() {
-		this.worldGuardManager = instance.getManager("worldguard", WorldGuardManager.class);
+		this.worldGuardManager = instance.getExternalManager("worldguard", WorldGuardManager.class);
+		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		this.visualizerManager = instance.getManager("visualizer", VisualizerManager.class);
 		this.structureManager = instance.getManager("structure", StructureManager.class);
-		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+		this.dynmapManager = instance.getExternalManager("dynmap", DynmapManager.class);
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
-		this.dynmapManager = instance.getManager("dynmap", DynmapManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
@@ -266,10 +266,11 @@ public class LandManager extends Manager {
 					.send(player);
 			return;
 		}
-		if (!worldGuardManager.canClaim(player.getLocation())) {
-			new MessageBuilder("claiming.worldguard").send(player);
-			return;
-		}
+		if (worldGuardManager.isPresent())
+			if (!worldGuardManager.get().canClaim(player.getLocation())) {
+				new MessageBuilder("claiming.worldguard").send(player);
+				return;
+			}
 		Land land = getLand(player.getLocation().getChunk());
 		Chunk chunk = land.getChunk();
 		String chunkString = LocationUtils.chunkToString(chunk);
@@ -388,7 +389,8 @@ public class LandManager extends Manager {
 			land.setKingdomOwner(kingdom);
 			String name = LocationUtils.chunkToString(land.getChunk());
 			database.save(name, land);
-			dynmapManager.update(chunk);
+			if (dynmapManager.isPresent())
+				dynmapManager.get().update(chunk);
 		}
 	}
 
@@ -423,7 +425,8 @@ public class LandManager extends Manager {
 						}
 					});
 				}
-				dynmapManager.update(chunk);
+				if (dynmapManager.isPresent())
+					dynmapManager.get().update(chunk);
 			}
 		}
 	}
@@ -715,8 +718,9 @@ public class LandManager extends Manager {
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onChunkChange(PlayerChangeChunkEvent event) {
 		Player player = event.getPlayer();
-		if (citizensManager.isCitizen(player))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(player))
+				return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		if (kingdomPlayer.isAutoClaiming()){
 			Bukkit.getScheduler().scheduleSyncDelayedTask(Kingdoms.getInstance(), new Runnable() {

@@ -1,6 +1,7 @@
 package com.songoda.kingdoms.manager.managers;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
@@ -39,7 +40,7 @@ public class NexusManager extends Manager {
 
 	private final Set<KingdomPlayer> placing = new HashSet<>();
 	private final StructureType type = StructureType.NEXUS;
-	private WorldGuardManager worldGuardManager;
+	private Optional<WorldGuardManager> worldGuardManager;
 	private InventoryManager inventoryManager;
 	private TurretManager turretManager;
 	private PlayerManager playerManager;
@@ -51,7 +52,7 @@ public class NexusManager extends Manager {
 
 	@Override
 	public void initalize() {
-		this.worldGuardManager = instance.getManager("worldguard", WorldGuardManager.class);
+		this.worldGuardManager = instance.getExternalManager("worldguard", WorldGuardManager.class);
 		this.inventoryManager = instance.getManager("inventory", InventoryManager.class);
 		this.turretManager = instance.getManager("turret", TurretManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
@@ -88,12 +89,13 @@ public class NexusManager extends Manager {
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		if (!placing.contains(kingdomPlayer))
 			return;
-		if(!worldGuardManager.canBuild(player, block.getLocation())) {
-			new MessageBuilder("claiming.worldguard")
-					.setKingdom(kingdom)
-					.send(player);
-			return;
-		}
+		if (worldGuardManager.isPresent())
+			if (!worldGuardManager.get().canBuild(player, block.getLocation())) {
+				new MessageBuilder("claiming.worldguard")
+						.setKingdom(kingdom)
+						.send(player);
+				return;
+			}
 		//check if replacing with turret
 		if (turretManager.getTurretBlock(block) != TurretBlock.NOT_TURRET) {
 			new MessageBuilder("kingdoms.nexus-cannot-replace")

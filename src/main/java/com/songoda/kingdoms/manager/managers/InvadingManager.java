@@ -75,9 +75,6 @@ import java.util.UUID;
 
 public class InvadingManager extends Manager {
 
-	//private final Map<Integer, KingdomPlayer> targets = new ConcurrentHashMap<>();
-	//private final Map<Integer, Integer> determination = new HashMap<>();
-
 	private final Map<OfflineKingdom, DefenderInfo> infos = new HashMap<>();
 	private final Map<KingdomPlayer, Location> defenders = new HashMap<>();
 	private final Map<UUID, OfflineKingdom> entities = new HashMap<>();
@@ -86,9 +83,9 @@ public class InvadingManager extends Manager {
 	private final Map<UUID, Integer> thorTasks = new HashMap<>();
 	private final Map<UUID, Integer> plowTasks = new HashMap<>();
 	private final Map<Land, UUID> invading = new HashMap<>();
+	private Optional<CitizensManager> citizensManager;
 	private final FileConfiguration defenderUpgrades;
 	private final Random random = new Random();
-	private CitizensManager citizensManager;
 	private TurretManager turretManager;
 	private PlayerManager playerManager;
 	private GuardsManager guardsManager;
@@ -99,10 +96,10 @@ public class InvadingManager extends Manager {
 		super("invading", true);
 		this.defenderUpgrades = instance.getConfiguration("defender-upgrades").get();
 	}
-	
+
 	@Override
 	public void initalize() {
-		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		this.turretManager = instance.getManager("turret", TurretManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.guardsManager = instance.getManager("guards", GuardsManager.class);
@@ -128,7 +125,7 @@ public class InvadingManager extends Manager {
 	public Map<Land, UUID> getInvadingChunks() {
 		return invading;
 	}
-	
+
 	/**
 	 * Check if an Entity is a Kingdom's defender.
 	 * 
@@ -161,7 +158,7 @@ public class InvadingManager extends Manager {
 	public Optional<OfflineKingdom> getDefenderOwner(Entity entity) {
 		return Optional.ofNullable(entities.get(entity.getUniqueId()));
 	}
-	
+
 	/**
 	 * Get the KingdomPlayer challenger of the Entity UUID.
 	 *
@@ -257,7 +254,7 @@ public class InvadingManager extends Manager {
 					defender.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 1000, 1));
 			}
 		}
-		
+
 		ItemStack armor = new ItemStack(Material.DIAMOND_CHESTPLATE);
 		if (info.getArmor() > 0)
 			armor.addUnsafeEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, info.getArmor() - 1);
@@ -277,7 +274,7 @@ public class InvadingManager extends Manager {
 				item = new ItemStack(Material.DIAMOND_BOOTS);
 			defender.getEquipment().setBoots(item);
 		}
-		
+
 		Enchantment depth = DeprecationUtils.getEnchantment("DEPTH_STRIDER");
 		if (info.getAqua() > 0 && depth != null) {
 			ItemStack boots = defender.getEquipment().getBoots();
@@ -288,7 +285,7 @@ public class InvadingManager extends Manager {
 			boots.addUnsafeEnchantment(Enchantment.DURABILITY, 10);
 			boots.addUnsafeEnchantment(depth, 10);
 		}
-		
+
 		int weapon = info.getWeapon();
 		switch (weapon) {
 			case 0:
@@ -313,7 +310,7 @@ public class InvadingManager extends Manager {
 				DeprecationUtils.setItemInMainHand(defender, sword);
 				break;
 		}
-		
+
 		int speed = info.getSpeed();
 		if (speed > 0)
 			defender.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 999999, speed - 1));
@@ -363,6 +360,7 @@ public class InvadingManager extends Manager {
 				}
 			}, 1L, 5L));
 		}
+
 		int thor = info.getThor();
 		if (thor > 0) {
 			thorTasks.put(defender.getUniqueId(), Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, () -> {
@@ -501,8 +499,9 @@ public class InvadingManager extends Manager {
 	@EventHandler
 	public void onChallengerDeath(PlayerDeathEvent event) {
 		Player player = event.getEntity();
-		if (citizensManager.isCitizen(player))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(player))
+				return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		Optional<Entity> defender = getDefender(kingdomPlayer);
 		if (!defender.isPresent())
@@ -518,7 +517,7 @@ public class InvadingManager extends Manager {
 		stopFight(kingdomPlayer);
 		Bukkit.getPluginManager().callEvent(new InvadingSurrenderEvent(kingdomPlayer, landKingdom, land));
 	}
-	
+
 	@EventHandler
 	public void onChampionEnterVehicle(VehicleEnterEvent event) {
 		if (!isDefender(event.getEntered()))
@@ -533,8 +532,9 @@ public class InvadingManager extends Manager {
 		if (!configuration.getBoolean("invading.defender.void-death-end-invasion"))
 			return;
 		Entity entity = event.getEntity();
-		if (citizensManager.isCitizen(entity))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(entity))
+				return;
 		if (!worldManager.acceptsWorld(entity.getWorld()))
 			return;
 		Optional<KingdomPlayer> optional = getDefenderChallenger(entity);
@@ -557,8 +557,9 @@ public class InvadingManager extends Manager {
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onDefenderDamage(EntityDamageByEntityEvent event) {
 		Entity entity = event.getEntity();
-		if (citizensManager.isCitizen(entity))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(entity))
+				return;
 		if (!worldManager.acceptsWorld(entity.getWorld()))
 			return;
 		Optional<OfflineKingdom> optional = getDefenderOwner(entity);
@@ -652,8 +653,9 @@ public class InvadingManager extends Manager {
 		World world = victim.getWorld();
 		if (!worldManager.acceptsWorld(world))
 			return;
-		if (citizensManager.isCitizen(victim))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(victim))
+				return;
 		Optional<OfflineKingdom> optional = turretManager.getProjectileKingdom(victim);
 		if (!optional.isPresent())
 			return;
@@ -687,8 +689,9 @@ public class InvadingManager extends Manager {
 		World world = player.getWorld();
 		if (!worldManager.acceptsWorld(world))
 			return;
-		if (citizensManager.isCitizen(player))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(player))
+				return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		if (!getDefender(kingdomPlayer).isPresent())
 			return;
@@ -727,8 +730,9 @@ public class InvadingManager extends Manager {
 		World world = entity.getWorld();
 		if (!worldManager.acceptsWorld(world))
 			return;
-		if (citizensManager.isCitizen(entity))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(entity))
+				return;
 		Optional<OfflineKingdom> optional = getDefenderOwner(entity);
 	    if (!optional.isPresent())
 	        return;
@@ -824,8 +828,11 @@ public class InvadingManager extends Manager {
 			return;
 		Entity attacker = event.getDamager();
 		Player player = (Player) victim;
-		if (citizensManager.isCitizen(player) || citizensManager.isCitizen(attacker))
-			return;
+		if (citizensManager.isPresent()) {
+			CitizensManager citizens = citizensManager.get();
+			if (citizens.isCitizen(player) || citizens.isCitizen(attacker))
+				return;
+		}
 		if (!isDefender(attacker))
 			return;
 		Optional<OfflineKingdom> defenderOptional = getDefenderOwner(attacker);
@@ -844,8 +851,9 @@ public class InvadingManager extends Manager {
 		Entity attacker = event.getDamager();
 		if(!(attacker instanceof Player))
 			return;
-		if (citizensManager.isCitizen(attacker))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(attacker))
+				return;
 		Player player = (Player) attacker;
 		Entity victim = event.getEntity();
 		if (!isDefender(victim))
@@ -891,8 +899,9 @@ public class InvadingManager extends Manager {
 		Entity victim = event.getEntity();
 		if (!(victim instanceof Player))
 			return;
-		if (citizensManager.isCitizen(victim))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(victim))
+				return;
 		Player player = (Player) victim;
 		Entity attacker = event.getDamager();
 		Optional<OfflineKingdom> optional = getDefenderOwner(attacker);
@@ -922,8 +931,9 @@ public class InvadingManager extends Manager {
 		Entity victim = event.getEntity();
 		if (!(victim instanceof Player))
 			return;
-		if (citizensManager.isCitizen(victim))
-			return;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(victim))
+				return;
 		Player player = (Player) victim;
 		Entity attacker = event.getDamager();
 		Optional<OfflineKingdom> optional = getDefenderOwner(attacker);

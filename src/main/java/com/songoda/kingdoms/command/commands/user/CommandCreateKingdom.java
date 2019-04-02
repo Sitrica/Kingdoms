@@ -71,8 +71,8 @@ public class CommandCreateKingdom extends AbstractCommand {
 			return ReturnType.FAILURE;
         }
 		int cost = configuration.getInt("economy.kingdom-create-cost", 0);
-		if (configuration.getBoolean("economy.enabled")) {
-			if (cost > 0 && vaultManager.getBalance(player) < cost) {
+		if (configuration.getBoolean("economy.enabled") && vaultManager.isPresent()) {
+			if (cost > 0 && vaultManager.get().getBalance(player) < cost) {
 				new MessageBuilder("commands.economy-not-enough")
 						.setPlaceholderObject(kingdomPlayer)
 						.replace("%cost%", cost)
@@ -113,8 +113,8 @@ public class CommandCreateKingdom extends AbstractCommand {
 			}
 			items.entrySet().forEach(entry -> InventoryUtil.removeMaterial(player, entry.getKey(), entry.getValue().intValue()));
 		}
-		if (configuration.getBoolean("economy.enabled") && cost > 0)
-			vaultManager.withdraw(player, cost);
+		if (configuration.getBoolean("economy.enabled") && cost > 0 && vaultManager.isPresent())
+			vaultManager.get().withdraw(player, cost);
 		if (kingdomManager.createNewKingdom(name, kingdomPlayer)) {
 			new MessageBuilder("commands.create-kingdom.create-success")
 					.setPlaceholderObject(kingdomPlayer)

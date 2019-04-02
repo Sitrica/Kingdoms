@@ -1,13 +1,13 @@
 package com.songoda.kingdoms.manager.managers.external;
 
-import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.ExternalManager;
 import net.milkbowl.vault.economy.Economy;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
-public class VaultManager extends Manager {
+public class VaultManager extends ExternalManager {
 
 	private Economy economy;
 
@@ -40,9 +40,6 @@ public class VaultManager extends Manager {
 	public Economy getEconomy() {
 		return economy;
 	}
-
-	@Override
-	public void initalize() {}
 
 	@Override
 	public void onDisable() {}

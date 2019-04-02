@@ -30,8 +30,8 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 public class PlayerManager extends Manager {
 	
 	private final Set<OfflineKingdomPlayer> users = new HashSet<>();
+	private Optional<CitizensManager> citizensManager;
 	private Database<OfflineKingdomPlayer> database;
-	private CitizensManager citizensManager;
 	private WorldManager worldManager;
 	private BukkitTask autoSaveThread;
 
@@ -49,7 +49,7 @@ public class PlayerManager extends Manager {
 
 	@Override
 	public void initalize() {
-		this.citizensManager = instance.getManager("citizens", CitizensManager.class);
+		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 	}
 	
@@ -66,8 +66,9 @@ public class PlayerManager extends Manager {
 	public KingdomPlayer getKingdomPlayer(Player player) {
 		if (player == null)
 			return null;
-		if (citizensManager.isCitizen(player))
-			return null;
+		if (citizensManager.isPresent())
+			if (citizensManager.get().isCitizen(player))
+				return null;
 		return getKingdomPlayer(player.getUniqueId());
 	}
 

@@ -16,14 +16,14 @@ import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
 
 import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
-import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.ExternalManager;
 import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.LocationUtils;
 
-public class DynmapManager extends Manager {
+public class DynmapManager extends ExternalManager {
 	
 	private final String base = "<div>"
 			+ "This land is owned by: <span style=\"font-weight:bold;color:black\">%kingdomName% </span><br>"
@@ -47,12 +47,8 @@ public class DynmapManager extends Manager {
 		MarkerSet set = dynmap.getMarkerAPI().getMarkerSet("com/songoda/kingdoms");
 		if (set != null)
 			set.deleteMarkerSet();
-		server.getScheduler().runTaskTimerAsynchronously(instance, () -> landManager.getLoadedLand().forEach(chunk -> consumer.accept(chunk)), 0, 20);
-	}
-
-	@Override
-	public void initalize() {
 		this.landManager = instance.getManager("land", LandManager.class);
+		server.getScheduler().runTaskTimerAsynchronously(instance, () -> landManager.getLoadedLand().forEach(chunk -> consumer.accept(chunk)), 0, 20);
 	}
 
 	public void update(Chunk chunk) {
