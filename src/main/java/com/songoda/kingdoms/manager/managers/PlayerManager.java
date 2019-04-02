@@ -28,7 +28,7 @@ import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class PlayerManager extends Manager {
-	
+
 	private final Set<OfflineKingdomPlayer> users = new HashSet<>();
 	private Optional<CitizensManager> citizensManager;
 	private Database<OfflineKingdomPlayer> database;
@@ -52,7 +52,7 @@ public class PlayerManager extends Manager {
 			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, save, 0, IntervalUtils.getInterval(interval) * 20);
 		}
 	}
-	
+
 	private final Runnable save = new Runnable() {
 		@Override 
 		public void run() {
@@ -62,7 +62,7 @@ public class PlayerManager extends Manager {
 			}
 		}
 	};
-	
+
 	public KingdomPlayer getKingdomPlayer(Player player) {
 		if (player == null)
 			return null;
@@ -121,18 +121,23 @@ public class PlayerManager extends Manager {
 		Player player = Bukkit.getPlayer(uuid);
 		try {
 			kingdomPlayer = (KingdomPlayer) database.get(uuid + "");
-			users.add(kingdomPlayer);
+			if (kingdomPlayer != null) {
+				users.add(kingdomPlayer);
+				return kingdomPlayer;
+			}
 		} catch (Exception e) {
 			Kingdoms.consoleMessage("&cThe file, " + uuid.toString() + " under Players is corrupted.");
 			if (player == null)
 				return null;
-			return new KingdomPlayer(player);
+			kingdomPlayer = new KingdomPlayer(player);
 		}
 		if (kingdomPlayer != null)
 			return kingdomPlayer;
 		if (player == null)
 			return null;
-		return new KingdomPlayer(player);
+		kingdomPlayer = new KingdomPlayer(player);
+		users.add(kingdomPlayer);
+		return kingdomPlayer;
 	}
 	
 
@@ -159,22 +164,24 @@ public class PlayerManager extends Manager {
 				.filter(player -> player.getUniqueId().equals(uuid))
 				.map(player -> (KingdomPlayer) player)
 				.forEach(player -> {
-					if (!player.isVanished()) {
-						Kingdom kingdom = player.getKingdom();
-						new MessageBuilder("messages.member-leave")
-								.toKingdomPlayers(kingdom.getOnlinePlayers())
-								.toKingdomPlayers(kingdom.getOnlineAllies())
-								.setPlaceholderObject(player)
-								.setKingdom(kingdom)
-								.send();
-					}
 					database.save(uuid + "", player);
+					if (player.isVanished())
+						return;
+					Kingdom kingdom = player.getKingdom();
+					if (kingdom == null)
+						return;
+					new MessageBuilder("messages.member-leave")
+							.toKingdomPlayers(kingdom.getOnlinePlayers())
+							.toKingdomPlayers(kingdom.getOnlineAllies())
+							.setPlaceholderObject(player)
+							.setKingdom(kingdom)
+							.send();
 				});
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH)
-	public void onJoin(PlayerJoinEvent e) {
-		Player player = e.getPlayer();
+	public void onJoin(PlayerJoinEvent event) {
+		Player player = event.getPlayer();
 		UUID uuid = player.getUniqueId();
 		KingdomPlayer kingdomPlayer = getKingdomPlayer(uuid);
 		if (kingdomPlayer == null)
@@ -183,6 +190,8 @@ public class PlayerManager extends Manager {
 			player.teleport(kingdomPlayer.getKingdom().getSpawn());
 		if (!kingdomPlayer.isVanished()) {
 			Kingdom kingdom = kingdomPlayer.getKingdom();
+			if (kingdom == null)
+				return;
 			new MessageBuilder("messages.member-join")
 					.toKingdomPlayers(kingdom.getOnlinePlayers())
 					.toKingdomPlayers(kingdom.getOnlineAllies())
@@ -196,12 +205,7 @@ public class PlayerManager extends Manager {
 	public void onPreJoin(AsyncPlayerPreLoginEvent event) {
 		if (!configuration.getBoolean("plugin.load-player-before-join", true))
 			return;
-		UUID uuid = event.getUniqueId();
-		KingdomPlayer player = loadKingdomPlayer(uuid);
-		// The player may not exist yet. That's ok.
-		if (player == null)
-			return;
-		users.add(player);
+		loadKingdomPlayer(event.getUniqueId());
 	}
 	
 	@Override

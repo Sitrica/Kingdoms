@@ -27,7 +27,7 @@ public class ChatManager extends Manager {
 	@Override
 	public void initalize() {
 		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.worldManager = instance.getManager("land", WorldManager.class);
+		this.worldManager = instance.getManager("world", WorldManager.class);
 	}
 	
 	public enum ChatChannel {

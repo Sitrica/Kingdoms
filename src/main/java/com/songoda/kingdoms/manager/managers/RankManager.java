@@ -142,7 +142,7 @@ public class RankManager extends Manager {
 	}
 	
 	public Rank getDefaultRank() {
-		return getSortedOrder().get(ranks.size());
+		return getSortedOrder().get(ranks.size() - 1);
 	}
 	
 	public Rank getOwnerRank() {

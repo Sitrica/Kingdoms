@@ -21,7 +21,10 @@ public class ManagerOptional<T extends Manager> {
 		return supplier.get();
 	}
 	
+	@SuppressWarnings("unchecked")
 	public <M extends Manager> M orElseCreate(Class<M> expected) {
+		if (optional.isPresent())
+			return (M) optional.get();
 		return managerHandler.createManager(expected);
 	}
 	

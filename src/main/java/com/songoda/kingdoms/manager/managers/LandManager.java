@@ -86,8 +86,8 @@ public class LandManager extends Manager {
 		this.worldGuardManager = instance.getExternalManager("worldguard", WorldGuardManager.class);
 		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		this.visualizerManager = instance.getManager("visualizer", VisualizerManager.class);
-		this.structureManager = instance.getManager("structure", StructureManager.class);
 		this.dynmapManager = instance.getExternalManager("dynmap", DynmapManager.class);
+		this.structureManager = instance.getManager("structure", StructureManager.class);
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);

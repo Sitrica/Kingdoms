@@ -66,9 +66,8 @@ public class Kingdoms extends JavaPlugin {
 		managers.clear();
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T extends ExternalManager> Optional<T> getExternalManager(String name, Class<T> expected) {
-		return (Optional<T>) managerHandler.getExternalManager(name);
+		return managerHandler.getExternalManager(name);
 	}
 
 	/**
@@ -83,9 +82,6 @@ public class Kingdoms extends JavaPlugin {
 	}
 
 	public <T extends Manager> T getManager(String name, Class<T> expected) {
-		ManagerOptional<Manager> optional = getManager(name);
-		if (!optional.isPresent())
-			Kingdoms.consoleMessage("&cKingdoms attempted to get manager " + name + " and it has not been initalized yet. Potentially use the after?");
 		return (T) getManager(name).orElseCreate(expected);
 	}
 

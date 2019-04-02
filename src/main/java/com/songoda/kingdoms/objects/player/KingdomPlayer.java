@@ -68,6 +68,8 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {/
 	
 	@Override
 	public Kingdom getKingdom() {
+		if (kingdom == null)
+			return null;
 		return kingdom.getKingdom();
 	}
 	

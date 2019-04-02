@@ -79,35 +79,35 @@ public class PlayerMovementManager extends Manager {
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onWaterlog(PlayerInteractEvent event) {
-		if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-			Player player = event.getPlayer();
-			ItemStack bucket;
-			try {
-				bucket = player.getItemInHand();
-			} catch (Exception e) {
-				bucket = player.getInventory().getItemInMainHand();
-			}
-			if (bucket != null) {
-				Material type = bucket.getType();
-				if (type == Material.WATER_BUCKET) {
-					Block block = event.getClickedBlock();
-					BlockData data = block.getBlockData();
-					if (data instanceof Waterlogged) {
-						Waterlogged waterlogged = (Waterlogged) data;
-						if (waterlogged.isWaterlogged()) {
-							PlayerUnwaterlogEvent waterlog = new PlayerUnwaterlogEvent(player, block, event.getBlockFace(), type, new ItemStack(Material.WATER_BUCKET));
-							Bukkit.getPluginManager().callEvent(waterlog);
-							if (waterlog.isCancelled())
-								event.setCancelled(true);
-						} else {
-							PlayerWaterlogEvent waterlog = new PlayerWaterlogEvent(player, block, event.getBlockFace(), type, new ItemStack(Material.BUCKET));
-							Bukkit.getPluginManager().callEvent(waterlog);
-							if (waterlog.isCancelled())
-								event.setCancelled(true);
-						}
-					}
-				}
-			}
+		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
+			return;
+		Player player = event.getPlayer();
+		ItemStack bucket;
+		try {
+			bucket = player.getItemInHand();
+		} catch (Exception e) {
+			bucket = player.getInventory().getItemInMainHand();
+		}
+		if (bucket == null)
+			return;
+		Material type = bucket.getType();
+		if (type != Material.WATER_BUCKET)
+			return;
+		Block block = event.getClickedBlock();
+		BlockData data = block.getBlockData();
+		if (!(data instanceof Waterlogged))
+			return;
+		Waterlogged waterlogged = (Waterlogged) data;
+		if (waterlogged.isWaterlogged()) {
+			PlayerUnwaterlogEvent waterlog = new PlayerUnwaterlogEvent(player, block, event.getBlockFace(), type, new ItemStack(Material.WATER_BUCKET));
+			Bukkit.getPluginManager().callEvent(waterlog);
+			if (waterlog.isCancelled())
+				event.setCancelled(true);
+		} else {
+			PlayerWaterlogEvent waterlog = new PlayerWaterlogEvent(player, block, event.getBlockFace(), type, new ItemStack(Material.BUCKET));
+			Bukkit.getPluginManager().callEvent(waterlog);
+			if (waterlog.isCancelled())
+				event.setCancelled(true);
 		}
 	}
 
@@ -162,32 +162,32 @@ public class PlayerMovementManager extends Manager {
 				}
 			}
 		}
-		if (chunkTo != chunkFrom) {
-			if (configuration.getBoolean("invading.invading-deny-chunk-change", true)) {
-				KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-				if (kingdomPlayer.isInvading()) {
-					// Direction from to to.
-					Vector vector = from.toVector().subtract(to.toVector()).normalize().multiply(2);
-					// This used to be teleport to player.getLocation().add(vector)
-					// Changed to velocity because I think pushing them back with an animation looks better.
-					player.setVelocity(vector);
-					player.setFallDistance(0);
-					event.setCancelled(true);
-					new MessageBuilder("invading.invading-deny-chunk-change")
-							.replace("%chunkFrom%", LocationUtils.chunkToString(chunkFrom))
-							.replace("%chunkTo%", LocationUtils.chunkToString(chunkTo))
-							.setKingdom(kingdomPlayer.getKingdom())
-							.setPlaceholderObject(kingdomPlayer)
-							.send(kingdomPlayer);
-					return;
-				}
-			}
-			PlayerChangeChunkEvent change = new PlayerChangeChunkEvent(player, chunkFrom, chunkTo);
-			Bukkit.getServer().getPluginManager().callEvent(change);
-			if (change.isCancelled()) {
+		if (chunkTo == chunkFrom)
+			return;
+		if (configuration.getBoolean("invading.invading-deny-chunk-change", true)) {
+			KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+			if (kingdomPlayer.isInvading()) {
+				// Direction from to to.
+				Vector vector = from.toVector().subtract(to.toVector()).normalize().multiply(2);
+				// This used to be teleport to player.getLocation().add(vector)
+				// Changed to velocity because I think pushing them back with an animation looks better.
+				player.setVelocity(vector);
 				player.setFallDistance(0);
 				event.setCancelled(true);
+				new MessageBuilder("invading.invading-deny-chunk-change")
+						.replace("%chunkFrom%", LocationUtils.chunkToString(chunkFrom))
+						.replace("%chunkTo%", LocationUtils.chunkToString(chunkTo))
+						.setKingdom(kingdomPlayer.getKingdom())
+						.setPlaceholderObject(kingdomPlayer)
+						.send(kingdomPlayer);
+				return;
 			}
+		}
+		PlayerChangeChunkEvent change = new PlayerChangeChunkEvent(player, chunkFrom, chunkTo);
+		Bukkit.getServer().getPluginManager().callEvent(change);
+		if (change.isCancelled()) {
+			player.setFallDistance(0);
+			event.setCancelled(true);
 		}
 	}
 

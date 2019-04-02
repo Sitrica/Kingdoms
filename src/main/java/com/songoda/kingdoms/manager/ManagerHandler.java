@@ -26,6 +26,9 @@ public class ManagerHandler {
 	}
 
 	public <T extends Manager> void start() {
+		PluginManager pluginManager = instance.getServer().getPluginManager();
+		if (pluginManager.isPluginEnabled("Citizens"))
+			externalManagers.add(new CitizensManager());
 		List<Manager> sorted = new ArrayList<>();
 		for (Class<Manager> clazz : Utils.getClassesOf(instance, instance.getPackageName() + ".manager", Manager.class)) {
 			if (clazz == Manager.class)
@@ -42,8 +45,10 @@ public class ManagerHandler {
 		}
 		Collections.sort(sorted);
 		for (Manager manager : sorted) {
-			Kingdoms.consoleMessage("&dInitalizing manager " + manager.getName());
+			Kingdoms.debugMessage("&dInitalizing manager " + manager.getName());
 			manager.initalize();
+		}
+		for (Manager manager : sorted) {
 			if (!manager.hasListener())
 				continue;
 			try {
@@ -53,15 +58,15 @@ public class ManagerHandler {
 				e.printStackTrace();
 			}
 		}
-		PluginManager pluginManager = instance.getServer().getPluginManager();
-		if (pluginManager.isPluginEnabled("Citizens"))
-			externalManagers.add(new CitizensManager());
 	}
 
-	public Optional<ExternalManager> getExternalManager(String name) {
-		return externalManagers.parallelStream()
-				.filter(manager -> manager.getName().equalsIgnoreCase(name))
-				.findFirst();
+	@SuppressWarnings("unchecked")
+	public <T extends ExternalManager> Optional<T> getExternalManager(String name) {
+		for (ExternalManager manager : externalManagers) {
+			if (manager.getName().equalsIgnoreCase(name))
+				return (Optional<T>) Optional.of(manager);
+		}
+		return Optional.empty();
 	}
 
 	public ManagerOptional<Manager> getManager(String name) {
