@@ -19,7 +19,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -66,25 +65,33 @@ public class LandManager extends Manager {
 	private final Set<String> forbidden = new HashSet<>();
 	private Optional<WorldGuardManager> worldGuardManager;
 	private Optional<CitizensManager> citizensManager;
-	private final FileConfiguration configuration;
+	private Optional<DynmapManager> dynmapManager;
 	private VisualizerManager visualizerManager;
 	private StructureManager structureManager;
 	private KingdomManager kingdomManager;
 	private PlayerManager playerManager;
-	private Optional<DynmapManager> dynmapManager;
-	private WorldManager worldManager;
-	private LandManager landManager;
-	private static Database<Land> database;
 	private BukkitTask autoSaveThread;
-	private Kingdoms instance;
+	private WorldManager worldManager;
+	private Database<Land> database;
+	private LandManager landManager;
+
+	public LandManager() {
+		super("land", true, "serializer");
+		this.forbidden.addAll(configuration.getStringList("kingdoms.forbidden-inventories"));
+	}
 
 	@SuppressWarnings("deprecation")
-	public LandManager() {
-		super("land", true);
-		this.instance = Kingdoms.getInstance();
-		this.configuration = instance.getConfig();
-		this.forbidden.addAll(configuration.getStringList("kingdoms.forbidden-inventories"));
-		instance.getManager("rank", RankManager.class);
+	@Override
+	public void initalize() {
+		this.worldGuardManager = instance.getExternalManager("worldguard", WorldGuardManager.class);
+		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
+		this.visualizerManager = instance.getManager("visualizer", VisualizerManager.class);
+		this.structureManager = instance.getManager("structure", StructureManager.class);
+		this.dynmapManager = instance.getExternalManager("dynmap", DynmapManager.class);
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.worldManager = instance.getManager("world", WorldManager.class);
+		this.landManager = instance.getManager("land", LandManager.class);
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(Land.class);
 		else
@@ -129,19 +136,6 @@ public class LandManager extends Manager {
 				}
 			}, time, time);
 		}
-	}
-
-	@Override
-	public void initalize() {
-		this.worldGuardManager = instance.getExternalManager("worldguard", WorldGuardManager.class);
-		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
-		this.visualizerManager = instance.getManager("visualizer", VisualizerManager.class);
-		this.structureManager = instance.getManager("structure", StructureManager.class);
-		this.dynmapManager = instance.getExternalManager("dynmap", DynmapManager.class);
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
-		this.landManager = instance.getManager("land", LandManager.class);
 	}
 	
 	private final Runnable saveTask = new Runnable() {
@@ -989,7 +983,8 @@ public class LandManager extends Manager {
 
 	@Override
 	public void onDisable() {
-		autoSaveThread.cancel();
+		if (autoSaveThread != null)
+			autoSaveThread.cancel();
 		Kingdoms.debugMessage("Saving lands to database...");
 		try {
 			saveTask.run();

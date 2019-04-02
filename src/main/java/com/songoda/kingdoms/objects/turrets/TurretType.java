@@ -82,19 +82,22 @@ public class TurretType {
 		ConfigurationSection section = configuration.getConfigurationSection("turrets.turrets." + node);
 		ConfigurationSection item = section.getConfigurationSection("item");
 		if (section.getBoolean("use-place-sound", false))
-			this.placing = new SoundPlayer(section.getConfigurationSection("place-sounds"));
+			if (section.isConfigurationSection("place-sounds"))
+				this.placing = new SoundPlayer(section.getConfigurationSection("place-sounds"));
 		if (section.getBoolean("use-shoot-sound", false))
-			this.shooting = new SoundPlayer(section.getConfigurationSection("shoot-sound"));
+			if (section.isConfigurationSection("shoot-sounds"))
+				this.shooting = new SoundPlayer(section.getConfigurationSection("shoot-sounds"));
 		if (section.getBoolean("use-reload-sound", false))
-			this.reloading = new SoundPlayer(section.getConfigurationSection("reload-sounds"));
+			if (section.isConfigurationSection("reload-sounds"))
+				this.reloading = new SoundPlayer(section.getConfigurationSection("reload-sounds"));
 		this.particle = section.getBoolean("particle-projectile.enabled", false);
-		if (particle)
+		if (particle && section.isConfigurationSection("particle-projectile"))
 			particleProjectile = new ParticleProjectile(section.getConfigurationSection("particle-projectile"));
 		this.heal = section.getBoolean("health-gain.enabled", false);
 		if (heal)
 			health = new HealthInfo(section.getConfigurationSection("health-gain"));
 		this.usePotions = section.getBoolean("potions.enabled", false);
-		if (usePotions)
+		if (usePotions && section.isConfigurationSection("potions.list"))
 			potions = new Potions(section.getConfigurationSection("potions.list"));
 		this.material = Utils.materialAttempt(item.getString("material", "MUSIC_DISC_STAL"), "GOLD_RECORD");
 		this.projectile = Utils.entityAttempt(section.getString("projectile", "ARROW"), "ARROW");

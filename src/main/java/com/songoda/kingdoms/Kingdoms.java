@@ -61,11 +61,9 @@ public class Kingdoms extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
-		Iterator<Manager> iterator = managerHandler.getManagers().iterator();
-		while (iterator.hasNext()) {
-			iterator.next().onDisable();
-			iterator.remove();
-		}
+		List<Manager> managers = managerHandler.getManagers();
+		managers.forEach(manager -> manager.onDisable());
+		managers.clear();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -85,6 +83,9 @@ public class Kingdoms extends JavaPlugin {
 	}
 
 	public <T extends Manager> T getManager(String name, Class<T> expected) {
+		ManagerOptional<Manager> optional = getManager(name);
+		if (!optional.isPresent())
+			Kingdoms.consoleMessage("&cKingdoms attempted to get manager " + name + " and it has not been initalized yet. Potentially use the after?");
 		return (T) getManager(name).orElseCreate(expected);
 	}
 
@@ -116,7 +117,7 @@ public class Kingdoms extends JavaPlugin {
 		return instance;
 	}
 
-	public Set<Manager> getManagers() {
+	public List<Manager> getManagers() {
 		return managerHandler.getManagers();
 	}
 

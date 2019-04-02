@@ -4,10 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -95,12 +94,12 @@ public class Utils {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static <T> Set<Class<T>> getClassesOf(Kingdoms instance, String basePackage, Class<T> type) {
+	public static <T> List<Class<T>> getClassesOf(Kingdoms instance, String basePackage, Class<T> type) {
 		JarFile jar = getJar(instance);
 		if (jar == null)
 			return null;
 		basePackage = basePackage.replace('.', '/') + "/";
-		Set<Class<T>> classes = new HashSet<>();
+		List<Class<T>> classes = new ArrayList<>();
 		try {
 			for (Enumeration<JarEntry> jarEntry = jar.entries(); jarEntry.hasMoreElements();) {
 				String name = jarEntry.nextElement().getName();

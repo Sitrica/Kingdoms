@@ -3,10 +3,8 @@ package com.songoda.kingdoms.manager;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
@@ -22,26 +20,30 @@ import com.songoda.kingdoms.database.DatabaseTransferTask.TransferPair;
 import com.songoda.kingdoms.objects.land.Land;
 
 public abstract class Manager implements Listener, Comparable<Manager> {
-	
+
 	private final Map<Class<?>, Database<?>> databases = new HashMap<>();
 	protected final FileConfiguration configuration;
 	protected final Kingdoms instance;
 	protected final String name;
+	private final boolean listener;
 	private String[] after;
-	
+
 	protected Manager(String name, boolean listener) {
 		this.name = name;
+		this.listener = listener;
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
-		if (listener)
-			Bukkit.getPluginManager().registerEvents(this, instance);
 	}
-	
+
 	protected Manager(String name, boolean listener, String... after) {
 		this(name, listener);
 		this.after = after;
 	}
-	
+
+	public boolean hasListener() {
+		return listener;
+	}
+
 	@SuppressWarnings("unchecked")
 	protected <T> Database<T> getMySQLDatabase(Class<T> type) {
 		if (databases.containsKey(type))
@@ -83,7 +85,7 @@ public abstract class Manager implements Listener, Comparable<Manager> {
 		Database<T> database = null;
 		try {
 			database = new SQLiteDatabase<>("db.db", landTable, type);
-			Kingdoms.consoleMessage("Using SQLite database for Land data");
+			Kingdoms.consoleMessage("Using SQLite database for " + type.getSimpleName() + " data");
 			databases.put(type, database);
 		} catch (ClassNotFoundException | SQLException e) {
 			Kingdoms.consoleMessage("SQLite failed...");
@@ -95,15 +97,14 @@ public abstract class Manager implements Listener, Comparable<Manager> {
 
 	@Override
 	public int compareTo(Manager manager) {
-		Optional<String> optional = manager.after().parallelStream()
-				.filter(after -> after.equalsIgnoreCase(name))
-				.findFirst();
-		if (optional.isPresent())
-			return 1;
+		if (manager.after().contains(name))
+			return 1; // This object is greater than manager.
 		return 0;
 	}
 	
 	public Set<String> after() {
+		if (after == null)
+			return Sets.newHashSet();
 		return Sets.newHashSet(after);
 	}
 	

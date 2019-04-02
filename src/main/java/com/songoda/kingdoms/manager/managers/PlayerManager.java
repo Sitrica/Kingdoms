@@ -36,21 +36,21 @@ public class PlayerManager extends Manager {
 	private BukkitTask autoSaveThread;
 
 	public PlayerManager() {
-		super("player", true);
-		if (configuration.getBoolean("database.mysql.enabled", false))
-			database = getMySQLDatabase(OfflineKingdomPlayer.class);
-		else
-			database = getSQLiteDatabase(OfflineKingdomPlayer.class);
-		if (configuration.getBoolean("database.auto-save.enabled")) {
-			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
-			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, save, 0, IntervalUtils.getInterval(interval) * 20);
-		}
+		super("player", true, "serializer");
 	}
 
 	@Override
 	public void initalize() {
 		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
+		if (configuration.getBoolean("database.mysql.enabled", false))
+			database = getMySQLDatabase(OfflineKingdomPlayer.class);
+		else
+			database = getSQLiteDatabase(OfflineKingdomPlayer.class);
+		if (configuration.getBoolean("database.auto-save.enabled", true)) {
+			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
+			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, save, 0, IntervalUtils.getInterval(interval) * 20);
+		}
 	}
 	
 	private final Runnable save = new Runnable() {
@@ -206,7 +206,8 @@ public class PlayerManager extends Manager {
 	
 	@Override
 	public synchronized void onDisable() {
-		autoSaveThread.cancel();
+		if (autoSaveThread != null)
+			autoSaveThread.cancel();
 		Kingdoms.consoleMessage("Saving [" + users.size() + "] loaded players...");
 		try{
 			save.run();

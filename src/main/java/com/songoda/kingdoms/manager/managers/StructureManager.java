@@ -113,9 +113,9 @@ public class StructureManager extends Manager {
 
 	@Override
 	public void initalize() {
-		this.inventoryManager = instance.getManager("ivnentory", InventoryManager.class);
+		this.inventoryManager = instance.getManager("inventory", InventoryManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.nexusManager = instance.getManager("neuxs", NexusManager.class);
+		this.nexusManager = instance.getManager("nexus", NexusManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
 	}

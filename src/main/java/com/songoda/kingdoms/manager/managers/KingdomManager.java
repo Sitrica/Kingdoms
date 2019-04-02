@@ -48,24 +48,16 @@ public class KingdomManager extends Manager {
 	private final Set<String> processing = new HashSet<>(); // Names that are currently being created. Can't take these names.
 	private final Set<BotKingdom> bots = new HashSet<>();
 	private Optional<CitizensManager> citizensManager;
-	private final Database<OfflineKingdom> database;
+	private Database<OfflineKingdom> database;
 	private PlayerManager playerManager;
 	private WorldManager worldManager;
 	private CooldownManager cooldowns;
+	private BukkitTask autoSaveThread;
 	private LandManager landManager;
 	private RankManager rankManager;
-	private BukkitTask autoSaveThread;
 
 	public KingdomManager() {
-		super("kingdom", true);
-		if (configuration.getBoolean("database.mysql.enabled", false))
-			database = getMySQLDatabase(OfflineKingdom.class);
-		else
-			database = getSQLiteDatabase(OfflineKingdom.class);
-		if (configuration.getBoolean("database.auto-save.enabled")) {
-			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
-			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, saveTask, 0, IntervalUtils.getInterval(interval) * 20);
-		}
+		super("kingdom", true, "serializer");
 	}
 	
 	@Override
@@ -76,6 +68,14 @@ public class KingdomManager extends Manager {
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
 		this.rankManager = instance.getManager("rank", RankManager.class);
+		if (configuration.getBoolean("database.mysql.enabled", false))
+			database = getMySQLDatabase(OfflineKingdom.class);
+		else
+			database = getSQLiteDatabase(OfflineKingdom.class);
+		if (configuration.getBoolean("database.auto-save.enabled")) {
+			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
+			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, saveTask, 0, IntervalUtils.getInterval(interval) * 20);
+		}
 	}
 	
 	private final Runnable saveTask = new Runnable() {
@@ -629,7 +629,8 @@ public class KingdomManager extends Manager {
 
 	@Override
 	public synchronized void onDisable() {
-		autoSaveThread.cancel();
+		if (autoSaveThread != null)
+			autoSaveThread.cancel();
 		saveTask.run();
 		kingdoms.clear();
 	}
