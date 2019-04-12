@@ -15,14 +15,16 @@ public class WorldManager extends Manager {
 	private final boolean whitelist, whitelistUnoccupied;
 	private final Set<World> worlds = new HashSet<>();
 	private final Set<String> names = new HashSet<>();
+	private final boolean canBuildUnoccupied;
 	
 	public WorldManager() {
 		super("world", true);
 		this.unoccupied.addAll(configuration.getStringList("worlds.worlds-with-no-building-in-unoccupied"));
 		this.whitelistUnoccupied = configuration.getBoolean("worlds.unoccupied-list-is-whitelist", true);
+		this.canBuildUnoccupied = configuration.getBoolean("worlds.can-build-in-unoccupied", true);
 		this.whitelist = configuration.getBoolean("worlds.list-is-whitelist", true);
 		this.names.addAll(configuration.getStringList("worlds.list"));
-		this.names.add("KingdomsConquest");
+		//this.names.add("KingdomsConquest");
 	}
 
 	public boolean acceptsWorld(World world) {
@@ -38,6 +40,8 @@ public class WorldManager extends Manager {
 	}
 
 	public boolean canBuildInUnoccupied(World world) {
+		if (canBuildUnoccupied)
+			return true;
 		String name = world.getName();
 		if (whitelistUnoccupied) {
 			if (!unoccupied.contains(name))

@@ -23,6 +23,10 @@ debug: false
 # which you would then have to copy and paste old nodes back into.
 disable-configurations-reset: false
 
+database:
+    # Type is only SQLite right now.
+    type: "SQLite"
+
 # All configurations relating to the actual plugin.
 plugin:
     load-player-before-join: true

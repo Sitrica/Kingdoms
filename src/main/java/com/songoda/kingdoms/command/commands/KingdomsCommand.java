@@ -34,7 +34,7 @@ public class KingdomsCommand extends AbstractCommand {
 	}
 
 	@Override
-	protected String getConfigurationNode() {
+	public String getConfigurationNode() {
 		return "kingdoms";
 	}
 

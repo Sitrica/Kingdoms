@@ -3,6 +3,7 @@ package com.songoda.kingdoms.command.commands.user;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.bukkit.Material;
@@ -12,6 +13,9 @@ import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.command.AbstractCommand;
+import com.songoda.kingdoms.manager.managers.KingdomManager;
+import com.songoda.kingdoms.manager.managers.PlayerManager;
+import com.songoda.kingdoms.manager.managers.external.VaultManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.Formatting;
@@ -20,9 +24,16 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 import com.songoda.kingdoms.utils.Utils;
 
 public class CommandCreateKingdom extends AbstractCommand {
-	
+
+	private final Optional<VaultManager> vaultManager;
+	private final KingdomManager kingdomManager;
+	private final PlayerManager playerManager;
+
 	public CommandCreateKingdom() {
 		super("create", false);
+		vaultManager = instance.getExternalManager("vault", VaultManager.class);
+		kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		playerManager = instance.getManager("player", PlayerManager.class);
 	}
 
 	@Override
@@ -132,7 +143,7 @@ public class CommandCreateKingdom extends AbstractCommand {
 	}
 
 	@Override
-	protected String getConfigurationNode() {
+	public String getConfigurationNode() {
 		return "create-kingdom";
 	}
 

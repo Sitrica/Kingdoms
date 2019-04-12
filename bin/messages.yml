@@ -19,6 +19,7 @@ version: "@version@"
 messages:
     # The main prefix for all chat messages.
     prefix: "&7[&6Kingdoms&7] &r"
+    must-be-player: "&cYou must be a player to use this command."
     # When a player has no permissions to perform an action.
     no-permission: "&cYou do not have permission to do that."
     command-doesnt-exist: "&7The command you entered does not exist or is spelt incorrectly."

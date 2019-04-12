@@ -6,6 +6,9 @@ import java.util.Set;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.command.AbstractCommand;
+import com.songoda.kingdoms.manager.managers.InvadingManager;
+import com.songoda.kingdoms.manager.managers.LandManager;
+import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
@@ -24,11 +27,17 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class CommandUnclaim extends AbstractCommand {
-	
+
 	private final Set<KingdomPlayer> confirmations = new HashSet<>();
-	
+	private final InvadingManager invadingManager;
+	private final PlayerManager playerManager;
+	private final LandManager landManager;
+
 	public CommandUnclaim() {
 		super("unclaim", false);
+		invadingManager = instance.getManager("invading", InvadingManager.class);
+		playerManager = instance.getManager("player", PlayerManager.class);
+		landManager = instance.getManager("land", LandManager.class);
 	}
 
 	@Override
@@ -147,7 +156,7 @@ public class CommandUnclaim extends AbstractCommand {
 	}
 
 	@Override
-	protected String getConfigurationNode() {
+	public String getConfigurationNode() {
 		return "unclaim";
 	}
 

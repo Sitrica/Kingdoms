@@ -164,24 +164,6 @@ public class ListMessageBuilder {
 	}
 	
 	/**
-	 * Sends the message as an actionbar to the defined players.
-	 * 
-	 * @param players the players to send to
-	 */
-	public void sendActionbar(Player... players) {
-		toPlayers(players).sendActionbar();
-	}
-	
-	/**
-	 * Sends the message as a title to the defined players.
-	 * 
-	 * @param players the players to send to
-	 */
-	public void sendTitle(Player... players) {
-		toPlayers(players).sendTitle();
-	}
-	
-	/**
 	 * Sends the final product of the builder.
 	 */
 	public void send(Collection<KingdomPlayer> players) {

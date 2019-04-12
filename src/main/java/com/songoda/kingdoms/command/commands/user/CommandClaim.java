@@ -2,6 +2,8 @@ package com.songoda.kingdoms.command.commands.user;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.command.AbstractCommand;
+import com.songoda.kingdoms.manager.managers.LandManager;
+import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
@@ -10,8 +12,13 @@ import org.bukkit.entity.Player;
 
 public class CommandClaim extends AbstractCommand {
 
+	private final PlayerManager playerManager;
+	private final LandManager landManager;
+
 	public CommandClaim() {
 		super("claim", false);
+		playerManager = instance.getManager("player", PlayerManager.class);
+		landManager = instance.getManager("", LandManager.class);
 	}
 
 	@Override
@@ -35,7 +42,7 @@ public class CommandClaim extends AbstractCommand {
 	}
 
 	@Override
-	protected String getConfigurationNode() {
+	public String getConfigurationNode() {
 		return "claim";
 	}
 

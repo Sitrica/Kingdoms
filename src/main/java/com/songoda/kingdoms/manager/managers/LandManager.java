@@ -29,7 +29,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.player.PlayerBucketEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -726,12 +727,33 @@ public class LandManager extends Manager {
 	}
 
 	@EventHandler
-	public void onBucketOnUnoccupied(PlayerBucketEvent event) {
+	public void onBucketFill(PlayerBucketFillEvent event) {
 		Block block = event.getBlockClicked();
 		World world = block.getWorld();
 		if (!worldManager.acceptsWorld(world))
 			return;
-		if (!worldManager.canBuildInUnoccupied(world))
+		if (worldManager.canBuildInUnoccupied(world))
+			return;
+		Location location = block.getRelative(event.getBlockFace()).getLocation();
+		Land land = getLand(location.getChunk());
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
+		OfflineKingdom kingdom = land.getKingdomOwner();
+		if (kingdom == null && !kingdomPlayer.hasAdminMode()) {
+			event.setCancelled(true);
+			new MessageBuilder("kingdoms.cannot-build-unoccupied-land")
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(kingdom)
+					.send(kingdomPlayer);
+		}
+	}
+
+	@EventHandler
+	public void onBucketEmpty(PlayerBucketEmptyEvent event) {
+		Block block = event.getBlockClicked();
+		World world = block.getWorld();
+		if (!worldManager.acceptsWorld(world))
+			return;
+		if (worldManager.canBuildInUnoccupied(world))
 			return;
 		Location location = block.getRelative(event.getBlockFace()).getLocation();
 		Land land = getLand(location.getChunk());
@@ -754,7 +776,7 @@ public class LandManager extends Manager {
 		World world = block.getWorld();
 		if (!worldManager.acceptsWorld(world))
 			return;
-		if (!worldManager.canBuildInUnoccupied(world))
+		if (worldManager.canBuildInUnoccupied(world))
 			return;
 		Location location = block.getLocation();
 		Land land = getLand(location.getChunk());
@@ -770,14 +792,14 @@ public class LandManager extends Manager {
 	}
 
 	@EventHandler
-	public void onBuildUnoccupied(BlockPlaceEvent event) {
+	public void onPlaceUnoccupied(BlockPlaceEvent event) {
 		if (event.isCancelled())
 			return;
 		Block block = event.getBlock();
 		World world = block.getWorld();
 		if (!worldManager.acceptsWorld(world))
 			return;
-		if (!worldManager.canBuildInUnoccupied(world))
+		if (worldManager.canBuildInUnoccupied(world))
 			return;
 		Location location = block.getLocation();
 		Land land = getLand(location.getChunk());
@@ -899,7 +921,33 @@ public class LandManager extends Manager {
 	}
 
 	@EventHandler
-	public void onBucketInOtherKingdom(PlayerBucketEvent event) {
+	public void onBucketOtherFill(PlayerBucketFillEvent event) {
+		Location location = event.getBlockClicked().getLocation();
+		Land land = getLand(location.getChunk());
+		OfflineKingdom landKingdom = land.getKingdomOwner();
+		if (landKingdom == null)
+			return;
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
+		if (kingdomPlayer.hasAdminMode())
+			return;
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null) {
+			event.setCancelled(true);
+			new MessageBuilder("kingdoms.cannot-interact-land-no-kingdom").send(kingdomPlayer);
+		} else {
+			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+				event.setCancelled(true);
+				new MessageBuilder("kingdoms.cannot-interact-land")
+						.replace("%playerkingdom%", kingdom.getName())
+						.setKingdom(landKingdom)
+						.send(kingdomPlayer);
+				return;
+			}
+		}
+	}
+
+	@EventHandler
+	public void onBucketOtherEmpty(PlayerBucketEmptyEvent event) {
 		Location location = event.getBlockClicked().getLocation();
 		Land land = getLand(location.getChunk());
 		OfflineKingdom landKingdom = land.getKingdomOwner();
