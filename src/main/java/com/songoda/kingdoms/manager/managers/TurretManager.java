@@ -98,7 +98,13 @@ public class TurretManager extends Manager {
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
 	}
-	
+
+	public Optional<TurretType> getTurretTypeByName(String name) {
+		return types.stream()
+				.filter(type -> type.getName().equalsIgnoreCase(name))
+				.findFirst();
+	}
+
 	public boolean isHealthProjectile(Metadatable metadatable) {
 		if (!metadatable.hasMetadata(METADATA_HEALTH))
 			return false;

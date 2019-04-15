@@ -11,7 +11,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -182,31 +181,30 @@ public class PlayerManager extends Manager {
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
-		UUID uuid = player.getUniqueId();
-		KingdomPlayer kingdomPlayer = getKingdomPlayer(uuid);
-		if (kingdomPlayer == null)
-			loadKingdomPlayer(player.getUniqueId());
-		else if (configuration.getBoolean("kingdom.join-at-kingdom", false))
-			player.teleport(kingdomPlayer.getKingdom().getSpawn());
-		if (!kingdomPlayer.isVanished()) {
-			Kingdom kingdom = kingdomPlayer.getKingdom();
-			if (kingdom == null)
-				return;
+		//UUID uuid = player.getUniqueId();
+		KingdomPlayer kingdomPlayer = getKingdomPlayer(player);
+		//if (kingdomPlayer == null)
+		//	loadKingdomPlayer(uuid);
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null)
+			return;
+		if (configuration.getBoolean("kingdom.join-at-kingdom", false))
+			player.teleport(kingdom.getSpawn());
+		if (!kingdomPlayer.isVanished())
 			new MessageBuilder("messages.member-join")
 					.toKingdomPlayers(kingdom.getOnlinePlayers())
 					.toKingdomPlayers(kingdom.getOnlineAllies())
 					.setPlaceholderObject(kingdomPlayer)
 					.setKingdom(kingdom)
 					.send();
-		}
 	}
 	
-	@EventHandler(priority = EventPriority.LOW)
+	/*@EventHandler(priority = EventPriority.LOW)
 	public void onPreJoin(AsyncPlayerPreLoginEvent event) {
 		if (!configuration.getBoolean("plugin.load-player-before-join", true))
 			return;
 		loadKingdomPlayer(event.getUniqueId());
-	}
+	}*/
 	
 	@Override
 	public synchronized void onDisable() {

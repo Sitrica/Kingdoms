@@ -121,6 +121,8 @@ economy:
 
 # All settings for worlds.
 worlds:
+    # Set the false and use the lists below to configure.
+    can-build-in-unoccupied: true
     # Change the list below to a blacklist or a whitelist.
     unoccupied-list-is-whitelist: false
     # The worlds where users can't build in unoccupied.

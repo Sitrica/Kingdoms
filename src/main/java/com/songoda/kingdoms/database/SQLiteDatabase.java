@@ -6,20 +6,16 @@ import com.songoda.kingdoms.Kingdoms;
 import java.io.File;
 import java.lang.reflect.Type;
 import java.sql.*;
-import java.util.ArrayDeque;
 import java.util.HashSet;
-import java.util.Queue;
 import java.util.Set;
 
 public class SQLiteDatabase<T> extends Database<T> {
-	
-	private final Queue<PreparedStatement> saveStatements = new ArrayDeque<>();
+
+	private final Kingdoms instance;
+	private final String tablename;
 	private Connection connection;
-	private String tablename;
-	private Kingdoms instance;
 	private final Type type;
-	private boolean busy;
-	
+
 	public SQLiteDatabase(String name, String tablename, Type type) throws SQLException, ClassNotFoundException {
 		this.instance = Kingdoms.getInstance();
 		this.tablename = tablename;
@@ -27,13 +23,17 @@ public class SQLiteDatabase<T> extends Database<T> {
 		String url = "jdbc:sqlite:" + instance.getDataFolder().getAbsolutePath() + File.separator + name;
 		Class.forName("org.sqlite.JDBC");
 		connection = DriverManager.getConnection(url);
-		if (connection != null)
-			initTable();
+		if (connection == null)
+			return;
+		PreparedStatement stmt = connection.prepareStatement("CREATE TABLE IF NOT EXISTS %table (`id` CHAR(36) PRIMARY KEY, `data` TEXT);".replace("%table", tablename));
+		stmt.executeUpdate();
+		stmt.close();
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public T get(String key, T def) {
+		//TODO async futures
 		T result = def;
 		try {
 			PreparedStatement statement = connection.prepareStatement("SELECT `data` FROM %table WHERE `id` = ?;".replace("%table", tablename));
@@ -60,44 +60,27 @@ public class SQLiteDatabase<T> extends Database<T> {
 
 	@Override
 	public void save(String key, T value) {
-		try {
-			if (value != null) {
-				PreparedStatement statement = connection.prepareStatement("REPLACE INTO %table (`id`,`data`) VALUES(?,?);".replace("%table", tablename));
-				statement.setString(1, key);
-				String json = serialize(value, type);
-				statement.setString(2, json);
-				if (!busy){
-					DatabaseSave(statement);
+		new Thread(() -> {
+			try {
+				if (value != null) {
+					PreparedStatement statement = connection.prepareStatement("REPLACE INTO %table (`id`,`data`) VALUES(?,?);".replace("%table", tablename));
+					statement.setString(1, key);
+					String json = serialize(value, type);
+					statement.setString(2, json);
+					statement.executeUpdate();
+					statement.close();
 				} else {
-					saveStatements.add(statement);
+					PreparedStatement statement = connection.prepareStatement("DELETE FROM %table WHERE id = ?".replace("%table", tablename));
+					statement.setString(1, key);
+					statement.executeUpdate();
+					statement.close();
 				}
-			} else {
-				PreparedStatement statement = connection.prepareStatement("DELETE FROM %table WHERE id = ?".replace("%table", tablename));
-				statement.setString(1, key);
-				if (!busy){
-					DatabaseSave(statement);
-				} else {
-					saveStatements.add(statement);
-				}
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		}).start();
 	}
-	
-	private void DatabaseSave(PreparedStatement statement){
-		busy = true;
-		try {
-			statement.executeUpdate();
-			statement.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		if (!saveStatements.isEmpty()) {
-			DatabaseSave(saveStatements.poll());
-		}
-	}
-	
+
 	@Override
 	public boolean has(String key) {
 		boolean result = false;
@@ -128,6 +111,7 @@ public class SQLiteDatabase<T> extends Database<T> {
 
 	@Override
 	public Set<String> getKeys() {
+		//TODO async futures
 		Set<String> tempset = new HashSet<>();
 		try {
 			PreparedStatement statement = connection.prepareStatement("SELECT `id` FROM %table;".replace("%table", tablename));
@@ -141,12 +125,6 @@ public class SQLiteDatabase<T> extends Database<T> {
 			e.printStackTrace();
 		}
 		return tempset;
-	}
-
-	private void initTable() throws SQLException {
-		PreparedStatement stmt = connection.prepareStatement("CREATE TABLE IF NOT EXISTS %table (`id` CHAR(36) PRIMARY KEY, `data` TEXT);".replace("%table", tablename));
-		stmt.executeUpdate();
-		stmt.close();
 	}
 
 }

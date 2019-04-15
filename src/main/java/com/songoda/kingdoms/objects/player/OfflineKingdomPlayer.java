@@ -22,7 +22,6 @@ public class OfflineKingdomPlayer {
 	protected final Kingdoms instance;
 	protected final String name;
 	protected final UUID uuid;
-	protected boolean marker;
 	protected Rank rank;
 	
 	public OfflineKingdomPlayer(UUID uuid) {

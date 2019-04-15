@@ -5,6 +5,10 @@ import com.google.gson.GsonBuilder;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.serializers.*;
 import com.songoda.kingdoms.manager.managers.SerializerManager;
+import com.songoda.kingdoms.objects.land.Land;
+import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
+import com.songoda.kingdoms.objects.structures.Structure;
+import com.songoda.kingdoms.objects.turrets.Turret;
 
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
@@ -16,9 +20,13 @@ import java.util.Set;
 public abstract class Database<T> {
 	
 	private final GsonBuilder builder = new GsonBuilder()
+			.registerTypeAdapter(OfflineKingdomPlayer.class, new OfflineKingdomPlayerSerializer())
 			.registerTypeAdapter(ItemStack[].class, new ItemStackArraySerializer())
 			.registerTypeAdapter(ItemStack.class, new ItemStackSerializer())
+			.registerTypeAdapter(Structure.class, new StructureSerializer())
 			.registerTypeAdapter(Location.class, new LocationSerializer())
+			.registerTypeAdapter(Turret.class, new TurretSerializer())
+			.registerTypeAdapter(Land.class, new LandSerializer())
 			.excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC)
 			.enableComplexMapKeySerialization()
 			.serializeNulls();

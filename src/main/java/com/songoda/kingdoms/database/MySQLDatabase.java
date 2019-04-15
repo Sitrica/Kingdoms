@@ -49,18 +49,20 @@ public class MySQLDatabase<T> extends Database<T> {
 
 	@Override
 	public void save(String key, T value) {
-		try {
-			if (value != null) {
-				PreparedStatement statement = connection.prepareStatement("INSERT INTO %table VALUES (?,?) ON DUPLICATE KEY UPDATE `data` = ?".replace("%table", tablename));
-				statement.setString(1, key);
-				statement.setString(2, serialize(value,type));
-				statement.setString(3, serialize(value,type));
-				statement.executeUpdate();
-				statement.close();
+		new Thread(() -> {
+			try {
+				if (value != null) {
+					PreparedStatement statement = connection.prepareStatement("INSERT INTO %table VALUES (?,?) ON DUPLICATE KEY UPDATE `data` = ?".replace("%table", tablename));
+					statement.setString(1, key);
+					statement.setString(2, serialize(value,type));
+					statement.setString(3, serialize(value,type));
+					statement.executeUpdate();
+					statement.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		}).start();
 	}
 
 	@Override

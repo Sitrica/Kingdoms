@@ -1020,9 +1020,11 @@ public class LandManager extends Manager {
 	public void onFlowIntoKingdom(BlockFromToEvent event) {
 		if (!configuration.getBoolean("kingdoms.disable-liquid-flow-into", false))
 			return;
-		OfflineKingdom from = getLand(event.getBlock().getLocation().getChunk()).getKingdomOwner();
 		OfflineKingdom to = getLand(event.getToBlock().getLocation().getChunk()).getKingdomOwner();
-		if (from.getUniqueId() == null && to.getUniqueId() != null) {
+		if (to == null)
+			return;
+		OfflineKingdom from = getLand(event.getBlock().getLocation().getChunk()).getKingdomOwner();
+		if (from == null) {
 			event.setCancelled(true);
 		} else if (!from.getUniqueId().equals(to.getUniqueId())) {
 			event.setCancelled(true);

@@ -24,7 +24,7 @@ public class CommandHandler implements CommandExecutor {
 	public CommandHandler(Kingdoms instance) {
 		this.instance = instance;
 		instance.getCommand("kingdoms").setExecutor(this);
-		Utils.getClassesOf(instance, instance.getPackageName() + ".commands", AbstractCommand.class).forEach(clazz -> {
+		Utils.getClassesOf(instance, instance.getPackageName() + "command.commands", AbstractCommand.class).forEach(clazz -> {
 			try {
 				AbstractCommand command = clazz.newInstance();
 				commands.add(command);
@@ -38,7 +38,7 @@ public class CommandHandler implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] arguments) {
 		for (AbstractCommand abstractCommand : commands) {
 			// It's the main command
-			if (arguments.length <= 0 && abstractCommand instanceof KingdomsCommand) {
+			if (arguments.length == 0 && abstractCommand instanceof KingdomsCommand) {
 				processRequirements(abstractCommand, sender, arguments);
 				return true;
 			} else if (arguments.length > 0 && arguments[0].equalsIgnoreCase(abstractCommand.getCommand())) {
