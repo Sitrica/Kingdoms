@@ -1,6 +1,8 @@
 package com.songoda.kingdoms.objects.player;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,11 +25,11 @@ public class OfflineKingdomPlayer {
 	protected final String name;
 	protected final UUID uuid;
 	protected Rank rank;
-	
+
 	public OfflineKingdomPlayer(UUID uuid) {
 		this(Bukkit.getOfflinePlayer(uuid));
 	}
-	
+
 	public OfflineKingdomPlayer(OfflinePlayer player) {
 		this.name = player.getName();
 		this.uuid = player.getUniqueId();
@@ -35,55 +37,63 @@ public class OfflineKingdomPlayer {
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.rank = instance.getManager("rank", RankManager.class).getDefaultRank();
 	}
-	
+
+	public boolean hasKingdom() {
+		return kingdom == null;
+	}
+
 	public UUID getUniqueId() {
 		return uuid;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
-	
+
 	public Rank getRank() {
 		return rank;
 	}
-	
+
 	public void setRank(Rank rank) {
 		this.rank = rank;
 	}
-	
+
 	public OfflineKingdom getKingdom() {
 		return kingdom;
 	}
-	
+
 	public boolean isOnline() {
 		return Bukkit.getPlayer(uuid) != null;
 	}
-	
+
 	public void setKingdom(OfflineKingdom kingdom) {
 		this.kingdom = kingdom;
 	}
-	
-	public KingdomPlayer getKingdomPlayer() {
+
+	public Optional<KingdomPlayer> getKingdomPlayer() {
 		return playerManager.getKingdomPlayer(uuid);
 	}
-	
+
 	public Set<Land> getClaims() {
 		return claims;
 	}
-	
+
 	public void addClaim(Land land) {
 		claims.add(land);
 	}
-	
+
+	public void addClaims(Collection<Land> lands) {
+		claims.addAll(lands);
+	}
+
 	private void resetClaims() {
 		claims.clear();
 	}
-	
+
 	public boolean equals(OfflineKingdomPlayer player) {
 		return player.getUniqueId().equals(uuid);
 	}
-	
+
 	public void onKingdomLeave() {
 		resetClaims();
 		kingdom = null;

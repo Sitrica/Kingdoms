@@ -6,15 +6,19 @@ import com.songoda.kingdoms.Kingdoms;
 import java.io.File;
 import java.lang.reflect.Type;
 import java.sql.*;
+import java.util.ArrayDeque;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
 
 public class SQLiteDatabase<T> extends Database<T> {
 
+	private final Queue<PreparedStatement> statements = new ArrayDeque<>();
 	private final Kingdoms instance;
 	private final String tablename;
 	private Connection connection;
 	private final Type type;
+	private boolean busy;
 
 	public SQLiteDatabase(String name, String tablename, Type type) throws SQLException, ClassNotFoundException {
 		this.instance = Kingdoms.getInstance();
@@ -33,7 +37,6 @@ public class SQLiteDatabase<T> extends Database<T> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public T get(String key, T def) {
-		//TODO async futures
 		T result = def;
 		try {
 			PreparedStatement statement = connection.prepareStatement("SELECT `data` FROM %table WHERE `id` = ?;".replace("%table", tablename));
@@ -67,19 +70,52 @@ public class SQLiteDatabase<T> extends Database<T> {
 					statement.setString(1, key);
 					String json = serialize(value, type);
 					statement.setString(2, json);
-					statement.executeUpdate();
-					statement.close();
+					if (!busy) {
+						databaseSave(statement);
+						return;
+					}
+					statements.add(statement);
 				} else {
 					PreparedStatement statement = connection.prepareStatement("DELETE FROM %table WHERE id = ?".replace("%table", tablename));
 					statement.setString(1, key);
-					statement.executeUpdate();
-					statement.close();
+					if (!busy) {
+						databaseSave(statement);
+						return;
+					}
+					statements.add(statement);
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 		}).start();
 	}
+
+	private void databaseSave(PreparedStatement statement) {
+		busy = true;
+		try {
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				statement.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			busy = false;
+		}
+		try {
+			while (!statement.isClosed()) {
+				statement.close();
+				Thread.sleep(1000);
+			}
+		} catch (SQLException | InterruptedException e) {
+			e.printStackTrace();
+		}
+		if (!statements.isEmpty())
+			databaseSave(statements.poll());
+	}
+
 
 	@Override
 	public boolean has(String key) {
@@ -100,30 +136,31 @@ public class SQLiteDatabase<T> extends Database<T> {
 
 	@Override
 	public void clear() {
-		try {
-			PreparedStatement statement = connection.prepareStatement("DELETE FROM %table;".replace("%table", tablename));
-			statement.executeQuery();
-			statement.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		new Thread(() -> {
+			try {
+				PreparedStatement statement = connection.prepareStatement("DELETE FROM %table;".replace("%table", tablename));
+				statement.executeQuery();
+				statement.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}).start();
 	}
 
-	@Override
 	public Set<String> getKeys() {
-		//TODO async futures
 		Set<String> tempset = new HashSet<>();
-		try {
-			PreparedStatement statement = connection.prepareStatement("SELECT `id` FROM %table;".replace("%table", tablename));
-			ResultSet rs = statement.executeQuery();
-			while (rs.next()) {
-				tempset.add(rs.getString("id"));
+		new Thread(() -> {
+			try {
+				PreparedStatement statement = connection.prepareStatement("SELECT `id` FROM %table;".replace("%table", tablename));
+				ResultSet result = statement.executeQuery();
+				while (result.next())
+					tempset.add(result.getString("id"));
+				result.close();
+				statement.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
-			rs.close();
-			statement.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		}).start();
 		return tempset;
 	}
 

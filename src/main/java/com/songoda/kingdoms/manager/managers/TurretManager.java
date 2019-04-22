@@ -281,8 +281,9 @@ public class TurretManager extends Manager {
 			Wolf wolf = (Wolf) target;
 			AnimalTamer owner = wolf.getOwner();
 			if (owner != null) {
-				OfflineKingdomPlayer kingdomPlayer = playerManager.getOfflineKingdomPlayer(owner.getUniqueId());
-				playerKingdom = kingdomPlayer.getKingdom();
+				Optional<OfflineKingdomPlayer> kingdomPlayer = playerManager.getOfflineKingdomPlayer(owner.getUniqueId());
+				if (kingdomPlayer.isPresent())
+					playerKingdom = kingdomPlayer.get().getKingdom();
 			}
 		}
 		if (playerKingdom == null)

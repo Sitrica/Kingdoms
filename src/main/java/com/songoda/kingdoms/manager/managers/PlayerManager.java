@@ -19,7 +19,6 @@ import org.bukkit.scheduler.BukkitTask;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.Database;
 import com.songoda.kingdoms.manager.Manager;
-import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
@@ -29,7 +28,6 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 public class PlayerManager extends Manager {
 
 	private final Set<OfflineKingdomPlayer> users = new HashSet<>();
-	private Optional<CitizensManager> citizensManager;
 	private Database<OfflineKingdomPlayer> database;
 	private WorldManager worldManager;
 	private BukkitTask autoSaveThread;
@@ -40,12 +38,12 @@ public class PlayerManager extends Manager {
 
 	@Override
 	public void initalize() {
-		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
+		String table = configuration.getString("database.player-table", "Players");
 		if (configuration.getBoolean("database.mysql.enabled", false))
-			database = getMySQLDatabase(OfflineKingdomPlayer.class);
+			database = getMySQLDatabase(table, OfflineKingdomPlayer.class);
 		else
-			database = getSQLiteDatabase(OfflineKingdomPlayer.class);
+			database = getSQLiteDatabase(table, OfflineKingdomPlayer.class);
 		if (configuration.getBoolean("database.auto-save.enabled", true)) {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
 			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, save, 0, IntervalUtils.getInterval(interval) * 20);
@@ -62,7 +60,48 @@ public class PlayerManager extends Manager {
 		}
 	};
 
+	public Optional<KingdomPlayer> getKingdomPlayer(UUID uuid) {
+		Player player = Bukkit.getPlayer(uuid);
+		if (player == null)
+			return Optional.empty();
+		return Optional.of(getKingdomPlayer(player));
+	}
+
 	public KingdomPlayer getKingdomPlayer(Player player) {
+		Optional<OfflineKingdomPlayer> kingdomPlayer = getOfflineKingdomPlayer(player.getUniqueId());
+		if (kingdomPlayer.isPresent())
+			return convert(player, kingdomPlayer.get());
+		Kingdoms.debugMessage("Adding new kingdoms player: " + player.getUniqueId());
+		KingdomPlayer newPlayer = new KingdomPlayer(player);
+		users.add(newPlayer);
+		return newPlayer;
+	}
+
+	private KingdomPlayer convert(Player player, OfflineKingdomPlayer other) {
+		KingdomPlayer kingdomPlayer = new KingdomPlayer(player, other);
+		Kingdoms.debugMessage("Converting kingdom offline player to online player: " + player.getUniqueId());
+		return kingdomPlayer;
+	}
+
+	public Optional<OfflineKingdomPlayer> getOfflineKingdomPlayer(OfflinePlayer player) {
+		return getOfflineKingdomPlayer(player.getUniqueId());
+	}
+
+	public Optional<OfflineKingdomPlayer> getOfflineKingdomPlayer(UUID uuid) {
+		return Optional.ofNullable(users.parallelStream()
+				.filter(player -> player.getUniqueId().equals(uuid))
+				.findFirst()
+				.orElseGet(() -> {
+					OfflineKingdomPlayer player = database.get(uuid + "");
+					if (player != null) {
+						Kingdoms.debugMessage("Successfuly fetched data for kingdoms player: " + uuid);
+						users.add(player);
+					}
+					return player; // Null caught by optional ofNullable.
+				}));
+	}
+
+	/*public KingdomPlayer getKingdomPlayer(Player player) {
 		if (player == null)
 			return null;
 		if (citizensManager.isPresent())
@@ -102,43 +141,28 @@ public class PlayerManager extends Manager {
 				});
 	}
 
-	public boolean isOnline(UUID uuid) {
-		Optional<OfflineKingdomPlayer> optional = users.parallelStream()
-				.filter(player -> player.getUniqueId().equals(uuid))
-				.findAny();
-		if (!optional.isPresent())
-			return false;
-		Player player = optional.get().getKingdomPlayer().getPlayer();
-		if (player == null)
-			return false;
-		return player.isOnline();
-	}
-	
 	private KingdomPlayer loadKingdomPlayer(UUID uuid) {
 		Kingdoms.debugMessage("Loading player info for: " + uuid);
 		KingdomPlayer kingdomPlayer = null;
 		Player player = Bukkit.getPlayer(uuid);
 		try {
 			kingdomPlayer = (KingdomPlayer) database.get(uuid + "");
-			if (kingdomPlayer != null) {
-				users.add(kingdomPlayer);
-				return kingdomPlayer;
-			}
 		} catch (Exception e) {
-			Kingdoms.consoleMessage("&cThe file, " + uuid.toString() + " under Players is corrupted.");
 			if (player == null)
 				return null;
 			kingdomPlayer = new KingdomPlayer(player);
 		}
-		if (kingdomPlayer != null)
+		if (kingdomPlayer != null) {
+			users.add(kingdomPlayer);
 			return kingdomPlayer;
+		}
 		if (player == null)
 			return null;
 		kingdomPlayer = new KingdomPlayer(player);
 		users.add(kingdomPlayer);
 		return kingdomPlayer;
 	}
-	
+	*/
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onRespawn(PlayerRespawnEvent event) {
@@ -188,6 +212,7 @@ public class PlayerManager extends Manager {
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null)
 			return;
+		Kingdoms.debugMessage("Loaded player " + player.getUniqueId());
 		if (configuration.getBoolean("kingdom.join-at-kingdom", false))
 			player.teleport(kingdom.getSpawn());
 		if (!kingdomPlayer.isVanished())
@@ -198,14 +223,7 @@ public class PlayerManager extends Manager {
 					.setKingdom(kingdom)
 					.send();
 	}
-	
-	/*@EventHandler(priority = EventPriority.LOW)
-	public void onPreJoin(AsyncPlayerPreLoginEvent event) {
-		if (!configuration.getBoolean("plugin.load-player-before-join", true))
-			return;
-		loadKingdomPlayer(event.getUniqueId());
-	}*/
-	
+
 	@Override
 	public synchronized void onDisable() {
 		if (autoSaveThread != null)
@@ -216,7 +234,6 @@ public class PlayerManager extends Manager {
 			Kingdoms.consoleMessage("Done!");
 		} catch (Exception e) {
 			Kingdoms.consoleMessage("SQL connection failed! Saving to file DB");
-			database = getSQLiteDatabase(OfflineKingdomPlayer.class);
 			save.run();
 		}
 		users.clear();

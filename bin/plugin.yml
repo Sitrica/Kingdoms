@@ -10,7 +10,7 @@ commands:
   kingdoms:
     description: View information on the Kingdoms plugin.
     default: true
-    aliases: [k]
+    aliases: [k, kingdom, kingdoms]
     usage: /k
 permissions:
   kingdoms.*:

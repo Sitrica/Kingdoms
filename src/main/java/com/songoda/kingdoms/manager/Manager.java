@@ -17,7 +17,6 @@ import com.songoda.kingdoms.database.MySQLDatabase;
 import com.songoda.kingdoms.database.SQLiteDatabase;
 import com.songoda.kingdoms.database.YamlDatabase;
 import com.songoda.kingdoms.database.DatabaseTransferTask.TransferPair;
-import com.songoda.kingdoms.objects.land.Land;
 
 public abstract class Manager implements Listener, Comparable<Manager> {
 
@@ -45,22 +44,21 @@ public abstract class Manager implements Listener, Comparable<Manager> {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <T> Database<T> getMySQLDatabase(Class<T> type) {
+	protected <T> Database<T> getMySQLDatabase(String table, Class<T> type) {
 		if (databases.containsKey(type))
 			return (MySQLDatabase<T>) databases.get(type);
 		ConfigurationSection section = instance.getConfig().getConfigurationSection("database");
-		String landTable = section.getString("land-table", "Lands");
 		String address = section.getString("mysql.address", "localhost");
 		String password = section.getString("mysql.password", "1234");
 		String name = section.getString("mysql.name", "kingdoms");
 		String user = section.getString("mysql.user", "root");
 		Database<T> database = null;
 		try {
-			database = new MySQLDatabase<>(address, name, landTable, user, password, Land.class);
+			database = new MySQLDatabase<>(address, name, table, user, password, type);
 			Kingdoms.consoleMessage("MySQL connection " + address + " was a success!");
 			databases.put(type, (MySQLDatabase<?>) database);
 			if (configuration.getBoolean("database.transfer.mysql", false)) {
-				TransferPair<T> transfer = new TransferPair<T>(database, getSQLiteDatabase(type));
+				TransferPair<T> transfer = new TransferPair<T>(database, getSQLiteDatabase(table, type));
 				new Thread(new DatabaseTransferTask<T>(instance, transfer)).start();
 			}
 			return database;
@@ -71,20 +69,20 @@ public abstract class Manager implements Listener, Comparable<Manager> {
 		} finally {
 			if (database == null) {
 				Kingdoms.consoleMessage("Attempting to use SQLite instead...");
-				database = getSQLiteDatabase(type);
+				database = getSQLiteDatabase(table, type);
 			}
 		}
 		return database;
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <T> Database<T> getSQLiteDatabase(Class<T> type) {
+	protected <T> Database<T> getSQLiteDatabase(String table, Class<T> type) {
 		if (databases.containsKey(type))
 			return (SQLiteDatabase<T>) databases.get(type);
-		String landTable = configuration.getString("database.land-table", "Lands");
 		Database<T> database = null;
 		try {
-			database = new SQLiteDatabase<>("db.db", landTable, type);
+			//TODO make a database that reads db.db SQLite database if it exists and convert that old data.
+			database = new SQLiteDatabase<>("database.db", table, type);
 			Kingdoms.consoleMessage("Using SQLite database for " + type.getSimpleName() + " data");
 			databases.put(type, database);
 		} catch (ClassNotFoundException | SQLException e) {

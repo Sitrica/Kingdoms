@@ -10,78 +10,81 @@ import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.land.Land;
 
 public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {//Pioneer, Member, PrivateChat, Confirmable {
-	
+
 	private boolean autoClaiming, autoMapping, vanished, admin;
 	public ChatChannel channel = ChatChannel.PUBLIC;
 	private transient LivingEntity opponent;
 	private transient Land invading;
 	private final Player player;
-	
+
 	public KingdomPlayer(Player player) {
 		super(player);
 		this.player = player;
 	}
-	
+
+	public KingdomPlayer(Player player, OfflineKingdomPlayer other) {
+		super(player);
+		this.player = player;
+		this.rank = other.getRank();
+		this.kingdom = other.getKingdom();
+	}
+
 	public Player getPlayer() {
 		return player;
 	}
-	
+
 	public Chunk getChunkAt() {
 		return player.getLocation().getChunk();
 	}
-	
-	public boolean hasKingdom() {
-		return kingdom == null;
-	}
-	
+
 	public Location getLocation() {
 		return player.getLocation();
 	}
-	
+
 	public boolean hasAdminMode() {
 		return admin;
 	}
-	
+
 	public void setAdminMode(boolean admin) {
 		this.admin = admin;
 	}
-	
+
 	public boolean isVanished() {
 		return vanished;
 	}
-	
+
 	public void setVanished(boolean vanished) {
 		this.vanished = vanished;
 	}
-	
+
 	public boolean isAutoMapping() {
 		return autoMapping;
 	}
-	
+
 	public void setAutoMapping(boolean autoMapping) {
 		this.autoMapping = autoMapping;
 	}
-	
+
 	public boolean isAutoClaiming() {
 		return autoClaiming;
 	}
-	
+
 	@Override
 	public Kingdom getKingdom() {
 		if (kingdom == null)
 			return null;
 		return kingdom.getKingdom();
 	}
-	
+
 	public void setAutoClaiming(boolean autoClaiming) {
 		this.autoClaiming = autoClaiming;
 	}
-	
+
 	@Override
 	public boolean isInvading() {
 		return invading != null;
 	}
-	
+
 	@Override
 	public Land getInvadingLand() {
 		return invading;
@@ -91,20 +94,20 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {/
 	public void setInvadingLand(Land invading) {
 		this.invading = invading;
 	}
-	
+
 	public ChatChannel getChatChannel() {
 		return channel;
 	}
-	
+
 	public void setChatChannel(ChatChannel channel) {
 		this.channel = channel;
 	}
-	
+
 	@Override
 	public LivingEntity getOpponent() {
 		return opponent;
 	}
-	
+
 	@Override
 	public void setOpponent(LivingEntity opponent) {
 		this.opponent = opponent;

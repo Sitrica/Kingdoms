@@ -46,8 +46,9 @@ public class Kingdom extends OfflineKingdom {
 	
 	public Set<KingdomPlayer> getOnlinePlayers() {
 		return members.parallelStream()
-				.filter(player -> player.isOnline())
 				.map(player -> player.getKingdomPlayer())
+				.filter(player -> player.isPresent())
+				.map(player -> player.get())
 				.collect(Collectors.toSet());
 	}
 	

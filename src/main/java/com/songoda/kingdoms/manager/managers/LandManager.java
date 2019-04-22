@@ -93,10 +93,11 @@ public class LandManager extends Manager {
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
+		String table = configuration.getString("database.land-table", "Lands");
 		if (configuration.getBoolean("database.mysql.enabled", false))
-			database = getMySQLDatabase(Land.class);
+			database = getMySQLDatabase(table, Land.class);
 		else
-			database = getSQLiteDatabase(Land.class);
+			database = getSQLiteDatabase(table, Land.class);
 		if (configuration.getBoolean("database.auto-save.enabled")) {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
 			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, saveTask, 0, IntervalUtils.getInterval(interval) * 20);
@@ -1039,9 +1040,8 @@ public class LandManager extends Manager {
 		try {
 			saveTask.run();
 		} catch (Exception e) {
-			Kingdoms.consoleMessage("MySQL connection failed! Saving to file database");
-			database = getMySQLDatabase(Land.class);
-			saveTask.run();
+			Kingdoms.consoleMessage("Saving to database failed.");
+			e.printStackTrace();
 		}
 		lands.clear();
 	}

@@ -29,7 +29,6 @@ database:
 
 # All configurations relating to the actual plugin.
 plugin:
-    load-player-before-join: true
     # If special characters can be used in the Kingdom names.
     allow-special-characters: false
 

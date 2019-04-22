@@ -13,6 +13,7 @@ import org.bukkit.plugin.PluginManager;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 import com.songoda.kingdoms.objects.ManagerOptional;
+import com.songoda.kingdoms.placeholders.DefaultPlaceholders;
 import com.songoda.kingdoms.utils.Utils;
 
 public class ManagerHandler {
@@ -30,6 +31,7 @@ public class ManagerHandler {
 		if (pluginManager.isPluginEnabled("Citizens"))
 			externalManagers.add(new CitizensManager());
 		List<Manager> sorted = new ArrayList<>();
+		DefaultPlaceholders.initalize();
 		for (Class<Manager> clazz : Utils.getClassesOf(instance, instance.getPackageName() + ".manager", Manager.class)) {
 			if (clazz == Manager.class)
 				continue;

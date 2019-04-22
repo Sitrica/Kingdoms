@@ -10,7 +10,7 @@ import org.bukkit.command.CommandSender;
 public class KingdomsCommand extends AbstractCommand {
 	
 	public KingdomsCommand() {
-		super("kingdoms", true);
+		super(true, "kingdoms", "k", "kingdom");
 	}
 
 	@Override

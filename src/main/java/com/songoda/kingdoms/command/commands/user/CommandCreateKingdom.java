@@ -30,7 +30,7 @@ public class CommandCreateKingdom extends AbstractCommand {
 	private final PlayerManager playerManager;
 
 	public CommandCreateKingdom() {
-		super("create", false);
+		super(false, "create");
 		vaultManager = instance.getExternalManager("vault", VaultManager.class);
 		kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		playerManager = instance.getManager("player", PlayerManager.class);

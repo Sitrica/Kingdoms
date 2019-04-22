@@ -34,7 +34,7 @@ public class CommandUnclaim extends AbstractCommand {
 	private final LandManager landManager;
 
 	public CommandUnclaim() {
-		super("unclaim", false);
+		super(false, "unclaim", "u");
 		invadingManager = instance.getManager("invading", InvadingManager.class);
 		playerManager = instance.getManager("player", PlayerManager.class);
 		landManager = instance.getManager("land", LandManager.class);

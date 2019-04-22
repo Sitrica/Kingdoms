@@ -247,7 +247,7 @@ commands:
         syntax: "/k"
     create-kingdom:
         # Placeholders: All KingdomPlayer placeholders.
-        description: "Create a kingdom with the specified name"
+        description: "Create a kingdom with the specified name."
         # Placeholders: All KingdomPlayer placeholders.
         syntax: "/k create <name>"
         # Placeholders: All Kingdom and KingdomPlayer placeholders.
@@ -271,18 +271,14 @@ commands:
         create-success: "&aKingdom with name %name% was created!"
     claim:
         # Placeholders: All KingdomPlayer placeholders.
-        description:
-            - "Claim the chunk you're standing on for your Kingdom"
-            - "/k claim auto - Will toggle automatic claiming while walking."
+        description: "Claim the chunk you're standing on."
         # Placeholders: All KingdomPlayer placeholders.
         syntax: "/k claim [auto]"
         auto-claim-on: "&aAuto claiming has been enabled."
         auto-claim-off: "&cAuto claiming has been disabled."
     unclaim:
         # Placeholders: All KingdomPlayer placeholders.
-        description:
-            - "Unclaim the chunk you're standing on for your Kingdom"
-            - "/k unclaim all - Will unclaim all lands owned by your Kingdom."
+        description: "Unclaim the chunk you're standing on."
         # Placeholders: All KingdomPlayer placeholders.
         syntax: "/k unclaim [all]"
         # Placeholders: All Kingdom and KingdomPlayer placeholders.

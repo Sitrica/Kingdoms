@@ -68,10 +68,11 @@ public class KingdomManager extends Manager {
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
 		this.rankManager = instance.getManager("rank", RankManager.class);
+		String table = configuration.getString("database.kingdom-table", "Kingdoms");
 		if (configuration.getBoolean("database.mysql.enabled", false))
-			database = getMySQLDatabase(OfflineKingdom.class);
+			database = getMySQLDatabase(table, OfflineKingdom.class);
 		else
-			database = getSQLiteDatabase(OfflineKingdom.class);
+			database = getSQLiteDatabase(table, OfflineKingdom.class);
 		if (configuration.getBoolean("database.auto-save.enabled")) {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
 			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, saveTask, 0, IntervalUtils.getInterval(interval) * 20);
@@ -308,11 +309,12 @@ public class KingdomManager extends Manager {
 				database.delete(kingdom.getUniqueId() + "");
 				Bukkit.getPluginManager().callEvent(new KingdomDeleteEvent(kingdom));
 				landManager.unclaimAllLand(kingdom);
-				if (king.isOnline())
+				Optional<KingdomPlayer> kingPlayer = king.getKingdomPlayer();
+				if (kingPlayer.isPresent())
 					new MessageBuilder("kingdoms.deleted")
 							.setPlaceholderObject(king)
 							.setKingdom(kingdom)
-							.send(king.getKingdomPlayer());
+							.send(kingPlayer.get());
 			}
 		});
 		return true;

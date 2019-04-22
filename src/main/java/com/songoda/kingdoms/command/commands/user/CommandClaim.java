@@ -16,7 +16,7 @@ public class CommandClaim extends AbstractCommand {
 	private final LandManager landManager;
 
 	public CommandClaim() {
-		super("claim", false);
+		super(false, "claim", "c");
 		playerManager = instance.getManager("player", PlayerManager.class);
 		landManager = instance.getManager("", LandManager.class);
 	}

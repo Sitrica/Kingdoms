@@ -24,12 +24,16 @@ debug: false
 disable-configurations-reset: false
 
 database:
+    kingdom-table: "Kingdoms"
+    player-table: "Players"
+    land-table: "Lands"
     # Type is only SQLite right now.
     type: "SQLite"
+    autosave:
+        interval: "5 minutes"
 
 # All configurations relating to the actual plugin.
 plugin:
-    load-player-before-join: true
     # If special characters can be used in the Kingdom names.
     allow-special-characters: false
 

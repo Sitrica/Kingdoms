@@ -8,20 +8,14 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.Kingdoms;
-import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.utils.LocationUtils;
 
-public class DefaultPlaceholders extends Manager {
+public class DefaultPlaceholders {
 
-	public DefaultPlaceholders() {
-		super("defaultplaceholders", false);
-	}
-
-	@Override
-	public void initalize() {
+	public static void initalize() {
 		Placeholders.registerPlaceholder(new SimplePlaceholder("%prefix%") {
 			@Override
 			public String get() {
@@ -104,8 +98,5 @@ public class DefaultPlaceholders extends Manager {
 			}
 		});
 	}
-
-	@Override
-	public void onDisable() {}
 
 }
