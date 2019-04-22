@@ -43,9 +43,9 @@ public class SQLiteDatabase<T> extends Database<T> {
 			statement.setString(1, key);
 			ResultSet rs = statement.executeQuery();
 			while (rs.next()) {
-				String ser = rs.getString("data");
+				String json = rs.getString("data");
 				try {
-					result = (T) deserialize(ser, type);
+					result = (T) deserialize(json, type);
 				} catch (JsonSyntaxException e) {
 					e.printStackTrace();
 					return def;

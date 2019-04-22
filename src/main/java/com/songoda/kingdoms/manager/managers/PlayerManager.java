@@ -1,8 +1,9 @@
 package com.songoda.kingdoms.manager.managers;
 
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -27,7 +28,7 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class PlayerManager extends Manager {
 
-	private final Set<OfflineKingdomPlayer> users = new HashSet<>();
+	private final Map<UUID, OfflineKingdomPlayer> users = new HashMap<>();
 	private Database<OfflineKingdomPlayer> database;
 	private WorldManager worldManager;
 	private BukkitTask autoSaveThread;
@@ -53,9 +54,10 @@ public class PlayerManager extends Manager {
 	private final Runnable save = new Runnable() {
 		@Override 
 		public void run() {
-			for (OfflineKingdomPlayer player : users) {
+			for (Entry<UUID, OfflineKingdomPlayer> entry : users.entrySet()) {
+				OfflineKingdomPlayer player = entry.getValue();
 				Kingdoms.debugMessage("Saving player " + player.getName());
-				database.save(player.getUniqueId() + "", player);
+				database.save(entry.getKey() + "", player);
 			}
 		}
 	};
@@ -68,18 +70,22 @@ public class PlayerManager extends Manager {
 	}
 
 	public KingdomPlayer getKingdomPlayer(Player player) {
-		Optional<OfflineKingdomPlayer> kingdomPlayer = getOfflineKingdomPlayer(player.getUniqueId());
-		if (kingdomPlayer.isPresent())
-			return convert(player, kingdomPlayer.get());
-		Kingdoms.debugMessage("Adding new kingdoms player: " + player.getUniqueId());
+		UUID uuid = player.getUniqueId();
+		Optional<OfflineKingdomPlayer> kingdomPlayer = getOfflineKingdomPlayer(uuid);
+		if (kingdomPlayer.isPresent()) {
+			OfflineKingdomPlayer value = kingdomPlayer.get();
+			return value instanceof KingdomPlayer ? (KingdomPlayer) value : convert(player, value);
+		}
+		Kingdoms.debugMessage("Adding new kingdoms player: " + uuid);
 		KingdomPlayer newPlayer = new KingdomPlayer(player);
-		users.add(newPlayer);
+		users.put(uuid, newPlayer);
 		return newPlayer;
 	}
 
 	private KingdomPlayer convert(Player player, OfflineKingdomPlayer other) {
 		KingdomPlayer kingdomPlayer = new KingdomPlayer(player, other);
 		Kingdoms.debugMessage("Converting kingdom offline player to online player: " + player.getUniqueId());
+		users.replace(player.getUniqueId(), kingdomPlayer);
 		return kingdomPlayer;
 	}
 
@@ -88,81 +94,19 @@ public class PlayerManager extends Manager {
 	}
 
 	public Optional<OfflineKingdomPlayer> getOfflineKingdomPlayer(UUID uuid) {
-		return Optional.ofNullable(users.parallelStream()
-				.filter(player -> player.getUniqueId().equals(uuid))
+		return Optional.ofNullable(users.entrySet().parallelStream()
+				.filter(entry -> entry.getKey().equals(uuid))
+				.map(entry -> entry.getValue())
 				.findFirst()
 				.orElseGet(() -> {
 					OfflineKingdomPlayer player = database.get(uuid + "");
 					if (player != null) {
 						Kingdoms.debugMessage("Successfuly fetched data for kingdoms player: " + uuid);
-						users.add(player);
+						users.put(uuid, player);
 					}
 					return player; // Null caught by optional ofNullable.
 				}));
 	}
-
-	/*public KingdomPlayer getKingdomPlayer(Player player) {
-		if (player == null)
-			return null;
-		if (citizensManager.isPresent())
-			if (citizensManager.get().isCitizen(player))
-				return null;
-		return getKingdomPlayer(player.getUniqueId());
-	}
-
-	public KingdomPlayer getKingdomPlayer(UUID uuid) {
-		if (uuid == null)
-			return null;
-		Kingdoms.debugMessage("Getting session of player uuid: " + uuid.toString());
-		return (KingdomPlayer) users.parallelStream()
-				.filter(player -> player.getUniqueId().equals(uuid))
-				.findFirst()
-				.orElse(loadKingdomPlayer(uuid));
-	}
-
-	public OfflineKingdomPlayer getOfflineKingdomPlayer(OfflinePlayer player) {
-		return getOfflineKingdomPlayer(player.getUniqueId());
-	}
-
-	public OfflineKingdomPlayer getOfflineKingdomPlayer(UUID uuid) {
-		if (uuid == null)
-			return null;
-		Kingdoms.debugMessage("Getting session of offline kingdoms player: " + uuid);
-		return users.parallelStream()
-				.filter(player -> player.getUniqueId() == uuid)
-				.findFirst()
-				.orElseGet(() -> {
-					OfflineKingdomPlayer player = database.get(uuid + "");
-					if (player != null) {
-						users.add(player);
-						return player;
-					}
-					return new OfflineKingdomPlayer(uuid);
-				});
-	}
-
-	private KingdomPlayer loadKingdomPlayer(UUID uuid) {
-		Kingdoms.debugMessage("Loading player info for: " + uuid);
-		KingdomPlayer kingdomPlayer = null;
-		Player player = Bukkit.getPlayer(uuid);
-		try {
-			kingdomPlayer = (KingdomPlayer) database.get(uuid + "");
-		} catch (Exception e) {
-			if (player == null)
-				return null;
-			kingdomPlayer = new KingdomPlayer(player);
-		}
-		if (kingdomPlayer != null) {
-			users.add(kingdomPlayer);
-			return kingdomPlayer;
-		}
-		if (player == null)
-			return null;
-		kingdomPlayer = new KingdomPlayer(player);
-		users.add(kingdomPlayer);
-		return kingdomPlayer;
-	}
-	*/
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onRespawn(PlayerRespawnEvent event) {
@@ -183,8 +127,9 @@ public class PlayerManager extends Manager {
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
 		UUID uuid = event.getPlayer().getUniqueId();
-		users.parallelStream()
-				.filter(player -> player.getUniqueId().equals(uuid))
+		users.entrySet().parallelStream()
+				.filter(entry -> entry.getKey().equals(uuid))
+				.map(entry -> entry.getValue())
 				.map(player -> (KingdomPlayer) player)
 				.forEach(player -> {
 					database.save(uuid + "", player);
@@ -200,6 +145,7 @@ public class PlayerManager extends Manager {
 							.setKingdom(kingdom)
 							.send();
 				});
+		users.remove(uuid);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH)

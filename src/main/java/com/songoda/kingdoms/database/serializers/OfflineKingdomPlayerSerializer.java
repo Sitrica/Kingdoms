@@ -40,14 +40,14 @@ public class OfflineKingdomPlayerSerializer implements Serializer<OfflineKingdom
 	public OfflineKingdomPlayer deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws JsonParseException {
 		JsonObject object = json.getAsJsonObject();
 		JsonElement uuidElement = object.get("uuid");
-		if (uuidElement == null || !uuidElement.isJsonNull())
+		if (uuidElement == null || uuidElement.isJsonNull())
 			return null;
 		UUID uuid = UUID.fromString(uuidElement.getAsString());
 		if (uuid == null)
 			return null;
 		OfflineKingdomPlayer player = new OfflineKingdomPlayer(uuid);
 		JsonElement rankElement = object.get("rank");
-		if (rankElement == null || !rankElement.isJsonNull())
+		if (rankElement == null || rankElement.isJsonNull())
 			return null;
 		Rank rank = rankManager.getRank(uuidElement.getAsString()).orElse(rankManager.getDefaultRank());
 		player.setRank(rank);

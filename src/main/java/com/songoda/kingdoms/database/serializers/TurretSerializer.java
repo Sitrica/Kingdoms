@@ -43,7 +43,7 @@ public class TurretSerializer implements Serializer<Turret> {
 	public Turret deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws JsonParseException {
 		JsonObject object = json.getAsJsonObject();
 		JsonElement worldElement = object.get("world");
-		if (worldElement == null)
+		if (worldElement == null || worldElement.isJsonNull())
 			return null;
 		World world = Bukkit.getWorld(worldElement.getAsString());
 		if (world == null)
