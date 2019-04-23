@@ -13,37 +13,37 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class Kingdom extends OfflineKingdom {
-	
+
 	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
-	
+
 	int chestsize = 9;
 	long timestamp = 0;
 	int maxMember = 10;
 	ArmyInfo armyInfo = new ArmyInfo();
 	AggressorInfo aggressorInfo = new AggressorInfo();
-	
+
 	// Only used for BotKingdoms.
 	protected Kingdom() {
 		this(UUID.randomUUID(), null);
 	}
-	
+
 	public Kingdom(OfflineKingdom kingdom) {
 		super(kingdom.getUniqueId(), kingdom.getKing(), true);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 	}
-	
+
 	public Kingdom(KingdomPlayer king) {
 		this(UUID.randomUUID(), king);
 	}
-	
+
 	public Kingdom(UUID uuid, KingdomPlayer king) {
 		super(uuid, king);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 	}
-	
+
 	public Set<KingdomPlayer> getOnlinePlayers() {
 		return members.parallelStream()
 				.map(player -> player.getKingdomPlayer())
@@ -51,7 +51,7 @@ public class Kingdom extends OfflineKingdom {
 				.map(player -> player.get())
 				.collect(Collectors.toSet());
 	}
-	
+
 	public Set<KingdomPlayer> getOnlineAllies() {
 		Set<KingdomPlayer> allies = new HashSet<>();
 		Bukkit.getWorlds().parallelStream()
@@ -68,7 +68,7 @@ public class Kingdom extends OfflineKingdom {
 				});
 		return allies;
 	}
-	
+
 	public Set<KingdomPlayer> getOnlineEnemies() {
 		Set<KingdomPlayer> enemies = new HashSet<>();
 		Bukkit.getWorlds().parallelStream()

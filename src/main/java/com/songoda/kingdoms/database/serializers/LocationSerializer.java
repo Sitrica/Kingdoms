@@ -17,7 +17,6 @@ public class LocationSerializer implements Serializer<Location> {
 	@Override
 	public JsonElement serialize(Location location, Type type, JsonSerializationContext context) {
 		JsonObject json = new JsonObject();
-		// return empty if world does not exists
 		if (location.getWorld() == null)
 			return json;
 		json.addProperty("world", location.getWorld().getName());

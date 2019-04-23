@@ -1,7 +1,7 @@
 package com.songoda.kingdoms.objects.kingdom;
 
 public class DefenderInfo {
-	
+
 	private final OfflineKingdom kingdom;
 	private int reinforcements = 0;
 	private int megaHealth = 0;
@@ -27,11 +27,11 @@ public class DefenderInfo {
 	private int mock = 0;
 	private int duel = 0;
 	private int aqua = 0;
-	
+
 	public DefenderInfo(OfflineKingdom kingdom) {
 		this.kingdom = kingdom;
 	}
-	
+
 	public OfflineKingdom getKingdom() {
 		return kingdom;
 	}
@@ -39,191 +39,191 @@ public class DefenderInfo {
 	public int getDrag() {
 		return drag;
 	}
-	
+
 	public void setDrag(int drag) {
 		this.drag = drag;
 	}
-	
+
 	public int getMock() {
 		return mock;
 	}
-	
+
 	public void setMock(int mock) {
 		this.mock = mock;
 	}
-	
+
 	public int getDuel() {
 		return duel;
 	}
-	
+
 	public void setDuel(int duel) {
 		this.duel = duel;
 	}
-	
+
 	public int getPlow() {
 		return plow;
 	}
-	
+
 	public void setPlow(int plow) {
 		this.plow = plow;
 	}
-	
+
 	public int getAqua() {
 		return aqua;
 	}
-	
+
 	public void setAqua(int aqua) {
 		this.aqua = aqua;
 	}
-	
+
 	public int getThor() {
 		return thor;
 	}
-	
+
 	public void setThor(int thor) {
 		this.thor = thor;
 	}
-	
+
 	public int getTier() {
 		return tier;
 	}
-	
+
 	public void setTier(int tier) {
 		this.tier = tier;
 	}
-	
+
 	public int getGrab() {
 		return grab;
 	}
-	
+
 	public void setGrab(int grab) {
 		this.grab = grab;
 	}
-	
+
 	public int getFocus() {
 		return focus;
 	}
-	
+
 	public void setFocus(int focus) {
 		this.focus = focus;
 	}
-	
+
 	public int getMimic() {
 		return mimic;
 	}
-	
+
 	public void setMimic(int mimic) {
 		this.mimic = mimic;
 	}
-	
+
 	public int getSpeed() {
 		return speed;
 	}
-	
+
 	public void setSpeed(int speed) {
 		this.speed = speed;
 	}
-	
+
 	public int getArmor() {
 		return armor;
 	}
-	
+
 	public void setArmor(int armor) {
 		this.armor = armor;
 	}
-	
+
 	public int getHealth() {
 		return health;
 	}
-	
+
 	public void setHealth(int health) {
 		this.health = health;
 	}
-	
+
 	public int getWeapon() {
 		return weapon;
 	}
-	
+
 	public void setWeapon(int weapon) {
 		this.weapon = weapon;
 	}
-	
+
 	public int getSummon() {
 		return summon;
 	}
-	
+
 	public void setSummon(int summon) {
 		this.summon = summon;
 	}
-	
+
 	public int getThrow() {
 		return thrown;
 	}
-	
+
 	public void setThrow(int thrown) {
 		this.thrown = thrown;
 	}
-	
+
 	public int getDamage() {
 		return damage;
 	}
-	
+
 	public void setDamage(int damage) {
 		this.damage = damage;
 	}
-	
+
 	public int getMegaHealth() {
 		return megaHealth;
 	}
-	
+
 	public void setMegaHealth(int megaHealth) {
 		this.megaHealth = megaHealth;
 	}
-	
+
 	public int getSpecials() {
 		return specials;
 	}
-	
+
 	public void setSpecials(int specials) {
 		this.specials = specials;
 	}
-	
+
 	public int getStrength() {
 		return strength;
 	}
-	
+
 	public void setStrength(int strength) {
 		this.strength = strength;
 	}
-	
+
 	public int getDamageLimit() {
 		return limit;
 	}
-	
+
 	public void setDamageLimit(int limit) {
 		this.limit = limit;
 	}
-	
+
 	public int getResistance() {
 		return resistance;
 	}
-	
+
 	public void setResistance(int resistance) {
 		this.resistance = resistance;
 	}
-	
+
 	public int getAbsorption() {
 		return absorption;
 	}
-	
+
 	public void setAbsorption(int absorption) {
 		this.absorption = absorption;
 	}
-	
+
 	public int getReinforcements() {
 		return reinforcements;
 	}
-	
+
 	public void setReinforcements(int reinforcements) {
 		this.reinforcements = reinforcements;
 	}
@@ -271,7 +271,7 @@ public class DefenderInfo {
 		}
 		return 0;
 	}
-	
+
 	public void setUpgradeLevel(DefenderUpgrade upgrade, int level) {
 		if (upgrade == null)
 			return;
