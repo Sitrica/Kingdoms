@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
+import com.songoda.kingdoms.database.OfflineKingdomSerializer;
 import com.songoda.kingdoms.database.Serializer;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.structures.Structure;
@@ -17,9 +18,9 @@ public class WarpPadSerializer implements Serializer<WarpPad> {
 	private final StructureSerializer structureSerializer;
 	private final LandSerializer landSerializer;
 
-	public WarpPadSerializer() {
-		this.structureSerializer = new StructureSerializer();
-		this.landSerializer = new LandSerializer();
+	public WarpPadSerializer(OfflineKingdomSerializer kingdomSerializer) {
+		this.structureSerializer = new StructureSerializer(kingdomSerializer);
+		this.landSerializer = new LandSerializer(kingdomSerializer);
 	}
 
 	@Override

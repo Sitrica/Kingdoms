@@ -34,7 +34,7 @@ public class PlayerManager extends Manager {
 	private BukkitTask autoSaveThread;
 
 	public PlayerManager() {
-		super("player", true, "serializer");
+		super("player", true, "rank");
 	}
 
 	@Override

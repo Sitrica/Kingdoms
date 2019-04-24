@@ -29,7 +29,10 @@ public abstract class Placeholder<T> {
 	
 	@SuppressWarnings("unchecked")
 	public String replace_i(Object object) {
-		return replace((T) object).toString();
+		Object replacement = replace((T) object);
+		if (replacement == null)
+			return null;
+		return replacement.toString();
 	}
 	
 }

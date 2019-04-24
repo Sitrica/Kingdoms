@@ -1,4 +1,4 @@
-package com.songoda.kingdoms.database.serializers;
+package com.songoda.kingdoms.database;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
@@ -6,7 +6,15 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
-import com.songoda.kingdoms.database.Serializer;
+import com.songoda.kingdoms.database.serializers.DefenderInfoSerializer;
+import com.songoda.kingdoms.database.serializers.KingdomChestSerializer;
+import com.songoda.kingdoms.database.serializers.LandSerializer;
+import com.songoda.kingdoms.database.serializers.LocationSerializer;
+import com.songoda.kingdoms.database.serializers.MiscUpgradeSerializer;
+import com.songoda.kingdoms.database.serializers.OfflineKingdomPlayerSerializer;
+import com.songoda.kingdoms.database.serializers.PowerupSerializer;
+import com.songoda.kingdoms.database.serializers.RankPermissionsSerializer;
+import com.songoda.kingdoms.database.serializers.WarpPadSerializer;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.KingdomChest;
 import com.songoda.kingdoms.objects.kingdom.MiscUpgrade;
@@ -34,16 +42,17 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 	private final WarpPadSerializer warpSerializer;
 	private final LandSerializer landSerializer;
 
-	public OfflineKingdomSerializer() {
+	// Anything that uses this class, must be casted through this constructor to avoid recurrent.
+	OfflineKingdomSerializer() {
+		this.playerSerializer = new OfflineKingdomPlayerSerializer(this);
 		this.permissionsSerializer = new RankPermissionsSerializer();
-		this.playerSerializer = new OfflineKingdomPlayerSerializer();
-		this.miscUpgradeSerializer = new MiscUpgradeSerializer();
-		this.defenderSerializer = new DefenderInfoSerializer();
-		this.chestSerializer = new KingdomChestSerializer();
+		this.miscUpgradeSerializer = new MiscUpgradeSerializer(this);
+		this.defenderSerializer = new DefenderInfoSerializer(this);
+		this.chestSerializer = new KingdomChestSerializer(this);
+		this.powerupSerializer = new PowerupSerializer(this);
 		this.locationSerializer = new LocationSerializer();
-		this.powerupSerializer = new PowerupSerializer();
-		this.warpSerializer = new WarpPadSerializer();
-		this.landSerializer = new LandSerializer();
+		this.warpSerializer = new WarpPadSerializer(this);
+		this.landSerializer = new LandSerializer(this);
 	}
 
 	@Override

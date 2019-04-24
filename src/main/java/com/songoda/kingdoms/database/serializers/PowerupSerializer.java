@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
+import com.songoda.kingdoms.database.OfflineKingdomSerializer;
 import com.songoda.kingdoms.database.Serializer;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.kingdom.Powerup;
@@ -16,8 +17,8 @@ public class PowerupSerializer implements Serializer<Powerup> {
 
 	private final OfflineKingdomSerializer kingdomSerializer;
 
-	public PowerupSerializer() {
-		this.kingdomSerializer = new OfflineKingdomSerializer();
+	public PowerupSerializer(OfflineKingdomSerializer kingdomSerializer) {
+		this.kingdomSerializer = kingdomSerializer;
 	}
 
 	@Override

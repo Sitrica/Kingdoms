@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
+import com.songoda.kingdoms.database.OfflineKingdomSerializer;
 import com.songoda.kingdoms.database.Serializer;
 import com.songoda.kingdoms.objects.kingdom.MiscUpgrade;
 import com.songoda.kingdoms.objects.kingdom.MiscUpgradeType;
@@ -16,8 +17,8 @@ public class MiscUpgradeSerializer implements Serializer<MiscUpgrade> {
 
 	private final OfflineKingdomSerializer kingdomSerializer;
 
-	public MiscUpgradeSerializer() {
-		this.kingdomSerializer = new OfflineKingdomSerializer();
+	public MiscUpgradeSerializer(OfflineKingdomSerializer kingdomSerializer) {
+		this.kingdomSerializer = kingdomSerializer;
 	}
 
 	@Override

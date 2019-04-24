@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
+import com.songoda.kingdoms.database.OfflineKingdomSerializer;
 import com.songoda.kingdoms.database.Serializer;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.DefenderUpgrade;
@@ -16,8 +17,8 @@ public class DefenderInfoSerializer implements Serializer<DefenderInfo> {
 
 	private final OfflineKingdomSerializer kingdomSerializer;
 
-	public DefenderInfoSerializer() {
-		this.kingdomSerializer = new OfflineKingdomSerializer();
+	public DefenderInfoSerializer(OfflineKingdomSerializer kingdomSerializer) {
+		this.kingdomSerializer = kingdomSerializer;
 	}
 
 	@Override

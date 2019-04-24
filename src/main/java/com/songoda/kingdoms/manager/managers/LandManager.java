@@ -77,7 +77,7 @@ public class LandManager extends Manager {
 	private LandManager landManager;
 
 	public LandManager() {
-		super("land", true, "serializer");
+		super("land", true, "rank");
 		this.forbidden.addAll(configuration.getStringList("kingdoms.forbidden-inventories"));
 	}
 

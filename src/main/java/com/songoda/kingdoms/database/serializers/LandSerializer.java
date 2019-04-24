@@ -12,6 +12,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
+import com.songoda.kingdoms.database.OfflineKingdomSerializer;
 import com.songoda.kingdoms.database.Serializer;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
@@ -24,10 +25,10 @@ public class LandSerializer implements Serializer<Land> {
 	private final StructureSerializer structureSerializer;
 	private final TurretSerializer turretSerializer;
 
-	public LandSerializer() {
-		this.kingdomSerializer = new OfflineKingdomSerializer();
-		this.structureSerializer = new StructureSerializer();
+	public LandSerializer(OfflineKingdomSerializer kingdomSerializer) {
+		this.structureSerializer = new StructureSerializer(kingdomSerializer);
 		this.turretSerializer = new TurretSerializer();
+		this.kingdomSerializer = kingdomSerializer;
 	}
 
 	@Override

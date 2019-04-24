@@ -16,8 +16,8 @@ import com.songoda.kingdoms.database.serializers.LandSerializer;
 import com.songoda.kingdoms.database.serializers.LocationSerializer;
 import com.songoda.kingdoms.database.serializers.MiscUpgradeSerializer;
 import com.songoda.kingdoms.database.serializers.OfflineKingdomPlayerSerializer;
-import com.songoda.kingdoms.database.serializers.OfflineKingdomSerializer;
 import com.songoda.kingdoms.database.serializers.PowerupSerializer;
+import com.songoda.kingdoms.database.serializers.RankPermissionsSerializer;
 import com.songoda.kingdoms.database.serializers.StructureSerializer;
 import com.songoda.kingdoms.database.serializers.TurretSerializer;
 import com.songoda.kingdoms.database.serializers.WarpPadSerializer;
@@ -26,6 +26,7 @@ import com.songoda.kingdoms.objects.kingdom.KingdomChest;
 import com.songoda.kingdoms.objects.kingdom.MiscUpgrade;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.kingdom.Powerup;
+import com.songoda.kingdoms.objects.kingdom.RankPermissions;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.objects.structures.Structure;
@@ -37,19 +38,22 @@ public abstract class Database<T> {
 	private final Gson gson;
 
 	public Database() {
+		OfflineKingdomSerializer kingdomSerializer = new OfflineKingdomSerializer();
+		OfflineKingdomPlayerSerializer playerSerializer = new OfflineKingdomPlayerSerializer(kingdomSerializer);
 		gson = new GsonBuilder()
-				.registerTypeAdapter(OfflineKingdomPlayer.class, new OfflineKingdomPlayerSerializer())
-				.registerTypeAdapter(OfflineKingdom.class, new OfflineKingdomSerializer())
-				.registerTypeAdapter(KingdomChest.class, new KingdomChestSerializer())
-				.registerTypeAdapter(DefenderInfo.class, new DefenderInfoSerializer())
-				.registerTypeAdapter(MiscUpgrade.class, new MiscUpgradeSerializer())
+				.registerTypeAdapter(DefenderInfo.class, new DefenderInfoSerializer(kingdomSerializer))
+				.registerTypeAdapter(KingdomChest.class, new KingdomChestSerializer(kingdomSerializer))
+				.registerTypeAdapter(MiscUpgrade.class, new MiscUpgradeSerializer(kingdomSerializer))
+				.registerTypeAdapter(Structure.class, new StructureSerializer(kingdomSerializer))
+				.registerTypeAdapter(WarpPad.class, new WarpPadSerializer(kingdomSerializer))
+				.registerTypeAdapter(Powerup.class, new PowerupSerializer(kingdomSerializer))
+				.registerTypeAdapter(RankPermissions.class, new RankPermissionsSerializer())
+				.registerTypeAdapter(Land.class, new LandSerializer(kingdomSerializer))
+				.registerTypeAdapter(OfflineKingdomPlayer.class, playerSerializer)
 				.registerTypeAdapter(ItemStack.class, new ItemStackSerializer())
-				.registerTypeAdapter(Structure.class, new StructureSerializer())
 				.registerTypeAdapter(Location.class, new LocationSerializer())
-				.registerTypeAdapter(WarpPad.class, new WarpPadSerializer())
-				.registerTypeAdapter(Powerup.class, new PowerupSerializer())
+				.registerTypeAdapter(OfflineKingdom.class, kingdomSerializer)
 				.registerTypeAdapter(Turret.class, new TurretSerializer())
-				.registerTypeAdapter(Land.class, new LandSerializer())
 				.excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC)
 				.enableComplexMapKeySerialization()
 				.serializeNulls().create();

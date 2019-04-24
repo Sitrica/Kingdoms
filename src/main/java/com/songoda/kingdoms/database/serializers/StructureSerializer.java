@@ -11,6 +11,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
+import com.songoda.kingdoms.database.OfflineKingdomSerializer;
 import com.songoda.kingdoms.database.Serializer;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.structures.Structure;
@@ -20,8 +21,8 @@ public class StructureSerializer implements Serializer<Structure> {
 
 	private final OfflineKingdomSerializer kingdomSerializer;
 
-	public StructureSerializer() {
-		this.kingdomSerializer = new OfflineKingdomSerializer();
+	public StructureSerializer(OfflineKingdomSerializer kingdomSerializer) {
+		this.kingdomSerializer = kingdomSerializer;
 	}
 
 	@Override

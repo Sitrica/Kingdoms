@@ -57,7 +57,7 @@ public class KingdomManager extends Manager {
 	private RankManager rankManager;
 
 	public KingdomManager() {
-		super("kingdom", true, "serializer");
+		super("kingdom", true, "rank");
 	}
 	
 	@Override

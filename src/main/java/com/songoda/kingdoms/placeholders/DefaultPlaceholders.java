@@ -28,7 +28,10 @@ public class DefaultPlaceholders {
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%kingdom%", "%playerkingdom%", "%player-kingdom%") {
 				@Override
 				public String replace(OfflineKingdomPlayer player) {
-					return player.getKingdom().getName();
+					OfflineKingdom kingdom = player.getKingdom();
+					if (kingdom == null)
+						return null;
+					return kingdom.getName();
 				}
 			});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%rank%", "%playerrank%", "player-rank") {

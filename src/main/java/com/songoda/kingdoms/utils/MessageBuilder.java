@@ -238,7 +238,9 @@ public class MessageBuilder {
 					SimplePlaceholder simple = (SimplePlaceholder) placeholder;
 					input = input.replaceAll(Pattern.quote(syntax), simple.get());
 				} else {
-					input = input.replaceAll(Pattern.quote(syntax), placeholder.replace_i(entry.getValue()));
+					String replacement = placeholder.replace_i(entry.getValue());
+					if (replacement != null)
+						input = input.replaceAll(Pattern.quote(syntax), replacement);
 				}
 			}
 		}
@@ -248,13 +250,15 @@ public class MessageBuilder {
 				if (placeholder instanceof SimplePlaceholder) {
 					SimplePlaceholder simple = (SimplePlaceholder) placeholder;
 					input = input.replaceAll(Pattern.quote(syntax), simple.get());
-				} else if (defaultPlaceholderObject != null) {
-					if (placeholder.getType().isAssignableFrom(defaultPlaceholderObject.getClass()))
-						input = input.replaceAll(Pattern.quote(syntax), placeholder.replace_i(defaultPlaceholderObject));
+				} else if (defaultPlaceholderObject != null && placeholder.getType().isAssignableFrom(defaultPlaceholderObject.getClass())) {
+					String replacement = placeholder.replace_i(defaultPlaceholderObject);
+					if (replacement != null)
+						input = input.replaceAll(Pattern.quote(syntax), replacement);
 				}
-				if (kingdom != null) {
-					if (placeholder.getType().isAssignableFrom(OfflineKingdom.class))
-						input = input.replaceAll(Pattern.quote(syntax), placeholder.replace_i(kingdom));
+				if (kingdom != null && placeholder.getType().isAssignableFrom(OfflineKingdom.class)) {
+					String replacement = placeholder.replace_i(kingdom);
+					if (replacement != null)
+						input = input.replaceAll(Pattern.quote(syntax), replacement);
 				}
 			}
 		}

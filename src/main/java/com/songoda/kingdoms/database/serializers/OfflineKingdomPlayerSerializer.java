@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.database.OfflineKingdomSerializer;
 import com.songoda.kingdoms.database.Serializer;
 import com.songoda.kingdoms.manager.managers.RankManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
@@ -22,10 +23,11 @@ public class OfflineKingdomPlayerSerializer implements Serializer<OfflineKingdom
 	private final LandSerializer landSerializer;
 	private final RankManager rankManager;
 
-	public OfflineKingdomPlayerSerializer() {
+	// Has this constructor because of recurrent between OfflineKingdomSerializer and OfflineKingdomPlayerSerializer.
+	public OfflineKingdomPlayerSerializer(OfflineKingdomSerializer kingdomSerializer) {
 		this.rankManager = Kingdoms.getInstance().getManager("rank", RankManager.class);
-		this.kingdomSerializer = new OfflineKingdomSerializer();
-		this.landSerializer = new LandSerializer();
+		this.landSerializer = new LandSerializer(kingdomSerializer);
+		this.kingdomSerializer = kingdomSerializer;
 	}
 
 	@Override
