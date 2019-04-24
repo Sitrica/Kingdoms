@@ -3,6 +3,7 @@ package com.songoda.kingdoms.objects.structures;
 import org.bukkit.Location;
 import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.IntervalUtils;
@@ -14,12 +15,12 @@ public class Extractor extends Structure {
 	private final long delay, reward;
 	private long next;
 
-	public Extractor(Location location) {
-		this(location, System.currentTimeMillis());
+	public Extractor(OfflineKingdom kingdom, Location location) {
+		this(kingdom, location, System.currentTimeMillis());
 	}
 	
-	public Extractor(Location location, long next) {
-		super(location, StructureType.EXTRACTOR);
+	public Extractor(OfflineKingdom kingdom, Location location, long next) {
+		super(kingdom, location, StructureType.EXTRACTOR);
 		String interval = configuration.getString("structures.extractor.reward-delay", "24 hours");
 		this.reward = configuration.getLong("structures.extractor.reward-amount", 50);
 		this.landManager = instance.getManager("land", LandManager.class);

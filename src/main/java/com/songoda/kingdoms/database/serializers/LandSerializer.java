@@ -13,16 +13,19 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.songoda.kingdoms.database.Serializer;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.structures.Structure;
 import com.songoda.kingdoms.objects.turrets.Turret;
 
 public class LandSerializer implements Serializer<Land> {
 
+	private final OfflineKingdomSerializer kingdomSerializer;
 	private final StructureSerializer structureSerializer;
 	private final TurretSerializer turretSerializer;
 
 	public LandSerializer() {
+		this.kingdomSerializer = new OfflineKingdomSerializer();
 		this.structureSerializer = new StructureSerializer();
 		this.turretSerializer = new TurretSerializer();
 	}
@@ -35,6 +38,7 @@ public class LandSerializer implements Serializer<Land> {
 		json.addProperty("claim-time", land.getClaimTime());
 		json.addProperty("x", land.getX());
 		json.addProperty("z", land.getZ());
+		json.add("kingdom", kingdomSerializer.serialize(land.getKingdomOwner(), OfflineKingdom.class, context));
 		JsonArray turrets = new JsonArray();
 		land.getTurrets().forEach(turret -> turrets.add(turretSerializer.serialize(turret, Turret.class, context)));
 		json.add("turrets", turrets);
@@ -58,9 +62,11 @@ public class LandSerializer implements Serializer<Land> {
 		if (claimElement != null && !claimElement.isJsonNull())
 			land.setClaimTime(claimElement.getAsLong());
 		JsonElement structureElement = object.get("structure");
-		if (structureElement != null && !structureElement.isJsonNull()) {
+		if (structureElement != null && !structureElement.isJsonNull())
 			land.setStructure(structureSerializer.deserialize(structureElement, Structure.class, context));
-		}
+		JsonElement kingdomElement = object.get("kingdom");
+		if (kingdomElement != null && !kingdomElement.isJsonNull())
+			land.setKingdomOwner(kingdomSerializer.deserialize(kingdomElement, OfflineKingdom.class, context));
 		JsonElement turretElement = object.get("turrets");
 		if (turretElement != null && !turretElement.isJsonNull() && turretElement.isJsonArray()) {
 			JsonArray array = turretElement.getAsJsonArray();

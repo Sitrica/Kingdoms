@@ -9,7 +9,9 @@ import org.bukkit.inventory.ItemStack;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.songoda.kingdoms.database.serializers.DefenderInfoSerializer;
 import com.songoda.kingdoms.database.serializers.ItemStackSerializer;
+import com.songoda.kingdoms.database.serializers.KingdomChestSerializer;
 import com.songoda.kingdoms.database.serializers.LandSerializer;
 import com.songoda.kingdoms.database.serializers.LocationSerializer;
 import com.songoda.kingdoms.database.serializers.MiscUpgradeSerializer;
@@ -18,12 +20,16 @@ import com.songoda.kingdoms.database.serializers.OfflineKingdomSerializer;
 import com.songoda.kingdoms.database.serializers.PowerupSerializer;
 import com.songoda.kingdoms.database.serializers.StructureSerializer;
 import com.songoda.kingdoms.database.serializers.TurretSerializer;
+import com.songoda.kingdoms.database.serializers.WarpPadSerializer;
+import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
+import com.songoda.kingdoms.objects.kingdom.KingdomChest;
 import com.songoda.kingdoms.objects.kingdom.MiscUpgrade;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.kingdom.Powerup;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.objects.structures.Structure;
+import com.songoda.kingdoms.objects.structures.WarpPad;
 import com.songoda.kingdoms.objects.turrets.Turret;
 
 public abstract class Database<T> {
@@ -34,10 +40,13 @@ public abstract class Database<T> {
 		gson = new GsonBuilder()
 				.registerTypeAdapter(OfflineKingdomPlayer.class, new OfflineKingdomPlayerSerializer())
 				.registerTypeAdapter(OfflineKingdom.class, new OfflineKingdomSerializer())
+				.registerTypeAdapter(KingdomChest.class, new KingdomChestSerializer())
+				.registerTypeAdapter(DefenderInfo.class, new DefenderInfoSerializer())
 				.registerTypeAdapter(MiscUpgrade.class, new MiscUpgradeSerializer())
 				.registerTypeAdapter(ItemStack.class, new ItemStackSerializer())
 				.registerTypeAdapter(Structure.class, new StructureSerializer())
 				.registerTypeAdapter(Location.class, new LocationSerializer())
+				.registerTypeAdapter(WarpPad.class, new WarpPadSerializer())
 				.registerTypeAdapter(Powerup.class, new PowerupSerializer())
 				.registerTypeAdapter(Turret.class, new TurretSerializer())
 				.registerTypeAdapter(Land.class, new LandSerializer())

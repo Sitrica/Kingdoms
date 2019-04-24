@@ -280,14 +280,14 @@ public class StructureManager extends Manager {
 			return;
 		}
 		Location location = block.getLocation();
-		Structure structure = new Structure(location, type);
+		Structure structure = new Structure(kingdom, location, type);
 		//special cases
 		if (type == StructureType.REGULATOR)
-			structure = new Regulator(location);
+			structure = new Regulator(kingdom, location);
 		if (type == StructureType.EXTRACTOR)
-			structure = new Extractor(location);
+			structure = new Extractor(kingdom, location);
 		if (type == StructureType.SIEGE_ENGINE)
-			structure = new SiegeEngine(location);
+			structure = new SiegeEngine(kingdom, location);
 		StructurePlaceEvent placeEvent = new StructurePlaceEvent(land, structure, kingdom, kingdomPlayer);
 		Bukkit.getPluginManager().callEvent(placeEvent);
 		if (placeEvent.isCancelled())
@@ -305,7 +305,7 @@ public class StructureManager extends Manager {
 		block.setType(type.getBlockMaterial());
 		block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
 		if (type == StructureType.WARPPAD || type == StructureType.OUTPOST)
-			kingdom.addWarp(new WarpPad(structure.getLocation(), StructureType.OUTPOST.build().getItemMeta().getDisplayName(), land));
+			kingdom.addWarp(new WarpPad(kingdom, structure.getLocation(), StructureType.OUTPOST.build().getItemMeta().getDisplayName(), land));
 	}
 	
 	@EventHandler(priority = EventPriority.HIGH)
@@ -422,7 +422,7 @@ public class StructureManager extends Manager {
 				if (structure instanceof Extractor) {
 					extractor = (Extractor) structure;
 				} else {
-					extractor = new Extractor(structure.getLocation());
+					extractor = new Extractor(kingdom, structure.getLocation());
 					land.setStructure(extractor);
 					block.setType(type.getBlockMaterial());
 					block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
@@ -468,7 +468,7 @@ public class StructureManager extends Manager {
 				break;
 			case SIEGE_ENGINE:
 				if (!(structure instanceof SiegeEngine)) {
-					land.setStructure(new SiegeEngine(structure.getLocation()));
+					land.setStructure(new SiegeEngine(kingdom, structure.getLocation()));
 					block.setType(type.getBlockMaterial());
 					block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
 				}

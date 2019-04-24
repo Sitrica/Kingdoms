@@ -1,6 +1,8 @@
 package com.songoda.kingdoms.objects.structures;
 
 import org.bukkit.Location;
+
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.utils.IntervalUtils;
 
 public class SiegeEngine extends Structure {
@@ -8,12 +10,12 @@ public class SiegeEngine extends Structure {
 	private final long cooldown;
 	private long time;
 	
-	public SiegeEngine(Location location) {
-		this(location, System.currentTimeMillis());
+	public SiegeEngine(OfflineKingdom kingdom, Location location) {
+		this(kingdom, location, System.currentTimeMillis());
 	}
 	
-	public SiegeEngine(Location location, long time) {
-		super(location, StructureType.SIEGE_ENGINE);
+	public SiegeEngine(OfflineKingdom kingdom, Location location, long time) {
+		super(kingdom, location, StructureType.SIEGE_ENGINE);
 		String interval = configuration.getString("structures.siege-engine.cooldown", "60 seconds");
 		this.cooldown = IntervalUtils.getInterval(interval);
 		this.time = time;

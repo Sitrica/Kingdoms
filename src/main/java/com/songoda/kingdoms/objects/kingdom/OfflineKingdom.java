@@ -1,9 +1,7 @@
 package com.songoda.kingdoms.objects.kingdom;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -21,13 +19,13 @@ import com.songoda.kingdoms.objects.structures.WarpPad;
 
 public class OfflineKingdom {
 
-	private final Map<Rank, RankPermissions> permissions = new HashMap<>();
 	protected final Set<OfflineKingdomPlayer> members = new HashSet<>();
+	private final Set<RankPermissions> permissions = new HashSet<>();
 	private final Set<OfflineKingdom> enemies = new HashSet<>();
 	private final Set<OfflineKingdom> allies = new HashSet<>();
 	private final Set<WarpPad> warps = new HashSet<>();
 	protected final Set<Land> claims = new HashSet<>();
-	private long resourcePoints = 0, invasionCooldown = 0, max;
+	private long resourcePoints = 0, invasionCooldown = 0;
 	private final KingdomManager kingdomManager;
 	private boolean neutral, first, invaded;
 	private final RankManager rankManager;
@@ -36,12 +34,12 @@ public class OfflineKingdom {
 	private OfflineKingdomPlayer king;
 	private KingdomChest kingdomChest;
 	private DefenderInfo defenderInfo;
+	private int dynmapColor, max = 0;
 	private MiscUpgrade miscUpgrade;
 	private Location nexus, spawn;
 	private String name, lore;
 	private final UUID uuid;
 	private Powerup powerup;
-	private int dynmapColor;
 
 	public OfflineKingdom(OfflineKingdomPlayer king) {
 		this(UUID.randomUUID(), king);
@@ -99,11 +97,11 @@ public class OfflineKingdom {
 		return warps;
 	}
 
-	public long getMaxMembers() {
+	public int getMaxMembers() {
 		return max;
 	}
 
-	public void setMaxMembers(long max) {
+	public void setMaxMembers(int max) {
 		this.max = max;
 	}
 
@@ -134,6 +132,10 @@ public class OfflineKingdom {
 	public void setName(String name) {
 		if (kingdomManager.canRename(name))
 			this.name = name;
+	}
+
+	public void addMember(OfflineKingdomPlayer member) {
+		members.add(member);
 	}
 
 	public Set<Land> getClaims() {
@@ -174,6 +176,10 @@ public class OfflineKingdom {
 		return kingdomChest;
 	}
 
+	public void setKingdomChest(KingdomChest kingdomChest) {
+		this.kingdomChest = kingdomChest;
+	}
+
 	public Powerup getPowerup() {
 		if (powerup == null)
 			powerup = new Powerup(this);
@@ -198,6 +204,10 @@ public class OfflineKingdom {
 		if (defenderInfo == null)
 			defenderInfo = new DefenderInfo(this);
 		return defenderInfo;
+	}
+
+	public void setDefenderInfo(DefenderInfo defenderInfo) {
+		this.defenderInfo = defenderInfo;
 	}
 
 	public boolean hasInvaded() {
@@ -264,7 +274,7 @@ public class OfflineKingdom {
 		this.shieldTime = new KingdomCooldown(this, "SHIELD", seconds);
 	}
 
-	public Map<Rank, RankPermissions> getPermissions() {
+	public Set<RankPermissions> getPermissions() {
 		return permissions;
 	}
 
@@ -332,12 +342,19 @@ public class OfflineKingdom {
 	 * @return RankPermissions which is an object for reading all permissions for a rank.
 	 */
 	public RankPermissions getPermissions(Rank rank) {
-		RankPermissions permission = permissions.get(rank);
-		if (permission == null) {
-			permission = new RankPermissions(rank);
-			permissions.put(rank, permission);
-		}
-		return permission;
+		return permissions.stream()
+				.filter(permissions -> permissions.getRank().equals(rank))
+				.findFirst()
+				.orElseGet(() -> {
+					RankPermissions permission = new RankPermissions(rank);
+					permissions.add(permission);
+					return permission;
+				});
+	}
+
+	public void setRankPermissions(RankPermissions rankPermissions) {
+		permissions.removeIf(permissions -> permissions.getRank().equals(rankPermissions.getRank()));
+		permissions.add(rankPermissions);
 	}
 
 	public void onKingdomDelete(OfflineKingdom kingdom) {

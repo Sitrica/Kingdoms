@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.bukkit.Location;
 
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 
 public class Regulator extends Structure {
@@ -13,8 +14,8 @@ public class Regulator extends Structure {
 	private boolean monsters = true;
 	private boolean animals = true;
 
-	public Regulator(Location location) {
-		super(location, StructureType.REGULATOR);
+	public Regulator(OfflineKingdom kingdom, Location location) {
+		super(kingdom, location, StructureType.REGULATOR);
 	}
 	
 	//TODO come back to this unused

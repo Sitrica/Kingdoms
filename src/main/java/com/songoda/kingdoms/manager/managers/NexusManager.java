@@ -139,7 +139,7 @@ public class NexusManager extends Manager {
 				}
 			}
 		}
-		land.setStructure(new Structure(block.getLocation(), type));
+		land.setStructure(new Structure(kingdom, block.getLocation(), type));
 		block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
 		block.setType(type.getBlockMaterial());
 		kingdom.setNexusLocation(block.getLocation());

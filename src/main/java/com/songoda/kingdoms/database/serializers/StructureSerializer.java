@@ -12,14 +12,22 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.songoda.kingdoms.database.Serializer;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.structures.Structure;
 import com.songoda.kingdoms.objects.structures.StructureType;
 
 public class StructureSerializer implements Serializer<Structure> {
 
+	private final OfflineKingdomSerializer kingdomSerializer;
+
+	public StructureSerializer() {
+		this.kingdomSerializer = new OfflineKingdomSerializer();
+	}
+
 	@Override
 	public JsonElement serialize(Structure structure, Type type, JsonSerializationContext context) {
 		JsonObject json = new JsonObject();
+		json.add("kingdom", kingdomSerializer.serialize(structure.getKingdom(), OfflineKingdom.class, context));
 		Location location = structure.getLocation();
 		json.addProperty("type", structure.getType().name());
 		json.addProperty("world", location.getWorld().getName());
@@ -32,6 +40,12 @@ public class StructureSerializer implements Serializer<Structure> {
 	@Override
 	public Structure deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws JsonParseException {
 		JsonObject object = json.getAsJsonObject();
+		JsonElement kingdomElement = object.get("kingdom");
+		if (kingdomElement == null || kingdomElement.isJsonNull())
+			return null;
+		OfflineKingdom kingdom = kingdomSerializer.deserialize(kingdomElement, OfflineKingdom.class, context);
+		if (kingdom == null)
+			return null;
 		JsonElement worldElement = object.get("world");
 		if (worldElement == null || worldElement.isJsonNull())
 			return null;
@@ -48,7 +62,7 @@ public class StructureSerializer implements Serializer<Structure> {
 		StructureType structureType = StructureType.valueOf(typeElement.getAsString());
 		if (structureType == null)
 			return null;
-		return new Structure(location, structureType);
+		return new Structure(kingdom, location, structureType);
 	}
 
 }
