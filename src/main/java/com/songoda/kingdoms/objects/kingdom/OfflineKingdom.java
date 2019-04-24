@@ -28,6 +28,7 @@ public class OfflineKingdom {
 	private long resourcePoints = 0, invasionCooldown = 0;
 	private final KingdomManager kingdomManager;
 	private boolean neutral, first, invaded;
+	protected String name, lore = "Not set";
 	private final RankManager rankManager;
 	private KingdomCooldown shieldTime;
 	protected final Kingdoms instance;
@@ -37,7 +38,6 @@ public class OfflineKingdom {
 	private int dynmapColor, max = 0;
 	private MiscUpgrade miscUpgrade;
 	private Location nexus, spawn;
-	private String name, lore;
 	private final UUID uuid;
 	private Powerup powerup;
 
@@ -75,6 +75,7 @@ public class OfflineKingdom {
 		} else {
 			this.uuid = uuid;
 		}
+		this.name = uuid + "";
 	}
 
 	public void addWarp(WarpPad warp) {

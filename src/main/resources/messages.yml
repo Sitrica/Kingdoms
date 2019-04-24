@@ -101,7 +101,6 @@ structures:
 kingdoms:
     deleted: "&eYour Kingdom %kingdom% has been disbanded."
     no-kingdom: "&cYou are not apart of any Kingdom!"
-    creation: "&aYou have successfully created a Kingdom with the name %kingdom%!"
     cannot-attack-members: "&cYou can't attack your own kingdom members!"
     permissions-too-low: "&cYour rank is too low to use this function! Only %rank% and up can use this function!"
     # This message has no placeholders other than player related placeholders. The user has no Kingdom.
@@ -268,7 +267,7 @@ commands:
         # Placeholders: %name% and All Kingdom and KingdomPlayer placeholders.
         name-exists: "&cAnother Kingdom with the name %name% already exists!"
         # Placeholders: All Kingdom and KingdomPlayer placeholders.
-        create-success: "&aKingdom with name %name% was created!"
+        create-success: "&aYou have successfully created a Kingdom with the name &l%kingdom%&a!"
     claim:
         # Placeholders: All KingdomPlayer placeholders.
         description: "Claim the chunk you're standing on."

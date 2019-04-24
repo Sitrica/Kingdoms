@@ -29,9 +29,14 @@ public class Kingdom extends OfflineKingdom {
 	}
 
 	public Kingdom(OfflineKingdom kingdom) {
+		this(kingdom, kingdom.getName());
+	}
+
+	public Kingdom(OfflineKingdom kingdom, String name) {
 		super(kingdom.getUniqueId(), kingdom.getKing(), true);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
+		this.name = name;
 	}
 
 	public Kingdom(KingdomPlayer king) {

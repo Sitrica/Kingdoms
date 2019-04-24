@@ -58,6 +58,12 @@ public class DefaultPlaceholders {
 				return player.getName();
 			}
 		});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%kingdom%") {
+			@Override
+			public String replace(OfflineKingdom kingdom) {
+				return kingdom.getName();
+			}
+		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%claims%") {
 			@Override
 			public String replace(OfflineKingdom kingdom) {

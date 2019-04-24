@@ -343,9 +343,6 @@ public class KingdomManager extends Manager {
 				king.setKingdom(kingdom);
 				kingdoms.add(kingdom);
 				updateUpgrades(kingdom);
-				new MessageBuilder("kingdoms.creation")
-						.setKingdom(kingdom)
-						.send(king);
 				processing.remove(name);
 				Bukkit.getPluginManager().callEvent(new KingdomCreateEvent(kingdom));
 			}

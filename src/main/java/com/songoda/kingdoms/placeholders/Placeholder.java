@@ -1,6 +1,6 @@
 package com.songoda.kingdoms.placeholders;
 
-import java.lang.reflect.ParameterizedType;
+import com.google.common.reflect.TypeToken;
 
 public abstract class Placeholder<T> {
 	
@@ -14,9 +14,9 @@ public abstract class Placeholder<T> {
 		return syntaxes;
 	}
 	
-	@SuppressWarnings("unchecked")
-	public Class<T> getType() {
-		return (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+	@SuppressWarnings("serial")
+	public Class<? super T> getType() {
+		return new TypeToken<T>(getClass()){}.getRawType();
 	}
 	
 	/**
