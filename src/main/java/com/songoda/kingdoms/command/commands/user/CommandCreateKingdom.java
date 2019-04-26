@@ -52,32 +52,32 @@ public class CommandCreateKingdom extends AbstractCommand {
 		if (!name.matches("[a-zA-Z0-9_]+") && !configuration.getBoolean("plugin.allow-special-characters", false)) {
 			new MessageBuilder("commands.create-kingdom.invalid-name")
 					.setPlaceholderObject(kingdomPlayer)
+					.replace("%kingdom%", name)
 					.replace("%name%", name)
-					.setKingdom(kingdom)
 					.send(player);
 			return ReturnType.FAILURE;
 		}
 		if (name.equalsIgnoreCase("safezone")|| name.equalsIgnoreCase("warzone")) {
 			new MessageBuilder("commands.create-kingdom.banned-name")
 					.setPlaceholderObject(kingdomPlayer)
+					.replace("%kingdom%", name)
 					.replace("%name%", name)
-					.setKingdom(kingdom)
 					.send(player);
 			return ReturnType.FAILURE;
 		}
 		if (name.length() > 16) {
 			new MessageBuilder("commands.create-kingdom.name-too-long")
 					.setPlaceholderObject(kingdomPlayer)
+					.replace("%kingdom%", name)
 					.replace("%name%", name)
-					.setKingdom(kingdom)
 					.send(player);
 			return ReturnType.FAILURE;
 		}
 		if (Utils.checkForMatch(configuration.getStringList("disallowed-kingdom-names"), name)) {
 			new MessageBuilder("commands.create-kingdom.blacklisted")
 					.setPlaceholderObject(kingdomPlayer)
+					.replace("%kingdom%", name)
 					.replace("%name%", name)
-					.setKingdom(kingdom)
 					.send(player);
 			return ReturnType.FAILURE;
         }
@@ -86,8 +86,9 @@ public class CommandCreateKingdom extends AbstractCommand {
 			if (cost > 0 && vaultManager.get().getBalance(player) < cost) {
 				new MessageBuilder("commands.economy-not-enough")
 						.setPlaceholderObject(kingdomPlayer)
+						.replace("%kingdom%", name)
+						.replace("%name%", name)
 						.replace("%cost%", cost)
-						.setKingdom(kingdom)
 						.send(player);
 				return ReturnType.FAILURE;
 			}
@@ -95,8 +96,8 @@ public class CommandCreateKingdom extends AbstractCommand {
 		if (kingdomManager.hasKingdom(name)) {
 			new MessageBuilder("commands.create-kingdom.name-exists")
 					.setPlaceholderObject(kingdomPlayer)
+					.replace("%kingdom%", name)
 					.replace("%name%", name)
-					.setKingdom(kingdom)
 					.send(player);
 			return ReturnType.FAILURE;
 		}
@@ -114,7 +115,8 @@ public class CommandCreateKingdom extends AbstractCommand {
 			if (!messages.isEmpty() && !messages.isEmpty()) {
 				new MessageBuilder("commands.create-kingdom.need-more-items")
 						.setPlaceholderObject(kingdomPlayer)
-						.setKingdom(kingdom)
+						.replace("%kingdom%", name)
+						.replace("%name%", name)
 						.send(player);
 				FileConfiguration messagesConfiguration = instance.getConfiguration("messages").get();
 				for (String item : messages) {
@@ -129,14 +131,14 @@ public class CommandCreateKingdom extends AbstractCommand {
 		if (kingdomManager.createNewKingdom(name, kingdomPlayer)) {
 			new MessageBuilder("commands.create-kingdom.create-success")
 					.setPlaceholderObject(kingdomPlayer)
+					.replace("%kingdom%", name)
 					.replace("%name%", name)
-					.setKingdom(kingdom)
 					.send(player);
 		} else {
 			new MessageBuilder("messages.processing")
 					.setPlaceholderObject(kingdomPlayer)
+					.replace("%kingdom%", name)
 					.replace("%name%", name)
-					.setKingdom(kingdom)
 					.send(player);
 		}
 		return ReturnType.SUCCESS;

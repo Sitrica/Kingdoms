@@ -43,6 +43,8 @@ public class KingdomChest {
 
 	public Map<Integer, ItemStack> getContents() {
 		contents.clear();
+		if (inventory == null)
+			inventory = getInventory();
 		inventory.forEach(itemstack -> contents.putAll(inventory.all(itemstack)));
 		return contents;
 	}

@@ -255,8 +255,7 @@ public class MessageBuilder {
 					if (replacement != null)
 						input = input.replaceAll(Pattern.quote(syntax), replacement);
 				}
-				if (kingdom != null && placeholder.getType().isAssignableFrom(OfflineKingdom.class)) { //TODO figure out why this is failing.
-					Kingdoms.debugMessage("ran here");
+				if (kingdom != null && placeholder.getType().isAssignableFrom(OfflineKingdom.class)) {
 					String replacement = placeholder.replace_i(kingdom);
 					if (replacement != null)
 						input = input.replaceAll(Pattern.quote(syntax), replacement);

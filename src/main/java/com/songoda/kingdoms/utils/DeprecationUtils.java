@@ -15,7 +15,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TropicalFish.Pattern;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -60,10 +59,6 @@ public class DeprecationUtils {
 		} catch (Exception e) {
 			return 0;
 		}
-	}
-	
-	public static String getTitle(Inventory inventory) {
-		return inventory.getTitle();
 	}
 	
 	public static double getMaxHealth(LivingEntity entity) {

@@ -143,10 +143,13 @@ public class LandManager extends Manager {
 	private final Runnable saveTask = new Runnable() {
 		@Override
 		public void run() {
+			Set<Chunk> loaded = getLoadedLand();
+			if (loaded.isEmpty())
+				return;
 			Kingdoms.debugMessage("Starting Land Save");
 			int i = 0;
 			Set<String> saved = new HashSet<>();
-			for (Chunk chunk : getLoadedLand()) {
+			for (Chunk chunk : loaded) {
 				String name = LocationUtils.chunkToString(chunk);
 				if (saved.contains(name))
 					continue;

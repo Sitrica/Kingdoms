@@ -206,7 +206,7 @@ public class KingdomManager extends Manager {
 	}
 	
 	private Kingdom loadKingdom(UUID uuid) {
-		Kingdoms.consoleMessage("Loading kingdom: " + uuid);
+		Kingdoms.debugMessage("Loading kingdom: " + uuid);
 		Kingdom kingdom = (Kingdom) database.get(uuid + "");
 		if (kingdom != null) {
 			long invasionCooldown = kingdom.getInvasionCooldown();
