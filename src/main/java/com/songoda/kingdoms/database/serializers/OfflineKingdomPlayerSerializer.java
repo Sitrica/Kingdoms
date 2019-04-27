@@ -1,6 +1,7 @@
 package com.songoda.kingdoms.database.serializers;
 
 import java.lang.reflect.Type;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.google.gson.JsonArray;
@@ -62,9 +63,9 @@ public class OfflineKingdomPlayerSerializer implements Serializer<OfflineKingdom
 		if (kingdomElement != null && !kingdomElement.isJsonNull()) {
 			UUID kingdomUuid = UUID.fromString(kingdomElement.getAsString());
 			if (uuid != null) {
-				OfflineKingdom kingdom = kingdomManager.getKingdom(kingdomUuid);
-				if (kingdom != null)
-					player.setKingdom(kingdom);
+				Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(kingdomUuid);
+				if (kingdom.isPresent())
+					player.setKingdom(kingdom.get());
 			}
 		}
 		JsonElement claimsElement = object.get("claims");

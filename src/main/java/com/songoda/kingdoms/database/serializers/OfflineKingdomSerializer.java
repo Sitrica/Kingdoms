@@ -92,10 +92,10 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 		OfflineKingdomPlayer king = playerSerializer.deserialize(kingElement, OfflineKingdomPlayer.class, context);
 		if (king == null)
 			return null;
-		OfflineKingdom kingdom = new OfflineKingdom(uuid, king);
 		JsonElement nameElement = object.get("name");
-		if (nameElement != null && !nameElement.isJsonNull())
-			kingdom.setName(nameElement.getAsString());
+		if (nameElement == null || nameElement.isJsonNull())
+			return null;
+		OfflineKingdom kingdom = new OfflineKingdom(uuid, king, nameElement.getAsString());
 		JsonElement loreElement = object.get("lore");
 		if (loreElement != null && !loreElement.isJsonNull())
 			kingdom.setLore(loreElement.getAsString());

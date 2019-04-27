@@ -62,6 +62,10 @@ public class PlayerManager extends Manager {
 		}
 	};
 
+	public void save(OfflineKingdomPlayer player) {
+		database.save(player.getUniqueId() + "", player);
+	}
+
 	public Optional<KingdomPlayer> getKingdomPlayer(UUID uuid) {
 		Player player = Bukkit.getPlayer(uuid);
 		if (player == null)
@@ -108,6 +112,28 @@ public class PlayerManager extends Manager {
 				}));
 	}
 
+	@EventHandler(priority = EventPriority.HIGH)
+	public void onJoin(PlayerJoinEvent event) {
+		Player player = event.getPlayer();
+		//UUID uuid = player.getUniqueId();
+		KingdomPlayer kingdomPlayer = getKingdomPlayer(player);
+		//if (kingdomPlayer == null)
+		//	loadKingdomPlayer(uuid);
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null)
+			return;
+		Kingdoms.debugMessage("Loaded player " + player.getUniqueId());
+		if (configuration.getBoolean("kingdom.join-at-kingdom", false))
+			player.teleport(kingdom.getSpawn());
+		if (!kingdomPlayer.isVanished())
+			new MessageBuilder("messages.member-join")
+					.toKingdomPlayers(kingdom.getOnlinePlayers())
+					.toKingdomPlayers(kingdom.getOnlineAllies())
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(kingdom)
+					.send();
+	}
+
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onRespawn(PlayerRespawnEvent event) {
 		if (configuration.getBoolean("kingdoms.respawn-at-kingdom", false)) {
@@ -146,28 +172,6 @@ public class PlayerManager extends Manager {
 							.send();
 				});
 		users.remove(uuid);
-	}
-	
-	@EventHandler(priority = EventPriority.HIGH)
-	public void onJoin(PlayerJoinEvent event) {
-		Player player = event.getPlayer();
-		//UUID uuid = player.getUniqueId();
-		KingdomPlayer kingdomPlayer = getKingdomPlayer(player);
-		//if (kingdomPlayer == null)
-		//	loadKingdomPlayer(uuid);
-		Kingdom kingdom = kingdomPlayer.getKingdom();
-		if (kingdom == null)
-			return;
-		Kingdoms.debugMessage("Loaded player " + player.getUniqueId());
-		if (configuration.getBoolean("kingdom.join-at-kingdom", false))
-			player.teleport(kingdom.getSpawn());
-		if (!kingdomPlayer.isVanished())
-			new MessageBuilder("messages.member-join")
-					.toKingdomPlayers(kingdom.getOnlinePlayers())
-					.toKingdomPlayers(kingdom.getOnlineAllies())
-					.setPlaceholderObject(kingdomPlayer)
-					.setKingdom(kingdom)
-					.send();
 	}
 
 	@Override

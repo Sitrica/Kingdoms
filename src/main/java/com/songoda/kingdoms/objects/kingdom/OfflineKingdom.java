@@ -28,7 +28,7 @@ public class OfflineKingdom {
 	private long resourcePoints = 0, invasionCooldown = 0;
 	private final KingdomManager kingdomManager;
 	private boolean neutral, first, invaded;
-	protected String name, lore = "Not set";
+	private String name, lore = "Not set";
 	private final RankManager rankManager;
 	private KingdomCooldown shieldTime;
 	protected final Kingdoms instance;
@@ -41,12 +41,12 @@ public class OfflineKingdom {
 	private final UUID uuid;
 	private Powerup powerup;
 
-	public OfflineKingdom(OfflineKingdomPlayer king) {
-		this(UUID.randomUUID(), king);
+	public OfflineKingdom(OfflineKingdomPlayer king, String name) {
+		this(UUID.randomUUID(), king, name);
 	}
 
-	public OfflineKingdom(UUID uuid, OfflineKingdomPlayer king) {
-		this(uuid, king, false);
+	public OfflineKingdom(UUID uuid, OfflineKingdomPlayer king, String name) {
+		this(uuid, king, name, false);
 	}
 
 	/**
@@ -56,7 +56,7 @@ public class OfflineKingdom {
 	 * @param king The owner of this Kingdom.
 	 * @param safeUUID If you know the UUID for the 'uuid' already exists. Set this to true and it won't find a new UUID but use that UUID overriding..
 	 */
-	protected OfflineKingdom(UUID uuid, OfflineKingdomPlayer king, boolean safeUUID) {
+	protected OfflineKingdom(UUID uuid, OfflineKingdomPlayer king, String name, boolean safeUUID) {
 		this.instance = Kingdoms.getInstance();
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.rankManager = instance.getManager("rank", RankManager.class);
@@ -75,7 +75,10 @@ public class OfflineKingdom {
 		} else {
 			this.uuid = uuid;
 		}
-		this.name = uuid + "";
+		if (name == null)
+			this.name = uuid + "";
+		else
+			this.name = name;
 	}
 
 	public void addWarp(WarpPad warp) {
@@ -248,7 +251,7 @@ public class OfflineKingdom {
 	}
 
 	public Kingdom getKingdom() {
-		return kingdomManager.getKingdom(this);
+		return kingdomManager.convert(this);
 	}
 
 	public boolean hasUsedFirstClaim() {

@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.bukkit.configuration.ConfigurationSection;
+
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.kingdom.RankPermissions;
@@ -153,8 +154,6 @@ public class RankManager extends Manager {
 	public void initalize() {}
 
 	@Override
-	public void onDisable() {
-		ranks.clear();
-	}
+	public void onDisable() {}
 
 }

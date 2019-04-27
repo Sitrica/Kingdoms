@@ -23,28 +23,31 @@ public class Kingdom extends OfflineKingdom {
 	ArmyInfo armyInfo = new ArmyInfo();
 	AggressorInfo aggressorInfo = new AggressorInfo();
 
-	// Only used for BotKingdoms.
+	// Used for BotKingdoms.
 	protected Kingdom() {
-		this(UUID.randomUUID(), null);
+		this(UUID.randomUUID(), null, "Bot Kingdom");
 	}
 
+	// Transforming OfflineKingdom to Kingdom.
 	public Kingdom(OfflineKingdom kingdom) {
 		this(kingdom, kingdom.getName());
 	}
 
+	// Renaming.
 	public Kingdom(OfflineKingdom kingdom, String name) {
-		super(kingdom.getUniqueId(), kingdom.getKing(), true);
+		super(kingdom.getUniqueId(), kingdom.getKing(), name, true);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
-		this.name = name;
 	}
 
-	public Kingdom(KingdomPlayer king) {
-		this(UUID.randomUUID(), king);
+	// Creating.
+	public Kingdom(KingdomPlayer king, String name) {
+		this(UUID.randomUUID(), king, name);
 	}
 
-	public Kingdom(UUID uuid, KingdomPlayer king) {
-		super(uuid, king);
+	// Grabbing a Kingdom from database.
+	public Kingdom(UUID uuid, KingdomPlayer king, String name) {
+		super(uuid, king, name);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 	}

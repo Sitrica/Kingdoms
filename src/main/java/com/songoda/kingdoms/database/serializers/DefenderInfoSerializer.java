@@ -1,6 +1,7 @@
 package com.songoda.kingdoms.database.serializers;
 
 import java.lang.reflect.Type;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.google.gson.JsonDeserializationContext;
@@ -46,10 +47,10 @@ public class DefenderInfoSerializer implements Serializer<DefenderInfo> {
 		UUID uuid = UUID.fromString(kingdomElement.getAsString());
 		if (uuid == null)
 			return null;
-		OfflineKingdom kingdom = kingdomManager.getKingdom(uuid);
-		if (kingdom == null)
+		Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(uuid);
+		if (!kingdom.isPresent())
 			return null;
-		DefenderInfo info = new DefenderInfo(kingdom);
+		DefenderInfo info = new DefenderInfo(kingdom.get());
 		JsonElement upgradesElement = object.get("upgrades");
 		if (upgradesElement == null || upgradesElement.isJsonNull() || !upgradesElement.isJsonObject())
 			return info;

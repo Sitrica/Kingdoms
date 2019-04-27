@@ -18,7 +18,7 @@ public class CommandClaim extends AbstractCommand {
 	public CommandClaim() {
 		super(false, "claim", "c");
 		playerManager = instance.getManager("player", PlayerManager.class);
-		landManager = instance.getManager("", LandManager.class);
+		landManager = instance.getManager("land", LandManager.class);
 	}
 
 	@Override

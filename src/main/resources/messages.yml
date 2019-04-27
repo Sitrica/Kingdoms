@@ -250,7 +250,7 @@ commands:
         # Placeholders: All KingdomPlayer placeholders.
         syntax: "/k create <name>"
         # Placeholders: All Kingdom and KingdomPlayer placeholders.
-        already-in-kingdom: "&cYou are already in %kingdom%. You must leave in order to create a new Kingdom."
+        already-in-kingdom: "&cYou are already in kingdom &l%kingdom%&c. You must leave in order to create a new Kingdom."
         # Placeholders: %name% and All Kingdom and KingdomPlayer placeholders.
         invalid-name: "&cThe name you've entered is invalid!"
         # Placeholders: %name% and All Kingdom and KingdomPlayer placeholders.
@@ -295,6 +295,16 @@ commands:
          # Placeholders: All Kingdom and KingdomPlayer placeholders.
         processing: "&cLand is still unclaiming. Please wait."
         unclaim-all-nexus: "&c&o&l[WARNING] UNCLAIMING NEXUS LAND WHILE IT IS BEING INVADED WILL RESULT IN AN INSTANT DEFEAT"
+    info:
+        # Placeholders: All KingdomPlayer placeholders.
+        description: "Find the Kingdom info of yours or others."
+        # Placeholders: All KingdomPlayer placeholders.
+        syntax: "/k info [<kingdom>]"
+        # Placeholders: All Kingdom and KingdomPlayer placeholders.
+        info:
+            - ""
+            - "&6Info for Kingdom &e&l%kingdom%&6."
+            - ""
 
 # All messages relating to invading.
 invading:

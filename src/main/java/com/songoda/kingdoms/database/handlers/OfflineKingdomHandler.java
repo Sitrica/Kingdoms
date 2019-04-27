@@ -1,5 +1,6 @@
 package com.songoda.kingdoms.database.handlers;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.bukkit.Location;
@@ -144,9 +145,9 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 	private OfflineKingdom getKingdom(String input) {
 		UUID uuid = UUID.fromString(input);
 		if (uuid != null) {
-			OfflineKingdom kingdom = kingdomManager.getKingdom(uuid);
-			if (kingdom != null)
-				return kingdom;
+			Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(uuid);
+			if (kingdom.isPresent())
+				return kingdom.get();
 		}
 		return null;
 	}

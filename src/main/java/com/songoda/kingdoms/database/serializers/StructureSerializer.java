@@ -1,6 +1,7 @@
 package com.songoda.kingdoms.database.serializers;
 
 import java.lang.reflect.Type;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -51,8 +52,8 @@ public class StructureSerializer implements Serializer<Structure> {
 		UUID uuid = UUID.fromString(kingdomElement.getAsString());
 		if (uuid == null)
 			return null;
-		OfflineKingdom kingdom = kingdomManager.getKingdom(uuid);
-		if (kingdom == null)
+		Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(uuid);
+		if (!kingdom.isPresent())
 			return null;
 		JsonElement worldElement = object.get("world");
 		if (worldElement == null || worldElement.isJsonNull())
@@ -70,7 +71,7 @@ public class StructureSerializer implements Serializer<Structure> {
 		StructureType structureType = StructureType.valueOf(typeElement.getAsString());
 		if (structureType == null)
 			return null;
-		return new Structure(kingdom, location, structureType);
+		return new Structure(kingdom.get(), location, structureType);
 	}
 
 }

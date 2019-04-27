@@ -162,7 +162,7 @@ public class PlayerMovementManager extends Manager {
 				}
 			}
 		}
-		if (chunkTo == chunkFrom)
+		if (chunkTo.equals(chunkFrom))
 			return;
 		if (configuration.getBoolean("invading.invading-deny-chunk-change", true)) {
 			KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);

@@ -40,11 +40,11 @@ public class CommandCreateKingdom extends AbstractCommand {
 	protected ReturnType runCommand(Kingdoms instance, CommandSender sender, String... arguments) {
 		Player player = (Player) sender;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		Kingdom kingdom = kingdomPlayer.getKingdom();
-		if (kingdom != null) {
+		Kingdom playerKingdom = kingdomPlayer.getKingdom();
+		if (playerKingdom != null) {
 			new MessageBuilder("commands.create-kingdom.already-in-kingdom")
 					.setPlaceholderObject(kingdomPlayer)
-					.setKingdom(kingdom)
+					.setKingdom(playerKingdom)
 					.send(player);
 			return ReturnType.FAILURE;
 		}
@@ -128,7 +128,8 @@ public class CommandCreateKingdom extends AbstractCommand {
 		}
 		if (configuration.getBoolean("economy.enabled") && cost > 0 && vaultManager.isPresent())
 			vaultManager.get().withdraw(player, cost);
-		if (kingdomManager.createNewKingdom(name, kingdomPlayer)) {
+		Kingdom kingdom = kingdomManager.createNewKingdom(name, kingdomPlayer);
+		if (kingdom != null) {
 			new MessageBuilder("commands.create-kingdom.create-success")
 					.setPlaceholderObject(kingdomPlayer)
 					.replace("%kingdom%", name)
