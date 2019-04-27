@@ -11,6 +11,7 @@ public class KingdomDeleteEvent extends Event {
 	private final OfflineKingdom kingdom;
 
 	public KingdomDeleteEvent(OfflineKingdom kingdom) {
+		super(true);
 		this.kingdom = kingdom;
 	}
 	

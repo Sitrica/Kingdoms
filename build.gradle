@@ -86,8 +86,8 @@ configurations {
 }
 
 processResources {
-	filter ReplaceTokens, tokens: ["version": project.property("version")]
 	from (sourceSets.main.resources.srcDirs) {
+		filter ReplaceTokens, tokens: ["version": project.property("version")]
 		include '**/*.yml'
 	}
 }

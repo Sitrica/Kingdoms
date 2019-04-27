@@ -175,7 +175,10 @@ public class LandManager extends Manager {
 	};
 
 	private void initLands() {
+		database.delete("LandData");
 		Set<String> keys = database.getKeys();
+		if (keys.isEmpty())
+			return;
 		for (String name : keys) {
 			// Old data
 			if (name.equals("LandData") || name.endsWith("_temp"))
@@ -201,7 +204,6 @@ public class LandManager extends Manager {
 					e.printStackTrace();
 			}
 		}
-		database.delete("LandData");
 		Kingdoms.consoleMessage("Total of [" + getLoadedLand().size() + "] lands are initialized");
 	}
 

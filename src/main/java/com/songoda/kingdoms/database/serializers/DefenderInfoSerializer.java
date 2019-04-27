@@ -1,23 +1,26 @@
 package com.songoda.kingdoms.database.serializers;
 
 import java.lang.reflect.Type;
+import java.util.UUID;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
+import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.Serializer;
-import com.songoda.kingdoms.database.handlers.DefenderInfoHandler;
+import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.DefenderUpgrade;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 
 public class DefenderInfoSerializer implements Serializer<DefenderInfo> {
 
-	private final DefenderInfoHandler handler;
+	private final KingdomManager kingdomManager;
 
 	public DefenderInfoSerializer() {
-		this.handler = new DefenderInfoHandler();
+		this.kingdomManager = Kingdoms.getInstance().getManager("kingdom", KingdomManager.class);
 	}
 
 	@Override
@@ -28,12 +31,36 @@ public class DefenderInfoSerializer implements Serializer<DefenderInfo> {
 			upgrades.addProperty(upgradeType.name(), upgrade.getUpgradeLevel(upgradeType));
 		}
 		json.add("upgrades", upgrades);
-		return handler.serialize(upgrade, json, context);
+		OfflineKingdom kingdom = upgrade.getKingdom();
+		if (kingdom != null)
+			json.addProperty("kingdom", kingdom.getUniqueId() + "");
+		return json;
 	}
 
 	@Override
 	public DefenderInfo deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws JsonParseException {
-		return handler.deserialize(null, json.getAsJsonObject(), context);
+		JsonObject object = json.getAsJsonObject();
+		JsonElement kingdomElement = object.get("kingdom");
+		if (kingdomElement == null || kingdomElement.isJsonNull())
+			return null;
+		UUID uuid = UUID.fromString(kingdomElement.getAsString());
+		if (uuid == null)
+			return null;
+		OfflineKingdom kingdom = kingdomManager.getKingdom(uuid);
+		if (kingdom == null)
+			return null;
+		DefenderInfo info = new DefenderInfo(kingdom);
+		JsonElement upgradesElement = object.get("upgrades");
+		if (upgradesElement == null || upgradesElement.isJsonNull() || !upgradesElement.isJsonObject())
+			return info;
+		JsonObject upgradesObject = upgradesElement.getAsJsonObject();
+		for (DefenderUpgrade upgradeType : DefenderUpgrade.values()) {
+			JsonElement element = upgradesObject.get(upgradeType.name());
+			if (element == null || element.isJsonNull())
+				continue;
+			info.setUpgradeLevel(upgradeType, element.getAsInt());
+		}
+		return info;
 	}
 
 }

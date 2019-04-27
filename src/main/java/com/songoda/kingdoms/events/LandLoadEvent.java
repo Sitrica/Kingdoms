@@ -13,6 +13,7 @@ public class LandLoadEvent extends Event implements Cancellable {
 	private final Land land;
 
 	public LandLoadEvent(Land land) {
+		super(true);
 		this.land = land;
 	}
 	

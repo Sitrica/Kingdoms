@@ -11,6 +11,7 @@ public class KingdomCreateEvent extends Event {
 	private final Kingdom kingdom;
 
 	public KingdomCreateEvent(Kingdom kingdom) {
+		super(true);
 		this.kingdom = kingdom;
 	}
 	

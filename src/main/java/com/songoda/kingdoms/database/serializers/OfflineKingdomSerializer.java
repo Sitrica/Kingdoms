@@ -1,7 +1,12 @@
 package com.songoda.kingdoms.database.serializers;
 
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.Map.Entry;
+
+import org.bukkit.inventory.ItemStack;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
@@ -10,16 +15,25 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.songoda.kingdoms.database.Serializer;
 import com.songoda.kingdoms.database.handlers.OfflineKingdomHandler;
+import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
+import com.songoda.kingdoms.objects.kingdom.DefenderUpgrade;
+import com.songoda.kingdoms.objects.kingdom.KingdomChest;
+import com.songoda.kingdoms.objects.kingdom.MiscUpgrade;
+import com.songoda.kingdoms.objects.kingdom.MiscUpgradeType;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.objects.kingdom.Powerup;
+import com.songoda.kingdoms.objects.kingdom.PowerupType;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 
 public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 
 	private final OfflineKingdomPlayerSerializer playerSerializer;
+	private final ItemStackSerializer itemSerializer;
 	private final OfflineKingdomHandler handler;
 
 	public OfflineKingdomSerializer() {
 		this.playerSerializer = new OfflineKingdomPlayerSerializer();
+		this.itemSerializer = new ItemStackSerializer();
 		this.handler = new OfflineKingdomHandler();
 	}
 
@@ -35,6 +49,31 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 		json.addProperty("first-claim", kingdom.hasUsedFirstClaim());
 		json.addProperty("resource-points", kingdom.getResourcePoints());
 		json.addProperty("invasion-cooldown", kingdom.getInvasionCooldown());
+		// KingdomChest
+		JsonObject chest = new JsonObject();
+		JsonObject contentsObject = new JsonObject();
+		Map<Integer, ItemStack> contents = kingdom.getKingdomChest().getContents();
+		if (contents != null && !contents.isEmpty()) {
+			for (Entry<Integer, ItemStack> entry : contents.entrySet()) {
+				contentsObject.add(entry.getKey() + "", itemSerializer.serialize(entry.getValue(), ItemStack.class, context));
+			}
+		}
+		chest.add("contents", contentsObject);
+		json.add("chest", chest);
+		// MiscUpgrade
+		JsonObject miscUpgrade = new JsonObject();
+		JsonObject bought = new JsonObject();
+		MiscUpgrade upgrade = kingdom.getMiscUpgrades();
+		for (MiscUpgradeType upgradeType : MiscUpgradeType.values()) {
+			bought.addProperty(upgradeType.name(), upgrade.hasBought(upgradeType));
+		}
+		miscUpgrade.add("bought", bought);
+		JsonObject enabled = new JsonObject();
+		for (MiscUpgradeType upgradeType : MiscUpgradeType.values()) {
+			enabled.addProperty(upgradeType.name(), upgrade.isEnabled(upgradeType));
+		}
+		miscUpgrade.add("enabled", enabled);
+		json.add("misc-upgrades", miscUpgrade);
 		return handler.serialize(kingdom, json, context);
 	}
 
@@ -78,6 +117,79 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 		JsonElement maxElement = object.get("max-members");
 		if (maxElement != null && !maxElement.isJsonNull())
 			kingdom.setMaxMembers(maxElement.getAsInt());
+		Powerup powerup = new Powerup(kingdom);
+		JsonElement powerupsElement = object.get("powerups");
+		if (powerupsElement != null && !powerupsElement.isJsonNull() && powerupsElement.isJsonObject()) {
+			JsonObject powerupsObject = powerupsElement.getAsJsonObject();
+			for (PowerupType powerupType : PowerupType.values()) {
+				JsonElement element = powerupsObject.get(powerupType.name());
+				if (element == null || element.isJsonNull())
+					continue;
+				powerup.setLevel(element.getAsInt(), powerupType);
+			}
+		}
+		kingdom.setPowerup(powerup);
+		JsonElement miscUpgradesElement = object.get("misc-upgrades");
+		if (miscUpgradesElement != null && !miscUpgradesElement.isJsonNull() && miscUpgradesElement.isJsonObject()) {
+			JsonObject miscUpgradesObject = miscUpgradesElement.getAsJsonObject();
+			MiscUpgrade upgrade = new MiscUpgrade(kingdom);
+			JsonElement boughtElement = miscUpgradesObject.get("bought");
+			if (boughtElement != null && !boughtElement.isJsonNull() && boughtElement.isJsonObject()) {
+				JsonObject boughtObject = boughtElement.getAsJsonObject();
+				for (MiscUpgradeType upgradeType : MiscUpgradeType.values()) {
+					JsonElement element = boughtObject.get(upgradeType.name());
+					if (element == null || element.isJsonNull())
+						continue;
+					upgrade.setBought(upgradeType, element.getAsBoolean());
+				}
+			}
+			JsonElement enabledElement = object.get("enabled");
+			if (enabledElement != null && !enabledElement.isJsonNull() && enabledElement.isJsonObject()) {
+				JsonObject enabledObject = enabledElement.getAsJsonObject();
+				for (MiscUpgradeType upgradeType : MiscUpgradeType.values()) {
+					JsonElement element = enabledObject.get(upgradeType.name());
+					if (element == null || element.isJsonNull())
+						continue;
+					upgrade.setEnabled(upgradeType, element.getAsBoolean());
+				}
+			}
+			kingdom.setMiscUpgrades(upgrade);
+		}
+		JsonElement defenderElement = object.get("defender-info");
+		if (defenderElement != null && !defenderElement.isJsonNull() && defenderElement.isJsonObject()) {
+			JsonObject defenderObject = defenderElement.getAsJsonObject();
+			DefenderInfo info = new DefenderInfo(kingdom);
+			JsonElement upgradesElement = defenderObject.get("upgrades");
+			if (upgradesElement != null && !upgradesElement.isJsonNull() && upgradesElement.isJsonObject()) {
+				JsonObject upgradesObject = upgradesElement.getAsJsonObject();
+				for (DefenderUpgrade upgradeType : DefenderUpgrade.values()) {
+					JsonElement element = upgradesObject.get(upgradeType.name());
+					if (element == null || element.isJsonNull())
+						continue;
+					info.setUpgradeLevel(upgradeType, element.getAsInt());
+				}
+			}
+			kingdom.setDefenderInfo(info);
+		}
+		JsonElement chestElement = object.get("chest");
+		if (chestElement != null && !chestElement.isJsonNull() && chestElement.isJsonObject()) {
+			JsonObject chestObject = chestElement.getAsJsonObject();
+			KingdomChest chest = new KingdomChest(kingdom);
+			JsonElement contentsElement = chestObject.get("contents");
+			if (contentsElement != null && !contentsElement.isJsonNull() && contentsElement.isJsonObject()) {
+				JsonObject contentsObject = contentsElement.getAsJsonObject();
+				ItemStackSerializer itemSerializer = new ItemStackSerializer();
+				Map<Integer, ItemStack> contents = new HashMap<>();
+				for (Entry<String, JsonElement> entry : contentsObject.entrySet()) {
+					JsonElement element = contentsObject.get(entry.getKey());
+					if (element == null || element.isJsonNull())
+						continue;
+					contents.put(Integer.parseInt(entry.getKey()), itemSerializer.deserialize(entry.getValue(), ItemStack.class, context));
+				}
+				chest.setContents(contents);
+			}
+			kingdom.setKingdomChest(chest);
+		}
 		return handler.deserialize(kingdom, object, context);
 	}
 
