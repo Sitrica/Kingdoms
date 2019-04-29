@@ -26,7 +26,9 @@ public class CommandClaim extends AbstractCommand {
 		Player player = (Player) sender;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		landManager.playerClaimLand(kingdomPlayer);
-		if (arguments.length > 0 && arguments[0].equalsIgnoreCase("auto") || arguments[0].equalsIgnoreCase("automatic")) {
+		if (arguments.length == 0)
+			return ReturnType.SUCCESS;
+		if (arguments[0].equalsIgnoreCase("auto") || arguments[0].equalsIgnoreCase("automatic")) {
 			kingdomPlayer.setAutoClaiming(!kingdomPlayer.isAutoClaiming());
 			if (kingdomPlayer.isAutoClaiming()) {
 				new MessageBuilder("commands.claim.auto-claim-on")

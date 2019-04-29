@@ -2,12 +2,14 @@ package com.songoda.kingdoms.objects.land;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.structures.Structure;
@@ -17,35 +19,37 @@ public class Land {
 
 	private final Set<ChestSign> signs = new HashSet<>();
 	private final Set<Turret> turrets = new HashSet<>();
+	private final KingdomManager kingdomManager;
 	private final LandManager landManager;
 	private final Kingdoms instance;
-	private OfflineKingdom kingdom;
 	private Structure structure;
 	private final Chunk chunk;
+	private String kingdom;
 	private long claimTime;
-	
+
 	public Land(Chunk chunk) {
 		this.chunk = chunk;
 		this.instance = Kingdoms.getInstance();
 		this.landManager = instance.getManager("land", LandManager.class);
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 	}
-	
+
 	public int getX() {
 		return chunk.getX();
 	}
-	
+
 	public int getZ() {
 		return chunk.getZ();
 	}
-	
+
 	public Chunk getChunk() {
 		return chunk;
 	}
-	
+
 	public World getWorld() {
 		return chunk.getWorld();
 	}
-	
+
 	public Long getClaimTime() {
 		return claimTime;
 	}
@@ -53,23 +57,29 @@ public class Land {
 	public void setClaimTime(long claimTime) {
 		this.claimTime = claimTime;
 	}
-	
+
 	public Structure getStructure() {
 		return structure;
 	}
-	
+
 	public void setStructure(Structure structure) {
 		this.structure = structure;
 	}
-	
-	public OfflineKingdom getKingdomOwner() {
-		return kingdom;
+
+	public boolean hasOwner() {
+		return getKingdomOwner().isPresent();
 	}
-	
-	public void setKingdomOwner(OfflineKingdom kingdom) {
+
+	public Optional<OfflineKingdom> getKingdomOwner() {
+		if (kingdom == null)
+			return Optional.empty();
+		return kingdomManager.getOfflineKingdom(kingdom);
+	}
+
+	public void setKingdomOwner(String kingdom) {
 		this.kingdom = kingdom;
 	}
-	
+
 	public boolean hasTurret(Turret turret) {
 		return turrets.contains(turret);
 	}
@@ -77,19 +87,19 @@ public class Land {
 	public void addTurret(Turret turret) {
 		turrets.add(turret);
 	}
-	
+
 	public void removeTurret(Turret turret) {
 		turrets.remove(turret);
 	}
-	
+
 	public Set<Turret> getTurrets() {
 		return turrets;
 	}
-	
+
 	public void addChestSign(ChestSign sign) {
 		signs.add(sign);
 	}
-	
+
 	public ChestSign getChestSign(Location location) {
 		if (location == null)
 			return null;
@@ -102,7 +112,7 @@ public class Land {
 		}
 		return null;
 	}
-	
+
 	public void removeChestSign(Location location) {
 		if (location == null)
 			return;
@@ -115,20 +125,50 @@ public class Land {
 				iterator.remove();
 		}
 	}
-	
+
 	public Set<Land> getSurrounding() {
 		Set<Land> lands = new HashSet<>();
-		for (int x = -1; x <= 1; x++) {
-			for (int z = -1; z <= 1; z++) {
-				if (x == 0 && z == 0)
-					continue;
-				Chunk location = chunk.getWorld().getChunkAt(chunk.getX() + x, chunk.getZ() + z);
-				lands.add(landManager.getLand(location));
-			}
-		}
+		// North
+		Chunk north = chunk.getWorld().getChunkAt(chunk.getX(), chunk.getZ() - 9);
+		lands.add(landManager.getLand(north));
+		// North-East
+		Chunk northEast = chunk.getWorld().getChunkAt(chunk.getX() + 9, chunk.getZ() - 9);
+		lands.add(landManager.getLand(northEast));
+		// East
+		Chunk east = chunk.getWorld().getChunkAt(chunk.getX() + 9, chunk.getZ());
+		lands.add(landManager.getLand(east));
+		// South-East
+		Chunk southEast = chunk.getWorld().getChunkAt(chunk.getX() + 9, chunk.getZ() + 9);
+		lands.add(landManager.getLand(southEast));
+		// South
+		Chunk south = chunk.getWorld().getChunkAt(chunk.getX(), chunk.getZ() + 9);
+		lands.add(landManager.getLand(south));
+		// South-West
+		Chunk southWest = chunk.getWorld().getChunkAt(chunk.getX() - 9, chunk.getZ() + 9);
+		lands.add(landManager.getLand(southWest));
+		// West
+		Chunk west = chunk.getWorld().getChunkAt(chunk.getX() - 9, chunk.getZ());
+		lands.add(landManager.getLand(west));
+		// North-West
+		Chunk northWest = chunk.getWorld().getChunkAt(chunk.getX() - 9, chunk.getZ() - 9);
+		lands.add(landManager.getLand(northWest));
 		return lands;
 	}
-	
+
+	public boolean isSignificant() {
+		if (!turrets.isEmpty())
+			return true;
+		if (structure != null)
+			return true;
+		if (!signs.isEmpty())
+			return true;
+		if (kingdom != null)
+			return true;
+		if (claimTime > 0)
+			return true;
+		return false;
+	}
+
 	public Turret getTurret(Location location) {
 		if (turrets.isEmpty())
 			return null;

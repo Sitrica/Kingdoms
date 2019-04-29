@@ -123,10 +123,10 @@ public class KingdomManager extends Manager {
 	}
 
 	/**
-	 * Check if the kingdom name exists;
+	 * Check if the kingdom name exists in the loaded Kingdoms;
 	 *
 	 * @param kingdom OfflineKingdom to search
-	 * @return true if exist; false if not exist
+	 * @return Optional if the Kingdom was found.
 	 */
 	public boolean hasKingdom(String name) {
 		return getOfflineKingdom(name).isPresent();
@@ -134,22 +134,23 @@ public class KingdomManager extends Manager {
 
 	public Optional<Kingdom> getKingdom(String name) {
 		if (name == null)
-			return null;
+			return Optional.empty();
 		Kingdoms.debugMessage("Fetching info for online kingdom: " + name);
-		return Optional.ofNullable(kingdoms.parallelStream()
-				.filter(kingdom -> kingdom.getName().equals(name))
+		return kingdoms.parallelStream()
+				.filter(kingdom -> kingdom.getName().equalsIgnoreCase(name))
 				.map(kingdom -> kingdom instanceof Kingdom ? (Kingdom) kingdom : null)
-				.findAny()
-				.orElse(loadKingdom(name)));
+				.findAny();
 	}
 
 	/**
 	 * Get OfflineKingdom. Reading from database directly.
 	 *
-	 * @param kingdomName Kingdom name.
-	 * @return Kingdom instance; null if not exist
+	 * @param name Kingdom name.
+	 * @return Optional if the OfflineKingdom was found.
 	 */
 	public Optional<OfflineKingdom> getOfflineKingdom(String name) {
+		if (name == null)
+			return Optional.empty();
 		Kingdoms.debugMessage("Fetching info for offline kingdom: " + name);
 		return Optional.ofNullable(kingdoms.parallelStream()
 				.filter(kingdom -> kingdom.getName().equals(name))
@@ -159,22 +160,32 @@ public class KingdomManager extends Manager {
 
 	private Kingdom loadKingdom(String name) {
 		Kingdoms.debugMessage("Loading kingdom: " + name);
-		OfflineKingdom databaseKingdom = database.get(name);
-		if (databaseKingdom == null)
-			return null;
-		Kingdom kingdom = new Kingdom(databaseKingdom);
-		if (kingdom != null) {
-			long invasionCooldown = kingdom.getInvasionCooldown();
-			if (invasionCooldown > 0) {
-				KingdomCooldown cooldown = new KingdomCooldown(kingdom, "attackcd", invasionCooldown);
-				cooldown.start();
-				kingdom.setInvasionCooldown(0);
+		FutureTask<Kingdom> future = new FutureTask<>(() -> {
+			OfflineKingdom databaseKingdom = database.get(name);
+			if (databaseKingdom == null)
+				return null;
+			Kingdom kingdom = new Kingdom(databaseKingdom);
+			if (kingdom != null) {
+				long invasionCooldown = kingdom.getInvasionCooldown();
+				if (invasionCooldown > 0) {
+					KingdomCooldown cooldown = new KingdomCooldown(kingdom, "attackcd", invasionCooldown);
+					cooldown.start();
+					kingdom.setInvasionCooldown(0);
+				}
+				updateUpgrades(kingdom);
+				kingdoms.add(kingdom);
+				Bukkit.getPluginManager().callEvent(new KingdomLoadEvent(kingdom));
 			}
-			updateUpgrades(kingdom);
-			kingdoms.add(kingdom);
-			Bukkit.getPluginManager().callEvent(new KingdomLoadEvent(kingdom));
+			return kingdom;
+		});
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		executor.execute(future);
+		try {
+			return future.get();
+		} catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
 		}
-		return kingdom;
+		return null;
 	}
 
 	public void onPlayerLeave(KingdomPlayer player, Kingdom kingdom) {
@@ -259,7 +270,7 @@ public class KingdomManager extends Manager {
 			Bukkit.getPluginManager().callEvent(new KingdomCreateEvent(kingdom));
 			return kingdom;
 		});
-		ExecutorService executor = Executors.newFixedThreadPool(2);
+		ExecutorService executor = Executors.newSingleThreadExecutor();
 		executor.execute(future);
 		try {
 			return future.get();
@@ -269,14 +280,17 @@ public class KingdomManager extends Manager {
 		return null;
 	}
 
-	public FutureTask<Map<OfflineKingdom, Long>> getTopResourcePoints() {
-		return new FutureTask<Map<OfflineKingdom, Long>>(new ResourcePointsCallable());
+	/**
+	 * @return A map of all the online kingdoms sorted by resource points.
+	 */
+	public FutureTask<Map<Kingdom, Long>> getTopResourcePoints() {
+		return new FutureTask<Map<Kingdom, Long>>(new ResourcePointsCallable());
 	}
 
-	private class ResourcePointsCallable implements Callable<Map<OfflineKingdom, Long>> {
+	private class ResourcePointsCallable implements Callable<Map<Kingdom, Long>> {
 		@Override
-		public Map<OfflineKingdom, Long> call() {
-			Map<OfflineKingdom, Long> points = new HashMap<>();
+		public Map<Kingdom, Long> call() {
+			Map<Kingdom, Long> points = new HashMap<>();
 			for (String key : database.getKeys()) {
 				Optional<Kingdom> optional = getKingdom(key);
 				if (!optional.isPresent()) {
@@ -472,8 +486,11 @@ public class KingdomManager extends Manager {
 		Kingdom victimKingdom = damaged.getKingdom();
 		if (attackerKingdom == null && victimKingdom == null)
 			return;
-
-		if (attackerKingdom.isNeutral() && attackerKingdom.equals(victimLand.getKingdomOwner())) {
+		Optional<OfflineKingdom> optionalVictim = victimLand.getKingdomOwner();
+		if (!optionalVictim.isPresent())
+			return;
+		OfflineKingdom victimOwner = optionalVictim.get();
+		if (attackerKingdom.isNeutral() && attackerKingdom.equals(victimOwner)) {
 			new MessageBuilder("kingdoms.pacifist-cannot-fight-in-own-land")
 					.setPlaceholderObject(damaged)
 					.setKingdom(attackerKingdom)
@@ -481,7 +498,11 @@ public class KingdomManager extends Manager {
 			event.setCancelled(true);
 			return;
 		}
-		if (victimKingdom.isNeutral() && victimKingdom.equals(attackerLand.getKingdomOwner())) {
+		Optional<OfflineKingdom> optionalAttacker = attackerLand.getKingdomOwner();
+		if (!optionalAttacker.isPresent())
+			return;
+		OfflineKingdom attackerOwner = optionalAttacker.get();
+		if (victimKingdom.isNeutral() && victimKingdom.equals(attackerOwner)) {
 			new MessageBuilder("kingdoms.pacifist-cannot-be-damaged")
 					.setPlaceholderObject(damaged)
 					.setKingdom(attackerKingdom)
@@ -500,9 +521,10 @@ public class KingdomManager extends Manager {
 			return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		Land land = landManager.getLand(kingdomPlayer.getLocation().getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (landKingdom == null)
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
 			return;
+		OfflineKingdom landKingdom = optional.get();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null) {
 			if (isCommandDisabled(event.getMessage(), "commands.denied-in-neutral")) {

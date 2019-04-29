@@ -58,16 +58,16 @@ public class VisualizerManager extends Manager {
 		Land land = landManager.getLand(chunk);
 		if (!worldManager.acceptsWorld(land.getWorld()))
 			return;
-		OfflineKingdom landKingdom = land.getKingdomOwner();
+		Optional<OfflineKingdom> landKingdom = land.getKingdomOwner();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		Material material;
-		if (kingdom == null || landKingdom == null) {
+		if (kingdom == null || !landKingdom.isPresent()) {
 			material = Material.QUARTZ_BLOCK;
-		} else if (kingdom.equals(landKingdom)) {
+		} else if (kingdom.equals(landKingdom.get())) {
 			material = Material.EMERALD_BLOCK;
-		} else if (kingdom.isAllianceWith(landKingdom)) {
+		} else if (kingdom.isAllianceWith(landKingdom.get())) {
 			material = Material.GOLD_BLOCK;
-		} else if (kingdom.isEnemyWith(landKingdom)) {
+		} else if (kingdom.isEnemyWith(landKingdom.get())) {
 			material = Material.REDSTONE_BLOCK;
 		} else {
 			material = Material.QUARTZ_BLOCK;

@@ -23,7 +23,7 @@ public class CommandInfo extends AbstractCommand {
 	protected ReturnType runCommand(Kingdoms instance, CommandSender sender, String... arguments) {
 		Player player = (Player) sender;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		new ListMessageBuilder("commands.info.info")
+		new ListMessageBuilder(false, "commands.info.info")
 				.withPlaceholder("%kingdom%", new Placeholder<KingdomPlayer>() {
 					@Override
 					public Object replace(KingdomPlayer player) {

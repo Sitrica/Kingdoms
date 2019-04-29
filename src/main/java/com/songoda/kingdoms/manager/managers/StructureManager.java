@@ -86,11 +86,12 @@ public class StructureManager extends Manager {
 					return;
 				Location location = structure.getLocation();
 				Block block = location.getBlock();
-				OfflineKingdom kingdom = land.getKingdomOwner();
-				if (kingdom == null) {
+				Optional<OfflineKingdom> optional = land.getKingdomOwner();
+				if (!optional.isPresent()) {
 					block.setType(Material.AIR);
 					return;
 				}
+				OfflineKingdom kingdom = optional.get();
 				block.setType(structure.getType().getBlockMaterial());
 				block.setMetadata(structure.getType().getMetaData(), new FixedMetadataValue(instance, kingdom));
 				if (structure.getType() == StructureType.NEXUS) {
@@ -160,10 +161,14 @@ public class StructureManager extends Manager {
 				Structure structureAround = landAround.getStructure();
 				if (structureAround == null)
 					continue;
-				OfflineKingdom owner = landAround.getKingdomOwner();
-				if (owner == null)
+				Optional<OfflineKingdom> optional = landAround.getKingdomOwner();
+				if (!optional.isPresent())
 					continue;
-				if (land.getKingdomOwner().equals(owner)) {
+				OfflineKingdom owner = optional.get();
+				Optional<OfflineKingdom> landOptional = land.getKingdomOwner();
+				if (!landOptional.isPresent())
+					continue;
+				if (landOptional.get().equals(owner)) {
 					if (structureAround.getType() == StructureType.POWERCELL)
 						return false;
 				}
@@ -242,14 +247,21 @@ public class StructureManager extends Manager {
 			return;
 		}
 		Land land = landManager.getLand(block.getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (!kingdomPlayer.hasAdminMode() && landKingdom == null || !kingdom.equals(landKingdom)) {
+		Optional<OfflineKingdom> optionalLand = land.getKingdomOwner();
+		if (!kingdomPlayer.hasAdminMode() && !optionalLand.isPresent()) {
 			new MessageBuilder("kingdoms.not-in-land")
 					.setPlaceholderObject(kingdomPlayer)
-					.setKingdom(landKingdom)
 					.send(player);
 			return;
 		}
+		if (!kingdom.equals(optionalLand.get())) {
+			new MessageBuilder("kingdoms.not-in-land")
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(optionalLand.get())
+					.send(player);
+			return;
+		}
+		OfflineKingdom landKingdom = optionalLand.get();
 		if (!kingdomPlayer.hasAdminMode() && configuration.getStringList("unreplaceable-blocks").contains(block.getType().toString())) {
 			new MessageBuilder("kingdoms.nexus-cannot-replace")
 					.setPlaceholderObject(kingdomPlayer)
@@ -319,11 +331,12 @@ public class StructureManager extends Manager {
 		event.setCancelled(true);
 		Land land = landManager.getLand(block.getChunk());
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null && !kingdomPlayer.hasAdminMode())
 			return;
-		if (!kingdomPlayer.hasAdminMode() && landKingdom != null) {
+		if (!kingdomPlayer.hasAdminMode() && optional.isPresent()) {
+			OfflineKingdom landKingdom = optional.get();
 			if (!kingdom.equals(landKingdom)) {
 				new MessageBuilder("kingdoms.not-in-land")
 						.setPlaceholderObject(kingdomPlayer)
@@ -359,7 +372,7 @@ public class StructureManager extends Manager {
 		for (StructureType type : StructureType.values()) {
 			if (block.hasMetadata(type.getMetaData())) {
 				block.removeMetadata(type.getMetaData(), instance);
-				if (!type.equals(StructureType.NEXUS))
+				if (type != StructureType.NEXUS)
 					block.getWorld().dropItemNaturally(block.getLocation(), type.build());
 				land.setStructure(null);
 				kingdom.removeWarpAt(land);
@@ -400,11 +413,12 @@ public class StructureManager extends Manager {
 			return;
 		}
 		Land land = landManager.getLand(block.getLocation().getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (landKingdom == null) {
+		Optional<OfflineKingdom> optionalLand = land.getKingdomOwner();
+		if (!optionalLand.isPresent()) {
 			breakStructureAt(land);
 			return;
 		}
+		OfflineKingdom landKingdom = optionalLand.get();
 		if (!landKingdom.equals(kingdom)) {
 			new MessageBuilder("kingdoms.not-in-land")
 					.setKingdom(landKingdom)

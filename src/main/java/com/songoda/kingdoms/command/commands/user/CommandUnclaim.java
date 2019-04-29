@@ -130,8 +130,17 @@ public class CommandUnclaim extends AbstractCommand {
 		} else {
 			Chunk chunk = kingdomPlayer.getLocation().getChunk();
 			Land land = landManager.getLand(chunk);
-			OfflineKingdom landKingdom = land.getKingdomOwner();
-			if (landKingdom == null || !landKingdom.equals(landKingdom)) {
+			Optional<OfflineKingdom> optional = land.getKingdomOwner();
+			if (!optional.isPresent())
+				return null;
+			if (!optional.isPresent()) {
+				new MessageBuilder("commands.unclaim.not-your-kingdom")
+						.setPlaceholderObject(kingdomPlayer)
+						.send(player);
+				return ReturnType.FAILURE;
+			}
+			OfflineKingdom landKingdom = optional.get();
+			if (!landKingdom.equals(landKingdom)) {
 				new MessageBuilder("commands.unclaim.not-your-kingdom")
 						.setPlaceholderObject(kingdomPlayer)
 						.setKingdom(landKingdom)

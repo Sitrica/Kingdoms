@@ -1,5 +1,7 @@
 package com.songoda.kingdoms.inventories.structures;
 
+import java.util.Optional;
+
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -44,7 +46,9 @@ public class SiegeEngineInventory extends StructureInventory {
 		Player player = kingdomPlayer.getPlayer();
 		Location location = engine.getLocation();
 		Land land = landManager.getLand(location.getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
+			return;
 		for (int x = -1; x <= 1; x++) {
 			for (int z = -1; z <= 1; z++) {
 				//No diagonal Firing.
@@ -70,7 +74,7 @@ public class SiegeEngineInventory extends StructureInventory {
 							.fromConfiguration(inventories)
 							.setKingdom(kingdom)
 							.build();
-					if (landKingdom == null) {
+					if (!optional.isPresent()) {
 						item = new ItemStackBuilder(section.getConfigurationSection("no-target"))
 								.replace("%time%", IntervalUtils.getSeconds(engine.getCooldownTimeLeft()))
 								.setPlaceholderObject(kingdomPlayer)
@@ -80,51 +84,45 @@ public class SiegeEngineInventory extends StructureInventory {
 								.fromConfiguration(inventories)
 								.setKingdom(kingdom)
 								.build();
-					} else if (!engine.isReady()) {
-						item = new ItemStackBuilder(section.getConfigurationSection("reloading"))
-								.replace("%time%", IntervalUtils.getSeconds(engine.getCooldownTimeLeft()))
-								.setPlaceholderObject(kingdomPlayer)
-								.replace("x", location.getBlockX())
-								.replace("y", location.getBlockY())
-								.replace("z", location.getBlockZ())
-								.fromConfiguration(inventories)
-								.setKingdom(landKingdom)
-								.build();
-					} else if (kingdom.equals(landKingdom) || kingdom.getAllies().contains(landKingdom)) {
-						item = new ItemStackBuilder(section.getConfigurationSection("friendly"))
-								.replace("%time%", IntervalUtils.getSeconds(engine.getCooldownTimeLeft()))
-								.setPlaceholderObject(kingdomPlayer)
-								.replace("x", location.getBlockX())
-								.replace("y", location.getBlockY())
-								.replace("z", location.getBlockZ())
-								.fromConfiguration(inventories)
-								.setKingdom(landKingdom)
-								.build();
-					// TODO shield
-					/*} else if (landKingdom.isShieldUp()) {
-						lore.add(Kingdoms.getLang().getString("Guis_SiegeEngine_Land_Invade_Shield", kp.getLang()));
-						*/
 					} else {
-						int cost = structures.getInt("cost-per-shot", 10);
-						/*if (landKingdom.isWithinNexusShieldRange(chunk))
-							lore.add(Kingdoms.getLang().getString("Guis_SiegeEngine_Shield", kp.getLang())
-								.replaceAll("%value%", ""+landKingdom.getShieldValue())
-								.replaceAll("%max%", ""+landKingdom.getShieldMax()));
-						*/
-						item = new ItemStackBuilder(section.getConfigurationSection("ready"))
-								.replace("%time%", IntervalUtils.getSeconds(engine.getCooldownTimeLeft()))
-								.setPlaceholderObject(kingdomPlayer)
-								.replace("x", location.getBlockX())
-								.replace("y", location.getBlockY())
-								.replace("z", location.getBlockZ())
-								.fromConfiguration(inventories)
-								.replace("%cost%", cost)
-								.setKingdom(landKingdom)
-								.build();
-						setAction((1 + x) + (9 * (z + 1)), event -> {
-							player.closeInventory();
-							siegeEngineManager.fireSiegeEngine(engine, land, kingdom, landKingdom);
-						});
+						OfflineKingdom landKingdom = optional.get();
+						if (!engine.isReady()) {
+							item = new ItemStackBuilder(section.getConfigurationSection("reloading"))
+									.replace("%time%", IntervalUtils.getSeconds(engine.getCooldownTimeLeft()))
+									.setPlaceholderObject(kingdomPlayer)
+									.replace("x", location.getBlockX())
+									.replace("y", location.getBlockY())
+									.replace("z", location.getBlockZ())
+									.fromConfiguration(inventories)
+									.setKingdom(landKingdom)
+									.build();
+						} else if (kingdom.equals(landKingdom) || kingdom.getAllies().contains(landKingdom)) {
+							item = new ItemStackBuilder(section.getConfigurationSection("friendly"))
+									.replace("%time%", IntervalUtils.getSeconds(engine.getCooldownTimeLeft()))
+									.setPlaceholderObject(kingdomPlayer)
+									.replace("x", location.getBlockX())
+									.replace("y", location.getBlockY())
+									.replace("z", location.getBlockZ())
+									.fromConfiguration(inventories)
+									.setKingdom(landKingdom)
+									.build();
+						} else {
+							int cost = structures.getInt("cost-per-shot", 10);
+							item = new ItemStackBuilder(section.getConfigurationSection("ready"))
+									.replace("%time%", IntervalUtils.getSeconds(engine.getCooldownTimeLeft()))
+									.setPlaceholderObject(kingdomPlayer)
+									.replace("x", location.getBlockX())
+									.replace("y", location.getBlockY())
+									.replace("z", location.getBlockZ())
+									.fromConfiguration(inventories)
+									.replace("%cost%", cost)
+									.setKingdom(landKingdom)
+									.build();
+							setAction((1 + x) + (9 * (z + 1)), event -> {
+								player.closeInventory();
+								siegeEngineManager.fireSiegeEngine(engine, land, kingdom, landKingdom);
+							});
+						}
 					}
 				}
 				inventory.setItem((1 + x) + (9 * (z + 1)), item);

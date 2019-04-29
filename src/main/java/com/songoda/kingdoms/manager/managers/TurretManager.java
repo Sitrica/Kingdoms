@@ -66,7 +66,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public class TurretManager extends Manager {
-	
+
 	private final Set<TurretType> types = new HashSet<>();
 	public final String METADATA_CONQUEST = "conquest-arrow";
 	public final String METADATA_KINGDOM = "turret-kingdom";
@@ -80,7 +80,7 @@ public class TurretManager extends Manager {
 	private KingdomManager kingdomManager;
 	private PlayerManager playerManager;
 	private LandManager landManager;
-	
+
 	public TurretManager() {
 		super("turret", true);
 		for (String turret : instance.getConfiguration("turrets").get().getConfigurationSection("turrets.turrets").getKeys(false)) {
@@ -96,6 +96,7 @@ public class TurretManager extends Manager {
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
+		//instance.getServer().getScheduler().scheduleSyncRepeatingTask(instance, new TurretTask(instance), 0, 5);
 	}
 
 	public Optional<TurretType> getTurretTypeByName(String name) {
@@ -111,7 +112,7 @@ public class TurretManager extends Manager {
 				.filter(metadata -> metadata.getOwningPlugin().equals(instance))
 				.findFirst().isPresent();
 	}
-	
+
 	public Optional<Boolean> getChance(Metadatable metadatable) {
 		if (!metadatable.hasMetadata(METADATA_CHANCE))
 			return Optional.empty();
@@ -120,7 +121,7 @@ public class TurretManager extends Manager {
 				.map(metadata -> metadata.asBoolean())
 				.findFirst();
 	}
-	
+
 	public Optional<Potions> getPotions(Metadatable metadatable) {
 		if (!metadatable.hasMetadata(METADATA_POTIONS))
 			return Optional.empty();
@@ -129,7 +130,7 @@ public class TurretManager extends Manager {
 				.map(metadata -> new Potions(metadata.asString()))
 				.findFirst();
 	}
-	
+
 	public Optional<Double> getProjectileDamage(Metadatable metadatable) {
 		if (!metadatable.hasMetadata(METADATA_VALUE))
 			return Optional.empty();
@@ -138,7 +139,7 @@ public class TurretManager extends Manager {
 				.map(metadata -> metadata.asDouble())
 				.findFirst();
 	}
-	
+
 	public Optional<OfflineKingdom> getProjectileKingdom(Metadatable metadatable) {
 		if (!metadatable.hasMetadata(METADATA_KINGDOM))
 			return Optional.empty();
@@ -150,20 +151,20 @@ public class TurretManager extends Manager {
 				.map(optional -> optional.get())
 				.findFirst();
 	}
-	
+
 	public long getTurretCount(Land land, TurretType type) {
 		return land.getTurrets().parallelStream()
 				.filter(turret -> turret.getType() != null)
 				.filter(turret -> turret.getType().equals(type))
 				.count();
 	}
-	
+
 	public enum TurretBlock {
 		TURRET_BASE,
 		NOT_TURRET,
 		TURRET;
 	}
-	
+
 	public Optional<Turret> getTurret(Block block) {
 		TurretBlock turretBlock = getTurretBlock(block);
 		Location location = block.getLocation();
@@ -175,7 +176,7 @@ public class TurretManager extends Manager {
 		}
 		return Optional.empty();
 	}
-	
+
 	public TurretBlock getTurretBlock(Block block) {
 		Location location = block.getLocation();
 		Land land = landManager.getLand(location.getChunk());
@@ -186,17 +187,19 @@ public class TurretManager extends Manager {
 		}
 		return TurretBlock.TURRET;
 	}
-	
+
 	public void breakTurret(Turret turret) {
 		Location location = turret.getLocation();
 		Land land = landManager.getLand(location.getChunk());
 		World world = location.getWorld();
 		TurretType type = turret.getType();
-		world.dropItem(location, type.build(land.getKingdomOwner(), false));
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (optional.isPresent())
+			world.dropItem(location, type.build(optional.get(), false));
 		location.getBlock().setType(Material.AIR);
 		land.removeTurret(turret);
 	}
-	
+
 	public TurretType getTurretTypeFrom(ItemStack item) {
 		if (item == null)
 			return null;
@@ -215,7 +218,7 @@ public class TurretManager extends Manager {
 		}
 		return null;
 	}
-	
+
 	public boolean canBeTargeted(Turret turret, Player target) {
 		if (target.isDead() || !target.isValid())
 			return false;
@@ -231,7 +234,10 @@ public class TurretManager extends Manager {
 		if (kingdomPLayer.hasAdminMode() || kingdomPLayer.isVanished())
 			return false;
 		Land land = landManager.getLand(location.getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
+			return false;
+		OfflineKingdom landKingdom = optional.get();
 		Kingdom kingdom = kingdomPLayer.getKingdom();
 		GameMode gamemode = target.getGameMode();
 		if (gamemode != GameMode.SURVIVAL && gamemode != GameMode.ADVENTURE)
@@ -290,7 +296,7 @@ public class TurretManager extends Manager {
 			return false;
 		return !kingdom.isAllianceWith(playerKingdom);
 	}
-	
+
 	public void fire(Turret turret, Player target) {
 		if (target == null)
 			return;
@@ -299,8 +305,8 @@ public class TurretManager extends Manager {
 		Location location = turret.getLocation();
 		TurretType type = turret.getType();
 		Land land = landManager.getLand(location.getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		TurretFireEvent event = new TurretFireEvent(turret, target, landKingdom);
+		Optional<OfflineKingdom> landOptional = land.getKingdomOwner();
+		TurretFireEvent event = new TurretFireEvent(turret, target, landOptional.orElse(null));
 		Bukkit.getPluginManager().callEvent(event);
 		if (event.isCancelled())
 			return;
@@ -355,8 +361,8 @@ public class TurretManager extends Manager {
 			} else if (type.getProjectile() == EntityType.ARROW) {
 				Arrow arrow = location.getWorld().spawnArrow(fromLocation, direction, 1.5F, type.getArrowSpread());
 				arrow.setCritical(type.isCritical());
-				if (landKingdom != null)
-					arrow.setMetadata(METADATA_KINGDOM, new FixedMetadataValue(instance, landKingdom.getName()));
+				if (landOptional.isPresent())
+					arrow.setMetadata(METADATA_KINGDOM, new FixedMetadataValue(instance, landOptional.get().getName()));
 				if (type.isFlame())
 					arrow.setFireTicks(Integer.MAX_VALUE);
 				arrow.setMetadata(METADATA_VALUE, new FixedMetadataValue(instance, "" + type.getDamage()));
@@ -374,8 +380,8 @@ public class TurretManager extends Manager {
 					projectile.setMetadata(METADATA_POTIONS, new FixedMetadataValue(instance, "" + type.getDamage()));
 				}
 				projectile.setVelocity(direction);
-				if (landKingdom != null)
-					projectile.setMetadata(METADATA_KINGDOM, new FixedMetadataValue(instance, landKingdom.getName()));
+				if (landOptional.isPresent())
+					projectile.setMetadata(METADATA_KINGDOM, new FixedMetadataValue(instance, landOptional.get().getName()));
 				if (type.isHealer()) {
 					HealthInfo health = type.getHealthInfo();
 					projectile.setMetadata(METADATA_HEALTH, new FixedMetadataValue(instance, true));
@@ -451,7 +457,7 @@ public class TurretManager extends Manager {
 		}
 		*/
 	}
-	
+
 	@EventHandler
 	public void onTurretBreak(BlockBreakEvent event) {
 		Block block = event.getBlock();
@@ -465,13 +471,14 @@ public class TurretManager extends Manager {
 				if (turret == null)
 					return;
 			KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-			OfflineKingdom landKingdom = land.getKingdomOwner();
-			if (landKingdom == null) {
+			Optional<OfflineKingdom> optional = land.getKingdomOwner();
+			if (!optional.isPresent()) {
 				TurretBreakEvent breakEvent = new TurretBreakEvent(land, turret, kingdomPlayer);
 				Bukkit.getPluginManager().callEvent(breakEvent);
 				if (!breakEvent.isCancelled())
 					breakTurret(turret);
 			}
+			OfflineKingdom landKingdom = optional.get();
 			Kingdom kingdom = kingdomPlayer.getKingdom();
 			if (kingdomPlayer.hasAdminMode())
 				return;
@@ -558,8 +565,15 @@ public class TurretManager extends Manager {
 			return;
 		}	
 		Land land = landManager.getLand(turretBlock.getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (!kingdomPlayer.hasAdminMode() && landKingdom == null || !kingdom.equals(landKingdom)) {
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!kingdomPlayer.hasAdminMode() && !optional.isPresent()) {
+			new MessageBuilder("kingdoms.not-in-land")
+					.setPlaceholderObject(kingdomPlayer)
+					.send(player);
+			return;
+		}
+		OfflineKingdom landKingdom = optional.get();
+		if (!kingdom.equals(landKingdom)) {
 			new MessageBuilder("kingdoms.not-in-land")
 					.setPlaceholderObject(kingdomPlayer)
 					.setKingdom(landKingdom)
@@ -600,7 +614,7 @@ public class TurretManager extends Manager {
 		}
 		type.getPlacingSounds().playAt(block.getLocation());
 	}
-	
+
 	@EventHandler
 	public void onDispense(BlockDispenseEvent event) {
 		Block block = event.getBlock();
@@ -705,7 +719,7 @@ public class TurretManager extends Manager {
 			}
 		}
 	}
-	
+
 	@EventHandler
 	public void onLandLoad(LandLoadEvent event) {
 		for (Turret turret : event.getLand().getTurrets()) {
@@ -715,7 +729,7 @@ public class TurretManager extends Manager {
 			}
 		}
 	}
-	
+
 	@Override
 	public void onDisable() {
 		types.clear();

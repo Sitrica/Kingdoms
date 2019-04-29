@@ -193,12 +193,13 @@ public class NexusManager extends Manager {
 		if (kingdom == null)
 			return;
 		Land land = landManager.getLand(block.getLocation().getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (landKingdom == null) {
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent()) {
 			event.setCancelled(true);
 			breakNexus(land);
 			return;
 		}
+		OfflineKingdom landKingdom = optional.get();
 		if (kingdom.isAllianceWith(landKingdom)) {
 			new MessageBuilder("kingdoms.cannot-break-alliance-nexus")
 					.replace("%playerkingdom", kingdom)
@@ -265,11 +266,12 @@ public class NexusManager extends Manager {
 			return;
 		}
 		Land land = landManager.getLand(block.getChunk());		
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (landKingdom == null) { // Old code could potentially mess up? This code check was old - Lime.
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent()) {
 			block.setType(Material.AIR);
 			return;
 		}
+		OfflineKingdom landKingdom = optional.get();
 		NexusInventory inventory = inventoryManager.getInventory(NexusInventory.class);
 		if (landKingdom.isAllianceWith(kingdom)) {
 			inventory.openDonateInventory(landKingdom, kingdomPlayer);
@@ -287,9 +289,9 @@ public class NexusManager extends Manager {
 		if (land.getStructure() == null)
 			return;
 		Block block = land.getStructure().getLocation().getBlock();
-		OfflineKingdom kingdom = land.getKingdomOwner();
-		if (kingdom != null)
-			kingdom.setNexusLocation(null);
+		Optional<OfflineKingdom> kingdom = land.getKingdomOwner();
+		if (kingdom.isPresent())
+			kingdom.get().setNexusLocation(null);
 		land.setStructure(null);
 		block.setType(Material.AIR);
 		Location location = block.getLocation();

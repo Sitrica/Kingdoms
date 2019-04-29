@@ -1,5 +1,7 @@
 package com.songoda.kingdoms.objects.structures;
 
+import java.util.Optional;
+
 import org.bukkit.Location;
 import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
@@ -54,7 +56,10 @@ public class Extractor extends Structure {
 			return;
 		next = System.currentTimeMillis();
 		Land land = landManager.getLand(location.getChunk());
-		Kingdom kingdom = land.getKingdomOwner().getKingdom();
+		Optional<OfflineKingdom> landKingdom = land.getKingdomOwner();
+		if (!landKingdom.isPresent())
+			return;
+		Kingdom kingdom = landKingdom.get().getKingdom();
 		if (kingdom == null)
 			return;
 		kingdom.setResourcePoints(kingdom.getResourcePoints() + reward);

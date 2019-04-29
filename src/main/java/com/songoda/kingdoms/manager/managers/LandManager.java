@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,6 +34,7 @@ import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -118,8 +120,9 @@ public class LandManager extends Manager {
 							.send();
 					boolean disband = configuration.getBoolean("taxes.disband-cant-afford", false);
 					for (Land land : Collections.unmodifiableMap(lands).values()) {
-						OfflineKingdom kingdom = land.getKingdomOwner();
-						if (kingdom != null) {
+						Optional<OfflineKingdom> optional = land.getKingdomOwner();
+						if (!optional.isPresent()) {
+							OfflineKingdom kingdom = optional.get();
 							long resourcePoints = kingdom.getResourcePoints();
 							if (resourcePoints < amount && disband) {
 								new MessageBuilder("taxes.disband")
@@ -143,20 +146,22 @@ public class LandManager extends Manager {
 	private final Runnable saveTask = new Runnable() {
 		@Override
 		public void run() {
-			Set<Chunk> loaded = getLoadedLand();
+			Set<Entry<Chunk, Land>> loaded = getLoadedLand();
 			if (loaded.isEmpty())
 				return;
 			Kingdoms.debugMessage("Starting Land Save");
 			int i = 0;
 			Set<String> saved = new HashSet<>();
-			for (Chunk chunk : loaded) {
-				String name = LocationUtils.chunkToString(chunk);
+			for (Entry<Chunk, Land> entry : loaded) {
+				if (!entry.getValue().isSignificant())
+					continue;
+				String name = LocationUtils.chunkToString(entry.getKey());
 				if (saved.contains(name))
 					continue;
 				Kingdoms.debugMessage("Saving land: " + name);
-				Land land = getLand(chunk);
-				OfflineKingdom kingdom = land.getKingdomOwner();
-				if (kingdom == null && land.getTurrets().size() <= 0 && land.getStructure() == null) {
+				Land land = entry.getValue();
+				Optional<OfflineKingdom> optional = land.getKingdomOwner();
+				if (!optional.isPresent() && land.getTurrets().size() <= 0 && land.getStructure() == null) {
 					database.delete(name);
 					saved.add(name);
 					i++;
@@ -170,7 +175,8 @@ public class LandManager extends Manager {
 					Bukkit.getLogger().severe("[Kingdoms] Failed autosave for land at: " + name);
 				}
 			}
-			Kingdoms.debugMessage("Saved [" + i + "] lands");
+			if (i > 0)
+				Kingdoms.debugMessage("Saved [" + i + "] lands");
 		}
 	};
 
@@ -189,10 +195,10 @@ public class LandManager extends Manager {
 				Chunk chunk = LocationUtils.stringToChunk(name);
 				if (chunk == null)
 					continue;
-				OfflineKingdom kingdom = land.getKingdomOwner();
-				if (kingdom != null) {
+				Optional<OfflineKingdom> kingdom = land.getKingdomOwner();
+				if (kingdom.isPresent()) {
 					Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
-					Kingdoms.consoleMessage("The land owner is [" + kingdom.getName() + "] but no such kingdom with the name exists");
+					Kingdoms.consoleMessage("The land owner is [" + kingdom.get().getName() + "] but no such kingdom with the name exists");
 				}
 				LandLoadEvent event = new LandLoadEvent(land);
 				Bukkit.getPluginManager().callEvent(new LandLoadEvent(land));
@@ -210,8 +216,8 @@ public class LandManager extends Manager {
 	/**
 	 * @return Set<Chunk> of all loaded land locations.
 	 */
-	public Set<Chunk> getLoadedLand() {
-		return Collections.unmodifiableMap(lands).keySet();
+	public Set<Entry<Chunk, Land>> getLoadedLand() {
+		return Collections.unmodifiableMap(lands).entrySet();
 	}
 	
 	public Land getLandAt(Location location) {
@@ -275,8 +281,9 @@ public class LandManager extends Manager {
 		Land land = getLand(player.getLocation().getChunk());
 		Chunk chunk = land.getChunk();
 		String chunkString = LocationUtils.chunkToString(chunk);
-		if (land.getKingdomOwner() != null) {
-			OfflineKingdom landKingdom = land.getKingdomOwner();
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (optional.isPresent()) {
+			OfflineKingdom landKingdom = optional.get();
 			if (landKingdom.equals(kingdom)) {
 				new MessageBuilder("claiming.already-owned")
 						.replace("%chunk%", chunkString)
@@ -331,8 +338,8 @@ public class LandManager extends Manager {
 							continue;
 						Chunk c = world.getChunkAt(chunk.getX() + x, chunk.getZ() + z);
 						Land adjustment = getLand(c);
-						OfflineKingdom owner = adjustment.getKingdomOwner();
-						if (owner != null && owner.equals(kingdom)) {
+						Optional<OfflineKingdom> owner = adjustment.getKingdomOwner();
+						if (owner.isPresent() && owner.get().equals(kingdom)) {
 							connected = true;
 							break;
 						}
@@ -385,7 +392,7 @@ public class LandManager extends Manager {
 				continue;
 			kingdom.addClaim(land);
 			land.setClaimTime(new Date().getTime());
-			land.setKingdomOwner(kingdom);
+			land.setKingdomOwner(kingdom.getName());
 			String name = LocationUtils.chunkToString(land.getChunk());
 			database.save(name, land);
 			if (dynmapManager.isPresent())
@@ -402,10 +409,11 @@ public class LandManager extends Manager {
 	public void unclaimLand(OfflineKingdom kingdom, Chunk... chunks) {
 		for (Chunk chunk : chunks) {
 			Land land = getLand(chunk);
-			if (land.getKingdomOwner() == null) {
+			Optional<OfflineKingdom> optional = land.getKingdomOwner();
+			if (!optional.isPresent())
 				continue;
-			}
-			if (land.getKingdomOwner().equals(kingdom)) {
+			OfflineKingdom owner = optional.get();
+			if (owner.equals(kingdom)) {
 				LandUnclaimEvent event = new LandUnclaimEvent(land, kingdom);
 				Bukkit.getPluginManager().callEvent(event);
 				if (event.isCancelled())
@@ -450,9 +458,15 @@ public class LandManager extends Manager {
 			return -1;
 		unclaiming.add(name);
 		Stream<Land> stream = getLoadedLand().parallelStream()
-				.map(chunk -> getLand(chunk))
-				.filter(land -> land.getKingdomOwner() != null)
-				.filter(land -> land.getKingdomOwner().equals(kingdom));
+				.filter(entry -> {
+					Optional<OfflineKingdom> optional = entry.getValue().getKingdomOwner();
+					if (!optional.isPresent())
+						return false;
+					if (!optional.get().equals(kingdom))
+						return false;
+					return true;
+				})
+				.map(entry -> entry.getValue());
 		long count = stream.count();
 		kingdom.getMembers().forEach(player -> player.onKingdomLeave());
 		stream.forEach(land -> unclaimLand(kingdom, land.getChunk()));
@@ -461,10 +475,10 @@ public class LandManager extends Manager {
 	}
 	
 	public boolean isConnectedToNexus(Land land) {
-		OfflineKingdom offlineKingdom = land.getKingdomOwner();
-		if (offlineKingdom == null)
+		Optional<OfflineKingdom> offlineKingdom = land.getKingdomOwner();
+		if (!offlineKingdom.isPresent())
 			return false;
-		Kingdom kingdom = offlineKingdom.getKingdom();
+		Kingdom kingdom = offlineKingdom.get().getKingdom();
 		Location nexusLocation = kingdom.getNexusLocation();
 		if (nexusLocation == null)
 			return false;
@@ -485,15 +499,27 @@ public class LandManager extends Manager {
 		unclaiming.add(name);
 		Set<Land> connected = new HashSet<>();
 		getLoadedLand().parallelStream()
-				.map(chunk -> getLand(chunk))
-				.filter(land -> land.getStructure() != null)
-				.filter(land -> land.getKingdomOwner() != null)
-				.filter(land -> land.getKingdomOwner().equals(kingdom))
+				.filter(entry -> entry.getValue().getStructure() != null)
+				.filter(entry -> {
+					Optional<OfflineKingdom> optional = entry.getValue().getKingdomOwner();
+					if (!optional.isPresent())
+						return false;
+					if (!optional.get().equals(kingdom))
+						return false;
+					return true;
+				})
+				.map(entry -> entry.getValue())
 				.forEach(land -> connected.addAll(getAllConnectingLand(land)));
 		Stream<Land> stream = getLoadedLand().parallelStream()
-				.map(chunk -> getLand(chunk))
-				.filter(land -> land.getKingdomOwner() != null)
-				.filter(land -> land.getKingdomOwner().equals(kingdom))
+				.filter(entry -> {
+					Optional<OfflineKingdom> optional = entry.getValue().getKingdomOwner();
+					if (!optional.isPresent())
+						return false;
+					if (!optional.get().equals(kingdom))
+						return false;
+					return true;
+				})
+				.map(entry -> entry.getValue())
 				.filter(land -> !connected.contains(land));
 		long count = stream.count();
 		stream.forEach(land -> unclaimLand(kingdom, land.getChunk()));
@@ -503,8 +529,17 @@ public class LandManager extends Manager {
 	
 	public Set<Land> getConnectingLand(Land center, Collection<Land> checked) {
 		return center.getSurrounding().parallelStream()
-				.filter(land -> land.getKingdomOwner() != null)
-				.filter(land -> land.getKingdomOwner().equals(center.getKingdomOwner()))
+				.filter(land -> {
+					Optional<OfflineKingdom> optional = land.getKingdomOwner();
+					if (!optional.isPresent())
+						return false;
+					Optional<OfflineKingdom> centerOptional = land.getKingdomOwner();
+					if (!centerOptional.isPresent())
+						return false;
+					if (!optional.get().equals(centerOptional.get()))
+						return false;
+					return true;
+				})
 				.collect(Collectors.toSet());
 	}
 	
@@ -538,9 +573,13 @@ public class LandManager extends Manager {
 				if (checked.contains(land))
 					continue;
 				checked.add(land);
-				if (land.getKingdomOwner() == null)
+				Optional<OfflineKingdom> landOptional = land.getKingdomOwner();
+				if (!landOptional.isPresent())
 					continue;
-				if (!land.getKingdomOwner().equals(center.getKingdomOwner()))
+				Optional<OfflineKingdom> centerOptional = land.getKingdomOwner();
+				if (!centerOptional.isPresent())
+					continue;
+				if (!landOptional.get().equals(centerOptional.get()))
 					continue;
 				connected.add(land);
 				newOutwards.add(land);
@@ -599,9 +638,10 @@ public class LandManager extends Manager {
 		}
 		Location location = block.getLocation();
 		Land land = getLand(location.getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (landKingdom == null)
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
 			return;
+		OfflineKingdom landKingdom = optional.get();
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		if (kingdomPlayer.hasAdminMode())
 			return;
@@ -658,9 +698,10 @@ public class LandManager extends Manager {
 	public void onEntityInteract(PlayerInteractAtEntityEvent event) {
 		Location location = event.getRightClicked().getLocation();
 		Land land = getLand(location.getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (landKingdom == null)
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
 			return;
+		OfflineKingdom landKingdom = optional.get();
 		Player player = event.getPlayer();
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		if (kingdomPlayer.hasAdminMode())
@@ -721,7 +762,7 @@ public class LandManager extends Manager {
 			if (citizensManager.get().isCitizen(player))
 				return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		if (kingdomPlayer.isAutoClaiming()){
+		if (kingdomPlayer.isAutoClaiming()) {
 			Bukkit.getScheduler().scheduleSyncDelayedTask(Kingdoms.getInstance(), new Runnable() {
 				public void run() {
 					playerClaimLand(kingdomPlayer);
@@ -741,8 +782,11 @@ public class LandManager extends Manager {
 		Location location = block.getRelative(event.getBlockFace()).getLocation();
 		Land land = getLand(location.getChunk());
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
-		OfflineKingdom kingdom = land.getKingdomOwner();
-		if (kingdom == null && !kingdomPlayer.hasAdminMode()) {
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom kingdom = optional.get();
+		if (!kingdomPlayer.hasAdminMode()) {
 			event.setCancelled(true);
 			new MessageBuilder("kingdoms.cannot-build-unoccupied-land")
 					.setPlaceholderObject(kingdomPlayer)
@@ -762,8 +806,11 @@ public class LandManager extends Manager {
 		Location location = block.getRelative(event.getBlockFace()).getLocation();
 		Land land = getLand(location.getChunk());
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
-		OfflineKingdom kingdom = land.getKingdomOwner();
-		if (kingdom == null && !kingdomPlayer.hasAdminMode()) {
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom kingdom = optional.get();
+		if (!kingdomPlayer.hasAdminMode()) {
 			event.setCancelled(true);
 			new MessageBuilder("kingdoms.cannot-build-unoccupied-land")
 					.setPlaceholderObject(kingdomPlayer)
@@ -785,8 +832,11 @@ public class LandManager extends Manager {
 		Location location = block.getLocation();
 		Land land = getLand(location.getChunk());
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
-		OfflineKingdom kingdom = land.getKingdomOwner();
-		if (kingdom == null && !kingdomPlayer.hasAdminMode()) {
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom kingdom = optional.get();
+		if (!kingdomPlayer.hasAdminMode()) {
 			event.setCancelled(true);
 			new MessageBuilder("kingdoms.cannot-build-unoccupied-land")
 					.setPlaceholderObject(kingdomPlayer)
@@ -808,8 +858,11 @@ public class LandManager extends Manager {
 		Location location = block.getLocation();
 		Land land = getLand(location.getChunk());
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
-		OfflineKingdom kingdom = land.getKingdomOwner();
-		if (kingdom == null && !kingdomPlayer.hasAdminMode()) {
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom kingdom = optional.get();
+		if (!kingdomPlayer.hasAdminMode()) {
 			event.setCancelled(true);
 			new MessageBuilder("kingdoms.cannot-build-unoccupied-land")
 					.setPlaceholderObject(kingdomPlayer)
@@ -837,7 +890,10 @@ public class LandManager extends Manager {
 			return;
 		Location location = entity.getLocation();
 		Land land = getLand(location.getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom landKingdom = optional.get();
 		if (landKingdom == null)
 			return;
 		Kingdom kingdom = kingdomPlayer.getKingdom();
@@ -884,7 +940,10 @@ public class LandManager extends Manager {
 			return;
 		Location location = block.getLocation();
 		Land land = getLand(location.getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom landKingdom = optional.get();
 		if (landKingdom == null)
 			return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
@@ -928,7 +987,10 @@ public class LandManager extends Manager {
 	public void onBucketOtherFill(PlayerBucketFillEvent event) {
 		Location location = event.getBlockClicked().getLocation();
 		Land land = getLand(location.getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom landKingdom = optional.get();
 		if (landKingdom == null)
 			return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
@@ -954,7 +1016,10 @@ public class LandManager extends Manager {
 	public void onBucketOtherEmpty(PlayerBucketEmptyEvent event) {
 		Location location = event.getBlockClicked().getLocation();
 		Land land = getLand(location.getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom landKingdom = optional.get();
 		if (landKingdom == null)
 			return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
@@ -980,7 +1045,10 @@ public class LandManager extends Manager {
 	public void onPlaceInOtherKingdom(BlockPlaceEvent event) {
 		Location location = event.getBlock().getLocation();
 		Land land = landManager.getLand(location.getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
+			return;
+		OfflineKingdom landKingdom = optional.get();
 		if (landKingdom == null)
 			return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
@@ -1021,16 +1089,28 @@ public class LandManager extends Manager {
 	}
 
 	@EventHandler
+	public void onChunkUnload(ChunkUnloadEvent event) {
+		Chunk chunk = event.getChunk();
+		if (lands.containsKey(chunk)) {
+			String name = LocationUtils.chunkToString(chunk);
+			Land land = lands.get(chunk);
+			if (land.isSignificant())
+				database.save(name, lands.get(chunk));
+			lands.remove(chunk);
+		}
+	}
+
+	@EventHandler
 	public void onFlowIntoKingdom(BlockFromToEvent event) {
 		if (!configuration.getBoolean("kingdoms.disable-liquid-flow-into", false))
 			return;
-		OfflineKingdom to = getLand(event.getToBlock().getLocation().getChunk()).getKingdomOwner();
-		if (to == null)
+		Optional<OfflineKingdom> to = getLand(event.getToBlock().getLocation().getChunk()).getKingdomOwner();
+		if (!to.isPresent())
 			return;
-		OfflineKingdom from = getLand(event.getBlock().getLocation().getChunk()).getKingdomOwner();
-		if (from == null)
+		Optional<OfflineKingdom> from = getLand(event.getBlock().getLocation().getChunk()).getKingdomOwner();
+		if (!from.isPresent())
 			event.setCancelled(true);
-		else if (!from.equals(to))
+		else if (!from.get().equals(to.get()))
 			event.setCancelled(true);
 	}
 

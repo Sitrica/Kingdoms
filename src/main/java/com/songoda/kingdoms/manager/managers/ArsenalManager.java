@@ -134,14 +134,15 @@ public class ArsenalManager extends Manager {
 			return;
 		}
 		Land land = landManager.getLand(block.getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (landKingdom == null) {
+		Optional<OfflineKingdom> optionalOwner = land.getKingdomOwner();
+		if (!optionalOwner.isPresent()) {
 			new MessageBuilder("messages.turret-breaker-wrong-usage")
 					.setPlaceholderObject(block)
 					.fromConfiguration(arsenal)
 					.send(player);
 			return;
 		}
+		OfflineKingdom landKingdom = optionalOwner.get();
 		if (landKingdom.equals(kingdom)) {
 			new MessageBuilder("messages.turret-breaker-wrong-usage")
 					.setPlaceholderObject(block)

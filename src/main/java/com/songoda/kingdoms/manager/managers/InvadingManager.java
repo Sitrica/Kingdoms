@@ -195,9 +195,10 @@ public class InvadingManager extends Manager {
 	 */
 	public LivingEntity startInvasion(Location location, KingdomPlayer challenger) {
 		Land land = landManager.getLand(location.getChunk());
-		OfflineKingdom kingdom = land.getKingdomOwner();
-		if (kingdom == null)
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
 			return null;
+		OfflineKingdom kingdom = optional.get();
 		if (kingdom.isOnline()) {
 			kingdom.getKingdom().getOnlinePlayers().forEach(player -> defenders.put(player, location));
 		}
@@ -435,9 +436,10 @@ public class InvadingManager extends Manager {
 	 */
 	public Monster spawnDefender(Location location, final KingdomPlayer challenger, EntityType type) {
 		Land land = landManager.getLand(location.getChunk());
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (landKingdom == null)
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
 			return null;
+		OfflineKingdom landKingdom = optional.get();
 		Player player = challenger.getPlayer();
 		player.setGameMode(GameMode.SURVIVAL);
 		Monster defender = (Monster) location.getWorld().spawnEntity(location, type);
@@ -487,13 +489,13 @@ public class InvadingManager extends Manager {
 		Land land = kingdomPlayer.getInvadingLand();
 		if (land == null)
 			return;
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (landKingdom == null) {
+		Optional<OfflineKingdom> landKingdom = land.getKingdomOwner();
+		if (!landKingdom.isPresent()) {
 			stopFight(kingdomPlayer);
 			return;
 		}
 		stopFight(kingdomPlayer);
-		Bukkit.getPluginManager().callEvent(new InvadingSurrenderEvent(kingdomPlayer, landKingdom, land));
+		Bukkit.getPluginManager().callEvent(new InvadingSurrenderEvent(kingdomPlayer, landKingdom.get(), land));
 	}
 
 	@EventHandler
@@ -509,13 +511,13 @@ public class InvadingManager extends Manager {
 		Land land = kingdomPlayer.getInvadingLand();
 		if (land == null)
 			return;
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (landKingdom == null) {
+		Optional<OfflineKingdom> landKingdom = land.getKingdomOwner();
+		if (!landKingdom.isPresent()) {
 			stopFight(kingdomPlayer);
 			return;
 		}
 		stopFight(kingdomPlayer);
-		Bukkit.getPluginManager().callEvent(new InvadingSurrenderEvent(kingdomPlayer, landKingdom, land));
+		Bukkit.getPluginManager().callEvent(new InvadingSurrenderEvent(kingdomPlayer, landKingdom.get(), land));
 	}
 
 	@EventHandler
@@ -545,12 +547,12 @@ public class InvadingManager extends Manager {
 		if (kingdom == null) 
 			return;
 		Land land = challenger.getInvadingLand();
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		Bukkit.getPluginManager().callEvent(new InvadingSurrenderEvent(challenger, landKingdom, land));
+		Optional<OfflineKingdom> landKingdom = land.getKingdomOwner();
+		Bukkit.getPluginManager().callEvent(new InvadingSurrenderEvent(challenger, landKingdom.orElse(null), land));
 		stopFight(challenger);
 		new MessageBuilder("kingdoms.defender-void-death")
 				.setPlaceholderObject(challenger)
-				.setKingdom(landKingdom)
+				.setKingdom(landKingdom.isPresent() ? landKingdom.get() : null)
 				.send(challenger);
 	}
 
@@ -672,14 +674,14 @@ public class InvadingManager extends Manager {
 		Land land = challenger.getInvadingLand();
 		if (land == null)
 			return;
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (landKingdom == null) {
+		Optional<OfflineKingdom> landKingdom = land.getKingdomOwner();
+		if (!landKingdom.isPresent()) {
 			stopFight(challenger);
 			return;
 		}	
 		stopFight(challenger);
 		event.getDrops().clear();
-		// Should not be the end of the invasion, should only be a Defender death event.
+		//TODO Should not be the end of the invasion, should only be a Defender death event.
 		//instance.getServer().getPluginManager().callEvent(new KingdomPlayerWonEvent(challenger, defenderKingdom, land));
 	}
 

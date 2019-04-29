@@ -1,18 +1,6 @@
 package com.songoda.kingdoms.manager.managers;
 
-import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
-import com.songoda.kingdoms.events.PlayerUnwaterlogEvent;
-import com.songoda.kingdoms.events.PlayerWaterlogEvent;
-import com.songoda.kingdoms.manager.Manager;
-import com.songoda.kingdoms.manager.managers.external.CitizensManager;
-import com.songoda.kingdoms.manager.managers.external.WorldGuardManager;
-import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
-import com.songoda.kingdoms.objects.land.Land;
-import com.songoda.kingdoms.objects.player.KingdomPlayer;
-import com.songoda.kingdoms.objects.turrets.Turret;
-import com.songoda.kingdoms.utils.IntervalUtils;
-import com.songoda.kingdoms.utils.LocationUtils;
-import com.songoda.kingdoms.utils.MessageBuilder;
+import java.util.Optional;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -33,9 +21,18 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
+import com.songoda.kingdoms.events.PlayerUnwaterlogEvent;
+import com.songoda.kingdoms.events.PlayerWaterlogEvent;
+import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.managers.external.CitizensManager;
+import com.songoda.kingdoms.manager.managers.external.WorldGuardManager;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.objects.land.Land;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
+import com.songoda.kingdoms.utils.IntervalUtils;
+import com.songoda.kingdoms.utils.LocationUtils;
+import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class PlayerMovementManager extends Manager {
 
@@ -128,40 +125,12 @@ public class PlayerMovementManager extends Manager {
 	}
 
 	@EventHandler
-	public void onPlayerMove(PlayerMoveEvent event) {
+	public void onChunkChange(PlayerMoveEvent event) {
 		Player player = event.getPlayer();
-		World world = player.getWorld();
-		if (worldManager.acceptsWorld(world))
-			return;
-		if (citizensManager.isPresent())
-			if (citizensManager.get().isCitizen(player))
-				return;
 		Location from = event.getFrom();
 		Location to = event.getTo();
 		Chunk chunkFrom = from.getChunk();
 		Chunk chunkTo = to.getChunk();
-		int centerX = chunkTo.getX(), centerZ = chunkTo.getZ();
-		for (int x = -1; x <= 1; x++) {
-			for (int z = -1; z <= 1; z++) {
-				Chunk next = world.getChunkAt(centerX + x, centerZ + z);
-				Land land = landManager.getLand(next);
-				for (Turret turret : land.getTurrets()) {
-					//attempt to get the closest player to the turret
-					Location turretLocation = turret.getLocation();
-					Player closest = null;
-					double closestDistance = 0.0;
-					for (Player p : getNearbyPlayers(turretLocation, turret.getType().getRange())) {
-						double distance = p.getLocation().distance(turretLocation);
-						if (distance > closestDistance) {
-							closest = p;
-							closestDistance = distance;
-						}
-					}
-					if (closest != null)
-						turret.fireAt(closest);
-				}
-			}
-		}
 		if (chunkTo.equals(chunkFrom))
 			return;
 		if (configuration.getBoolean("invading.invading-deny-chunk-change", true)) {
@@ -207,15 +176,15 @@ public class PlayerMovementManager extends Manager {
 		Land landTo = landManager.getLand(chunkTo);
 		if (chunkFrom != null) {
 			Land landFrom = landManager.getLand(chunkFrom);
-			OfflineKingdom fromOwner = landFrom.getKingdomOwner();
-			OfflineKingdom toOwner = landTo.getKingdomOwner();
-			if (fromOwner == null && toOwner == null)
+			Optional<OfflineKingdom> fromOwner = landFrom.getKingdomOwner();
+			Optional<OfflineKingdom> toOwner = landTo.getKingdomOwner();
+			if (!fromOwner.isPresent() && !toOwner.isPresent())
 				return;
-			else if (fromOwner.equals(toOwner))
+			else if (toOwner.get().equals(fromOwner.get()))
 				return;
 		}
-		OfflineKingdom kingdom = landTo.getKingdomOwner();
-		if (kingdom == null) {
+		Optional<OfflineKingdom> optional = landTo.getKingdomOwner();
+		if (!optional.isPresent()) {
 			if (configuration.getBoolean("kingdoms.land-enter-unoccupied.actionbar", true))
 				new MessageBuilder(false, "map.unoccupied-land.actionbar")
 						.setPlaceholderObject(LocationUtils.chunkToString(chunkFrom)) // %string% can be used.
@@ -246,6 +215,7 @@ public class PlayerMovementManager extends Manager {
 			spam = System.currentTimeMillis();
 			return;
 		}
+		OfflineKingdom kingdom = optional.get();
 		ChatColor color = ChatColor.WHITE;
 		// Player has no Kingdom, so they have no alliances nor enemies.
 		if (kingdomPlayer.getKingdom() == null)
@@ -355,16 +325,6 @@ public class PlayerMovementManager extends Manager {
 					.sendTitle(player);
 		spam = System.currentTimeMillis();
 		return;
-	}
-
-	private Set<Player> getNearbyPlayers(Location location, double distance) {
-		double distanceSquared = distance * distance;
-		Set<Player> nearby = new HashSet<>();
-		Bukkit.getOnlinePlayers().parallelStream()
-				.filter(player -> player.getLocation().distanceSquared(location) < distanceSquared)
-				.filter(player -> !player.getWorld().equals(location.getWorld()))
-				.forEach(player -> nearby.add(player));
-		return nearby;
 	}
 
 	@Override

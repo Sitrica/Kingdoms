@@ -1,5 +1,7 @@
 package com.songoda.kingdoms.placeholders;
 
+import java.util.Optional;
+
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
@@ -57,9 +59,9 @@ public class HologramPlaceholders {
 		RelativePlaceholder.register(new RelativePlaceholder("{kingdom-at}") {
 			@Override
 			public String getReplacement(Player player) {
-				OfflineKingdom kingdom = landManager.getLandAt(player.getLocation()).getKingdomOwner();
-				String notFound = Formatting.color(messages.getString("messages.holographic-displays.no-kingdom-at", "No Kingdom"));
-				return kingdom != null ? kingdom.getName() : notFound;
+				Optional<OfflineKingdom> kingdom = landManager.getLandAt(player.getLocation()).getKingdomOwner();
+				String string = Formatting.color(messages.getString("messages.holographic-displays.no-kingdom-at", "No Kingdom"));
+				return kingdom.isPresent() ? kingdom.get().getName() : string;
 			}
 		});
 	}

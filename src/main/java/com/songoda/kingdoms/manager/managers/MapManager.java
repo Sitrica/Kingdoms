@@ -1,6 +1,7 @@
 package com.songoda.kingdoms.manager.managers;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -44,8 +45,9 @@ public class MapManager extends Manager {
 			Kingdom kingdom = kingdomPlayer.getKingdom();
 			Chunk chunk = kingdomPlayer.getChunkAt();
 			Land land = landManager.getLand(chunk);
-			OfflineKingdom landKingdom = land.getKingdomOwner();
-			if (landKingdom != null && kingdom != null) {
+			Optional<OfflineKingdom> optional = land.getKingdomOwner();
+			if (optional.isPresent() && kingdom != null) {
+				OfflineKingdom landKingdom = optional.get();
 				if (kingdom.isAllianceWith(kingdom))
 					cck = ChatColor.LIGHT_PURPLE + kingdom.getName();
 				else if (landKingdom.equals(kingdom))
@@ -101,14 +103,12 @@ public class MapManager extends Manager {
 
 	private String mapIdentifyChunk(Chunk chunk, KingdomPlayer kingdomPlayer, boolean structures) {
 		String icon = ChatColor.AQUA+"▩";
-		
 		Land land = landManager.getLand(chunk);
 		Structure structure = land.getStructure();
-		
-		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (landKingdom == null)
+		Optional<OfflineKingdom> optional = land.getKingdomOwner();
+		if (!optional.isPresent())
 			return icon;
-		
+		OfflineKingdom landKingdom = optional.get();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null)
 			return ChatColor.GRAY + "▩";

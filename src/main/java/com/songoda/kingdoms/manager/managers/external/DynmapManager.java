@@ -2,6 +2,7 @@ package com.songoda.kingdoms.manager.managers.external;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.bukkit.Chunk;
@@ -48,7 +49,7 @@ public class DynmapManager extends ExternalManager {
 		if (set != null)
 			set.deleteMarkerSet();
 		this.landManager = instance.getManager("land", LandManager.class);
-		server.getScheduler().runTaskTimerAsynchronously(instance, () -> landManager.getLoadedLand().forEach(chunk -> consumer.accept(chunk)), 0, 20);
+		server.getScheduler().runTaskTimerAsynchronously(instance, () -> landManager.getLoadedLand().forEach(entry -> consumer.accept(entry.getKey())), 0, 20);
 	}
 
 	public void update(Chunk chunk) {
@@ -64,14 +65,15 @@ public class DynmapManager extends ExternalManager {
 				set = marker.createMarkerSet("com/songoda/kingdoms", "com/songoda/kingdoms", null, true);
 			AreaMarker amarker;
 			Land land = landManager.getLand(chunk);
-			OfflineKingdom landKingdom = land.getKingdomOwner();
+			Optional<OfflineKingdom> optional = land.getKingdomOwner();
 			String chunkString = LocationUtils.chunkToString(chunk);
-			if (landKingdom == null) {
+			if (!optional.isPresent()) {
 				amarker = set.findAreaMarker(chunkString);
 				if (amarker != null)
 					amarker.deleteMarker();
 				return;
 			}
+			OfflineKingdom landKingdom = optional.get();
 			List<Double> arrX = new ArrayList<Double>();
 			List<Double> arrZ = new ArrayList<Double>();
 
