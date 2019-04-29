@@ -64,7 +64,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 public class TurretManager extends Manager {
 	
@@ -146,8 +145,7 @@ public class TurretManager extends Manager {
 		return metadatable.getMetadata(METADATA_KINGDOM).parallelStream()
 				.filter(metadata -> metadata.getOwningPlugin().equals(instance))
 				.map(metadata -> metadata.asString())
-				.map(string -> UUID.fromString(string))
-				.map(uuid -> kingdomManager.getOfflineKingdom(uuid))
+				.map(name -> kingdomManager.getOfflineKingdom(name))
 				.filter(kingdom -> kingdom.isPresent())
 				.map(optional -> optional.get())
 				.findFirst();
@@ -482,7 +480,7 @@ public class TurretManager extends Manager {
 				new MessageBuilder("kingdoms.no-kingdom").send(player);
 				return;
 			}
-			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+			if (!kingdom.equals(landKingdom)) {
 				new MessageBuilder("kingdoms.not-in-land")
 						.setKingdom(kingdom)
 						.send(player);
@@ -561,7 +559,7 @@ public class TurretManager extends Manager {
 		}	
 		Land land = landManager.getLand(turretBlock.getChunk());
 		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (!kingdomPlayer.hasAdminMode() && landKingdom == null || !kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+		if (!kingdomPlayer.hasAdminMode() && landKingdom == null || !kingdom.equals(landKingdom)) {
 			new MessageBuilder("kingdoms.not-in-land")
 					.setPlaceholderObject(kingdomPlayer)
 					.setKingdom(landKingdom)
@@ -724,26 +722,6 @@ public class TurretManager extends Manager {
 	}
 
 	/*
-	@EventHandler
-	public void onLandLoadOld(LandLoadEvent event) {
-		Iterator<Turret> iter = e.getLand().getTurrets().iterator();
-		Turret turret = null;
-		ArrayList<Turret> remove = new ArrayList();
-		while(iter.hasNext()){
-			turret = iter.next();
-			if(turret == null) continue;
-	
-			if(remove != null && remove.size() > 0){
-				remove.addAll(initTurret(e.getLand(), turret));
-			}
-		}
-		for(Turret t : remove){
-			t.destroy();
-		}
-		//2016-08-11
-		//loadQueue.add(e.getLand());
-	}
-
 	private ArrayList<Turret> initTurret(Land land, Turret turret) {
 		Set<Turret> turrets = land.getTurrets();
 		if (turrets.isEmpty())
@@ -871,26 +849,6 @@ public class TurretManager extends Manager {
 	*/
 	
 	/*
-	public Set<Entity> getChunkEntities(Chunk chunk, int range) {
-		Set<Entity> entities = new HashSet<>();
-		int radius = 1;
-		double newRadius = (double) range / 16D;
-		if (newRadius > radius) {
-			radius = (int) Math.ceil(newRadius);
-			if (radius < 1)
-				radius = 1;
-		}
-		for(int x = -radius; x <= radius; x++){
-			for(int z = -radius; z <= radius; z++){
-				Chunk c = chunk.getWorld().getChunkAt(chunk.getX() + x, chunk.getZ() + z);
-				for(Entity e : c.getEntities()){
-					if(e instanceof Player) mobs.add(e);
-				}
-			}
-		}
-		return entities;
-	}
-	
 	@EventHandler
 	public void onBlockUnderPressurePlateBreak(BlockBreakEvent event) {
 		Block block = event.getBlock().getRelative(0, 1, 0);

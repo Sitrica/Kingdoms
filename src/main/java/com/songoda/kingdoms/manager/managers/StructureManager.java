@@ -160,9 +160,10 @@ public class StructureManager extends Manager {
 				Structure structureAround = landAround.getStructure();
 				if (structureAround == null)
 					continue;
-				if (landAround.getKingdomOwner() == null)
+				OfflineKingdom owner = landAround.getKingdomOwner();
+				if (owner == null)
 					continue;
-				if (land.getKingdomOwner().getUniqueId().equals(landAround.getKingdomOwner().getUniqueId())) {
+				if (land.getKingdomOwner().equals(owner)) {
 					if (structureAround.getType() == StructureType.POWERCELL)
 						return false;
 				}
@@ -242,7 +243,7 @@ public class StructureManager extends Manager {
 		}
 		Land land = landManager.getLand(block.getChunk());
 		OfflineKingdom landKingdom = land.getKingdomOwner();
-		if (!kingdomPlayer.hasAdminMode() && landKingdom == null || !kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+		if (!kingdomPlayer.hasAdminMode() && landKingdom == null || !kingdom.equals(landKingdom)) {
 			new MessageBuilder("kingdoms.not-in-land")
 					.setPlaceholderObject(kingdomPlayer)
 					.setKingdom(landKingdom)
@@ -323,7 +324,7 @@ public class StructureManager extends Manager {
 		if (kingdom == null && !kingdomPlayer.hasAdminMode())
 			return;
 		if (!kingdomPlayer.hasAdminMode() && landKingdom != null) {
-			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+			if (!kingdom.equals(landKingdom)) {
 				new MessageBuilder("kingdoms.not-in-land")
 						.setPlaceholderObject(kingdomPlayer)
 						.setKingdom(landKingdom)
@@ -404,7 +405,7 @@ public class StructureManager extends Manager {
 			breakStructureAt(land);
 			return;
 		}
-		if (!landKingdom.getUniqueId().equals(kingdom.getUniqueId())) {
+		if (!landKingdom.equals(kingdom)) {
 			new MessageBuilder("kingdoms.not-in-land")
 					.setKingdom(landKingdom)
 					.send(kingdomPlayer);

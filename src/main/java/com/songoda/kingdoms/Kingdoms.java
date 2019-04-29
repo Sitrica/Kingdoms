@@ -90,7 +90,7 @@ public class Kingdoms extends JavaPlugin {
 	}
 
 	public static void consoleMessage(String string) {
-		Bukkit.getLogger().info(Formatting.color(prefix + string));
+		Bukkit.getConsoleSender().sendMessage(Formatting.color(prefix + string));
 	}
 
 	public static void debugMessage(String string) {

@@ -1,7 +1,6 @@
 package com.songoda.kingdoms.database.serializers;
 
 import java.lang.reflect.Type;
-import java.util.Optional;
 import java.util.UUID;
 
 import com.google.gson.JsonArray;
@@ -12,7 +11,6 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.Serializer;
-import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.manager.managers.RankManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
@@ -21,11 +19,9 @@ import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 
 public class OfflineKingdomPlayerSerializer implements Serializer<OfflineKingdomPlayer> {
 
-	private final KingdomManager kingdomManager;
 	private final RankManager rankManager;
 
 	public OfflineKingdomPlayerSerializer() {
-		this.kingdomManager = Kingdoms.getInstance().getManager("kingdom", KingdomManager.class);
 		this.rankManager = Kingdoms.getInstance().getManager("rank", RankManager.class);
 	}
 
@@ -36,7 +32,7 @@ public class OfflineKingdomPlayerSerializer implements Serializer<OfflineKingdom
 		json.addProperty("uuid", player.getUniqueId() + "");
 		OfflineKingdom kingdom = player.getKingdom();
 		if (kingdom != null)
-			json.addProperty("kingdom", kingdom.getUniqueId() + "");
+			json.addProperty("kingdom", kingdom.getName());
 		JsonArray claims = new JsonArray();
 		LandSerializer landSerializer = new LandSerializer();
 		player.getClaims().forEach(land -> claims.add(landSerializer.serialize(land, Land.class, context)));
@@ -60,14 +56,8 @@ public class OfflineKingdomPlayerSerializer implements Serializer<OfflineKingdom
 			player.setRank(rank);
 		}
 		JsonElement kingdomElement = object.get("kingdom");
-		if (kingdomElement != null && !kingdomElement.isJsonNull()) {
-			UUID kingdomUuid = UUID.fromString(kingdomElement.getAsString());
-			if (uuid != null) {
-				Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(kingdomUuid);
-				if (kingdom.isPresent())
-					player.setKingdom(kingdom.get());
-			}
-		}
+		if (kingdomElement != null && !kingdomElement.isJsonNull())
+			player.setKingdom(kingdomElement.getAsString());
 		JsonElement claimsElement = object.get("claims");
 		if (claimsElement != null && !claimsElement.isJsonNull() && claimsElement.isJsonArray()) {
 			LandSerializer landSerializer = new LandSerializer();

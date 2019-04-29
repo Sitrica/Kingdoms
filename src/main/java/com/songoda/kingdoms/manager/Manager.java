@@ -14,17 +14,17 @@ import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.Database;
 import com.songoda.kingdoms.database.DatabaseTransferTask;
 import com.songoda.kingdoms.database.MySQLDatabase;
-import com.songoda.kingdoms.database.SQLiteDatabase;
 import com.songoda.kingdoms.database.YamlDatabase;
 import com.songoda.kingdoms.database.DatabaseTransferTask.TransferPair;
+import com.songoda.kingdoms.database.H2Database;
 
 public abstract class Manager implements Listener, Comparable<Manager> {
 
 	private final Map<Class<?>, Database<?>> databases = new HashMap<>();
 	protected final FileConfiguration configuration;
 	protected final Kingdoms instance;
-	protected final String name;
 	private final boolean listener;
+	private final String name;
 	private String[] after;
 
 	protected Manager(String name, boolean listener) {
@@ -58,7 +58,7 @@ public abstract class Manager implements Listener, Comparable<Manager> {
 			Kingdoms.consoleMessage("MySQL connection " + address + " was a success!");
 			databases.put(type, (MySQLDatabase<?>) database);
 			if (configuration.getBoolean("database.transfer.mysql", false)) {
-				TransferPair<T> transfer = new TransferPair<T>(database, getSQLiteDatabase(table, type));
+				TransferPair<T> transfer = new TransferPair<T>(database, getFileDatabase(table, type));
 				new Thread(new DatabaseTransferTask<T>(instance, transfer)).start();
 			}
 			return database;
@@ -69,24 +69,24 @@ public abstract class Manager implements Listener, Comparable<Manager> {
 		} finally {
 			if (database == null) {
 				Kingdoms.consoleMessage("Attempting to use SQLite instead...");
-				database = getSQLiteDatabase(table, type);
+				database = getFileDatabase(table, type);
 			}
 		}
 		return database;
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <T> Database<T> getSQLiteDatabase(String table, Class<T> type) {
+	protected <T> Database<T> getFileDatabase(String table, Class<T> type) {
 		if (databases.containsKey(type))
-			return (SQLiteDatabase<T>) databases.get(type);
+			return (H2Database<T>) databases.get(type);
 		Database<T> database = null;
 		try {
 			//TODO make a database that reads db.db SQLite database if it exists and convert that old data.
-			database = new SQLiteDatabase<>("database.db", table, type);
-			Kingdoms.consoleMessage("Using SQLite database for " + type.getSimpleName() + " data");
+			database = new H2Database<>(table, type);
+			Kingdoms.consoleMessage("Using H2 database for " + type.getSimpleName() + " data");
 			databases.put(type, database);
 		} catch (ClassNotFoundException | SQLException e) {
-			Kingdoms.consoleMessage("SQLite failed...");
+			Kingdoms.consoleMessage("H2 failed...");
 			Kingdoms.consoleMessage("Using Yaml instead.");
 			database = new YamlDatabase<T>();
 		}

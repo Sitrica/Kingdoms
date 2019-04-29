@@ -97,7 +97,7 @@ public class LandManager extends Manager {
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(table, Land.class);
 		else
-			database = getSQLiteDatabase(table, Land.class);
+			database = getFileDatabase(table, Land.class);
 		if (configuration.getBoolean("database.auto-save.enabled")) {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
 			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, saveTask, 0, IntervalUtils.getInterval(interval) * 20);
@@ -277,7 +277,7 @@ public class LandManager extends Manager {
 		String chunkString = LocationUtils.chunkToString(chunk);
 		if (land.getKingdomOwner() != null) {
 			OfflineKingdom landKingdom = land.getKingdomOwner();
-			if (landKingdom.getUniqueId().equals(kingdom.getUniqueId())) {
+			if (landKingdom.equals(kingdom)) {
 				new MessageBuilder("claiming.already-owned")
 						.replace("%chunk%", chunkString)
 						.replace("%kingdom%", landKingdom.getName())
@@ -332,11 +332,9 @@ public class LandManager extends Manager {
 						Chunk c = world.getChunkAt(chunk.getX() + x, chunk.getZ() + z);
 						Land adjustment = getLand(c);
 						OfflineKingdom owner = adjustment.getKingdomOwner();
-						if (owner != null) {
-							if(owner.getUniqueId().equals(kingdom.getUniqueId())){
-								connected = true;
-								break;
-							}
+						if (owner != null && owner.equals(kingdom)) {
+							connected = true;
+							break;
 						}
 					}
 				}
@@ -490,12 +488,12 @@ public class LandManager extends Manager {
 				.map(chunk -> getLand(chunk))
 				.filter(land -> land.getStructure() != null)
 				.filter(land -> land.getKingdomOwner() != null)
-				.filter(land -> land.getKingdomOwner().getUniqueId().equals(kingdom.getUniqueId()))
+				.filter(land -> land.getKingdomOwner().equals(kingdom))
 				.forEach(land -> connected.addAll(getAllConnectingLand(land)));
 		Stream<Land> stream = getLoadedLand().parallelStream()
 				.map(chunk -> getLand(chunk))
 				.filter(land -> land.getKingdomOwner() != null)
-				.filter(land -> land.getKingdomOwner().getUniqueId().equals(kingdom.getUniqueId()))
+				.filter(land -> land.getKingdomOwner().equals(kingdom))
 				.filter(land -> !connected.contains(land));
 		long count = stream.count();
 		stream.forEach(land -> unclaimLand(kingdom, land.getChunk()));
@@ -506,7 +504,7 @@ public class LandManager extends Manager {
 	public Set<Land> getConnectingLand(Land center, Collection<Land> checked) {
 		return center.getSurrounding().parallelStream()
 				.filter(land -> land.getKingdomOwner() != null)
-				.filter(land -> land.getKingdomOwner().getUniqueId().equals(center.getKingdomOwner().getUniqueId()))
+				.filter(land -> land.getKingdomOwner().equals(center.getKingdomOwner()))
 				.collect(Collectors.toSet());
 	}
 	
@@ -542,7 +540,7 @@ public class LandManager extends Manager {
 				checked.add(land);
 				if (land.getKingdomOwner() == null)
 					continue;
-				if (!land.getKingdomOwner().getUniqueId().equals(center.getKingdomOwner().getUniqueId()))
+				if (!land.getKingdomOwner().equals(center.getKingdomOwner()))
 					continue;
 				connected.add(land);
 				newOutwards.add(land);
@@ -612,7 +610,7 @@ public class LandManager extends Manager {
 			event.setCancelled(true);
 			new MessageBuilder("kingdoms.cannot-interact-land-no-kingdom").send(player);
 		} else {
-			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+			if (!kingdom.equals(landKingdom)) {
 				event.setCancelled(true);
 				new MessageBuilder("kingdoms.cannot-interact-land")
 						.replace("%playerkingdom%", kingdom.getName())
@@ -672,7 +670,7 @@ public class LandManager extends Manager {
 			event.setCancelled(true);
 			new MessageBuilder("kingdoms.cannot-interact-land-no-kingdom").send(player);
 		} else {
-			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+			if (!kingdom.equals(landKingdom)) {
 				event.setCancelled(true);
 				new MessageBuilder("kingdoms.cannot-interact-land")
 						.replace("%playerkingdom%", kingdom.getName())
@@ -847,7 +845,7 @@ public class LandManager extends Manager {
 			event.setCancelled(true);
 			new MessageBuilder("kingdoms.cannot-interact-land-no-kingdom").send(kingdomPlayer);
 		} else {
-			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+			if (!kingdom.equals(landKingdom)) {
 				event.setCancelled(true);
 				new MessageBuilder("kingdoms.cannot-interact-land")
 						.replace("%playerkingdom%", kingdom.getName())
@@ -897,7 +895,7 @@ public class LandManager extends Manager {
 			event.setCancelled(true);
 			new MessageBuilder("kingdoms.cannot-interact-land-no-kingdom").send(kingdomPlayer);
 		} else {
-			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+			if (!kingdom.equals(landKingdom)) {
 				event.setCancelled(true);
 				new MessageBuilder("kingdoms.cannot-interact-land")
 						.replace("%playerkingdom%", kingdom.getName())
@@ -941,7 +939,7 @@ public class LandManager extends Manager {
 			event.setCancelled(true);
 			new MessageBuilder("kingdoms.cannot-interact-land-no-kingdom").send(kingdomPlayer);
 		} else {
-			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+			if (!kingdom.equals(landKingdom)) {
 				event.setCancelled(true);
 				new MessageBuilder("kingdoms.cannot-interact-land")
 						.replace("%playerkingdom%", kingdom.getName())
@@ -967,7 +965,7 @@ public class LandManager extends Manager {
 			event.setCancelled(true);
 			new MessageBuilder("kingdoms.cannot-interact-land-no-kingdom").send(kingdomPlayer);
 		} else {
-			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+			if (!kingdom.equals(landKingdom)) {
 				event.setCancelled(true);
 				new MessageBuilder("kingdoms.cannot-interact-land")
 						.replace("%playerkingdom%", kingdom.getName())
@@ -993,7 +991,7 @@ public class LandManager extends Manager {
 			event.setCancelled(true);
 			new MessageBuilder("kingdoms.cannot-interact-land-no-kingdom").send(kingdomPlayer);
 		} else {
-			if (!kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+			if (!kingdom.equals(landKingdom)) {
 				event.setCancelled(true);
 				new MessageBuilder("kingdoms.cannot-interact-land")
 						.replace("%playerkingdom%", kingdom.getName())
@@ -1030,11 +1028,10 @@ public class LandManager extends Manager {
 		if (to == null)
 			return;
 		OfflineKingdom from = getLand(event.getBlock().getLocation().getChunk()).getKingdomOwner();
-		if (from == null) {
+		if (from == null)
 			event.setCancelled(true);
-		} else if (!from.getUniqueId().equals(to.getUniqueId())) {
+		else if (!from.equals(to))
 			event.setCancelled(true);
-		}
 	}
 
 	@Override

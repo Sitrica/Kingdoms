@@ -211,7 +211,7 @@ public class PlayerMovementManager extends Manager {
 			OfflineKingdom toOwner = landTo.getKingdomOwner();
 			if (fromOwner == null && toOwner == null)
 				return;
-			else if (fromOwner.getUniqueId() == toOwner.getUniqueId())
+			else if (fromOwner.equals(toOwner))
 				return;
 		}
 		OfflineKingdom kingdom = landTo.getKingdomOwner();

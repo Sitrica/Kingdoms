@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 
-public class SQLiteDatabase<T> extends Database<T> {
+public class H2Database<T> extends Database<T> {
 
 	private final Queue<PreparedStatement> statements = new ArrayDeque<>();
 	private final Kingdoms instance;
@@ -20,12 +20,12 @@ public class SQLiteDatabase<T> extends Database<T> {
 	private final Type type;
 	private boolean busy;
 
-	public SQLiteDatabase(String name, String tablename, Type type) throws SQLException, ClassNotFoundException {
+	public H2Database(String tablename, Type type) throws SQLException, ClassNotFoundException {
 		this.instance = Kingdoms.getInstance();
 		this.tablename = tablename;
 		this.type = type;
-		String url = "jdbc:sqlite:" + instance.getDataFolder().getAbsolutePath() + File.separator + name;
-		Class.forName("org.sqlite.JDBC");
+		Class.forName("org.h2.Driver");
+		String url = "jdbc:h2:" + instance.getDataFolder().getAbsolutePath() + File.separator + "database";
 		connection = DriverManager.getConnection(url);
 		if (connection == null)
 			return;

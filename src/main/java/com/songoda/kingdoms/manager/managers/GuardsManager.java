@@ -5,8 +5,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.UUID;
-
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -90,8 +88,7 @@ public class GuardsManager extends Manager {
 		return metadatable.getMetadata(GUARD_KINGDOM).parallelStream()
 				.filter(metadata -> metadata.getOwningPlugin().equals(instance))
 				.map(metadata -> metadata.asString())
-				.map(string -> UUID.fromString(string))
-				.map(uuid -> kingdomManager.getOfflineKingdom(uuid))
+				.map(name -> kingdomManager.getOfflineKingdom(name))
 				.filter(kingdom -> kingdom.isPresent())
 				.map(optional -> optional.get())
 				.findFirst();
@@ -115,7 +112,7 @@ public class GuardsManager extends Manager {
 				.setKingdom(owner)
 				.get());
 		zombie.setCustomNameVisible(true);
-		zombie.setMetadata(GUARD_KINGDOM, new FixedMetadataValue(instance, owner.getUniqueId()));
+		zombie.setMetadata(GUARD_KINGDOM, new FixedMetadataValue(instance, owner.getName()));
 		DefenderInfo defenderInfo = owner.getDefenderInfo();
 		int weapon = defenderInfo.getWeapon();
 		if (weapon == 1)
@@ -147,7 +144,7 @@ public class GuardsManager extends Manager {
 			targets.put(creeper, player);
 			creeper.setTarget(player);
 		}
-		creeper.setMetadata(GUARD_KINGDOM, new FixedMetadataValue(instance, owner.getUniqueId()));
+		creeper.setMetadata(GUARD_KINGDOM, new FixedMetadataValue(instance, owner.getName()));
 		creeper.setCustomName(new MessageBuilder("kingdoms.siege-breaker-name")
 				.setPlaceholderObject(target)
 				.setKingdom(owner)

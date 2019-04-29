@@ -1,8 +1,6 @@
 package com.songoda.kingdoms.database.handlers;
 
 import java.util.Optional;
-import java.util.UUID;
-
 import org.bukkit.Location;
 
 import com.google.gson.JsonArray;
@@ -53,7 +51,7 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 	public JsonObject serialize(OfflineKingdom kingdom, JsonObject json, JsonSerializationContext context) {
 		json.add("spawn", locationSerializer.serialize(kingdom.getSpawn(), Location.class, context));
 		json.add("powerup", powerupSerializer.serialize(kingdom.getPowerup(), Powerup.class, context));
-		json.add("king", playerSerializer.serialize(kingdom.getKing(), OfflineKingdomPlayer.class, context));
+		json.add("king", playerSerializer.serialize(kingdom.getOwner(), OfflineKingdomPlayer.class, context));
 		json.add("nexus", locationSerializer.serialize(kingdom.getNexusLocation(), Location.class, context));
 		json.add("defender-info", defenderSerializer.serialize(kingdom.getDefenderInfo(), DefenderInfo.class, context));
 		JsonArray claims = new JsonArray();
@@ -63,10 +61,10 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 		kingdom.getWarps().forEach(warp -> warps.add(warpSerializer.serialize(warp, WarpPad.class, context)));
 		json.add("warps", warps);
 		JsonArray allies = new JsonArray();
-		kingdom.getAllies().forEach(ally -> allies.add(ally.getUniqueId() + ""));
+		kingdom.getAllies().forEach(ally -> allies.add(ally.getName()));
 		json.add("allies", allies);
 		JsonArray eneimies = new JsonArray();
-		kingdom.getEnemies().forEach(enemy -> eneimies.add(enemy.getUniqueId() + ""));
+		kingdom.getEnemies().forEach(enemy -> eneimies.add(enemy.getName()));
 		json.add("eneimies", eneimies);
 		JsonArray members = new JsonArray();
 		kingdom.getMembers().forEach(member -> members.add(playerSerializer.serialize(member, OfflineKingdomPlayer.class, context)));
@@ -142,13 +140,10 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 		return kingdom;
 	}
 
-	private OfflineKingdom getKingdom(String input) {
-		UUID uuid = UUID.fromString(input);
-		if (uuid != null) {
-			Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(uuid);
-			if (kingdom.isPresent())
-				return kingdom.get();
-		}
+	private OfflineKingdom getKingdom(String name) {
+		Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(name);
+		if (kingdom.isPresent())
+			return kingdom.get();
 		return null;
 	}
 

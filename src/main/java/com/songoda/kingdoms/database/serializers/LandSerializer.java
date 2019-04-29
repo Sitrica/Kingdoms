@@ -2,8 +2,6 @@ package com.songoda.kingdoms.database.serializers;
 
 import java.lang.reflect.Type;
 import java.util.Optional;
-import java.util.UUID;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -39,7 +37,7 @@ public class LandSerializer implements Serializer<Land> {
 		json.addProperty("z", land.getZ());
 		OfflineKingdom kingdom = land.getKingdomOwner();
 		if (kingdom != null)
-			json.addProperty("kingdom", kingdom.getUniqueId() + "");
+			json.addProperty("kingdom", kingdom.getName());
 		return handler.serialize(land, json, context);
 	}
 
@@ -61,12 +59,9 @@ public class LandSerializer implements Serializer<Land> {
 			land.setClaimTime(claimElement.getAsLong());
 		JsonElement kingdomElement = object.get("kingdom");
 		if (kingdomElement != null && !kingdomElement.isJsonNull()) {
-			UUID uuid = UUID.fromString(kingdomElement.getAsString());
-			if (uuid != null) {
-				Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(uuid);
-				if (kingdom.isPresent())
-					land.setKingdomOwner(kingdom.get());
-			}
+			Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(kingdomElement.getAsString());
+			if (kingdom.isPresent())
+				land.setKingdomOwner(kingdom.get());
 		}
 		return handler.deserialize(land, object, context);
 	}

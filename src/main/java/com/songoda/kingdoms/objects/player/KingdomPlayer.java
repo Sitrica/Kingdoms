@@ -26,7 +26,7 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {/
 		super(player);
 		this.player = player;
 		this.rank = other.getRank();
-		this.kingdom = other.getKingdom();
+		this.kingdomCache = other.getKingdom();
 	}
 
 	public Player getPlayer() {
@@ -71,9 +71,9 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {/
 
 	@Override
 	public Kingdom getKingdom() {
-		if (kingdom == null)
+		if (kingdomCache == null)
 			return null;
-		return kingdom.getKingdom();
+		return kingdomCache.getKingdom();
 	}
 
 	public void setAutoClaiming(boolean autoClaiming) {

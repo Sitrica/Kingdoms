@@ -297,7 +297,7 @@ commands:
         unclaim-all-nexus: "&c&o&l[WARNING] UNCLAIMING NEXUS LAND WHILE IT IS BEING INVADED WILL RESULT IN AN INSTANT DEFEAT"
     info:
         # Placeholders: All KingdomPlayer placeholders.
-        description: "Find the Kingdom info of yours or others."
+        description: "Find information about Kingdoms."
         # Placeholders: All KingdomPlayer placeholders.
         syntax: "/k info [<kingdom>]"
         # Placeholders: All Kingdom and KingdomPlayer placeholders.

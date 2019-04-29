@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Predicate;
 
 import org.bukkit.Location;
@@ -28,26 +27,18 @@ public class OfflineKingdom {
 	private long resourcePoints = 0, invasionCooldown = 0;
 	private final KingdomManager kingdomManager;
 	private boolean neutral, first, invaded;
-	private String name, lore = "Not set";
 	private final RankManager rankManager;
+	private OfflineKingdomPlayer owner;
 	private KingdomCooldown shieldTime;
 	protected final Kingdoms instance;
-	private OfflineKingdomPlayer king;
 	private KingdomChest kingdomChest;
 	private DefenderInfo defenderInfo;
 	private int dynmapColor, max = 0;
 	private MiscUpgrade miscUpgrade;
+	private String lore = "Not set";
 	private Location nexus, spawn;
-	private final UUID uuid;
+	private final String name;
 	private Powerup powerup;
-
-	public OfflineKingdom(OfflineKingdomPlayer king, String name) {
-		this(UUID.randomUUID(), king, name);
-	}
-
-	public OfflineKingdom(UUID uuid, OfflineKingdomPlayer king, String name) {
-		this(uuid, king, name, false);
-	}
 
 	/**
 	 * Creates an OfflineKingdom instance.
@@ -56,29 +47,15 @@ public class OfflineKingdom {
 	 * @param king The owner of this Kingdom.
 	 * @param safeUUID If you know the UUID for the 'uuid' already exists. Set this to true and it won't find a new UUID but use that UUID overriding..
 	 */
-	protected OfflineKingdom(UUID uuid, OfflineKingdomPlayer king, String name, boolean safeUUID) {
+	public OfflineKingdom(OfflineKingdomPlayer owner, String name) {
 		this.instance = Kingdoms.getInstance();
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.rankManager = instance.getManager("rank", RankManager.class);
 		this.max = instance.getConfig().getInt("base-max-members", 10);
 		this.dynmapColor = kingdomManager.getRandomColor();
-		this.members.add(king);
-		this.king = king;
-		if (!kingdomManager.canUse(uuid) && !safeUUID) {
-			while (true) {
-				UUID check = UUID.randomUUID();
-				if (kingdomManager.canUse(check)) {
-					this.uuid = check;
-					break;
-				}
-			}
-		} else {
-			this.uuid = uuid;
-		}
-		if (name == null)
-			this.name = uuid + "";
-		else
-			this.name = name;
+		this.members.add(owner);
+		this.owner = owner;
+		this.name = name;
 	}
 
 	public void addWarp(WarpPad warp) {
@@ -109,12 +86,12 @@ public class OfflineKingdom {
 		this.max = max;
 	}
 
-	public OfflineKingdomPlayer getKing() {
-		return king;
+	public OfflineKingdomPlayer getOwner() {
+		return owner;
 	}
 
-	public void setKing(OfflineKingdomPlayer king) {
-		this.king = king;
+	public void setOwner(OfflineKingdomPlayer owner) {
+		this.owner = owner;
 	}
 
 	public int getDynmapColor() {
@@ -131,11 +108,6 @@ public class OfflineKingdom {
 
 	public void setNeutral(boolean neutral) {
 		this.neutral = neutral;
-	}
-
-	public void setName(String name) {
-		if (kingdomManager.canRename(name))
-			this.name = name;
 	}
 
 	public void addMember(OfflineKingdomPlayer member) {
@@ -160,10 +132,6 @@ public class OfflineKingdom {
 
 	public void setLore(String lore) {
 		this.lore = lore;
-	}
-
-	public UUID getUniqueId() {
-		return uuid;
 	}
 
 	public Location getSpawn() {
@@ -283,7 +251,7 @@ public class OfflineKingdom {
 	}
 
 	public boolean equals(OfflineKingdom other) {
-		return other.getUniqueId() == uuid;
+		return other.getName().equals(name);
 	}
 
 	/**
@@ -365,20 +333,5 @@ public class OfflineKingdom {
 		enemies.remove(kingdom);
 		allies.remove(kingdom);
 	}
-
-	/*	
-	public Map<String, String> getInvasionLog() {
-		return invasionLog;
-	}
-	
-	public void addInvasionLog(OfflineKingdom victim, OfflineKingdomPlayer invader, boolean victorious, Land target) {
-		SimpleDateFormat format1 = new SimpleDateFormat ("E dd MM YYYY");
-		SimpleDateFormat format2 = new SimpleDateFormat ("hh:mm:ss a zzz");
-		Date date = new Date();
-		String format = format1.format(date) + "|" + format2.format(date);
-		if (!invasionLog.containsKey("[" + invasionLog.size() + "] " +  format)) {
-			invasionLog.put("[" + invasionLog.size() + "] " + format, victim.getKingdomName() + "," + invader.getName() + "," + victorious + "," + LocationUtils.chunkToString(target.getChunk()));
-		}
-	}*/
 
 }

@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.manager.managers.RankManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
@@ -18,12 +19,14 @@ import com.songoda.kingdoms.objects.land.Land;
 
 public class OfflineKingdomPlayer {
 
+	protected transient OfflineKingdom kingdomCache;
 	private final Set<Land> claims = new HashSet<>(); // Kingdom claims that this user has claimed.
+	protected final KingdomManager kingdomManager;
 	protected final PlayerManager playerManager;
-	protected transient OfflineKingdom kingdom;
 	protected final Kingdoms instance;
 	protected final String name;
 	protected final UUID uuid;
+	protected String kingdom;
 	protected Rank rank;
 
 	public OfflineKingdomPlayer(UUID uuid) {
@@ -35,6 +38,7 @@ public class OfflineKingdomPlayer {
 		this.uuid = player.getUniqueId();
 		this.instance = Kingdoms.getInstance();
 		this.playerManager = instance.getManager("player", PlayerManager.class);
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.rank = instance.getManager("rank", RankManager.class).getDefaultRank();
 	}
 
@@ -59,14 +63,21 @@ public class OfflineKingdomPlayer {
 	}
 
 	public OfflineKingdom getKingdom() {
-		return kingdom;
+		if (kingdomCache != null)
+			return kingdomCache;
+		Optional<OfflineKingdom> optional = kingdomManager.getOfflineKingdom(kingdom);
+		if (optional.isPresent()) {
+			kingdomCache = optional.get();
+			return kingdomCache;
+		}
+		return null;
 	}
 
 	public boolean isOnline() {
 		return Bukkit.getPlayer(uuid) != null;
 	}
 
-	public void setKingdom(OfflineKingdom kingdom) {
+	public void setKingdom(String kingdom) {
 		this.kingdom = kingdom;
 	}
 

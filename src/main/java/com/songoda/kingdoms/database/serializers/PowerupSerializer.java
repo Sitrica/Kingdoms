@@ -2,8 +2,6 @@ package com.songoda.kingdoms.database.serializers;
 
 import java.lang.reflect.Type;
 import java.util.Optional;
-import java.util.UUID;
-
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -34,7 +32,7 @@ public class PowerupSerializer implements Serializer<Powerup> {
 		json.add("powerups", powrups);
 		OfflineKingdom kingdom = powerup.getKingdom();
 		if (kingdom != null)
-			json.addProperty("kingdom", kingdom.getUniqueId() + "");
+			json.addProperty("kingdom", kingdom.getName());
 		return json;
 	}
 
@@ -44,10 +42,7 @@ public class PowerupSerializer implements Serializer<Powerup> {
 		JsonElement kingdomElement = object.get("kingdom");
 		if (kingdomElement == null || kingdomElement.isJsonNull())
 			return null;
-		UUID uuid = UUID.fromString(kingdomElement.getAsString());
-		if (uuid == null)
-			return null;
-		Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(uuid);
+		Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(kingdomElement.getAsString());
 		if (!kingdom.isPresent())
 			return null;
 		Powerup powerup = new Powerup(kingdom.get());

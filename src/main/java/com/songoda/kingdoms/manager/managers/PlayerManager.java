@@ -30,6 +30,7 @@ public class PlayerManager extends Manager {
 
 	private final Map<UUID, OfflineKingdomPlayer> users = new HashMap<>();
 	private Database<OfflineKingdomPlayer> database;
+	private KingdomManager kingdomManager;
 	private WorldManager worldManager;
 	private BukkitTask autoSaveThread;
 
@@ -39,12 +40,13 @@ public class PlayerManager extends Manager {
 
 	@Override
 	public void initalize() {
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		String table = configuration.getString("database.player-table", "Players");
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(table, OfflineKingdomPlayer.class);
 		else
-			database = getSQLiteDatabase(table, OfflineKingdomPlayer.class);
+			database = getFileDatabase(table, OfflineKingdomPlayer.class);
 		if (configuration.getBoolean("database.auto-save.enabled", true)) {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
 			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, save, 0, IntervalUtils.getInterval(interval) * 20);
@@ -152,7 +154,9 @@ public class PlayerManager extends Manager {
 
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
-		UUID uuid = event.getPlayer().getUniqueId();
+		Player eventPlayer = event.getPlayer();
+		KingdomPlayer kingdomPlayer = getKingdomPlayer(eventPlayer);
+		UUID uuid = eventPlayer.getUniqueId();
 		users.entrySet().parallelStream()
 				.filter(entry -> entry.getKey().equals(uuid))
 				.map(entry -> entry.getValue())
@@ -172,14 +176,19 @@ public class PlayerManager extends Manager {
 							.send();
 				});
 		users.remove(uuid);
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom != null)
+			kingdomManager.onPlayerLeave(kingdomPlayer, kingdom);
 	}
 
 	@Override
 	public synchronized void onDisable() {
 		if (autoSaveThread != null)
 			autoSaveThread.cancel();
+		if (users.isEmpty())
+			return;
 		Kingdoms.consoleMessage("Saving [" + users.size() + "] loaded players...");
-		try{
+		try {
 			save.run();
 			Kingdoms.consoleMessage("Done!");
 		} catch (Exception e) {

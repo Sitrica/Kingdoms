@@ -37,7 +37,7 @@ public class SoldierTurretManager extends Manager {
 				.filter(soldier -> soldier.getSpawnLocation().equals(location))
 				.forEach(soldier -> soldier.getZombie().remove());
 		Zombie soldier = location.getWorld().spawn(location, Zombie.class);
-		soldier.setMetadata(guardsManager.GUARD_KINGDOM, new FixedMetadataValue(instance, owner.getUniqueId()));
+		soldier.setMetadata(guardsManager.GUARD_KINGDOM, new FixedMetadataValue(instance, owner.getName()));
 		soldier.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 999999, 2));
 		soldier.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 999999, 2));
 		DeprecationUtils.setItemInMainHand(soldier, new ItemStack(Material.IRON_SWORD));

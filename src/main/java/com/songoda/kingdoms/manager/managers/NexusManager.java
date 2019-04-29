@@ -206,7 +206,7 @@ public class NexusManager extends Manager {
 					.send(player);
 			return;
 		}
-		if (kingdom.getUniqueId().equals(landKingdom.getUniqueId())) {
+		if (kingdom.equals(landKingdom)) {
 			new MessageBuilder("kingdoms.cannot-break-own-nexus")
 					.setKingdom(kingdom)
 					.send(player);

@@ -3,7 +3,6 @@ package com.songoda.kingdoms.database.serializers;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.Map.Entry;
 
 import org.bukkit.inventory.ItemStack;
@@ -44,7 +43,6 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 		json.addProperty("name", kingdom.getName());
 		json.addProperty("neutral", kingdom.isNeutral());
 		json.addProperty("invaded", kingdom.hasInvaded());
-		json.addProperty("uuid", kingdom.getUniqueId() + "");
 		json.addProperty("max-members", kingdom.getMaxMembers());
 		json.addProperty("first-claim", kingdom.hasUsedFirstClaim());
 		json.addProperty("resource-points", kingdom.getResourcePoints());
@@ -80,12 +78,6 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 	@Override
 	public OfflineKingdom deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws JsonParseException {
 		JsonObject object = json.getAsJsonObject();
-		JsonElement uuidElement = object.get("uuid");
-		if (uuidElement == null || uuidElement.isJsonNull())
-			return null;
-		UUID uuid = UUID.fromString(uuidElement.getAsString());
-		if (uuid == null)
-			return null;
 		JsonElement kingElement = object.get("king");
 		if (kingElement == null || kingElement.isJsonNull())
 			return null;
@@ -95,7 +87,7 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 		JsonElement nameElement = object.get("name");
 		if (nameElement == null || nameElement.isJsonNull())
 			return null;
-		OfflineKingdom kingdom = new OfflineKingdom(uuid, king, nameElement.getAsString());
+		OfflineKingdom kingdom = new OfflineKingdom(king, nameElement.getAsString());
 		JsonElement loreElement = object.get("lore");
 		if (loreElement != null && !loreElement.isJsonNull())
 			kingdom.setLore(loreElement.getAsString());

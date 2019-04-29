@@ -112,7 +112,7 @@ public class DynmapManager extends ExternalManager {
 	private String getKingdomDescription(OfflineKingdom offlineKingdom) {
 		String description = base;
 		description = description.replace("%kingdomName%", offlineKingdom.getName());
-		description = description.replace("%king%", "King: " + offlineKingdom.getKing().getName());
+		description = description.replace("%king%", "King: " + offlineKingdom.getOwner().getName());
 		description = description.replace("%membercount%", "Number of Members: " + offlineKingdom.getMembers().size());
 		description = description.replace("%resourcepoints%", "ResourcePoints: " + offlineKingdom.getResourcePoints());
 		if (offlineKingdom.isOnline()) {

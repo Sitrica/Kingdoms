@@ -20,6 +20,8 @@ public class YamlDatabase<T> extends Database<T> {
 		this.configuration = new YamlConfiguration();
 		File file = new File(instance.getDataFolder(), "data.yml");
 		try {
+			if (!file.exists())
+				file.createNewFile();
 			configuration.load(file);
 		} catch (IOException | InvalidConfigurationException e) {
 			e.printStackTrace();

@@ -34,7 +34,7 @@ public class ListMessageBuilder {
 	private OfflineKingdom kingdom;
 	private final String node;
 	private boolean prefix;
-	
+
 	/**
 	 * Creates a ListMessageBuilder with the defined node.
 	 * 
@@ -43,7 +43,7 @@ public class ListMessageBuilder {
 	public ListMessageBuilder(String node) {
 		this(true, node);
 	}
-	
+
 	/**
 	 * Creates a ListMessageBuilder with the defined nodes, and if it should contain the prefix.
 	 * 
@@ -55,7 +55,7 @@ public class ListMessageBuilder {
 		this.prefix = prefix;
 		this.node = node;
 	}
-	
+
 	/**
 	 * Set the players to send this message to.
 	 *
@@ -66,7 +66,7 @@ public class ListMessageBuilder {
 		this.kingdomPlayers.addAll(players);
 		return this;
 	}
-	
+
 	/**
 	 * Set the senders to send this message to.
 	 *
@@ -77,7 +77,7 @@ public class ListMessageBuilder {
 		this.senders.addAll(Sets.newHashSet(senders));
 		return this;
 	}
-	
+
 	/**
 	 * Set the players to send this message to.
 	 *
@@ -88,7 +88,7 @@ public class ListMessageBuilder {
 		this.senders.addAll(Sets.newHashSet(players));
 		return this;
 	}
-	
+
 	/**
 	 * Set the players to send this message to.
 	 *
@@ -99,7 +99,7 @@ public class ListMessageBuilder {
 		this.senders.addAll(players);
 		return this;
 	}
-	
+
 	/**
 	 * Add a placeholder to the MessageBuilder.
 	 * 
@@ -112,7 +112,7 @@ public class ListMessageBuilder {
 		placeholders.put(placeholder, placeholderObject);
 		return this;
 	}
-	
+
 	/**
 	 * Set the configuration to read from, by default is the messages.yml
 	 * 
@@ -123,7 +123,7 @@ public class ListMessageBuilder {
 		this.configuration = configuration;
 		return this;
 	}
-	
+
 	/**
 	 * Created a single replacement and ignores the placeholder object.
 	 * 
@@ -140,7 +140,7 @@ public class ListMessageBuilder {
 		}, replacement.toString());
 		return this;
 	}
-	
+
 	/**
 	 * Set the placeholder object, good if you want to allow multiple placeholders.
 	 * 
@@ -151,7 +151,7 @@ public class ListMessageBuilder {
 		this.defaultPlaceholderObject = object;
 		return this;
 	}
-	
+
 	/**
 	 * Set the Kingdom option to be used for placeholders later.
 	 * 
@@ -162,28 +162,28 @@ public class ListMessageBuilder {
 		this.kingdom = kingdom;
 		return this;
 	}
-	
+
 	/**
 	 * Sends the final product of the builder.
 	 */
 	public void send(Collection<KingdomPlayer> players) {
 		toKingdomPlayers(Sets.newHashSet(players)).send();
 	}
-	
+
 	/**
 	 * Sends the final product of the builder.
 	 */
 	public void send(KingdomPlayer... players) {
 		send(Sets.newHashSet(players));
 	}
-	
+
 	/**
 	 * Sends the final product of the builder.
 	 */
 	public void send(CommandSender... senders) {
 		toSenders(senders).send();
 	}
-	
+
 	/**
 	 * Completes and returns the final product of the builder.
 	 */
@@ -194,17 +194,16 @@ public class ListMessageBuilder {
 		boolean usedPrefix = false;
 		for (String string : configuration.getStringList(node)) {
 			if (prefix && !usedPrefix) {
-				string = applyPlaceholders(string);
 				string = Formatting.getPrefix() + " " + Formatting.color(string);
 				usedPrefix = true;
 			} else {
 				string = Formatting.color(string);
 			}
-			list.add(string);
+			list.add(applyPlaceholders(string));
 		}
 		return list;
 	}
-	
+
 	private String applyPlaceholders(String input) {
 		// Default Placeholders
 		for (Placeholder<?> placeholder : Placeholders.getPlaceholders()) {
@@ -249,7 +248,7 @@ public class ListMessageBuilder {
 		}
 		return input;
 	}
-	
+
 	/**
 	 * Sends the final product of the builder if the senders are set.
 	 */
@@ -265,5 +264,5 @@ public class ListMessageBuilder {
 		for (CommandSender sender : senders)
 			list.forEach(message -> sender.sendMessage(message));
 	}
-	
+
 }
