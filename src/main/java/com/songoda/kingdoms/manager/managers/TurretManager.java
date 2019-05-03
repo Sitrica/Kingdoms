@@ -40,7 +40,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.TippedArrow;
 import org.bukkit.entity.Wolf;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
@@ -359,7 +358,7 @@ public class TurretManager extends Manager {
 					}
 				});
 			} else if (type.getProjectile() == EntityType.ARROW) {
-				Arrow arrow = location.getWorld().spawnArrow(fromLocation, direction, 1.5F, type.getArrowSpread());
+				Arrow arrow = (Arrow) location.getWorld().spawnArrow(fromLocation, direction, 1.5F, type.getArrowSpread());
 				arrow.setCritical(type.isCritical());
 				if (landOptional.isPresent())
 					arrow.setMetadata(METADATA_KINGDOM, new FixedMetadataValue(instance, landOptional.get().getName()));
@@ -371,8 +370,8 @@ public class TurretManager extends Manager {
 			} else {
 				Entity projectile = location.getWorld().spawnEntity(fromLocation, type.getProjectile());
 				if (type.hasPotions()) {
-					if (projectile instanceof TippedArrow) {
-						TippedArrow tipped = (TippedArrow) projectile;
+					if (projectile instanceof Arrow) {
+						Arrow tipped = (Arrow) projectile;
 						for (PotionEffect effect : type.getPotions().getPotionEffects()) {
 							tipped.addCustomEffect(effect, true);
 						}
@@ -696,7 +695,7 @@ public class TurretManager extends Manager {
 				}
 				Optional<Potions> potions = getPotions(attacker);
 				if (potions.isPresent()) {
-					if (attacker instanceof TippedArrow) // Minecraft will already do the setting of the effect for us.
+					if (attacker instanceof Arrow) // Minecraft will already do the setting of the effect for us.
 						return;
 					for (PotionEffect effect : potions.get().getPotionEffects()) {
 						victim.addPotionEffect(effect, true);

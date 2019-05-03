@@ -413,28 +413,27 @@ public class LandManager extends Manager {
 			if (!optional.isPresent())
 				continue;
 			OfflineKingdom owner = optional.get();
-			if (owner.equals(kingdom)) {
-				LandUnclaimEvent event = new LandUnclaimEvent(land, kingdom);
-				Bukkit.getPluginManager().callEvent(event);
-				if (event.isCancelled())
-					continue;
-				kingdom.removeClaim(land);
-				land.setClaimTime(0L);
-				land.setKingdomOwner(null);
-				String name = LocationUtils.chunkToString(land.getChunk());
-				database.save(name, null);
-				if (land.getStructure() != null) {
-					// Sync back to server.
-					Bukkit.getScheduler().runTask(instance, new Runnable() {
-						@Override
-						public void run() {
-							structureManager.breakStructureAt(land);
-						}
-					});
-				}
-				if (dynmapManager.isPresent())
-					dynmapManager.get().update(chunk);
+			if (!owner.equals(kingdom))
+				continue;
+			LandUnclaimEvent event = new LandUnclaimEvent(land, kingdom);
+			Bukkit.getPluginManager().callEvent(event);
+			if (event.isCancelled())
+				continue;
+			kingdom.removeClaim(land);
+			land.setClaimTime(0L);
+			land.setKingdomOwner(null);
+			database.delete(LocationUtils.chunkToString(land.getChunk()));
+			if (land.getStructure() != null) {
+				// Sync back to server.
+				Bukkit.getScheduler().runTask(instance, new Runnable() {
+					@Override
+					public void run() {
+						structureManager.breakStructureAt(land);
+					}
+				});
 			}
+			if (dynmapManager.isPresent())
+				dynmapManager.get().update(chunk);
 		}
 	}
 

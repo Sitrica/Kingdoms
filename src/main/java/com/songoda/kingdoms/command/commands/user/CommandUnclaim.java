@@ -65,7 +65,6 @@ public class CommandUnclaim extends AbstractCommand {
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		landManager.playerClaimLand(kingdomPlayer);
 		if (arguments.length > 0) {
 			if (arguments[0].equalsIgnoreCase("all")) {
 				if (confirmations.contains(kingdomPlayer)) {
