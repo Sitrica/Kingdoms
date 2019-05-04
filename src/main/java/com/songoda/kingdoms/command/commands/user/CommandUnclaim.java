@@ -51,9 +51,10 @@ public class CommandUnclaim extends AbstractCommand {
 					.send(player);
 			return ReturnType.FAILURE;
 		}
+		Kingdoms.debugMessage(kingdomPlayer.getRank().getName() + " rank");
 		if (!kingdom.getPermissions(kingdomPlayer.getRank()).canUnclaim()) {
 			new MessageBuilder("kingdoms.rank-too-low-unclaim-override")
-					.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canClaim()), new Placeholder<Optional<Rank>>("%rank%") {
+					.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canUnclaim()), new Placeholder<Optional<Rank>>("%rank%") {
 						@Override
 						public String replace(Optional<Rank> rank) {
 							if (rank.isPresent())

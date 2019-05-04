@@ -12,8 +12,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
+import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.Serializer;
 import com.songoda.kingdoms.database.handlers.OfflineKingdomHandler;
+import com.songoda.kingdoms.manager.managers.RankManager;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.DefenderUpgrade;
 import com.songoda.kingdoms.objects.kingdom.KingdomChest;
@@ -29,8 +31,10 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 	private final OfflineKingdomPlayerSerializer playerSerializer;
 	private final ItemStackSerializer itemSerializer;
 	private final OfflineKingdomHandler handler;
+	private final RankManager rankManager;
 
 	public OfflineKingdomSerializer() {
+		this.rankManager = Kingdoms.getInstance().getManager("rank", RankManager.class);
 		this.playerSerializer = new OfflineKingdomPlayerSerializer();
 		this.itemSerializer = new ItemStackSerializer();
 		this.handler = new OfflineKingdomHandler();
@@ -87,6 +91,7 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 		JsonElement nameElement = object.get("name");
 		if (nameElement == null || nameElement.isJsonNull())
 			return null;
+		king.setRank(rankManager.getOwnerRank());
 		OfflineKingdom kingdom = new OfflineKingdom(king, nameElement.getAsString());
 		JsonElement loreElement = object.get("lore");
 		if (loreElement != null && !loreElement.isJsonNull())

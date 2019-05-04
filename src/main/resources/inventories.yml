@@ -31,6 +31,18 @@ scroller:
         lore:
             - "&7Click to go to the previous page. &8(&c%previous%&7/&4%total%&8)"
 
+confirm:
+    accept:
+        title: "&a&lAccept"
+        material: "EMERALD_BLOCK"
+        material-meta: ""
+        glowing: true
+    cancel:
+        title: "&c&lCancel"
+        material: "REDSTONE_BLOCK"
+        material-meta: ""
+        glowing: true
+
 # All configurations relating to structures.
 inventories:
     resource-points:

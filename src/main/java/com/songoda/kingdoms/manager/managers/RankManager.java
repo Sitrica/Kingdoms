@@ -19,10 +19,10 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 import net.md_5.bungee.api.ChatColor;
 
 public class RankManager extends Manager {
-	
+
 	private final List<Rank> ranks = new ArrayList<>();
 	private final ConfigurationSection section;
-	
+
 	public RankManager() {
 		super("rank", false);
 		this.section = instance.getConfiguration("ranks").get().getConfigurationSection("ranks");
@@ -36,13 +36,13 @@ public class RankManager extends Manager {
 			ranks.add(new Rank(rank, node, name, unicode, chat, color, priority));
 		}
 	}
-	
+
 	public class Rank {
-		
+
 		private final String name, unicode, node, configurationName;
 		private final ChatColor color, chat;
 		private final int priority;
-		
+
 		private Rank(String configurationName, String node, String name, String unicode, ChatColor chat, ChatColor color, int priority) {
 			this.configurationName = configurationName;
 			this.priority = priority;
@@ -52,7 +52,7 @@ public class RankManager extends Manager {
 			this.node = node;
 			this.name = name;
 		}
-		
+
 		public String getPrefix(KingdomPlayer player) {
 			return new MessageBuilder(node + ".prefix").fromConfiguration(configuration)
 					.replace("%player%", player.getPlayer().getName())
@@ -63,49 +63,49 @@ public class RankManager extends Manager {
 					.replace("%name%", name)
 					.get();
 		}
-		
+
 		public boolean isHigherOrEqual(Rank target) {
 			if (this.priority <= target.priority)
 				return true;
 			return false;
 		}
-		
+
 		public boolean isHigher(Rank target) {
 			if (this.priority < target.priority)
 				return true;
 			return false;
 		}
-		
+
 		public String getConfigurationName() {
 			return configurationName;
 		}
-		
+
 		public String getConfigurationNode() {
 			return node;
 		}
-		
+
 		public ChatColor getColor() {
 			return color;
 		}
-		
+
 		public String getUnicode() {
 			return unicode;
 		}
-		
+
 		public ChatColor getChat() {
 			return chat;
 		}
-		
+
 		public int getPriority() {
 			return priority;
 		}
-		
+
 		public String getName() {
 			return name;
 		}
 		
 	}
-	
+
 	public Optional<Rank> getLowestFor(OfflineKingdom kingdom, Predicate<RankPermissions> predicate) {
 		List<Rank> sorted = getSortedOrder();
 		Collections.reverse(sorted);
@@ -113,39 +113,39 @@ public class RankManager extends Manager {
 				.filter(rank -> predicate.test(kingdom.getPermissions(rank)))
 				.findFirst();
 	}
-	
+
 	public Optional<Rank> getRankByColor(ChatColor color) {
 		return ranks.parallelStream()
 				.filter(rank -> rank.getColor() == color)
 				.findFirst();
 	}
-	
+
 	public Optional<Rank> getRankByPriority(int priority) {
 		return ranks.parallelStream()
 				.filter(rank -> rank.getPriority() == priority)
 				.findFirst();
 	}
-	
+
 	public Optional<Rank> getRank(String name) {
 		return ranks.parallelStream()
 				.filter(rank -> rank.getConfigurationName().equals(name))
 				.findFirst();
 	}
-	
+
 	public List<Rank> getSortedOrder() {
 		return ranks.parallelStream()
 				.sorted(Comparator.comparing(Rank::getPriority))
 				.collect(Collectors.toList());
 	}
-	
-	public List<Rank> getRanks() {
-		return getSortedOrder();
-	}
-	
+
 	public Rank getDefaultRank() {
 		return getSortedOrder().get(ranks.size() - 1);
 	}
-	
+
+	public List<Rank> getRanks() {
+		return getSortedOrder();
+	}
+
 	public Rank getOwnerRank() {
 		return getSortedOrder().get(0);
 	}

@@ -305,6 +305,15 @@ commands:
             - ""
             - "&6Info for Kingdom &e&l%kingdom%&6."
             - ""
+    disband:
+        # Placeholders: All KingdomPlayer placeholders.
+        description: "Disband the Kingdom."
+        syntax: "/k disband"
+        # Placeholders: All Kingdom and KingdomPlayer placeholders.
+        no-kingdom: "&cYou aren't apart of any Kingdom."
+        only-owner: "&cOnly the owner &l%owner%&c of the Kingdom &l%kingdom%&c may disband."
+        disbanded: "&eKingdom has successfully been disbanded."
+        cancelled: "&cCancelled."
 
 # All messages relating to invading.
 invading:
