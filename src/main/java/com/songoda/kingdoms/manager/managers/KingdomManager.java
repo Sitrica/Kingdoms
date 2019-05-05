@@ -87,7 +87,7 @@ public class KingdomManager extends Manager {
 				Kingdoms.debugMessage("Saving Kingdom: " + name);
 				if (cooldowns.isInCooldown(kingdom, "attackcd"))
 					kingdom.setInvasionCooldown(cooldowns.getTimeLeft(kingdom, "attackcd"));
-				database.save(name, kingdom);
+				database.put(name, kingdom);
 			}
 		}
 	};
@@ -155,15 +155,17 @@ public class KingdomManager extends Manager {
 		return Optional.ofNullable(kingdoms.parallelStream()
 				.filter(kingdom -> kingdom.getName().equals(name))
 				.findFirst()
-				.orElse(loadKingdom(name)));
+				.orElseGet(() -> loadKingdom(name))); // orElse doesn't work.
 	}
 
 	private Kingdom loadKingdom(String name) {
 		Kingdoms.debugMessage("Attemping loading for kingdom: " + name);
 		FutureTask<Kingdom> future = new FutureTask<>(() -> {
 			OfflineKingdom databaseKingdom = database.get(name);
-			if (databaseKingdom == null)
+			if (databaseKingdom == null) {
+				Kingdoms.debugMessage("No data found for kingdom: " + name);
 				return null;
+			}
 			Kingdom kingdom = new Kingdom(databaseKingdom);
 			if (kingdom != null) {
 				long invasionCooldown = kingdom.getInvasionCooldown();
@@ -191,7 +193,7 @@ public class KingdomManager extends Manager {
 	public void onPlayerLeave(KingdomPlayer player, Kingdom kingdom) {
 		if (kingdom.getOnlinePlayers().isEmpty()) {
 			instance.getServer().getScheduler().runTaskAsynchronously(instance, () -> {
-				database.save(kingdom.getName(), kingdom);
+				database.put(kingdom.getName(), kingdom);
 				kingdoms.remove(kingdom);
 			});
 		}
@@ -226,15 +228,15 @@ public class KingdomManager extends Manager {
 	public boolean deleteKingdom(OfflineKingdom kingdom) {
 		if (kingdom == null)
 			return false;
+		database.delete(kingdom.getName());
 		for (OfflineKingdomPlayer player : kingdom.getMembers()) {
 			player.setKingdom(null);
 			player.setRank(null);
 		}
-		OfflineKingdomPlayer owner = kingdom.getOwner();
 		kingdoms.remove(kingdom);
-		database.delete(kingdom.getName());
 		Bukkit.getPluginManager().callEvent(new KingdomDeleteEvent(kingdom));
 		landManager.unclaimAllLand(kingdom);
+		OfflineKingdomPlayer owner = kingdom.getOwner();
 		Optional<KingdomPlayer> kingPlayer = owner.getKingdomPlayer();
 		if (kingPlayer.isPresent())
 			new MessageBuilder("kingdoms.deleted")
@@ -248,9 +250,9 @@ public class KingdomManager extends Manager {
 	 * This method will <b> overwrite existing data! </b> use hasKingdom() to
 	 * check if kingdom already exists
 	 *
-	 * @param kingdomName
-	 * @param king		the king of this kingdom
-	 * @return false - already in progress, true - create task scheduled
+	 * @param name The name of this new Kingdom.
+	 * @param king The king of this kingdom
+	 * @return Kingdom that is to be created.
 	 */
 	public Kingdom createNewKingdom(String name, KingdomPlayer king) {
 		FutureTask<Kingdom> future = new FutureTask<>(() -> {
@@ -261,7 +263,7 @@ public class KingdomManager extends Manager {
 			king.setRank(rankManager.getOwnerRank());
 			king.setKingdom(name);
 			updateUpgrades(kingdom);
-			database.save(kingdom.getName(), kingdom);
+			database.put(kingdom.getName(), kingdom);
 			Bukkit.getPluginManager().callEvent(new KingdomCreateEvent(kingdom));
 			return kingdom;
 		});

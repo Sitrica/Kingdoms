@@ -52,7 +52,7 @@ public abstract class Database<T> {
 				.serializeNulls().create();
 	}
 
-	public abstract void save(String key, T value);
+	public abstract void put(String key, T value);
 
 	public abstract T get(String key, T def);
 
@@ -65,7 +65,7 @@ public abstract class Database<T> {
 	}
 
 	public void delete(String key) {
-		save(key, null);
+		put(key, null);
 	}
 
 	public abstract void clear();

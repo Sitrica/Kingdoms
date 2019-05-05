@@ -48,7 +48,7 @@ public class MySQLDatabase<T> extends Database<T> {
 	}
 
 	@Override
-	public void save(String key, T value) {
+	public void put(String key, T value) {
 		new Thread(() -> {
 			try {
 				if (value != null) {

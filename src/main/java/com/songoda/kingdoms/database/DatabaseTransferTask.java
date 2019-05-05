@@ -35,7 +35,7 @@ public class DatabaseTransferTask<T> implements Runnable {
 			for (String key : keys) {
 				try {
 					T data = from.get(key);
-					to.save(key, data);
+					to.put(key, data);
 				} catch (Exception e) {
 					e.printStackTrace();
 				} finally {

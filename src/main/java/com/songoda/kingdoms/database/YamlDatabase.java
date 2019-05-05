@@ -35,7 +35,7 @@ public class YamlDatabase<T> extends Database<T> {
 	}
 
 	@Override
-	public void save(String key, T value) {
+	public void put(String key, T value) {
 		if (value == null) {
 			configuration.set("data." + key, null);
 			return;

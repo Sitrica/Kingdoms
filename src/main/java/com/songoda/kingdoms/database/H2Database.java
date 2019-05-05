@@ -6,19 +6,15 @@ import com.songoda.kingdoms.Kingdoms;
 import java.io.File;
 import java.lang.reflect.Type;
 import java.sql.*;
-import java.util.ArrayDeque;
 import java.util.HashSet;
-import java.util.Queue;
 import java.util.Set;
 
 public class H2Database<T> extends Database<T> {
 
-	private final Queue<PreparedStatement> statements = new ArrayDeque<>();
 	private final Kingdoms instance;
 	private final String tablename;
 	private Connection connection;
 	private final Type type;
-	private boolean busy;
 
 	public H2Database(String tablename, Type type) throws SQLException, ClassNotFoundException {
 		this.instance = Kingdoms.getInstance();
@@ -62,7 +58,7 @@ public class H2Database<T> extends Database<T> {
 	}
 
 	@Override
-	public void save(String key, T value) {
+	public void put(String key, T value) {
 		new Thread(() -> {
 			try {
 				if (value != null) {
@@ -70,52 +66,19 @@ public class H2Database<T> extends Database<T> {
 					statement.setString(1, key);
 					String json = serialize(value, type);
 					statement.setString(2, json);
-					if (!busy) {
-						databaseSave(statement);
-						return;
-					}
-					statements.add(statement);
+					statement.executeUpdate();
+					statement.close();
 				} else {
 					PreparedStatement statement = connection.prepareStatement("DELETE FROM %table WHERE id = ?".replace("%table", tablename));
 					statement.setString(1, key);
-					if (!busy) {
-						databaseSave(statement);
-						return;
-					}
-					statements.add(statement);
+					statement.executeUpdate();
+					statement.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 		}).start();
 	}
-
-	private void databaseSave(PreparedStatement statement) {
-		busy = true;
-		try {
-			statement.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				statement.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-			busy = false;
-		}
-		try {
-			while (!statement.isClosed()) {
-				statement.close();
-				Thread.sleep(1000);
-			}
-		} catch (SQLException | InterruptedException e) {
-			e.printStackTrace();
-		}
-		if (!statements.isEmpty())
-			databaseSave(statements.poll());
-	}
-
 
 	@Override
 	public boolean has(String key) {

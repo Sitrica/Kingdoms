@@ -59,13 +59,13 @@ public class PlayerManager extends Manager {
 			for (Entry<UUID, OfflineKingdomPlayer> entry : users.entrySet()) {
 				OfflineKingdomPlayer player = entry.getValue();
 				Kingdoms.debugMessage("Saving player " + player.getName());
-				database.save(entry.getKey() + "", player);
+				database.put(entry.getKey() + "", player);
 			}
 		}
 	};
 
 	public void save(OfflineKingdomPlayer player) {
-		database.save(player.getUniqueId() + "", player);
+		database.put(player.getUniqueId() + "", player);
 	}
 
 	public Optional<KingdomPlayer> getKingdomPlayer(UUID uuid) {
@@ -162,7 +162,7 @@ public class PlayerManager extends Manager {
 				.map(entry -> entry.getValue())
 				.map(player -> (KingdomPlayer) player)
 				.forEach(player -> {
-					database.save(uuid + "", player);
+					database.put(uuid + "", player);
 					if (player.isVanished())
 						return;
 					Kingdom kingdom = player.getKingdom();

@@ -168,7 +168,7 @@ public class LandManager extends Manager {
 					continue;
 				}
 				try{
-					database.save(name, land);
+					database.put(name, land);
 					saved.add(name);
 					i++;
 				} catch (Exception e) {
@@ -394,7 +394,7 @@ public class LandManager extends Manager {
 			land.setClaimTime(new Date().getTime());
 			land.setKingdomOwner(kingdom.getName());
 			String name = LocationUtils.chunkToString(land.getChunk());
-			database.save(name, land);
+			database.put(name, land);
 			if (dynmapManager.isPresent())
 				dynmapManager.get().update(chunk);
 		}
@@ -1088,7 +1088,7 @@ public class LandManager extends Manager {
 			String name = LocationUtils.chunkToString(chunk);
 			Land land = lands.get(chunk);
 			if (land.isSignificant())
-				database.save(name, lands.get(chunk));
+				database.put(name, lands.get(chunk));
 			lands.remove(chunk);
 		}
 	}
