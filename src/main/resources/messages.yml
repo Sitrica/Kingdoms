@@ -314,6 +314,17 @@ commands:
         only-owner: "&cOnly the owner &l%owner%&c of the Kingdom &l%kingdom%&c may disband."
         disbanded: "&eKingdom has successfully been disbanded."
         cancelled: "&cCancelled."
+    delete:
+        # Placeholders: All KingdomPlayer placeholders.
+        description: "Delete Kingdoms."
+        syntax: "/k delete <kingdom>"
+        no-kingdom-found: "&cThe Kingdom &l%kingdom%&c does not exist."
+        cancelled: "&cCancelled."
+        deleted: "&eYou have deleted the Kingdom %kingdom%."
+    admin:
+        # Placeholders: All KingdomPlayer placeholders.
+        description: "View admin commands."
+        syntax: "&c/k admin"
 
 # All messages relating to invading.
 invading:

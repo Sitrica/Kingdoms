@@ -20,7 +20,7 @@ public class ArsenalInventory extends StructureInventory {
 	}
 	
 	@Override
-	public void openInventory(KingdomPlayer kingdomPlayer) {
+	public void build(KingdomPlayer kingdomPlayer) {
 		Player player = kingdomPlayer.getPlayer();
 		int i = 0;
 		for (ArsenalItem item : ArsenalItem.values()) {
@@ -58,7 +58,7 @@ public class ArsenalInventory extends StructureInventory {
 							.replace("%cost%", cost)
 							.setKingdom(kingdom)
 							.send(player);
-					openInventory(kingdomPlayer);
+					openInventory(player);
 				}
 			);
 			i++;

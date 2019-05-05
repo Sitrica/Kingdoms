@@ -30,7 +30,7 @@ public class RegulatorInventory extends StructureInventory {
 	}
 	
 	@Override
-	public void openInventory(KingdomPlayer kingdomPlayer) {
+	public void build(KingdomPlayer kingdomPlayer) {
 		throw new UnsupportedOperationException("This method should not be called, use openRegulatorMenu(Land, KingdomPlayer)");
 	}
 	

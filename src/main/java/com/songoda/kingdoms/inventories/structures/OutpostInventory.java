@@ -23,7 +23,7 @@ public class OutpostInventory extends StructureInventory {
 	}
 
 	@Override
-	public void openInventory(KingdomPlayer kingdomPlayer) {
+	public void build(KingdomPlayer kingdomPlayer) {
 		Player player = kingdomPlayer.getPlayer();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		ConfigurationSection section = inventories.getConfigurationSection("inventories.outpost");
@@ -116,7 +116,7 @@ public class OutpostInventory extends StructureInventory {
 				.fromConfiguration(inventories)
 				.setKingdom(kingdom)
 				.build());
-		openInventory(kingdomPlayer);
+		openInventory(player);
 	}
 
 }

@@ -8,6 +8,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
@@ -37,7 +38,10 @@ public class DefaultPlaceholders {
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%rank%", "%playerrank%", "player-rank") {
 			@Override
 			public String replace(OfflineKingdomPlayer player) {
-				return player.getRank().getName();
+				Rank rank = player.getRank();
+				if (rank == null)
+					return "No rank";
+				return rank.getName();
 			}
 		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%maxmembers%", "%max-members%") {

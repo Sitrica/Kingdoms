@@ -27,7 +27,7 @@ public class ExtractorInventory extends StructureInventory {
 	}
 	
 	@Override
-	public void openInventory(KingdomPlayer kingdomPlayer) {
+	public void build(KingdomPlayer kingdomPlayer) {
 		throw new UnsupportedOperationException("This method should not be called, use openExtractorMenu(Extractor, KingdomPlayer)");
 	}
 

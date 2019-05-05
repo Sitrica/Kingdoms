@@ -26,7 +26,7 @@ public class WarppadInventory extends StructureInventory {
 	}
 	
 	@Override
-	public void openInventory(KingdomPlayer kingdomPlayer) {
+	public void build(KingdomPlayer kingdomPlayer) {
 		Player player = kingdomPlayer.getPlayer();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		ConfigurationSection section = inventories.getConfigurationSection("inventories.warp-pad");

@@ -18,7 +18,7 @@ public class CommandDisband extends AbstractCommand {
 	private final KingdomManager kingdomManager;
 	private final PlayerManager playerManager;
 
-	protected CommandDisband() {
+	public CommandDisband() {
 		super(false, "disband");
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
@@ -36,15 +36,16 @@ public class CommandDisband extends AbstractCommand {
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		if (kingdom.getOwner().equals(kingdomPlayer)) {
+		if (!kingdom.getOwner().equals(kingdomPlayer)) {
 			new MessageBuilder("commands.disband.only-owner")
 					.replace("%owner%", kingdom.getOwner().getName())
 					.setPlaceholderObject(kingdomPlayer)
 					.send(kingdomPlayer);
 			return ReturnType.FAILURE;
 		}
-		confirmationManager.openConfirmation(player, result -> {
+		confirmationManager.openConfirmation(kingdomPlayer, result -> {
 			if (!result) {
+				player.closeInventory();
 				new MessageBuilder("commands.disband.cancelled")
 						.replace("%owner%", kingdom.getOwner().getName())
 						.setPlaceholderObject(kingdomPlayer)

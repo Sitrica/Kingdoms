@@ -1,6 +1,7 @@
 package com.songoda.kingdoms.inventories;
 
 import org.bukkit.event.inventory.InventoryType;
+
 import com.songoda.kingdoms.manager.inventories.KingdomInventory;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.ItemStackBuilder;
@@ -8,13 +9,14 @@ import com.songoda.kingdoms.utils.ItemStackBuilder;
 public class ConfirmationMenu extends KingdomInventory {
 
 	public ConfirmationMenu() {
-		super(InventoryType.HOPPER, "confirmation", 69);
+		super(InventoryType.HOPPER, "Confirmation", 69);
 	}
 
 	@Override
-	public void openInventory(KingdomPlayer kingdomPlayer) {
+	public void build(KingdomPlayer kingdomPlayer) {
 		inventory.setItem(1, new ItemStackBuilder(inventories.getConfigurationSection("confirm.accept")).build());
 		inventory.setItem(3, new ItemStackBuilder(inventories.getConfigurationSection("confirm.cancel")).build());
+		openInventory(kingdomPlayer.getPlayer());
 	}
 
 }

@@ -423,15 +423,8 @@ public class LandManager extends Manager {
 			land.setClaimTime(0L);
 			land.setKingdomOwner(null);
 			database.delete(LocationUtils.chunkToString(land.getChunk()));
-			if (land.getStructure() != null) {
-				// Sync back to server.
-				Bukkit.getScheduler().runTask(instance, new Runnable() {
-					@Override
-					public void run() {
-						structureManager.breakStructureAt(land);
-					}
-				});
-			}
+			if (land.getStructure() != null) // Sync back to server.
+				structureManager.breakStructureAt(land);
 			if (dynmapManager.isPresent())
 				dynmapManager.get().update(chunk);
 		}
@@ -456,7 +449,7 @@ public class LandManager extends Manager {
 		if (unclaiming.contains(name))
 			return -1;
 		unclaiming.add(name);
-		Stream<Land> stream = getLoadedLand().parallelStream()
+		Set<Land> unclaims = getLoadedLand().stream()
 				.filter(entry -> {
 					Optional<OfflineKingdom> optional = entry.getValue().getKingdomOwner();
 					if (!optional.isPresent())
@@ -465,10 +458,11 @@ public class LandManager extends Manager {
 						return false;
 					return true;
 				})
-				.map(entry -> entry.getValue());
-		long count = stream.count();
+				.map(entry -> entry.getValue())
+				.collect(Collectors.toSet());
+		long count = unclaims.size();
 		kingdom.getMembers().forEach(player -> player.onKingdomLeave());
-		stream.forEach(land -> unclaimLand(kingdom, land.getChunk()));
+		unclaims.forEach(land -> unclaimLand(kingdom, land.getChunk()));
 		unclaiming.remove(name);
 		return (int)count;
 	}

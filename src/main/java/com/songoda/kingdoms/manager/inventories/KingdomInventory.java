@@ -33,7 +33,7 @@ public abstract class KingdomInventory {
 			this.inventory = instance.getServer().createInventory(null, type, name);
 	}
 
-	public abstract void openInventory(KingdomPlayer kingdomPlayer);
+	public abstract void build(KingdomPlayer kingdomPlayer);
 
 	public Inventory getInventory() {
 		return inventory;
@@ -43,7 +43,7 @@ public abstract class KingdomInventory {
 		actions.put(slot, consummer);
 	}
 
-	public void openInventory(Player player) {
+	protected void openInventory(Player player) {
 		player.openInventory(inventory);
 		inventoryManager.opening(player.getUniqueId(), this);
 	}

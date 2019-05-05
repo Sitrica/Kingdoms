@@ -14,19 +14,24 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 
 import com.songoda.kingdoms.inventories.ConfirmationMenu;
 import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
 
 public class ConfirmationManager extends Manager implements Listener {
 
 	private final Map<Player, Consumer<Boolean>> waiting = new HashMap<>();
 	private InventoryManager inventoryManager;
-
 	public ConfirmationManager() {
 		super("confirmation", true);
 	}
 
-	public void openConfirmation(Player player, Consumer<Boolean> consumer) {
-		inventoryManager.getInventory(ConfirmationMenu.class).openInventory(player);
-		waiting.put(player, consumer);
+	@Override
+	public void initalize() {
+		this.inventoryManager = instance.getManager("inventory", InventoryManager.class);
+	}
+
+	public void openConfirmation(KingdomPlayer kingdomPlayer, Consumer<Boolean> consumer) {
+		inventoryManager.getInventory(ConfirmationMenu.class).build(kingdomPlayer);
+		waiting.put(kingdomPlayer.getPlayer(), consumer);
 	}
 
 	@EventHandler(priority = EventPriority.HIGH)
@@ -56,8 +61,5 @@ public class ConfirmationManager extends Manager implements Listener {
 
 	@Override
 	public void onDisable() {}
-
-	@Override
-	public void initalize() {}
 
 }

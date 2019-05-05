@@ -276,7 +276,7 @@ public class NexusManager extends Manager {
 		if (landKingdom.isAllianceWith(kingdom)) {
 			inventory.openDonateInventory(landKingdom, kingdomPlayer);
 		} else if (landKingdom.equals(kingdom)) {
-			inventory.openInventory(kingdomPlayer);
+			inventory.build(kingdomPlayer);
 		} else {
 			new MessageBuilder("kingdoms.cannot-use-others-nexus")
 					.setPlaceholderObject(kingdomPlayer)

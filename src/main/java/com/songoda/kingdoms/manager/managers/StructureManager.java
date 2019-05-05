@@ -430,7 +430,7 @@ public class StructureManager extends Manager {
 			return;
 		switch (type) {
 			case ARSENAL:
-				inventoryManager.getInventory(ArsenalInventory.class).openInventory(kingdomPlayer);
+				inventoryManager.getInventory(ArsenalInventory.class).build(kingdomPlayer);
 				break;
 			case EXTRACTOR:
 				Extractor extractor;
@@ -447,7 +447,7 @@ public class StructureManager extends Manager {
 				break;
 			case NEXUS:
 				if (kingdom.equals(landKingdom)) {
-					inventoryManager.getInventory(NexusInventory.class).openInventory(kingdomPlayer);
+					inventoryManager.getInventory(NexusInventory.class).build(kingdomPlayer);
 				} else if (kingdom.isAllianceWith(landKingdom)) {
 					Inventory inventory = Bukkit.createInventory(null, 54, Formatting.color("&1Donate to &2" + kingdom.getName()));
 					player.openInventory(inventory);
@@ -460,7 +460,7 @@ public class StructureManager extends Manager {
 				break;
 			case OUTPOST:
 				selected.put(kingdomPlayer, land);
-				inventoryManager.getInventory(OutpostInventory.class).openInventory(kingdomPlayer);
+				inventoryManager.getInventory(OutpostInventory.class).build(kingdomPlayer);
 				break;
 			case REGULATOR:
 				if (!kingdom.getPermissions(kingdomPlayer.getRank()).canOverrideRegulator()) {
@@ -491,7 +491,7 @@ public class StructureManager extends Manager {
 				break;
 			case WARPPAD:
 				selected.put(kingdomPlayer, land);
-				inventoryManager.getInventory(WarppadInventory.class).openInventory(kingdomPlayer);
+				inventoryManager.getInventory(WarppadInventory.class).build(kingdomPlayer);
 				break;
 			case POWERCELL:
 			case RADAR:

@@ -159,7 +159,7 @@ public class KingdomManager extends Manager {
 	}
 
 	private Kingdom loadKingdom(String name) {
-		Kingdoms.debugMessage("Loading kingdom: " + name);
+		Kingdoms.debugMessage("Attemping loading for kingdom: " + name);
 		FutureTask<Kingdom> future = new FutureTask<>(() -> {
 			OfflineKingdom databaseKingdom = database.get(name);
 			if (databaseKingdom == null)
@@ -226,26 +226,21 @@ public class KingdomManager extends Manager {
 	public boolean deleteKingdom(OfflineKingdom kingdom) {
 		if (kingdom == null)
 			return false;
-		Bukkit.getScheduler().runTaskAsynchronously(instance, new Runnable() {
-			@Override
-			public void run() {
-				for (OfflineKingdomPlayer player : kingdom.getMembers()) {
-					player.setKingdom(null);
-					player.setRank(rankManager.getDefaultRank());
-				}
-				OfflineKingdomPlayer owner = kingdom.getOwner();
-				kingdoms.remove(kingdom);
-				database.delete(kingdom.getName());
-				Bukkit.getPluginManager().callEvent(new KingdomDeleteEvent(kingdom));
-				landManager.unclaimAllLand(kingdom);
-				Optional<KingdomPlayer> kingPlayer = owner.getKingdomPlayer();
-				if (kingPlayer.isPresent())
-					new MessageBuilder("kingdoms.deleted")
-							.setPlaceholderObject(owner)
-							.setKingdom(kingdom)
-							.send(kingPlayer.get());
-			}
-		});
+		for (OfflineKingdomPlayer player : kingdom.getMembers()) {
+			player.setKingdom(null);
+			player.setRank(null);
+		}
+		OfflineKingdomPlayer owner = kingdom.getOwner();
+		kingdoms.remove(kingdom);
+		database.delete(kingdom.getName());
+		Bukkit.getPluginManager().callEvent(new KingdomDeleteEvent(kingdom));
+		landManager.unclaimAllLand(kingdom);
+		Optional<KingdomPlayer> kingPlayer = owner.getKingdomPlayer();
+		if (kingPlayer.isPresent())
+			new MessageBuilder("kingdoms.deleted")
+					.setPlaceholderObject(owner)
+					.setKingdom(kingdom)
+					.send(kingPlayer.get());
 		return true;
 	}
 

@@ -61,7 +61,7 @@ public class NexusInventory extends StructureInventory {
 	}
 	
 	@Override
-	public void openInventory(KingdomPlayer kingdomPlayer) {
+	public void build(KingdomPlayer kingdomPlayer) {
 		Player player = kingdomPlayer.getPlayer();
 		Kingdom kingdom = kingdomPlayer.getKingdom(); // Can't be null.
 		ConfigurationSection section = inventories.getConfigurationSection("inventories.nexus");
@@ -115,7 +115,7 @@ public class NexusInventory extends StructureInventory {
 			}
 			kingdom.subtractResourcePoints(memberCost);
 			kingdom.setMaxMembers(kingdom.getMaxMembers() + 1);
-			openInventory(kingdomPlayer);
+			openInventory(player);
 		});
 		ItemStack battle = new ItemStackBuilder(section.getConfigurationSection("battle-logs"))
 				.setPlaceholderObject(kingdomPlayer)
@@ -224,7 +224,7 @@ public class NexusInventory extends StructureInventory {
 					.replace("%size%", (size + 9) / 9)
 					.setKingdom(kingdom)
 					.send(player);
-			openInventory(kingdomPlayer);
+			openInventory(player);
 		});
 		if (configuration.getBoolean("kingdoms.allow-pacifist")) {
 			ItemStackBuilder builder = new ItemStackBuilder(section.getConfigurationSection("neutral-off"))
@@ -255,7 +255,7 @@ public class NexusInventory extends StructureInventory {
 						.setPlaceholderObject(kingdomPlayer)
 						.setKingdom(kingdom)
 						.send(player);
-				openInventory(kingdomPlayer);
+				openInventory(player);
 				return;
 			});
 		}
@@ -295,7 +295,7 @@ public class NexusInventory extends StructureInventory {
 				}
 				kingdom.subtractResourcePoints(type.getCost());
 				powerup.setLevel(level + 1, type);
-				openInventory(kingdomPlayer);
+				openInventory(player);
 			});
 		}
 		//getShieldDisplayItem(kingdom); This was planned but never made it to the nexus menu I guess - Lime

@@ -28,7 +28,9 @@ public class OfflineKingdomPlayerSerializer implements Serializer<OfflineKingdom
 	@Override
 	public JsonElement serialize(OfflineKingdomPlayer player, Type type, JsonSerializationContext context) {
 		JsonObject json = new JsonObject();
-		json.addProperty("rank", player.getRank().getName());
+		Rank rank = player.getRank();
+		if (rank != null)
+			json.addProperty("rank", rank.getName());
 		json.addProperty("uuid", player.getUniqueId() + "");
 		OfflineKingdom kingdom = player.getKingdom();
 		if (kingdom != null)

@@ -8,10 +8,10 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 import org.bukkit.command.CommandSender;
 
-public class KingdomsCommand extends AbstractCommand {
-	
-	public KingdomsCommand() {
-		super(true, "kingdoms", "k", "kingdom");
+public class AdminListCommand extends AbstractCommand {
+
+	public AdminListCommand() {
+		super(true, "admin", "a");
 	}
 
 	@Override
@@ -21,10 +21,10 @@ public class KingdomsCommand extends AbstractCommand {
 				.replace("%version%", instance.getDescription().getVersion())
 				.send(sender);
 		for (AbstractCommand command : instance.getCommandHandler().getCommands()) {
-			if (command instanceof AdminCommand)
+			if (!(command instanceof AdminCommand))
 				continue;
 			if (command.getPermissionNode() == null || sender.hasPermission(command.getPermissionNode())) {
-				sender.sendMessage(Formatting.color("&8 - &6" + command.getSyntax(sender) + "&7 - " + command.getDescription(sender)));
+				sender.sendMessage(Formatting.color("&8 - &c" + command.getSyntax(sender) + "&7 - " + command.getDescription(sender)));
 			}
 		}
 		sender.sendMessage("");
@@ -33,12 +33,12 @@ public class KingdomsCommand extends AbstractCommand {
 
 	@Override
 	public String getPermissionNode() {
-		return null;
+		return "kingdoms.admin";
 	}
 
 	@Override
 	public String getConfigurationNode() {
-		return "kingdoms";
+		return "admin";
 	}
 
 }
