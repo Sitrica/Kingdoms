@@ -23,7 +23,9 @@ public class LandHandler implements Handler<Land> {
 
 	@Override
 	public JsonObject serialize(Land land, JsonObject json, JsonSerializationContext context) {
-		json.add("structure", structureSerializer.serialize(land.getStructure(), Structure.class, context));
+		Structure structure = land.getStructure();
+		if (structure != null)
+			json.add("structure", structureSerializer.serialize(structure, Structure.class, context));
 		JsonArray turrets = new JsonArray();
 		land.getTurrets().forEach(turret -> turrets.add(turretSerializer.serialize(turret, Turret.class, context)));
 		json.add("turrets", turrets);

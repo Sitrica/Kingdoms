@@ -69,10 +69,12 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {/
 		return autoClaiming;
 	}
 
-	@Override
 	public Kingdom getKingdom() {
-		if (kingdomCache == null)
-			return null;
+		if (kingdomCache == null) {
+			super.getKingdom(); // Load the kingdomCache
+			if (kingdomCache == null)
+				return null;
+		}
 		return kingdomCache.getKingdom();
 	}
 

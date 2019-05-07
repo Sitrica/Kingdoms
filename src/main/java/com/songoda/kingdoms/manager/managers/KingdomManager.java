@@ -254,15 +254,15 @@ public class KingdomManager extends Manager {
 	 * @param king The king of this kingdom
 	 * @return Kingdom that is to be created.
 	 */
-	public Kingdom createNewKingdom(String name, KingdomPlayer king) {
-		Kingdom kingdom = new Kingdom(king, name);
+	public Kingdom createNewKingdom(String name, KingdomPlayer owner) {
+		Kingdom kingdom = new Kingdom(owner, name);
+		database.put(kingdom.getName(), kingdom);
 		kingdoms.add(kingdom);
 		String interval = configuration.getString("kingdoms.base-shield-time", "5 minutes");
 		kingdom.setShieldTime(IntervalUtils.getInterval(interval));
-		king.setRank(rankManager.getOwnerRank());
-		king.setKingdom(name);
 		updateUpgrades(kingdom);
-		database.put(kingdom.getName(), kingdom);
+		owner.setRank(rankManager.getOwnerRank());
+		owner.setKingdom(name);
 		Bukkit.getPluginManager().callEvent(new KingdomCreateEvent(kingdom));
 		return kingdom;
 	}
