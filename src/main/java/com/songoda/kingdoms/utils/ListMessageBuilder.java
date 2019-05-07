@@ -205,6 +205,20 @@ public class ListMessageBuilder {
 	}
 
 	private String applyPlaceholders(String input) {
+		// Registered Placeholders
+		for (Entry<Placeholder<?>, Object> entry : placeholders.entrySet()) {
+			Placeholder<?> placeholder = entry.getKey();
+			for (String syntax : placeholder.getSyntaxes()) {
+				if (placeholder instanceof SimplePlaceholder) {
+					SimplePlaceholder simple = (SimplePlaceholder) placeholder;
+					input = input.replaceAll(Pattern.quote(syntax), simple.get());
+				} else {
+					String replacement = placeholder.replace_i(entry.getValue());
+					if (replacement != null)
+						input = input.replaceAll(Pattern.quote(syntax), replacement);
+				}
+			}
+		}
 		// Default Placeholders
 		for (Placeholder<?> placeholder : Placeholders.getPlaceholders()) {
 			for (String syntax : placeholder.getSyntaxes()) {
@@ -218,20 +232,6 @@ public class ListMessageBuilder {
 				}
 				if (kingdom != null && placeholder.getType().isAssignableFrom(OfflineKingdom.class)) {
 					String replacement = placeholder.replace_i(kingdom);
-					if (replacement != null)
-						input = input.replaceAll(Pattern.quote(syntax), replacement);
-				}
-			}
-		}
-		// Registered Placeholders
-		for (Entry<Placeholder<?>, Object> entry : placeholders.entrySet()) {
-			Placeholder<?> placeholder = entry.getKey();
-			for (String syntax : placeholder.getSyntaxes()) {
-				if (placeholder instanceof SimplePlaceholder) {
-					SimplePlaceholder simple = (SimplePlaceholder) placeholder;
-					input = input.replaceAll(Pattern.quote(syntax), simple.get());
-				} else {
-					String replacement = placeholder.replace_i(entry.getValue());
 					if (replacement != null)
 						input = input.replaceAll(Pattern.quote(syntax), replacement);
 				}

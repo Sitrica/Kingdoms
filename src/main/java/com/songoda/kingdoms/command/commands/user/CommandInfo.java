@@ -6,6 +6,7 @@ import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.placeholders.Placeholder;
+import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.ListMessageBuilder;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -28,9 +29,10 @@ public class CommandInfo extends AbstractCommand {
 					@Override
 					public Object replace(KingdomPlayer player) {
 						Kingdom kingdom = player.getKingdom();
-						return kingdom != null ? kingdom.getName() : "&c&lNo Kingdom";
+						return kingdom != null ? kingdom.getName() : Formatting.color("&c&lNo Kingdom");
 					}
 				})
+				.setKingdom(kingdomPlayer.getKingdom())
 				.setPlaceholderObject(kingdomPlayer)
 				.send(player);
 		return ReturnType.SUCCESS;

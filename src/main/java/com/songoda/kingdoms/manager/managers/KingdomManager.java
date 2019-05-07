@@ -255,26 +255,16 @@ public class KingdomManager extends Manager {
 	 * @return Kingdom that is to be created.
 	 */
 	public Kingdom createNewKingdom(String name, KingdomPlayer king) {
-		FutureTask<Kingdom> future = new FutureTask<>(() -> {
-			Kingdom kingdom = new Kingdom(king, name);
-			kingdoms.add(kingdom);
-			String interval = configuration.getString("kingdoms.base-shield-time", "5 minutes");
-			kingdom.setShieldTime(IntervalUtils.getInterval(interval));
-			king.setRank(rankManager.getOwnerRank());
-			king.setKingdom(name);
-			updateUpgrades(kingdom);
-			database.put(kingdom.getName(), kingdom);
-			Bukkit.getPluginManager().callEvent(new KingdomCreateEvent(kingdom));
-			return kingdom;
-		});
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		executor.execute(future);
-		try {
-			return future.get();
-		} catch (InterruptedException | ExecutionException e) {
-			e.printStackTrace();
-		}
-		return null;
+		Kingdom kingdom = new Kingdom(king, name);
+		kingdoms.add(kingdom);
+		String interval = configuration.getString("kingdoms.base-shield-time", "5 minutes");
+		kingdom.setShieldTime(IntervalUtils.getInterval(interval));
+		king.setRank(rankManager.getOwnerRank());
+		king.setKingdom(name);
+		updateUpgrades(kingdom);
+		database.put(kingdom.getName(), kingdom);
+		Bukkit.getPluginManager().callEvent(new KingdomCreateEvent(kingdom));
+		return kingdom;
 	}
 
 	/**

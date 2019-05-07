@@ -12,6 +12,7 @@ import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
+import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.LocationUtils;
 
 public class DefaultPlaceholders {
@@ -31,7 +32,7 @@ public class DefaultPlaceholders {
 				public String replace(OfflineKingdomPlayer player) {
 					OfflineKingdom kingdom = player.getKingdom();
 					if (kingdom == null)
-						return null;
+						return Formatting.color("&c&lNo Kingdom");
 					return kingdom.getName();
 				}
 			});
