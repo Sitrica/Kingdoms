@@ -63,24 +63,30 @@ public class ChatManager extends Manager {
 				senders.forEach(k -> k.getPlayer().sendMessage(format(k, message)));
 				break;
 			case PUBLIC:
-				if (ranks.getBoolean("format-public-chat", false)) {
-					event.setFormat(format(false, kingdomPlayer, message));
-					event.setMessage(format(true, kingdomPlayer, message));
-				}
+				if (ranks.getBoolean("format-public-chat", false))
+					event.setFormat(format(kingdomPlayer, message));
 				break;
 		}
 	}
 
 	private String format(KingdomPlayer kingdomPlayer, String message) {
-		return Formatting.color(format(false, kingdomPlayer, message) + format(true, kingdomPlayer, message));
+		return format(false, kingdomPlayer, message) + format(true, kingdomPlayer, message);
 	}
 
 	private String format(boolean chat, KingdomPlayer kingdomPlayer, String message) {
+		color : if (ranks.getBoolean("color-symbols.enabled", true)) {
+			if (ranks.getBoolean("color-symbols.kingdom-only", false) && kingdomPlayer.getChatChannel() != ChatChannel.KINGDOM)
+				break color;
+			if (!ranks.getBoolean("color-symbols.permission-required", true))
+				message = Formatting.color(message);
+			else if (kingdomPlayer.getPlayer().hasPermission(ranks.getString("color-symbols.permission", "kingdoms.chatcolor")))
+				message = Formatting.color(message);
+		}
 		Rank rank = kingdomPlayer.getRank();
 		MessageBuilder builder = new MessageBuilder(false, "prefix-format")
+				.replace("%chatcolor%", rank.getChatColor().toString())
 				.replace("%prefix%", rank.getPrefix(kingdomPlayer))
-				.replace("%chatcolor%", rank.getChatColor() + "")
-				.replace("%color%", rank.getColor() + "")
+				.replace("%color%", rank.getColor().toString())
 				.replace("%message%", message)
 				.withPlaceholder(kingdomPlayer, new SimplePlaceholder("%player%") {
 					@Override
@@ -90,7 +96,9 @@ public class ChatManager extends Manager {
 						else
 							return kingdomPlayer.getName();
 					}
-				}).fromConfiguration(ranks);
+				})
+				.setPlaceholderObject(message)
+				.fromConfiguration(ranks);
 		if (chat)
 			builder.setNodes("message-format");
 		return builder.get();

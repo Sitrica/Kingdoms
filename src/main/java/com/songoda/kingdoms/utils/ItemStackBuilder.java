@@ -140,9 +140,25 @@ public class ItemStackBuilder {
 	}
 
 	private String applyPlaceholders(String input) {
+		// Registered Placeholders
+		for (Entry<Placeholder<?>, Object> entry : placeholders.entrySet()) {
+			Placeholder<?> placeholder = entry.getKey();
+			for (String syntax : placeholder.getSyntaxes()) {
+				if (!input.toLowerCase().contains(syntax.toLowerCase()))
+					continue;
+				if (placeholder instanceof SimplePlaceholder) {
+					SimplePlaceholder simple = (SimplePlaceholder) placeholder;
+					input = input.replaceAll(Pattern.quote(syntax), simple.get());
+				} else {
+					input = input.replaceAll(Pattern.quote(syntax), placeholder.replace_i(entry.getValue()));
+				}
+			}
+		}
 		// Default Placeholders
 		for (Placeholder<?> placeholder : Placeholders.getPlaceholders()) {
 			for (String syntax : placeholder.getSyntaxes()) {
+				if (!input.toLowerCase().contains(syntax.toLowerCase()))
+					continue;
 				if (placeholder instanceof SimplePlaceholder) {
 					SimplePlaceholder simple = (SimplePlaceholder) placeholder;
 					input = input.replaceAll(Pattern.quote(syntax), simple.get());
@@ -153,18 +169,6 @@ public class ItemStackBuilder {
 				if (kingdom != null) {
 					if (placeholder.getType().isAssignableFrom(OfflineKingdom.class))
 						input = input.replaceAll(Pattern.quote(syntax), placeholder.replace_i(kingdom));
-				}
-			}
-		}
-		// Registered Placeholders
-		for (Entry<Placeholder<?>, Object> entry : placeholders.entrySet()) {
-			Placeholder<?> placeholder = entry.getKey();
-			for (String syntax : placeholder.getSyntaxes()) {
-				if (placeholder instanceof SimplePlaceholder) {
-					SimplePlaceholder simple = (SimplePlaceholder) placeholder;
-					input = input.replaceAll(Pattern.quote(syntax), simple.get());
-				} else {
-					input = input.replaceAll(Pattern.quote(syntax), placeholder.replace_i(entry.getValue()));
 				}
 			}
 		}

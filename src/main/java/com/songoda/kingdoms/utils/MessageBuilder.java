@@ -246,6 +246,8 @@ public class MessageBuilder {
 		for (Entry<Placeholder<?>, Object> entry : placeholders.entrySet()) {
 			Placeholder<?> placeholder = entry.getKey();
 			for (String syntax : placeholder.getSyntaxes()) {
+				if (!input.toLowerCase().contains(syntax.toLowerCase()))
+					continue;
 				if (placeholder instanceof SimplePlaceholder) {
 					SimplePlaceholder simple = (SimplePlaceholder) placeholder;
 					input = input.replaceAll(Pattern.quote(syntax), simple.get());
@@ -259,6 +261,8 @@ public class MessageBuilder {
 		// Default Placeholders
 		for (Placeholder<?> placeholder : Placeholders.getPlaceholders()) {
 			for (String syntax : placeholder.getSyntaxes()) {
+				if (!input.toLowerCase().contains(syntax.toLowerCase()))
+					continue;
 				if (placeholder instanceof SimplePlaceholder) {
 					SimplePlaceholder simple = (SimplePlaceholder) placeholder;
 					input = input.replaceAll(Pattern.quote(syntax), simple.get());

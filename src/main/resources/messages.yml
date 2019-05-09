@@ -305,6 +305,7 @@ commands:
             - "&dOwner: &7%owner%"
             - "&dResource points: &e%resourcepoints%"
             - "&dClaims: &a%claims%&7/&c%maxclaims%"
+            - "&dNeutral: &7%neutral%"
             - "&aAllies: &7%allies%"
             - "&cEnemies: &7%enemies%"
             - "&dMembers: &a%onlinecount%&7/&c%offlinecount% &8(Online members are bold)"
@@ -325,7 +326,7 @@ commands:
         syntax: "/k delete <kingdom>"
         no-kingdom-found: "&cThe Kingdom &l%kingdom%&c does not exist."
         cancelled: "&cCancelled."
-        deleted: "&eYou have deleted the Kingdom %kingdom%."
+        deleted: "&eYou have deleted the Kingdom &l%kingdom%&e."
     admin:
         # Placeholders: All KingdomPlayer placeholders.
         description: "View admin commands."

@@ -12,7 +12,7 @@
 # The version is to help determine which version this config is. Please don't modify this value.
 version: "@version@"
 
-prefix-format: "%prefix% %color%%player%&7: "
+prefix-format: "%prefix%%color%%player%&7:"
 message-format: "%chatcolor%%message%"
 # If %player% should use the player's display name instead of actual name.
 # (Display name can be formatted by other plugins like essentials)
@@ -27,6 +27,13 @@ list-offline-online-colors:
     offline: "GRAY"
 
 format-public-chat: false
+# Allow members to use &6 chat color symbols in messages, and if they should have a permission to do so.
+color-symbols:
+    enabled: true
+    # If chat colors only work when in the KINGDOM chat channel.
+    kingdom-only: false
+    permission-requires: true
+    permission: "kingdoms.chatcolor"
 
 # All configurations related to ranks, you can add ranks and manager their priority in this section.
 ranks:

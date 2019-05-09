@@ -2,7 +2,6 @@ package com.songoda.kingdoms.manager.managers;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -112,12 +111,7 @@ public class KingdomManager extends Manager {
 	public Kingdom convert(OfflineKingdom other) {
 		Kingdom kingdom = new Kingdom(other);
 		String name = other.getName();
-		Iterator<OfflineKingdom> iterator = kingdoms.iterator();
-		while (iterator.hasNext()) {
-			OfflineKingdom existing = iterator.next();
-			if (existing.getName().equalsIgnoreCase(name))
-				iterator.remove();
-		}
+		kingdoms.removeIf(k -> k.getName().equalsIgnoreCase(name));
 		kingdoms.add(kingdom);
 		return kingdom;
 	}

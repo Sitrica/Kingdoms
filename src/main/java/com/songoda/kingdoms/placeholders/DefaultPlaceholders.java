@@ -132,6 +132,12 @@ public class DefaultPlaceholders {
 				return builder.toString();
 			}
 		});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%neutral%") {
+			@Override
+			public String replace(OfflineKingdom kingdom) {
+				return kingdom.isNeutral() + "";
+			}
+		});
 		Placeholders.registerPlaceholder(new Placeholder<CommandSender>("%sender%") {
 			@Override
 			public String replace(CommandSender sender) {
