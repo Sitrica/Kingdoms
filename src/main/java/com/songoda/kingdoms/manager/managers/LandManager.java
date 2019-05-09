@@ -428,7 +428,7 @@ public class LandManager extends Manager {
 			land.setKingdomOwner(null);
 			structureManager.breakStructureAt(land);
 			database.delete(LocationUtils.chunkToString(land.getChunk()));
-			if (land.getStructure() != null) // Sync back to server.
+			if (land.getStructure() != null)
 				structureManager.breakStructureAt(land);
 			if (dynmapManager.isPresent())
 				dynmapManager.get().update(chunk);

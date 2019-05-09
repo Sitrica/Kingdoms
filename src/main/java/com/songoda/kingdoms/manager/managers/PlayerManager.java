@@ -91,7 +91,7 @@ public class PlayerManager extends Manager {
 	private KingdomPlayer convert(Player player, OfflineKingdomPlayer other) {
 		KingdomPlayer kingdomPlayer = new KingdomPlayer(player, other);
 		Kingdoms.debugMessage("Converting kingdom offline player to online player: " + player.getUniqueId());
-		users.replace(player.getUniqueId(), kingdomPlayer);
+		users.put(player.getUniqueId(), kingdomPlayer);
 		return kingdomPlayer;
 	}
 
@@ -117,23 +117,23 @@ public class PlayerManager extends Manager {
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
-		//UUID uuid = player.getUniqueId();
 		KingdomPlayer kingdomPlayer = getKingdomPlayer(player);
-		//if (kingdomPlayer == null)
-		//	loadKingdomPlayer(uuid);
+		Kingdoms.debugMessage("Loaded player " + player.getUniqueId());
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null)
 			return;
-		Kingdoms.debugMessage("Loaded player " + player.getUniqueId());
 		if (configuration.getBoolean("kingdom.join-at-kingdom", false))
 			player.teleport(kingdom.getSpawn());
-		if (!kingdomPlayer.isVanished() && configuration.getBoolean("see-self-join-message", true))
-			new MessageBuilder("kingdoms.member-join")
+		if (!kingdomPlayer.isVanished()) {
+			MessageBuilder builder = new MessageBuilder("kingdoms.member-join")
 					.toKingdomPlayers(kingdom.getOnlinePlayers())
 					.toKingdomPlayers(kingdom.getOnlineAllies())
 					.setPlaceholderObject(kingdomPlayer)
-					.setKingdom(kingdom)
-					.send();
+					.setKingdom(kingdom);
+			if (!configuration.getBoolean("see-self-join-message", true))
+				builder.ignoreSelf(kingdomPlayer);
+			builder.send();
+		}
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -152,7 +152,7 @@ public class PlayerManager extends Manager {
 		}
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onQuit(PlayerQuitEvent event) {
 		Player eventPlayer = event.getPlayer();
 		KingdomPlayer kingdomPlayer = getKingdomPlayer(eventPlayer);
@@ -162,8 +162,6 @@ public class PlayerManager extends Manager {
 				.map(entry -> entry.getValue())
 				.map(player -> (KingdomPlayer) player)
 				.forEach(player -> {
-					if (player.equals(kingdomPlayer))
-						return;
 					database.put(uuid + "", player);
 					if (player.isVanished())
 						return;
@@ -174,6 +172,7 @@ public class PlayerManager extends Manager {
 							.toKingdomPlayers(kingdom.getOnlinePlayers())
 							.toKingdomPlayers(kingdom.getOnlineAllies())
 							.setPlaceholderObject(player)
+							.ignoreSelf(kingdomPlayer)
 							.setKingdom(kingdom)
 							.send();
 				});

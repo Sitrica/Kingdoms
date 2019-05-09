@@ -84,6 +84,8 @@ public class Land {
 
 	public void setKingdomOwner(String kingdom) {
 		this.kingdom = kingdom;
+		if (kingdom == null)
+			kingdomCache = null;
 	}
 
 	public boolean hasTurret(Turret turret) {

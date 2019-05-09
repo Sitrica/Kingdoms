@@ -32,10 +32,11 @@ public class MessageBuilder {
 	private FileConfiguration configuration;
 	private Object defaultPlaceholderObject;
 	private OfflineKingdom kingdom;
+	private KingdomPlayer self;
 	private String complete;
 	private String[] nodes;
 	private boolean prefix;
-	
+
 	/**
 	 * Creates a MessageBuilder with the defined nodes..
 	 * 
@@ -45,7 +46,7 @@ public class MessageBuilder {
 		this.prefix = true;
 		this.nodes = nodes;
 	}
-	
+
 	/**
 	 * Creates a MessageBuilder with the defined nodes, and if it should contain the prefix.
 	 * 
@@ -56,7 +57,7 @@ public class MessageBuilder {
 		this.prefix = prefix;
 		this.nodes = nodes;
 	}
-	
+
 	/**
 	 * Set the players to send this message to.
 	 *
@@ -67,7 +68,7 @@ public class MessageBuilder {
 		this.kingdomPlayers.addAll(players);
 		return this;
 	}
-	
+
 	/**
 	 * Set the senders to send this message to.
 	 *
@@ -78,7 +79,7 @@ public class MessageBuilder {
 		this.senders.addAll(Sets.newHashSet(senders));
 		return this;
 	}
-	
+
 	/**
 	 * Set the players to send this message to.
 	 *
@@ -89,7 +90,7 @@ public class MessageBuilder {
 		this.senders.addAll(Sets.newHashSet(players));
 		return this;
 	}
-	
+
 	/**
 	 * Set the players to send this message to.
 	 *
@@ -100,7 +101,7 @@ public class MessageBuilder {
 		this.senders.addAll(players);
 		return this;
 	}
-	
+
 	/**
 	 * Add a placeholder to the MessageBuilder.
 	 * 
@@ -113,7 +114,7 @@ public class MessageBuilder {
 		placeholders.put(placeholder, placeholderObject);
 		return this;
 	}
-	
+
 	/**
 	 * Set the configuration to read from, by default is the messages.yml
 	 * 
@@ -124,7 +125,7 @@ public class MessageBuilder {
 		this.configuration = configuration;
 		return this;
 	}
-	
+
 	/**
 	 * Created a single replacement and ignores the placeholder object.
 	 * 
@@ -141,7 +142,7 @@ public class MessageBuilder {
 		}, replacement.toString());
 		return this;
 	}
-	
+
 	/**
 	 * Set the configuration nodes from messages.yml
 	 *
@@ -152,7 +153,18 @@ public class MessageBuilder {
 		this.nodes = nodes;
 		return this;
 	}
-	
+
+	/**
+	 * Add a player to ignore this message, useful when sending to multiple players.
+	 * 
+	 * @param self The KingdomPlayer to ignore this message.
+	 * @return The MessageBuilder for chaining.
+	 */
+	public MessageBuilder ignoreSelf(KingdomPlayer self) {
+		this.self = self;
+		return this;
+	}
+
 	/**
 	 * Set the placeholder object, good if you want to allow multiple placeholders.
 	 * 
@@ -163,7 +175,7 @@ public class MessageBuilder {
 		this.defaultPlaceholderObject = object;
 		return this;
 	}
-	
+
 	/**
 	 * Set the Kingdom option to be used for placeholders later.
 	 * 
@@ -174,7 +186,7 @@ public class MessageBuilder {
 		this.kingdom = kingdom;
 		return this;
 	}
-	
+
 	/**
 	 * Sends the message as an actionbar to the defined players.
 	 * 
@@ -183,7 +195,7 @@ public class MessageBuilder {
 	public void sendActionbar(Player... players) {
 		toPlayers(players).sendActionbar();
 	}
-	
+
 	/**
 	 * Sends the message as a title to the defined players.
 	 * 
@@ -192,28 +204,28 @@ public class MessageBuilder {
 	public void sendTitle(Player... players) {
 		toPlayers(players).sendTitle();
 	}
-	
+
 	/**
 	 * Sends the final product of the builder.
 	 */
 	public void send(Collection<KingdomPlayer> players) {
 		toKingdomPlayers(Sets.newHashSet(players)).send();
 	}
-	
+
 	/**
 	 * Sends the final product of the builder.
 	 */
 	public void send(KingdomPlayer... players) {
 		send(Sets.newHashSet(players));
 	}
-	
+
 	/**
 	 * Sends the final product of the builder.
 	 */
 	public void send(CommandSender... senders) {
 		toSenders(senders).send();
 	}
-	
+
 	/**
 	 * Completes and returns the final product of the builder.
 	 */
@@ -228,7 +240,7 @@ public class MessageBuilder {
 		complete = applyPlaceholders(complete);
 		return complete;
 	}
-	
+
 	private String applyPlaceholders(String input) {
 		// Registered Placeholders
 		for (Entry<Placeholder<?>, Object> entry : placeholders.entrySet()) {
@@ -273,7 +285,7 @@ public class MessageBuilder {
 		}
 		return input;
 	}
-	
+
 	/**
 	 * Sends the final product of the builder as a title if the players using toPlayers are set.
 	 * 
@@ -313,7 +325,7 @@ public class MessageBuilder {
 					.stay(stay)
 					.send(players);
 	}
-	
+
 	/**
 	 * Sends the final product of the builder as an actionbar if the players using toPlayers are set.
 	 */
@@ -328,7 +340,7 @@ public class MessageBuilder {
 			}
 		}
 	}
-	
+
 	/**
 	 * Sends the final product of the builder if the senders are set.
 	 */
@@ -341,9 +353,12 @@ public class MessageBuilder {
 		}
 		if (!senders.isEmpty()) {
 			for (CommandSender sender : senders) {
+				if (self != null && sender instanceof Player)
+					if (self.getUniqueId().equals(((Player)sender).getUniqueId()))
+						continue;
 				sender.sendMessage(complete);
 			}
 		}
 	}
-	
+
 }

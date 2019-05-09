@@ -227,11 +227,6 @@ turrets:
     # Placeholders %amount%, %type% and all Kingdom related
     turret-limit: "&cYou can only place %amount% %type% turrets in one land chunk."
 
-# All messages relating to chat.
-chat:
-    ally-chat-prefix: "&d[%rank%] %player%: &7"
-    kingdom-chat-prefix: "&a[%rank%] %player%: &7"
-
 # All command releated messages
 commands:
     # When a command can't be executed in a neutral area based on the values in the config.
@@ -300,10 +295,20 @@ commands:
         description: "Find information about Kingdoms."
         # Placeholders: All KingdomPlayer placeholders.
         syntax: "/k info [<kingdom>]"
+        no-kingdom-found: "&cThe Kingdom &l%kingdom%&c could not be found."
         # Placeholders: All Kingdom and KingdomPlayer placeholders.
         info:
             - ""
-            - "&6Info for Kingdom &e&l%kingdom%&6."
+            - "&6&l-=-=-=-=-=-=- &f&m&l-&7&l&m[&d&l&m---&r  &e&l%kingdom%&r  &d&m&l---&7&l&m]&f&l&m-&r &6&l-=-=-=-=-=-=-"
+            - ""
+            - "&dDescription: &7%description%"
+            - "&dOwner: &7%owner%"
+            - "&dResource points: &e%resourcepoints%"
+            - "&dClaims: &a%claims%&7/&c%maxclaims%"
+            - "&aAllies: &7%allies%"
+            - "&cEnemies: &7%enemies%"
+            - "&dMembers: &a%onlinecount%&7/&c%offlinecount% &8(Online members are bold)"
+            - "&d%members%"
             - ""
     disband:
         # Placeholders: All KingdomPlayer placeholders.

@@ -12,10 +12,23 @@
 # The version is to help determine which version this config is. Please don't modify this value.
 version: "@version@"
 
+prefix-format: "%prefix% %color%%player%&7: "
+message-format: "%chatcolor%%message%"
+# If %player% should use the player's display name instead of actual name.
+# (Display name can be formatted by other plugins like essentials)
+use-display-name: false
+
+# This section defines if the /k info command should have select colors to signify online and offline players.
+# If this is false then the color option of the ranks will be applied, and online players will be bolded.
+# Colors can be found at https://hub.spigotmc.org/javadocs/spigot/org/bukkit/ChatColor.html
+list-offline-online-colors:
+    enabled: false
+    online: "GREEN"
+    offline: "GRAY"
+
+format-public-chat: false
+
 # All configurations related to ranks, you can add ranks and manager their priority in this section.
-ranks-use-prefix: true
-# Use the chat-color option.
-ranks-use-chat-color: true
 ranks:
     # The king is usally the owner.
     king:
@@ -30,7 +43,7 @@ ranks:
         unicode-icon: "\u265a"
         name: "King"
         # Placeholders: %player%, %kingdom%, %priority%, %name% (rank name), %unicode%/%icon%, %player% and all Kingdom related placeholders.
-        prefix: "&8[&c%unicode%&8][&7%kingdom%&8] &7"
+        prefix: "&8[&c%unicode%&8][&7%kingdom%&8]"
 # If you want to have queens aswell you can add this rank.
 #    queen:
 #        priority: 1
@@ -114,7 +127,7 @@ ranks:
     member:
         # Default it's going to be the lowest priority.
         priority: 99
-        color: "GREEN"
+        color: "GRAY"
         chat-color: "GRAY"
         unicode-icon: "\u265f"
         name: "Member"

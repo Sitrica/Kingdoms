@@ -192,10 +192,8 @@ public class KingdomManager extends Manager {
 
 	public void onPlayerLeave(KingdomPlayer player, Kingdom kingdom) {
 		if (kingdom.getOnlinePlayers().isEmpty()) {
-			instance.getServer().getScheduler().runTaskAsynchronously(instance, () -> {
-				database.put(kingdom.getName(), kingdom);
-				kingdoms.remove(kingdom);
-			});
+			database.put(kingdom.getName(), kingdom);
+			kingdoms.remove(kingdom);
 		}
 	}
 

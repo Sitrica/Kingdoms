@@ -1,6 +1,7 @@
 package com.songoda.kingdoms.manager.managers;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -10,11 +11,14 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.kingdom.RankPermissions;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
+import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
+import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
 import net.md_5.bungee.api.ChatColor;
@@ -22,11 +26,13 @@ import net.md_5.bungee.api.ChatColor;
 public class RankManager extends Manager {
 
 	private final List<Rank> ranks = new ArrayList<>();
+	private final FileConfiguration rankConfiguration;
 	private final ConfigurationSection section;
 
 	public RankManager() {
 		super("rank", false);
-		this.section = instance.getConfiguration("ranks").get().getConfigurationSection("ranks");
+		rankConfiguration = instance.getConfiguration("ranks").get();
+		this.section = rankConfiguration.getConfigurationSection("ranks");
 		for (String rank : section.getKeys(false)) {
 			ChatColor chat = ChatColor.valueOf(section.getString(rank + ".chat-color", "WHITE"));
 			ChatColor color = ChatColor.valueOf(section.getString(rank + ".color", "WHITE"));
@@ -55,8 +61,9 @@ public class RankManager extends Manager {
 		}
 
 		public String getPrefix(KingdomPlayer player) {
-			return new MessageBuilder(node + ".prefix").fromConfiguration(configuration)
+			return new MessageBuilder(false, node + ".prefix")
 					.replace("%player%", player.getPlayer().getName())
+					.fromConfiguration(rankConfiguration)
 					.setKingdom(player.getKingdom())
 					.replace("%priority%", priority)
 					.replace("%unicode%", unicode)
@@ -85,16 +92,16 @@ public class RankManager extends Manager {
 			return node;
 		}
 
+		public ChatColor getChatColor() {
+			return chat;
+		}
+
 		public ChatColor getColor() {
 			return color;
 		}
 
 		public String getUnicode() {
 			return unicode;
-		}
-
-		public ChatColor getChat() {
-			return chat;
 		}
 
 		public int getPriority() {
@@ -141,6 +148,39 @@ public class RankManager extends Manager {
 		return ranks.parallelStream()
 				.sorted(Comparator.comparing(Rank::getPriority))
 				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Only used for chat formatting, displaying in the /k info
+	 * 
+	 * @param players The Collection to format.
+	 * @return The formatted collection.
+	 */
+	public String list(Collection<OfflineKingdomPlayer> players) {
+		StringBuilder builder = new StringBuilder();
+		players.parallelStream()
+				.map(player -> {
+					//INFO Reminder: Unicodes reset the format.
+					Rank rank = player.getRank();
+					String format = rank.getChatColor() + rank.getUnicode() + player.getName();
+					if (rankConfiguration.isConfigurationSection("list-offline-online-colors")) {
+						ConfigurationSection section = rankConfiguration.getConfigurationSection("list-offline-online-colors");
+						if (section.getBoolean("enabled", false)) {
+							if (player.isOnline()) {
+								ChatColor color = ChatColor.valueOf(section.getString("online", "GREEN"));
+								format = color + rank.getUnicode() + color + player.getName();
+							} else {
+								ChatColor color = ChatColor.valueOf(section.getString("offline", "GRAY"));
+								format = color + rank.getUnicode() + color + player.getName();
+							}
+						} else if (player.isOnline())
+							format = rank.getChatColor() + rank.getUnicode() + rank.getChatColor() + ChatColor.BOLD + player.getName();
+					} else if (player.isOnline())
+						format = rank.getChatColor() + rank.getUnicode() + rank.getChatColor() + ChatColor.BOLD + player.getName();
+					return Formatting.color(format);
+				})
+				.forEach(line -> builder.append(line));
+		return builder.toString();
 	}
 
 	public Rank getDefaultRank() {
