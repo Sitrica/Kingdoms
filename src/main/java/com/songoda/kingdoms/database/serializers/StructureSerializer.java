@@ -73,7 +73,6 @@ public class StructureSerializer implements Serializer<Structure> {
 		OfflineKingdom kingdom = optional.get();
 		Structure structure = new Structure(kingdom, location, structureType);
 		Block structureBlock = location.getBlock();
-		Kingdoms.debugMessage("test");
 		structureBlock.setMetadata(structureType.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
 		return structure;
 	}

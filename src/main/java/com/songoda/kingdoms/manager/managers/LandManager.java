@@ -9,10 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -243,16 +239,8 @@ public class LandManager extends Manager {
 		if (land == null) {
 			String location = LocationUtils.chunkToString(chunk);
 			Kingdoms.debugMessage("Fetching land info for " + location);
-			FutureTask<Land> future = new FutureTask<>(() -> database.get(location, new Land(chunk)));
-			ExecutorService executor = Executors.newSingleThreadExecutor();
-			executor.execute(future);
-			try {
-				land = future.get();
-				Kingdoms.debugMessage("Structure test " + land.getStructure());
-			} catch (InterruptedException | ExecutionException e) {
-				e.printStackTrace();
-				land = new Land(chunk);
-			}
+			//TODO Could be a future but that failed last time.
+			land = database.get(location, new Land(chunk));
 			lands.put(chunk, land);
 		}
 		return land;
