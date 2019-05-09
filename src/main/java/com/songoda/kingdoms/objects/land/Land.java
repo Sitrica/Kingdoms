@@ -19,6 +19,7 @@ public class Land {
 
 	private final Set<ChestSign> signs = new HashSet<>();
 	private final Set<Turret> turrets = new HashSet<>();
+	protected transient OfflineKingdom kingdomCache;
 	private final KingdomManager kingdomManager;
 	private final LandManager landManager;
 	private final Kingdoms instance;
@@ -71,9 +72,14 @@ public class Land {
 	}
 
 	public Optional<OfflineKingdom> getKingdomOwner() {
+		if (kingdomCache != null)
+			return Optional.of(kingdomCache);
 		if (kingdom == null)
 			return Optional.empty();
-		return kingdomManager.getOfflineKingdom(kingdom);
+		Optional<OfflineKingdom> optional = kingdomManager.getOfflineKingdom(kingdom);
+		if (optional.isPresent())
+			kingdomCache = optional.get();
+		return optional;
 	}
 
 	public void setKingdomOwner(String kingdom) {
