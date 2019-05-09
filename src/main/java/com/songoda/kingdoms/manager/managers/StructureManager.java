@@ -62,7 +62,7 @@ import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class StructureManager extends Manager {
-	
+
 	private final Queue<Land> loadQueue = new LinkedList<Land>();
 	private InventoryManager inventoryManager;
 	private PlayerManager playerManager;
@@ -70,7 +70,7 @@ public class StructureManager extends Manager {
 	private NexusManager nexusManager;
 	private LandManager landManager;
 	private final BukkitTask task;
-	
+
 	public StructureManager() {
 		super("structure", true);
 		task = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
@@ -120,7 +120,7 @@ public class StructureManager extends Manager {
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
 	}
-	
+
 	public void breakStructureAt(Land land) {
 		Structure structure = land.getStructure();
 		if (structure == null)
@@ -140,7 +140,7 @@ public class StructureManager extends Manager {
 		}
 		block.getWorld().dropItemNaturally(location, type.build());
 	}
-	
+
 	public boolean isInvadeable(KingdomPlayer invader, Chunk chunk) {
 		if (!StructureType.POWERCELL.isEnabled())
 			return true;
@@ -210,7 +210,7 @@ public class StructureManager extends Manager {
 			}
 		}, 1);
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onStructurePlace(PlayerInteractEvent event) {
@@ -320,7 +320,7 @@ public class StructureManager extends Manager {
 		if (type == StructureType.WARPPAD || type == StructureType.OUTPOST)
 			kingdom.addWarp(new WarpPad(kingdom, structure.getLocation(), StructureType.OUTPOST.build().getItemMeta().getDisplayName(), land));
 	}
-	
+
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onStructureBreak(BlockBreakEvent event) {
 		if (event.isCancelled())
@@ -379,14 +379,14 @@ public class StructureManager extends Manager {
 			}
 		}
 	}
-	
+
 	private final Map<KingdomPlayer, Extractor> extractors = new HashMap<>();
 	private final Map<KingdomPlayer, Land> selected = new HashMap<>();
-	
+
 	public Map<KingdomPlayer, Extractor> getOpenExtractors() {
 		return extractors;
 	}
-	
+
 	@EventHandler
 	public void onRightClickStructure(PlayerInteractEvent event) {
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
@@ -499,7 +499,7 @@ public class StructureManager extends Manager {
 				break;
 		}
 	}
-	
+
 	@EventHandler
 	public void onPistonPush(BlockPistonExtendEvent event) {
 		for (Iterator<Block> iter = event.getBlocks().iterator(); iter.hasNext();) {
@@ -525,7 +525,7 @@ public class StructureManager extends Manager {
 			return;
 		}
 	}
-	
+
 	@EventHandler
 	public void onEntityExplodeStructure(EntityExplodeEvent event) {
 		for (Iterator<Block> iter = event.blockList().iterator(); iter.hasNext();) {
@@ -537,20 +537,20 @@ public class StructureManager extends Manager {
 			iter.remove();
 		}
 	}
-	
+
 	public boolean isStructure(Block block) {
-		for (StructureType type:StructureType.values()) {
+		for (StructureType type : StructureType.values()) {
 			if (block.hasMetadata(type.getMetaData()))
 				return true;
 		}
 		return false;
 	}
-	
+
 	@EventHandler
 	public void onLandLoad(LandLoadEvent event) {
 		loadQueue.add(event.getLand());
 	}
-	
+
 	@Override
 	public void onDisable() {
 		extractors.clear();

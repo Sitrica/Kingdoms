@@ -99,7 +99,7 @@ inventories:
             material-meta: ""
             glowing: false
     nexus:
-        title: "&9Close Inventory to confirm."
+        donate-title: "&9Close Inventory to confirm."
         use-filler: true
         # The filler block to make things look fancy.
         filler:

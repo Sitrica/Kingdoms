@@ -3,6 +3,7 @@ package com.songoda.kingdoms.manager.managers;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -103,15 +104,19 @@ public class RankManager extends Manager {
 		public String getName() {
 			return name;
 		}
-		
+
 	}
 
 	public Optional<Rank> getLowestFor(OfflineKingdom kingdom, Predicate<RankPermissions> predicate) {
 		List<Rank> sorted = getSortedOrder();
 		Collections.reverse(sorted);
-		return sorted.parallelStream()
-				.filter(rank -> predicate.test(kingdom.getPermissions(rank)))
-				.findFirst();
+		Iterator<Rank> iterator = sorted.iterator();
+		while (iterator.hasNext()) {
+			Rank rank = iterator.next();
+			if (predicate.test(kingdom.getPermissions(rank)))
+				return Optional.of(rank);
+		}
+		return Optional.empty();
 	}
 
 	public Optional<Rank> getRankByColor(ChatColor color) {

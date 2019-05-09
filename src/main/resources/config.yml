@@ -190,6 +190,8 @@ kingdoms:
     # If a clicked material contains a name within it's name of the following list.
     # Example: CYAN_SHULKER_BOX and GRAY_SHULKER_BOX will be caught if this is true and list contains SHULKER_BOX
     forbidden-contains: true
+    # If the member joining should see their own kingdom join message.
+    see-self-join-message: true
     # If forbidden-contains is false 
     forbidden-inventories:
         - "ENCHANTING_TABLE"

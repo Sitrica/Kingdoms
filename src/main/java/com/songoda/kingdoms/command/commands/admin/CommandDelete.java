@@ -43,7 +43,6 @@ public class CommandDelete extends AdminCommand {
 			return ReturnType.FAILURE;
 		}
 		confirmationManager.openConfirmation(kingdomPlayer, result -> {
-			player.closeInventory();
 			if (!result) {
 				new MessageBuilder("commands.delete.cancelled")
 						.setPlaceholderObject(kingdomPlayer)

@@ -31,20 +31,18 @@ public class ItemStackBuilder {
 	private final Kingdoms instance;
 	private OfflineKingdom kingdom;
 	private boolean glowing;
-	private String node;
-	
+
 	/**
 	 * Creates a ItemStackBuilder with the defined nodes..
 	 * 
 	 * @param nodes The configuration nodes from the messages.yml
 	 */
 	public ItemStackBuilder(String node) {
-		this.node = node;
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
 		this.section = configuration.getConfigurationSection(node);
 	}
-	
+
 	/**
 	 * Creates a ItemStackBuilder with the defined nodes..
 	 * 
@@ -53,10 +51,9 @@ public class ItemStackBuilder {
 	public ItemStackBuilder(ConfigurationSection section) {
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
-		this.node = section.getCurrentPath();
 		this.section = section;
 	}
-	
+
 	/**
 	 * Add a placeholder to the ItemStackBuilder.
 	 * 
@@ -69,7 +66,7 @@ public class ItemStackBuilder {
 		placeholders.put(placeholder, placeholderObject);
 		return this;
 	}
-	
+
 	/**
 	 * Created a single replacement and ignores the placeholder object.
 	 * 
@@ -86,19 +83,18 @@ public class ItemStackBuilder {
 		}, replacement.toString());
 		return this;
 	}
-	
+
 	/**
 	 * Set the configuration to read from, by default is the config.yml
 	 * 
 	 * @param configuration The FileConfiguration to read from.
 	 * @return The ItemStackBuilder for chaining.
 	 */
-	public ItemStackBuilder fromConfiguration(FileConfiguration configuration) {
-		this.configuration = configuration;
-		this.section = configuration.getConfigurationSection(node);
+	public ItemStackBuilder fromConfiguration(ConfigurationSection section) {
+		this.section = section;
 		return this;
 	}
-	
+
 	/**
 	 * Set the placeholder object, good if you want to allow multiple placeholders.
 	 * 
@@ -109,7 +105,7 @@ public class ItemStackBuilder {
 		this.defaultPlaceholderObject = object;
 		return this;
 	}
-	
+
 	/**
 	 * Set the placeholder object, good if you want to allow multiple placeholders.
 	 * 
@@ -120,7 +116,7 @@ public class ItemStackBuilder {
 		this.glowing = glowing.get();
 		return this;
 	}
-	
+
 	/**
 	 * Set the section to read from.
 	 * 
@@ -131,7 +127,7 @@ public class ItemStackBuilder {
 		this.section = section;
 		return this;
 	}
-	
+
 	/**
 	 * Set the Kingdom option to be used for placeholders later.
 	 * 
@@ -142,7 +138,7 @@ public class ItemStackBuilder {
 		this.kingdom = kingdom;
 		return this;
 	}
-	
+
 	private String applyPlaceholders(String input) {
 		// Default Placeholders
 		for (Placeholder<?> placeholder : Placeholders.getPlaceholders()) {
@@ -174,11 +170,15 @@ public class ItemStackBuilder {
 		}
 		return input;
 	}
-	
+
 	/**
 	 * Sends the final product of the builder.
 	 */
 	public ItemStack build() {
+		if (section == null) {
+			Kingdoms.consoleMessage("A configuration node is formated incorrectly.");
+			return null;
+		}
 		String title = section.getString("title", "");
 		title = applyPlaceholders(title);
 		Material material = Utils.materialAttempt(section.getString("material", "STONE"), "STONE");
@@ -206,5 +206,5 @@ public class ItemStackBuilder {
 		itemstack.setItemMeta(meta);
 		return itemstack;
 	}
-	
+
 }

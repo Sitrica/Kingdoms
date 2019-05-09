@@ -22,7 +22,7 @@ public class Formatting {
 		List<String> list = Arrays.asList(nodes);
 		Collections.reverse(list);
 		for (String node : list.toArray(new String[list.size()])) {
-			complete = configuration.getString(node, "Not set") + " " + complete;
+			complete = configuration.getString(node, "Not set '" + Arrays.toString(nodes) + "'") + " " + complete;
 		}
 		return Formatting.color(complete);
 	}

@@ -99,7 +99,7 @@ structures:
 
 # All messages relating to Kingdoms.
 kingdoms:
-    deleted: "&eYour Kingdom %kingdom% has been disbanded."
+    deleted: "&eYour Kingdom &l%kingdom%&e has been disbanded."
     no-kingdom: "&cYou are not apart of any Kingdom!"
     cannot-attack-members: "&cYou can't attack your own kingdom members!"
     permissions-too-low: "&cYour rank is too low to use this function! Only %rank% and up can use this function!"
@@ -312,7 +312,7 @@ commands:
         # Placeholders: All Kingdom and KingdomPlayer placeholders.
         no-kingdom: "&cYou aren't apart of any Kingdom."
         only-owner: "&cOnly the owner &l%owner%&c of the Kingdom &l%kingdom%&c may disband."
-        disbanded: "&eKingdom has successfully been disbanded."
+        # Disband message is kingdoms.deleted
         cancelled: "&cCancelled."
     delete:
         # Placeholders: All KingdomPlayer placeholders.

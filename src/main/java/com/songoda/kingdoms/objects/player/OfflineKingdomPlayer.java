@@ -65,6 +65,8 @@ public class OfflineKingdomPlayer {
 	public OfflineKingdom getKingdom() {
 		if (kingdomCache != null)
 			return kingdomCache;
+		if (kingdom == null)
+			return null;
 		Optional<OfflineKingdom> optional = kingdomManager.getOfflineKingdom(kingdom);
 		if (optional.isPresent()) {
 			kingdomCache = optional.get();
@@ -79,6 +81,8 @@ public class OfflineKingdomPlayer {
 
 	public void setKingdom(String kingdom) {
 		this.kingdom = kingdom;
+		if (kingdom == null)
+			kingdomCache = null;
 	}
 
 	public Optional<KingdomPlayer> getKingdomPlayer() {

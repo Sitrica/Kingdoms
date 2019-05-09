@@ -5,6 +5,8 @@ import java.util.Optional;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.metadata.FixedMetadataValue;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
@@ -21,9 +23,11 @@ import com.songoda.kingdoms.objects.structures.StructureType;
 public class StructureSerializer implements Serializer<Structure> {
 
 	private final KingdomManager kingdomManager;
+	private final Kingdoms instance;
 
 	public StructureSerializer() {
-		this.kingdomManager = Kingdoms.getInstance().getManager("kingdom", KingdomManager.class);
+		this.instance = Kingdoms.getInstance();
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 	}
 
 	@Override
@@ -47,8 +51,8 @@ public class StructureSerializer implements Serializer<Structure> {
 		JsonElement kingdomElement = object.get("kingdom");
 		if (kingdomElement == null || kingdomElement.isJsonNull())
 			return null;
-		Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(kingdomElement.getAsString());
-		if (!kingdom.isPresent())
+		Optional<OfflineKingdom> optional = kingdomManager.getOfflineKingdom(kingdomElement.getAsString());
+		if (!optional.isPresent())
 			return null;
 		JsonElement worldElement = object.get("world");
 		if (worldElement == null || worldElement.isJsonNull())
@@ -66,7 +70,12 @@ public class StructureSerializer implements Serializer<Structure> {
 		StructureType structureType = StructureType.valueOf(typeElement.getAsString());
 		if (structureType == null)
 			return null;
-		return new Structure(kingdom.get(), location, structureType);
+		OfflineKingdom kingdom = optional.get();
+		Structure structure = new Structure(kingdom, location, structureType);
+		Block structureBlock = location.getBlock();
+		Kingdoms.debugMessage("test");
+		structureBlock.setMetadata(structureType.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
+		return structure;
 	}
 
 }

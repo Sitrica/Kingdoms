@@ -9,7 +9,7 @@ import com.songoda.kingdoms.manager.managers.ChatManager.ChatChannel;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.land.Land;
 
-public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {//Pioneer, Member, PrivateChat, Confirmable {
+public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {
 
 	private boolean autoClaiming, autoMapping, vanished, admin;
 	public ChatChannel channel = ChatChannel.PUBLIC;

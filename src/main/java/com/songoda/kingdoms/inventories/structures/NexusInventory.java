@@ -40,16 +40,16 @@ public class NexusInventory extends StructureInventory {
 	private final MasswarManager masswarManager;
 	private final PlayerManager playerManager;
 	private final ChestManager chestManager;
-	
+
 	public NexusInventory() {
 		super(InventoryType.CHEST, "nexus", 27);
 		this.chestManager = instance.getManager("chest", ChestManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.masswarManager = instance.getManager("masswar", MasswarManager.class);
 	}
-	
+
 	public void openDonateInventory(OfflineKingdom kingdom, KingdomPlayer kingdomPlayer) {
-		String title = new MessageBuilder(false, "inventories.nexus.title")
+		String title = new MessageBuilder(false, "inventories.nexus.donate-title")
 				.setPlaceholderObject(kingdomPlayer)
 				.fromConfiguration(inventories)
 				.setKingdom(kingdom)
@@ -59,35 +59,30 @@ public class NexusInventory extends StructureInventory {
 		player.openInventory(inventory);
 		donations.put(player, kingdom);
 	}
-	
+
 	@Override
 	public void build(KingdomPlayer kingdomPlayer) {
 		Player player = kingdomPlayer.getPlayer();
 		Kingdom kingdom = kingdomPlayer.getKingdom(); // Can't be null.
 		ConfigurationSection section = inventories.getConfigurationSection("inventories.nexus");
-		ItemStack filler = new ItemStackBuilder(section.getConfigurationSection("filler"))
-				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
-				.setKingdom(kingdom)
-				.build();
 		if (section.getBoolean("use-filler", true)) {
+			ItemStack filler = new ItemStackBuilder(section.getConfigurationSection("filler"))
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(kingdom)
+					.build();
 			for (int i = 0; i < inventory.getType().getDefaultSize(); i++)
 				inventory.setItem(i, filler);
 		}
 		ItemStack converter = new ItemStackBuilder(section.getConfigurationSection("converter"))
 				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(0, converter);
-		setAction(0, event -> {
-			openDonateInventory(kingdom, kingdomPlayer);
-		});
+		setAction(0, event -> openDonateInventory(kingdom, kingdomPlayer));
 		int memberCost = configuration.getInt("kingdoms.cost-per-max-member-upgrade", 10);
 		int max = configuration.getInt("kingdoms.max-members-via-upgrade", 30);
 		ItemStack maxMembers = new ItemStackBuilder(section.getConfigurationSection("max-members"))
 				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
 				.replace("%cost%", memberCost)
 				.replace("%max%", max)
 				.setKingdom(kingdom)
@@ -117,51 +112,44 @@ public class NexusInventory extends StructureInventory {
 			kingdom.setMaxMembers(kingdom.getMaxMembers() + 1);
 			openInventory(player);
 		});
-		ItemStack battle = new ItemStackBuilder(section.getConfigurationSection("battle-logs"))
+		ItemStack battle = new ItemStackBuilder(section.getConfigurationSection("battle-log"))
 				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(7, battle);
 //TODO		setAction(7, event -> GUIManagement.getLogManager().openMenu(kingdomPlayer));
 		ItemStack permissions = new ItemStackBuilder(section.getConfigurationSection("permissions"))
 				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(8, permissions);
 //TODO		setAction(8, event -> GUIManagement.getPermissionsGUIManager().openMenu(kingdomPlayer));
 		ItemStack defender = new ItemStackBuilder(section.getConfigurationSection("defender-upgrades"))
 				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(9, defender);
 //TODO		setAction(9, event ->  inventoryManager.getInventory(DefenderInventory.class).openMenu(kingdomPlayer));
 		ItemStack misc = new ItemStackBuilder(section.getConfigurationSection("misc-upgrades"))
 				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(10, misc);
 //TODO		setAction(10, event ->  GUIManagement.getMisGUIManager().openMenu(kingdomPlayer));
 		ItemStack structure = new ItemStackBuilder(section.getConfigurationSection("structures"))
 				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(11, structure);
 //TODO		setAction(11, event -> GUIManagement.getStructureGUIManager().openMenu(kingdomPlayer));
 		ItemStack turret = new ItemStackBuilder(section.getConfigurationSection("turrets"))
 				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(12, turret);
 //TODO		setAction(12, event -> GUIManagement.getTurretGUIManager().openMenu(kingdomPlayer));
 		ItemStack members = new ItemStackBuilder(section.getConfigurationSection("members"))
 				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(13, members);
@@ -169,7 +157,6 @@ public class NexusInventory extends StructureInventory {
 		ItemStackBuilder masswar = new ItemStackBuilder(section.getConfigurationSection("masswar-on"))
 				.replace("%time%", masswarManager.getTimeLeftInString())
 				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
 				.setKingdom(kingdom);
 		if (masswarManager.isWarOn())
 			masswar.setConfigurationSection(section.getConfigurationSection("masswar-off"));
@@ -177,13 +164,11 @@ public class NexusInventory extends StructureInventory {
 //TODO		setAction(14, event -> masswarMenu.openMenu(kingdomPlayer));
 		ItemStack points = new ItemStackBuilder(section.getConfigurationSection("resource-points"))
 				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(15, points);
 		ItemStack chest = new ItemStackBuilder(section.getConfigurationSection("chest"))
 				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(16, chest);
@@ -195,9 +180,8 @@ public class NexusInventory extends StructureInventory {
 		int chestCost = cost;
 		ItemStack chestSize = new ItemStackBuilder(section.getConfigurationSection("chest-size"))
 				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
-				.replace("%size%", size)
 				.replace("%cost%", chestCost)
+				.replace("%size%", size)
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(17, chestSize);
@@ -230,13 +214,11 @@ public class NexusInventory extends StructureInventory {
 			ItemStackBuilder builder = new ItemStackBuilder(section.getConfigurationSection("neutral-off"))
 					.replace("%status%", kingdom.isNeutral())
 					.setPlaceholderObject(kingdomPlayer)
-					.fromConfiguration(inventories)
 					.setKingdom(kingdom);
 			if (kingdom.isNeutral()) {
 				builder = new ItemStackBuilder(section.getConfigurationSection("neutral-on"))
 						.replace("%status%", kingdom.isNeutral())
 						.setPlaceholderObject(kingdomPlayer)
-						.fromConfiguration(inventories)
 						.setKingdom(kingdom);
 			}
 			inventory.setItem(22, builder.build());
@@ -301,7 +283,7 @@ public class NexusInventory extends StructureInventory {
 		//getShieldDisplayItem(kingdom); This was planned but never made it to the nexus menu I guess - Lime
 		openInventory(player);
 	}
-	
+
 	public void openKingdomChest(KingdomPlayer kingdomPlayer) {
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null)
@@ -323,7 +305,7 @@ public class NexusInventory extends StructureInventory {
 		}
 		chestManager.openChest(kingdomPlayer, kingdom);
 	}
-	
+
 	private int consumeDonationItems(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		Set<ItemStack> returning = new HashSet<>();
 		Player player = kingdomPlayer.getPlayer();
@@ -392,7 +374,7 @@ public class NexusInventory extends StructureInventory {
 		}
 		return worth;
 	}
-	
+
 	@EventHandler
 	public void onDonateInventoryClose(InventoryCloseEvent event) {
 		Player player = (Player) event.getPlayer();
@@ -430,32 +412,5 @@ public class NexusInventory extends StructureInventory {
 		}
 		donations.remove(player);
 	}
-
-	/*public ItemStack getShieldDisplayItem(Kingdom kingdom){
-		ItemStack shield = new ItemStack(Material.OBSIDIAN);
-		ItemMeta shieldm = shield.getItemMeta();
-		shieldm.setDisplayName(Kingdoms.getLang().getString("Guis_Nexus_Shield_Title"));
-		ArrayList shieldl = new ArrayList();
-		int value = kingdom.getShieldValue();
-		int max = kingdom.getShieldMax();
-		
-		shieldl.add(Kingdoms.getLang().getString("Guis_Nexus_Shield_Value")
-				.replaceAll("%value%",""+value)
-				.replaceAll("%max%",""+max));
-		shieldl.add(Kingdoms.getLang().getString("Guis_Nexus_Shield_Recharge_Amount")
-				.replaceAll("%amt%",""+kingdom.getShieldRecharge()));
-		if(value < max){
-			shieldl.add(Kingdoms.getLang().getString("Guis_Nexus_Shield_Recharge_Cost")
-					.replaceAll("%cost%",""+kingdom.getShieldRechargeCost()));
-		}
-		if(kingdom.isRechargingShield()){
-			shieldl.add(ChatColor.RED + TimeUtils.parseTimeMillis(kingdom.getTimeLeft(Kingdom.RECHARGE_COOLDOWN)));
-		}
-		shieldl.add(Kingdoms.getLang().getString("Guis_Nexus_Shield_Info"));
-		shieldm.setLore(LoreOrganizer.organize(shieldl));
-		shield.setItemMeta(shieldm);
-		return shield;
-	}
-	*/
 
 }

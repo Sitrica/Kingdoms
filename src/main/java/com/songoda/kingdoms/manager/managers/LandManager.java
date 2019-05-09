@@ -9,6 +9,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -62,7 +66,7 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 import com.songoda.kingdoms.utils.Utils;
 
 public class LandManager extends Manager {
-	
+
 	private final List<String> unclaiming = new ArrayList<>(); //TODO test if this is even required. It's a queue to avoid claiming and removing at same time.
 	private final Map<Chunk, Land> lands = new HashMap<>();
 	private final Set<String> forbidden = new HashSet<>();
@@ -73,6 +77,7 @@ public class LandManager extends Manager {
 	private StructureManager structureManager;
 	private KingdomManager kingdomManager;
 	private PlayerManager playerManager;
+	private NexusManager nexusManager;
 	private BukkitTask autoSaveThread;
 	private WorldManager worldManager;
 	private Database<Land> database;
@@ -94,6 +99,7 @@ public class LandManager extends Manager {
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
+		this.nexusManager = instance.getManager("nexus", NexusManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
 		String table = configuration.getString("database.land-table", "Lands");
 		if (configuration.getBoolean("database.mysql.enabled", false))
@@ -142,7 +148,7 @@ public class LandManager extends Manager {
 			}, time, time);
 		}
 	}
-	
+
 	private final Runnable saveTask = new Runnable() {
 		@Override
 		public void run() {
@@ -219,7 +225,7 @@ public class LandManager extends Manager {
 	public Set<Entry<Chunk, Land>> getLoadedLand() {
 		return Collections.unmodifiableMap(lands).entrySet();
 	}
-	
+
 	public Land getLandAt(Location location) {
 		return getLand(location.getChunk());
 	}
@@ -233,17 +239,25 @@ public class LandManager extends Manager {
 	public Land getLand(Chunk chunk) {
 		if (chunk == null)
 			return null;
-		String name = LocationUtils.chunkToString(chunk);
-		Kingdoms.debugMessage("Fetching info for land: " + name);
 		Land land = lands.get(chunk);
 		if (land == null) {
-			land = new Land(chunk);
-			if (!lands.containsKey(chunk))
-				lands.put(chunk, land);
+			String location = LocationUtils.chunkToString(chunk);
+			Kingdoms.debugMessage("Fetching land info for " + location);
+			FutureTask<Land> future = new FutureTask<>(() -> database.get(location, new Land(chunk)));
+			ExecutorService executor = Executors.newSingleThreadExecutor();
+			executor.execute(future);
+			try {
+				land = future.get();
+				Kingdoms.debugMessage("Structure test " + land.getStructure());
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+				land = new Land(chunk);
+			}
+			lands.put(chunk, land);
 		}
 		return land;
 	}
-	
+
 	public void playerClaimLand(KingdomPlayer kingdomPlayer) {
 		Player player = kingdomPlayer.getPlayer();
 		if (!worldManager.acceptsWorld(player.getWorld())) {
@@ -328,6 +342,8 @@ public class LandManager extends Manager {
 						.setKingdom(kingdom)
 						.send(player);
 			}
+			Block block = player.getLocation().getBlock();
+			nexusManager.placeNexus(land, block, kingdom, kingdomPlayer);
 		} else {
 			if (configuration.getBoolean("claiming.land-must-be-connected", false)) {
 				boolean connected = false;
@@ -422,6 +438,7 @@ public class LandManager extends Manager {
 			kingdom.removeClaim(land);
 			land.setClaimTime(0L);
 			land.setKingdomOwner(null);
+			structureManager.breakStructureAt(land);
 			database.delete(LocationUtils.chunkToString(land.getChunk()));
 			if (land.getStructure() != null) // Sync back to server.
 				structureManager.breakStructureAt(land);
@@ -437,7 +454,7 @@ public class LandManager extends Manager {
 	public void unclaimAllExistingLand() {
 		kingdomManager.getKingdoms().forEach(kingdom -> unclaimAllLand(kingdom));
 	}
-	
+
 	/**
 	 * Unclaim all lands thatbelong to kingdom.
 	 * 
@@ -466,7 +483,7 @@ public class LandManager extends Manager {
 		unclaiming.remove(name);
 		return (int)count;
 	}
-	
+
 	public boolean isConnectedToNexus(Land land) {
 		Optional<OfflineKingdom> offlineKingdom = land.getKingdomOwner();
 		if (!offlineKingdom.isPresent())
@@ -519,7 +536,7 @@ public class LandManager extends Manager {
 		unclaiming.remove(name);
 		return (int)count;
 	}
-	
+
 	public Set<Land> getConnectingLand(Land center, Collection<Land> checked) {
 		return center.getSurrounding().parallelStream()
 				.filter(land -> {
@@ -535,7 +552,7 @@ public class LandManager extends Manager {
 				})
 				.collect(Collectors.toSet());
 	}
-	
+
 	public Set<Land> getOutwardLands(Collection<Land> surroundings, Collection<Land> checked) {
 		Set<Land> connected = new HashSet<>();
 		for (Land land : surroundings) {
@@ -582,7 +599,7 @@ public class LandManager extends Manager {
 		}
 		return connected;
 	}
-	
+
 	private boolean isForbidden(Material material) {
 		boolean contains = configuration.getBoolean("kingdoms.forbidden-contains", true);
 		for (String name : forbidden) {
@@ -599,7 +616,7 @@ public class LandManager extends Manager {
 		}
 		return false;
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onKingdomInteract(PlayerInteractEvent event) {
@@ -686,7 +703,7 @@ public class LandManager extends Manager {
 			}
 		}
 	}
-	
+
 	@EventHandler
 	public void onEntityInteract(PlayerInteractAtEntityEvent event) {
 		Location location = event.getRightClicked().getLocation();
@@ -863,7 +880,6 @@ public class LandManager extends Manager {
 					.send(kingdomPlayer);
 		}
 	}
-
 
 	@EventHandler
 	public void onBreakArmorStandOrFrame(EntityDamageByEntityEvent event) {

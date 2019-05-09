@@ -139,6 +139,10 @@ public class NexusManager extends Manager {
 				}
 			}
 		}
+		placeNexus(land, block, kingdom, kingdomPlayer);
+	}
+
+	public void placeNexus(Land land, Block block, Kingdom kingdom, KingdomPlayer player) {
 		land.setStructure(new Structure(kingdom, block.getLocation(), type));
 		block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
 		block.setType(type.getBlockMaterial());
@@ -265,7 +269,7 @@ public class NexusManager extends Manager {
 					.send(player);
 			return;
 		}
-		Land land = landManager.getLand(block.getChunk());		
+		Land land = landManager.getLand(block.getChunk());
 		Optional<OfflineKingdom> optional = land.getKingdomOwner();
 		if (!optional.isPresent()) {
 			block.setType(Material.AIR);

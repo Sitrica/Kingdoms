@@ -127,8 +127,8 @@ public class PlayerManager extends Manager {
 		Kingdoms.debugMessage("Loaded player " + player.getUniqueId());
 		if (configuration.getBoolean("kingdom.join-at-kingdom", false))
 			player.teleport(kingdom.getSpawn());
-		if (!kingdomPlayer.isVanished())
-			new MessageBuilder("messages.member-join")
+		if (!kingdomPlayer.isVanished() && configuration.getBoolean("see-self-join-message", true))
+			new MessageBuilder("kingdoms.member-join")
 					.toKingdomPlayers(kingdom.getOnlinePlayers())
 					.toKingdomPlayers(kingdom.getOnlineAllies())
 					.setPlaceholderObject(kingdomPlayer)
@@ -162,13 +162,15 @@ public class PlayerManager extends Manager {
 				.map(entry -> entry.getValue())
 				.map(player -> (KingdomPlayer) player)
 				.forEach(player -> {
+					if (player.equals(kingdomPlayer))
+						return;
 					database.put(uuid + "", player);
 					if (player.isVanished())
 						return;
 					Kingdom kingdom = player.getKingdom();
 					if (kingdom == null)
 						return;
-					new MessageBuilder("messages.member-leave")
+					new MessageBuilder("kingdoms.member-leave")
 							.toKingdomPlayers(kingdom.getOnlinePlayers())
 							.toKingdomPlayers(kingdom.getOnlineAllies())
 							.setPlaceholderObject(player)

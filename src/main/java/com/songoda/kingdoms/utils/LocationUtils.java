@@ -16,7 +16,7 @@ public class LocationUtils {
 		double z = location.getZ();
 		float pitch = location.getPitch();
 		float yaw = location.getYaw();
-		return world + " , " + x + " , " + y + " , " + z + " , " + pitch + " , " + yaw;
+		return world + ", " + x + ", " + y + ", " + z + ", " + pitch + ", " + yaw;
 	}
 
 	//world , 839.0 , 66.0 , -728.0 , 0.0 , 0.0
@@ -61,7 +61,7 @@ public class LocationUtils {
 		if (chunk == null)
 			return null;
 		String world = chunk.getWorld().getName();
-		return world + " , " + chunk.getX() + " , " + chunk.getZ();
+		return world + ", " + chunk.getX() + ", " + chunk.getZ();
 	}
 
 }

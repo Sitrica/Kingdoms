@@ -45,18 +45,13 @@ public class CommandDisband extends AbstractCommand {
 		}
 		confirmationManager.openConfirmation(kingdomPlayer, result -> {
 			if (!result) {
-				player.closeInventory();
 				new MessageBuilder("commands.disband.cancelled")
 						.replace("%owner%", kingdom.getOwner().getName())
 						.setPlaceholderObject(kingdomPlayer)
 						.send(kingdomPlayer);
 				return;
 			}
-			if (kingdomManager.deleteKingdom(kingdom))
-				new MessageBuilder("commands.disband.disbanded")
-						.replace("%owner%", kingdom.getOwner().getName())
-						.setPlaceholderObject(kingdomPlayer)
-						.send(kingdomPlayer);
+			kingdomManager.deleteKingdom(kingdom);
 		});
 		return ReturnType.SUCCESS;
 	}

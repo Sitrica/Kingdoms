@@ -47,6 +47,7 @@ public class ConfirmationManager extends Manager implements Listener {
 		int slot = event.getSlot();
 		if (slot != 1 && slot != 3)
 			return;
+		player.closeInventory();
 		if (slot == 1)
 			consumer.get().accept(true);
 		else if (slot == 3)
@@ -60,6 +61,8 @@ public class ConfirmationManager extends Manager implements Listener {
 	}
 
 	@Override
-	public void onDisable() {}
+	public void onDisable() {
+		waiting.clear();
+	}
 
 }
