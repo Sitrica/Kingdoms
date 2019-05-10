@@ -1,5 +1,6 @@
 package com.songoda.kingdoms.inventories.structures;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
@@ -34,7 +36,7 @@ import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.ItemStackBuilder;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
-public class NexusInventory extends StructureInventory {
+public class NexusInventory extends StructureInventory implements Listener {
 
 	private final Map<Player, OfflineKingdom> donations = new HashMap<>();
 	private final MasswarManager masswarManager;
@@ -46,18 +48,7 @@ public class NexusInventory extends StructureInventory {
 		this.chestManager = instance.getManager("chest", ChestManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.masswarManager = instance.getManager("masswar", MasswarManager.class);
-	}
-
-	public void openDonateInventory(OfflineKingdom kingdom, KingdomPlayer kingdomPlayer) {
-		String title = new MessageBuilder(false, "inventories.nexus.donate-title")
-				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
-				.setKingdom(kingdom)
-				.get();
-		Player player = kingdomPlayer.getPlayer();
-		Inventory inventory = instance.getServer().createInventory(null, 54, title);
-		player.openInventory(inventory);
-		donations.put(player, kingdom);
+		instance.getServer().getPluginManager().registerEvents(this, instance);
 	}
 
 	@Override
@@ -306,12 +297,37 @@ public class NexusInventory extends StructureInventory {
 		chestManager.openChest(kingdomPlayer, kingdom);
 	}
 
+	public void openDonateInventory(OfflineKingdom kingdom, KingdomPlayer kingdomPlayer) {
+		String title = new MessageBuilder(false, "inventories.nexus.donate-title")
+				.setPlaceholderObject(kingdomPlayer)
+				.fromConfiguration(inventories)
+				.setKingdom(kingdom)
+				.get();
+		Player player = kingdomPlayer.getPlayer();
+		Inventory inventory = instance.getServer().createInventory(null, 54, title);
+		player.openInventory(inventory);
+		donations.put(player, kingdom);
+	}
+
 	private int consumeDonationItems(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		Set<ItemStack> returning = new HashSet<>();
 		Player player = kingdomPlayer.getPlayer();
 		ConfigurationSection section = configuration.getConfigurationSection("kingdoms.resource-donation");
 		int worth = 0;
 		ItemStack[] items = inventory.getContents();
+		int length = 0;
+		List<ItemStack> contents = new ArrayList<>();
+		for (ItemStack item : items) {
+			if (item == null) //air
+				continue;
+			length++;
+			contents.add(item);
+		}
+		if (length <= 2) {
+			contents.forEach(item -> player.getInventory().addItem(item));
+			return 0;
+		}
+		Set<Material> added = new HashSet<>();
 		if (section.getBoolean("use-list", false)) {
 			ConfigurationSection list = section.getConfigurationSection("list");
 			Set<String> nodes = list.getKeys(false);
@@ -319,6 +335,8 @@ public class NexusInventory extends StructureInventory {
 				if (item == null)
 					continue;
 				Material type = item.getType();
+				if (added.contains(type))
+					continue;
 				Optional<Double> points = nodes.parallelStream()
 						.filter(node -> node.equals(type.name()))
 						.map(node -> list.getDouble(node, 3))
@@ -327,31 +345,30 @@ public class NexusInventory extends StructureInventory {
 					returning.add(item);
 					continue;
 				}
-				worth += item.getAmount() * points.get();
+				worth += inventory.all(type).size() * points.get();
+				added.add(type);
 			}
 		} else {
 			double points = section.getDouble("points-per-item", 3);
 			for (ItemStack item : items) {
 				if (item == null)
 					continue;
-				String name = item.getType().name();
+				Material type = item.getType();
+				if (added.contains(type))
+					continue;
+				String name = type.name();
 				if (section.getStringList("blacklist").contains(name)) {
 					returning.add(item);
 					continue;
 				}
-				worth += item.getAmount() * points;
+				worth += inventory.all(type).size() * points;
+				added.add(type);
 			}
-		}
-		Map<Material, Integer> map = new HashMap<>();
-		for (ItemStack item : returning) {
-			Material material = item.getType();
-			if (!map.containsKey(material))
-				map.put(item.getType(), inventory.all(material).size());
 		}
 		Set<Material> displayed = new HashSet<>();
 		for (ItemStack item : returning) {
 			Material material = item.getType();
-			String name = map.get(material) + " " + material.name().toLowerCase();
+			String name = inventory.all(material).size() + " of " + material.name().toLowerCase();
 			ItemMeta meta = item.getItemMeta();
 			boolean modified = false;
 			if (meta != null && meta.getDisplayName() != null) {
@@ -370,7 +387,11 @@ public class NexusInventory extends StructureInventory {
 						.replace("%item%", name)
 						.send(player);
 			displayed.add(material);
-			player.getWorld().dropItemNaturally(player.getLocation(), item);
+			player.getInventory().addItem(item);
+		}
+		if (worth < 1) {
+			contents.forEach(item -> player.getInventory().addItem(item));
+			return 0;
 		}
 		return worth;
 	}
@@ -381,16 +402,27 @@ public class NexusInventory extends StructureInventory {
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		if (donations.containsKey(player)) {
 			int donated = consumeDonationItems(event.getInventory(), kingdomPlayer);
-			Kingdom kingdom = kingdomPlayer.getKingdom();
-			if (kingdom == null)
+			if (donated < 1) {
+				new MessageBuilder("kingdoms.donate-not-enough")
+						.setPlaceholderObject(kingdomPlayer)
+						.send(player);
+				donations.remove(player);
 				return;
+			}
+			Kingdom kingdom = kingdomPlayer.getKingdom();
+			if (kingdom == null) {
+				donations.remove(player);
+				return;
+			}
 			OfflineKingdom donatingTo = donations.get(player);
+			donations.remove(player);
 			if (kingdom.equals(donatingTo)) {
 				kingdom.addResourcePoints(donated);
 				new MessageBuilder("kingdoms.donated-kingdom")
 						.toKingdomPlayers(donatingTo.getKingdom().getOnlinePlayers())
 						.setPlaceholderObject(kingdomPlayer)
 						.replace("%amount%", donated)
+						.ignoreSelf(kingdomPlayer)
 						.setKingdom(kingdom)
 						.send();
 			} else { // It's an ally donating.
@@ -407,10 +439,9 @@ public class NexusInventory extends StructureInventory {
 					.replace("%amount%", donated)
 					.setKingdom(kingdom)
 					.send(player);
-			//TODO make a donation tracker and add the donation time and amount from here.
+			//TODO make a donation tracker and add the donation time, who, kingdom and amount from here.
 			return;
 		}
-		donations.remove(player);
 	}
 
 }

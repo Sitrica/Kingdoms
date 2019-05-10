@@ -22,7 +22,7 @@ use-display-name: false
 # If this is false then the color option of the ranks will be applied, and online players will be bolded.
 # Colors can be found at https://hub.spigotmc.org/javadocs/spigot/org/bukkit/ChatColor.html
 list-offline-online-colors:
-    enabled: false
+    enabled: true
     online: "GREEN"
     offline: "GRAY"
 

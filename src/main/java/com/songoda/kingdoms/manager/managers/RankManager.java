@@ -179,8 +179,12 @@ public class RankManager extends Manager {
 						format = rank.getChatColor() + rank.getUnicode() + rank.getChatColor() + ChatColor.BOLD + player.getName();
 					return Formatting.color(format);
 				})
-				.forEach(line -> builder.append(line));
-		return builder.toString();
+				.forEach(line -> {
+					builder.append(line);
+					builder.append(", ");
+				});
+		String string = builder.toString();
+		return string.substring(0, string.lastIndexOf(", "));
 	}
 
 	public Rank getDefaultRank() {

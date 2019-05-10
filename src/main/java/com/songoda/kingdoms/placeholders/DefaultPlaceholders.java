@@ -33,14 +33,14 @@ public class DefaultPlaceholders {
 			}
 		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%kingdom%", "%playerkingdom%", "%player-kingdom%") {
-				@Override
-				public String replace(OfflineKingdomPlayer player) {
-					OfflineKingdom kingdom = player.getKingdom();
-					if (kingdom == null)
-						return Formatting.color("&c&lNo Kingdom");
-					return kingdom.getName();
-				}
-			});
+			@Override
+			public String replace(OfflineKingdomPlayer player) {
+				OfflineKingdom kingdom = player.getKingdom();
+				if (kingdom == null)
+					return Formatting.color("&c&lNo Kingdom");
+				return kingdom.getName();
+			}
+		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%rank%", "%playerrank%", "player-rank") {
 			@Override
 			public String replace(OfflineKingdomPlayer player) {
