@@ -204,7 +204,7 @@ public class NexusManager extends Manager {
 			return;
 		}
 		OfflineKingdom landKingdom = optional.get();
-		if (kingdom.isAllianceWith(landKingdom.getName())) {
+		if (kingdom.isAllianceWith(landKingdom)) {
 			new MessageBuilder("kingdoms.cannot-break-alliance-nexus")
 					.replace("%playerkingdom", kingdom)
 					.setKingdom(landKingdom)

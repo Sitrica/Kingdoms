@@ -92,7 +92,7 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 		if (nameElement == null || nameElement.isJsonNull())
 			return null;
 		king.setRank(rankManager.getOwnerRank());
-		OfflineKingdom kingdom = new OfflineKingdom(king, nameElement.getAsString());
+		OfflineKingdom kingdom = new OfflineKingdom(king.getUniqueId(), nameElement.getAsString());
 		JsonElement loreElement = object.get("lore");
 		if (loreElement != null && !loreElement.isJsonNull())
 			kingdom.setLore(loreElement.getAsString());

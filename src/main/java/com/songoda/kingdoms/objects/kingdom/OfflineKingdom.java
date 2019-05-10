@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -11,6 +12,7 @@ import org.bukkit.Location;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.CooldownManager.KingdomCooldown;
 import com.songoda.kingdoms.manager.managers.KingdomManager;
+import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.manager.managers.RankManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.land.Land;
@@ -19,38 +21,39 @@ import com.songoda.kingdoms.objects.structures.WarpPad;
 
 public class OfflineKingdom {
 
-	protected final Set<OfflineKingdomPlayer> members = new HashSet<>();
 	protected final Set<RankPermissions> permissions = new HashSet<>();
 	protected final Set<String> enemies = new HashSet<>();
 	protected final Set<String> allies = new HashSet<>();
 	protected final Set<WarpPad> warps = new HashSet<>();
+	protected final Set<UUID> members = new HashSet<>();
 	protected final Set<Land> claims = new HashSet<>();
 	protected long resourcePoints = 0, invasionCooldown = 0;
 	protected final KingdomManager kingdomManager;
+	protected final PlayerManager playerManager;
 	protected boolean neutral, first, invaded;
 	protected final RankManager rankManager;
-	protected OfflineKingdomPlayer owner;
 	protected KingdomCooldown shieldTime;
-	protected final Kingdoms instance;
 	protected KingdomChest kingdomChest;
 	protected DefenderInfo defenderInfo;
 	protected int dynmapColor, max = 0;
+	protected final Kingdoms instance;
 	protected MiscUpgrade miscUpgrade;
 	protected String lore = "Not set";
 	protected Location nexus, spawn;
 	protected final String name;
 	protected Powerup powerup;
+	protected UUID owner;
 
 	/**
 	 * Creates an OfflineKingdom instance.
 	 * 
-	 * @param uuid UUID to be used for the Kingdom to be traced.
-	 * @param king The owner of this Kingdom.
-	 * @param safeUUID If you know the UUID for the 'uuid' already exists. Set this to true and it won't find a new UUID but use that UUID overriding..
+	 * @param uuid UUID to be used for the OfflineKingdom owner.
+	 * @param name The name of the OfflineKingdom.
 	 */
-	public OfflineKingdom(OfflineKingdomPlayer owner, String name) {
+	public OfflineKingdom(UUID owner, String name) {
 		this.instance = Kingdoms.getInstance();
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.rankManager = instance.getManager("rank", RankManager.class);
 		this.max = instance.getConfig().getInt("base-max-members", 10);
 		this.dynmapColor = kingdomManager.getRandomColor();
@@ -88,11 +91,11 @@ public class OfflineKingdom {
 	}
 
 	public OfflineKingdomPlayer getOwner() {
-		return owner;
+		return playerManager.getOfflineKingdomPlayer(owner).get();
 	}
 
 	public void setOwner(OfflineKingdomPlayer owner) {
-		this.owner = owner;
+		this.owner = owner.getUniqueId();
 	}
 
 	public int getDynmapColor() {
@@ -112,6 +115,10 @@ public class OfflineKingdom {
 	}
 
 	public void addMember(OfflineKingdomPlayer member) {
+		members.add(member.getUniqueId());
+	}
+
+	public void addMember(UUID member) {
 		members.add(member);
 	}
 
@@ -242,7 +249,11 @@ public class OfflineKingdom {
 	}
 
 	public Set<OfflineKingdomPlayer> getMembers() {
-		return members;
+		return members.parallelStream()
+				.map(uuid -> playerManager.getKingdomPlayer(uuid))
+				.filter(optional -> optional.isPresent())
+				.map(optional -> optional.get())
+				.collect(Collectors.toSet());
 	}
 
 	public void setShieldTime(long seconds) {

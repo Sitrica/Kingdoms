@@ -23,7 +23,7 @@ public class Kingdom extends OfflineKingdom {
 
 	// Renaming.
 	public Kingdom(OfflineKingdom other, String name) {
-		super(other.getOwner(), name);
+		super(other.getOwner().getUniqueId(), name);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.invasionCooldown = other.invasionCooldown;
@@ -50,13 +50,13 @@ public class Kingdom extends OfflineKingdom {
 
 	// Grabbing a Kingdom from database.
 	public Kingdom(KingdomPlayer owner, String name) {
-		super(owner, name);
+		super(owner.getUniqueId(), name);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 	}
 
 	public Set<KingdomPlayer> getOnlinePlayers() {
-		return members.parallelStream()
+		return getMembers().parallelStream()
 				.map(player -> player.getKingdomPlayer())
 				.filter(player -> player.isPresent())
 				.map(player -> player.get())
@@ -73,7 +73,7 @@ public class Kingdom extends OfflineKingdom {
 						Kingdom playerKingdom = kingdomPlayer.getKingdom();
 						if (playerKingdom == null)
 							continue;
-						if (isAllianceWith(playerKingdom.getName()) && playerKingdom.isAllianceWith(this.name))
+						if (isAllianceWith(playerKingdom) && playerKingdom.isAllianceWith(this))
 							allies.add(kingdomPlayer);
 					}
 				});
@@ -90,7 +90,7 @@ public class Kingdom extends OfflineKingdom {
 						Kingdom playerKingdom = kingdomPlayer.getKingdom();
 						if (playerKingdom == null)
 							continue;
-						if (isEnemyWith(playerKingdom.getName()))
+						if (isEnemyWith(playerKingdom))
 							enemies.add(kingdomPlayer);
 					}
 				});
