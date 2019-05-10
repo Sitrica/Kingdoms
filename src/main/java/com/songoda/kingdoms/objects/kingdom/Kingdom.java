@@ -17,15 +17,35 @@ public class Kingdom extends OfflineKingdom {
 	private final WorldManager worldManager;
 
 	// Transforming OfflineKingdom to Kingdom.
-	public Kingdom(OfflineKingdom kingdom) {
-		this(kingdom, kingdom.getName());
+	public Kingdom(OfflineKingdom other) {
+		this(other, other.getName());
 	}
 
 	// Renaming.
-	public Kingdom(OfflineKingdom kingdom, String name) {
-		super(kingdom.getOwner(), name);
+	public Kingdom(OfflineKingdom other, String name) {
+		super(other.getOwner(), name);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
+		this.invasionCooldown = other.invasionCooldown;
+		this.resourcePoints = other.resourcePoints;
+		this.permissions.addAll(other.permissions);
+		this.kingdomChest = other.kingdomChest;
+		this.defenderInfo = other.defenderInfo;
+		this.miscUpgrade = other.miscUpgrade;
+		this.shieldTime = other.shieldTime;
+		this.enemies.addAll(other.enemies);
+		this.members.addAll(other.members);
+		this.allies.addAll(other.allies);
+		this.claims.addAll(other.claims);
+		this.warps.addAll(other.warps);
+		this.powerup = other.powerup;
+		this.neutral = other.neutral;
+		this.invaded = other.invaded;
+		this.spawn = other.spawn;
+		this.nexus = other.nexus;
+		this.first = other.first;
+		this.lore = other.lore;
+		this.max = other.max;
 	}
 
 	// Grabbing a Kingdom from database.
@@ -53,7 +73,7 @@ public class Kingdom extends OfflineKingdom {
 						Kingdom playerKingdom = kingdomPlayer.getKingdom();
 						if (playerKingdom == null)
 							continue;
-						if (isAllianceWith(playerKingdom) && playerKingdom.isAllianceWith(this))
+						if (isAllianceWith(playerKingdom.getName()) && playerKingdom.isAllianceWith(this.name))
 							allies.add(kingdomPlayer);
 					}
 				});
@@ -70,7 +90,7 @@ public class Kingdom extends OfflineKingdom {
 						Kingdom playerKingdom = kingdomPlayer.getKingdom();
 						if (playerKingdom == null)
 							continue;
-						if (isEnemyWith(playerKingdom))
+						if (isEnemyWith(playerKingdom.getName()))
 							enemies.add(kingdomPlayer);
 					}
 				});

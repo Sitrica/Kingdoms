@@ -323,6 +323,8 @@ public class NexusInventory extends StructureInventory implements Listener {
 			length++;
 			contents.add(item);
 		}
+		if (length <= 0)
+			return -1;
 		if (length <= 2) {
 			contents.forEach(item -> player.getInventory().addItem(item));
 			return 0;
@@ -393,7 +395,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 			contents.forEach(item -> player.getInventory().addItem(item));
 			return 0;
 		}
-		return worth;
+		return Math.round(worth);
 	}
 
 	@EventHandler
@@ -402,6 +404,10 @@ public class NexusInventory extends StructureInventory implements Listener {
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		if (donations.containsKey(player)) {
 			int donated = consumeDonationItems(event.getInventory(), kingdomPlayer);
+			if (donated == -1) {
+				donations.remove(player);
+				return;
+			}
 			if (donated < 1) {
 				new MessageBuilder("kingdoms.donate-not-enough")
 						.setPlaceholderObject(kingdomPlayer)

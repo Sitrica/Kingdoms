@@ -307,7 +307,7 @@ commands:
             - "&dOwner: &7%owner%"
             - "&dNeutral: &7%neutral%"
             - "&dResource points: &e%resourcepoints%"
-            - "&dMembers: &a%onlinecount%&7/&c%offlinecount% &8(Online members are bold)"
+            - "&dMembers: &a%onlinecount%&7/&7%offlinecount%&7/&c%maxmembers%"
             - "&dClaims: &a%claims%&7/&c%maxclaims%"
             - "&d%members%"
             - ""

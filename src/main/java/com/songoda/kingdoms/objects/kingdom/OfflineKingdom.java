@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.bukkit.Location;
 import com.songoda.kingdoms.Kingdoms;
@@ -19,26 +20,26 @@ import com.songoda.kingdoms.objects.structures.WarpPad;
 public class OfflineKingdom {
 
 	protected final Set<OfflineKingdomPlayer> members = new HashSet<>();
-	private final Set<RankPermissions> permissions = new HashSet<>();
-	private final Set<OfflineKingdom> enemies = new HashSet<>();
-	private final Set<OfflineKingdom> allies = new HashSet<>();
-	private final Set<WarpPad> warps = new HashSet<>();
+	protected final Set<RankPermissions> permissions = new HashSet<>();
+	protected final Set<String> enemies = new HashSet<>();
+	protected final Set<String> allies = new HashSet<>();
+	protected final Set<WarpPad> warps = new HashSet<>();
 	protected final Set<Land> claims = new HashSet<>();
-	private long resourcePoints = 0, invasionCooldown = 0;
-	private final KingdomManager kingdomManager;
-	private boolean neutral, first, invaded;
-	private final RankManager rankManager;
-	private OfflineKingdomPlayer owner;
-	private KingdomCooldown shieldTime;
+	protected long resourcePoints = 0, invasionCooldown = 0;
+	protected final KingdomManager kingdomManager;
+	protected boolean neutral, first, invaded;
+	protected final RankManager rankManager;
+	protected OfflineKingdomPlayer owner;
+	protected KingdomCooldown shieldTime;
 	protected final Kingdoms instance;
-	private KingdomChest kingdomChest;
-	private DefenderInfo defenderInfo;
-	private int dynmapColor, max = 0;
-	private MiscUpgrade miscUpgrade;
-	private String lore = "Not set";
-	private Location nexus, spawn;
-	private final String name;
-	private Powerup powerup;
+	protected KingdomChest kingdomChest;
+	protected DefenderInfo defenderInfo;
+	protected int dynmapColor, max = 0;
+	protected MiscUpgrade miscUpgrade;
+	protected String lore = "Not set";
+	protected Location nexus, spawn;
+	protected final String name;
+	protected Powerup powerup;
 
 	/**
 	 * Creates an OfflineKingdom instance.
@@ -199,11 +200,13 @@ public class OfflineKingdom {
 	}
 
 	public void addResourcePoints(long points) {
-		resourcePoints += points;
+		resourcePoints = resourcePoints + points;
 	}
 
 	public void subtractResourcePoints(long points) {
-		resourcePoints -= points;
+		resourcePoints = resourcePoints - points;
+		if (resourcePoints < 0)
+			resourcePoints = 0;
 	}
 
 	public Location getNexusLocation() {
@@ -276,34 +279,62 @@ public class OfflineKingdom {
 	}
 
 	public Set<OfflineKingdom> getAllies() {
-		return allies;
+		return allies.parallelStream()
+				.map(name -> kingdomManager.getOfflineKingdom(name))
+				.filter(optional -> optional.isPresent())
+				.map(optional -> optional.get())
+				.collect(Collectors.toSet());
 	}
 
 	public void addAlliance(OfflineKingdom kingdom) {
+		addAlliance(kingdom.getName());
+	}
+
+	public void addAlliance(String kingdom) {
 		allies.add(kingdom);
 	}
 
 	public boolean isAllianceWith(OfflineKingdom kingdom) {
-		return allies.contains(kingdom);
+		return isAllianceWith(kingdom.getName());
+	}
+
+	public boolean isAllianceWith(String kingdom) {
+		return allies.parallelStream().anyMatch(ally -> ally.equalsIgnoreCase(kingdom));
 	}
 
 	public void removeAlliance(OfflineKingdom kingdom) {
+		removeAlliance(kingdom.getName());
+	}
+
+	public void removeAlliance(String kingdom) {
 		allies.remove(kingdom);
 	}
 
 	public Set<OfflineKingdom> getEnemies() {
-		return enemies;
+		return enemies.parallelStream()
+				.map(name -> kingdomManager.getOfflineKingdom(name))
+				.filter(optional -> optional.isPresent())
+				.map(optional -> optional.get())
+				.collect(Collectors.toSet());
 	}
 
-	public void addEnemy(OfflineKingdom kingdom) {
+	public void addEnemy(String kingdom) {
 		enemies.add(kingdom);
 	}
 
 	public boolean isEnemyWith(OfflineKingdom kingdom) {
-		return enemies.contains(kingdom);
+		return isEnemyWith(kingdom.getName());
+	}
+
+	public boolean isEnemyWith(String kingdom) {
+		return enemies.parallelStream().anyMatch(enemy -> enemy.equalsIgnoreCase(kingdom));
 	}
 
 	public void removeEnemy(OfflineKingdom kingdom) {
+		removeEnemy(kingdom.getName());
+	}
+
+	public void removeEnemy(String kingdom) {
 		enemies.remove(kingdom);
 	}
 
@@ -330,6 +361,10 @@ public class OfflineKingdom {
 	}
 
 	public void onKingdomDelete(OfflineKingdom kingdom) {
+		onKingdomDelete(kingdom.getName());
+	}
+
+	public void onKingdomDelete(String kingdom) {
 		enemies.remove(kingdom);
 		allies.remove(kingdom);
 	}

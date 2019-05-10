@@ -53,13 +53,17 @@ public class DefaultPlaceholders {
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%offlinecount%", "%membercount%") {
 			@Override
 			public String replace(OfflineKingdom kingdom) {
-				return kingdom.getKingdom().getOnlinePlayers().size() + "";
+				return kingdom.getMembers().size() - kingdom.getKingdom().getOnlinePlayers().size() + "";
 			}
 		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%maxmembers%", "%max-members%") {
 			@Override
 			public String replace(OfflineKingdom kingdom) {
-				return kingdom.getMaxMembers() + "";
+				int max = kingdom.getMaxMembers();
+				String string = max + "";
+				if (max <= 0)
+					string = "\u221E";
+				return string;
 			}
 		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%points%", "%resourcepoints%") {
@@ -153,7 +157,11 @@ public class DefaultPlaceholders {
 		Placeholders.registerPlaceholder(new SimplePlaceholder("%maxclaims%") {
 			@Override
 			public String get() {
-				return configuration.getInt("claiming.maximum-claims", -1) + "";
+				int max = configuration.getInt("claiming.maximum-claims", -1);
+				String string = max + "";
+				if (max <= 0)
+					string = "\u221E";
+				return string;
 			}
 		});
 		Placeholders.registerPlaceholder(new Placeholder<Player>("%player%") {

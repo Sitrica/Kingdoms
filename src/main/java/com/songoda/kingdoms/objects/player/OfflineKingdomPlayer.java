@@ -19,7 +19,6 @@ import com.songoda.kingdoms.objects.land.Land;
 
 public class OfflineKingdomPlayer {
 
-	protected transient OfflineKingdom kingdomCache;
 	private final Set<Land> claims = new HashSet<>(); // Kingdom claims that this user has claimed.
 	protected final KingdomManager kingdomManager;
 	protected final PlayerManager playerManager;
@@ -63,15 +62,11 @@ public class OfflineKingdomPlayer {
 	}
 
 	public OfflineKingdom getKingdom() {
-		if (kingdomCache != null)
-			return kingdomCache;
 		if (kingdom == null)
 			return null;
 		Optional<OfflineKingdom> optional = kingdomManager.getOfflineKingdom(kingdom);
-		if (optional.isPresent()) {
-			kingdomCache = optional.get();
-			return kingdomCache;
-		}
+		if (optional.isPresent())
+			return optional.get();
 		return null;
 	}
 
@@ -81,8 +76,6 @@ public class OfflineKingdomPlayer {
 
 	public void setKingdom(String kingdom) {
 		this.kingdom = kingdom;
-		if (kingdom == null)
-			kingdomCache = null;
 	}
 
 	public Optional<KingdomPlayer> getKingdomPlayer() {

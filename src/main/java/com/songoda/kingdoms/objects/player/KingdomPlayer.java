@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.manager.managers.ChatManager.ChatChannel;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
+import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 
 public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {
@@ -26,7 +27,9 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {
 		super(player);
 		this.player = player;
 		this.rank = other.getRank();
-		this.kingdomCache = other.getKingdom();
+		OfflineKingdom kingdom = other.getKingdom();
+		if (kingdom != null)
+			this.kingdom = kingdom.getName();
 	}
 
 	public Player getPlayer() {
@@ -70,12 +73,7 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {
 	}
 
 	public Kingdom getKingdom() {
-		if (kingdomCache == null) {
-			super.getKingdom(); // Load the kingdomCache
-			if (kingdomCache == null)
-				return null;
-		}
-		return kingdomCache.getKingdom();
+		return super.getKingdom().getKingdom();
 	}
 
 	public void setAutoClaiming(boolean autoClaiming) {

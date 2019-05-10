@@ -132,7 +132,7 @@ public class KingdomManager extends Manager {
 		Kingdoms.debugMessage("Fetching info for online kingdom: " + name);
 		return kingdoms.parallelStream()
 				.filter(kingdom -> kingdom.getName().equalsIgnoreCase(name))
-				.map(kingdom -> kingdom instanceof Kingdom ? (Kingdom) kingdom : null)
+				.map(kingdom -> kingdom instanceof Kingdom ? (Kingdom) kingdom : kingdom.getKingdom())
 				.findAny();
 	}
 
@@ -145,11 +145,13 @@ public class KingdomManager extends Manager {
 	public Optional<OfflineKingdom> getOfflineKingdom(String name) {
 		if (name == null)
 			return Optional.empty();
-		Kingdoms.debugMessage("Fetching info for offline kingdom: " + name);
 		return Optional.ofNullable(kingdoms.parallelStream()
-				.filter(kingdom -> kingdom.getName().equals(name))
+				.filter(kingdom -> kingdom.getName().equalsIgnoreCase(name))
 				.findFirst()
-				.orElseGet(() -> loadKingdom(name))); // orElse doesn't work.
+				.orElseGet(() -> {
+					Kingdoms.debugMessage("Fetching info for offline kingdom: " + name);
+					return loadKingdom(name);
+				}));
 	}
 
 	private Kingdom loadKingdom(String name) {

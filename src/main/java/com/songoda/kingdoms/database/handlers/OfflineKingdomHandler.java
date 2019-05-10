@@ -1,6 +1,5 @@
 package com.songoda.kingdoms.database.handlers;
 
-import java.util.Optional;
 import org.bukkit.Location;
 
 import com.google.gson.JsonArray;
@@ -8,7 +7,6 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
-import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.serializers.DefenderInfoSerializer;
 import com.songoda.kingdoms.database.serializers.LandSerializer;
 import com.songoda.kingdoms.database.serializers.LocationSerializer;
@@ -16,7 +14,6 @@ import com.songoda.kingdoms.database.serializers.OfflineKingdomPlayerSerializer;
 import com.songoda.kingdoms.database.serializers.PowerupSerializer;
 import com.songoda.kingdoms.database.serializers.RankPermissionsSerializer;
 import com.songoda.kingdoms.database.serializers.WarpPadSerializer;
-import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.kingdom.Powerup;
@@ -34,10 +31,8 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 	private final PowerupSerializer powerupSerializer;
 	private final WarpPadSerializer warpSerializer;
 	private final LandSerializer landSerializer;
-	private final KingdomManager kingdomManager;
 
 	public OfflineKingdomHandler() {
-		this.kingdomManager = Kingdoms.getInstance().getManager("kingdom", KingdomManager.class);
 		this.playerSerializer = new OfflineKingdomPlayerSerializer();
 		this.permissionsSerializer = new RankPermissionsSerializer();
 		this.defenderSerializer = new DefenderInfoSerializer();
@@ -104,20 +99,12 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 		JsonElement alliesElement = json.get("allies");
 		if (alliesElement != null && !alliesElement.isJsonNull() && alliesElement.isJsonArray()) {
 			JsonArray array = alliesElement.getAsJsonArray();
-			array.forEach(element -> {
-				OfflineKingdom ally = getKingdom(element.getAsString());
-				if (ally != null)
-					kingdom.addAlliance(ally);
-			});
+			array.forEach(element -> kingdom.addAlliance(element.getAsString()));
 		}
 		JsonElement eneimiesElement = json.get("eneimies");
 		if (eneimiesElement != null && !eneimiesElement.isJsonNull() && eneimiesElement.isJsonArray()) {
 			JsonArray array = eneimiesElement.getAsJsonArray();
-			array.forEach(element -> {
-				OfflineKingdom enemy = getKingdom(element.getAsString());
-				if (enemy != null)
-					kingdom.addEnemy(enemy);
-			});
+			array.forEach(element -> kingdom.addEnemy(element.getAsString()));
 		}
 		JsonElement membersElement = json.get("members");
 		if (membersElement != null && !membersElement.isJsonNull() && membersElement.isJsonArray()) {
@@ -138,13 +125,6 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 			});
 		}
 		return kingdom;
-	}
-
-	private OfflineKingdom getKingdom(String name) {
-		Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(name);
-		if (kingdom.isPresent())
-			return kingdom.get();
-		return null;
 	}
 
 }
