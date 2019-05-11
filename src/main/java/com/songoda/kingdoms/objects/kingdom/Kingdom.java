@@ -4,16 +4,14 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.songoda.kingdoms.manager.managers.PlayerManager;
-import com.songoda.kingdoms.objects.player.KingdomPlayer;
-import com.songoda.kingdoms.manager.managers.WorldManager;
-
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import com.songoda.kingdoms.manager.managers.WorldManager;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
+
 public class Kingdom extends OfflineKingdom {
 
-	private final PlayerManager playerManager;
 	private final WorldManager worldManager;
 
 	// Transforming OfflineKingdom to Kingdom.
@@ -24,7 +22,6 @@ public class Kingdom extends OfflineKingdom {
 	// Renaming.
 	public Kingdom(OfflineKingdom other, String name) {
 		super(other.getOwner().getUniqueId(), name);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.invasionCooldown = other.invasionCooldown;
 		this.resourcePoints = other.resourcePoints;
@@ -51,7 +48,6 @@ public class Kingdom extends OfflineKingdom {
 	// Grabbing a Kingdom from database.
 	public Kingdom(KingdomPlayer owner, String name) {
 		super(owner.getUniqueId(), name);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 	}
 

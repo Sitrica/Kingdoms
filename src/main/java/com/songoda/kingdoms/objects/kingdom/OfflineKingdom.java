@@ -95,6 +95,10 @@ public class OfflineKingdom {
 	}
 
 	public void setOwner(OfflineKingdomPlayer owner) {
+		if (owner == null) {
+			this.owner = null;
+			return;
+		}
 		this.owner = owner.getUniqueId();
 	}
 
@@ -229,6 +233,9 @@ public class OfflineKingdom {
 	}
 
 	public Kingdom getKingdom() {
+//		Optional<Kingdom> optional = kingdomManager.getKingdom(name);
+//		if (optional.isPresent())
+//			return optional.get();
 		return kingdomManager.convert(this);
 	}
 

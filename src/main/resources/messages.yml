@@ -296,6 +296,7 @@ commands:
         description: "Find information about Kingdoms."
         # Placeholders: All KingdomPlayer placeholders.
         syntax: "/k info [<kingdom>]"
+        no-kingdom: "&cYou are not apart of any Kingdom. Type /k info <name> to view other Kingdom infos."
         no-kingdom-found: "&cThe Kingdom &l%kingdom%&c could not be found."
         # Placeholders: All Kingdom and KingdomPlayer placeholders.
         info:

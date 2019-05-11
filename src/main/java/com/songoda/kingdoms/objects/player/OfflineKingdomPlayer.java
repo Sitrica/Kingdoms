@@ -94,16 +94,12 @@ public class OfflineKingdomPlayer {
 		claims.addAll(lands);
 	}
 
-	private void resetClaims() {
-		claims.clear();
-	}
-
 	public boolean equals(OfflineKingdomPlayer player) {
 		return player.getUniqueId().equals(uuid);
 	}
 
 	public void onKingdomLeave() {
-		resetClaims();
+		claims.clear();
 		kingdom = null;
 		rank = null;
 	}

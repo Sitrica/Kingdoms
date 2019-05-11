@@ -29,17 +29,24 @@ public class CommandInfo extends AbstractCommand {
 	protected ReturnType runCommand(Kingdoms instance, CommandSender sender, String... arguments) {
 		Player player = (Player) sender;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null) {
+			new MessageBuilder("commands.info.no-kingdom")
+					.setPlaceholderObject(kingdomPlayer)
+					.send(player);
+			return ReturnType.FAILURE;
+		}
 		if (arguments.length > 0) {
 			String name = String.join(" ", arguments);
-			Optional<Kingdom> kingdom = kingdomManager.getKingdom(name);
-			if (!kingdom.isPresent()) {
+			Optional<Kingdom> find = kingdomManager.getKingdom(name);
+			if (!find.isPresent()) {
 				new MessageBuilder("commands.info.no-kingdom-found")
 						.setPlaceholderObject(kingdomPlayer)
 						.send(player);
 				return ReturnType.FAILURE;
 			}
 			new ListMessageBuilder(false, "commands.info.info")
-					.setKingdom(kingdom.get())
+					.setKingdom(find.get())
 					.send(player);
 			return ReturnType.SUCCESS;
 		}

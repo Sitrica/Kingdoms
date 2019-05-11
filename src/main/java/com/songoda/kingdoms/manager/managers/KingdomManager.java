@@ -111,6 +111,7 @@ public class KingdomManager extends Manager {
 	public Kingdom convert(OfflineKingdom other) {
 		Kingdom kingdom = new Kingdom(other);
 		String name = other.getName();
+		Kingdoms.debugMessage("Converting offline kingdom to online kingdom: " + name);
 		kingdoms.removeIf(k -> k.getName().equalsIgnoreCase(name));
 		kingdoms.add(kingdom);
 		return kingdom;

@@ -347,7 +347,10 @@ public class NexusInventory extends StructureInventory implements Listener {
 					returning.add(item);
 					continue;
 				}
-				worth += inventory.all(type).size() * points.get();
+				int amount = 0;
+				for (ItemStack i : inventory.all(type).values())
+					amount += i.getAmount();
+				worth += amount * points.get();
 				added.add(type);
 			}
 		} else {
@@ -363,7 +366,10 @@ public class NexusInventory extends StructureInventory implements Listener {
 					returning.add(item);
 					continue;
 				}
-				worth += inventory.all(type).size() * points;
+				int amount = 0;
+				for (ItemStack i : inventory.all(type).values())
+					amount += i.getAmount();
+				worth += amount * points;
 				added.add(type);
 			}
 		}

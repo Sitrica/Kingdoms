@@ -73,7 +73,10 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {
 	}
 
 	public Kingdom getKingdom() {
-		return super.getKingdom().getKingdom();
+		OfflineKingdom kingdom = super.getKingdom();
+		if (kingdom == null)
+			return null;
+		return kingdom.getKingdom();
 	}
 
 	public void setAutoClaiming(boolean autoClaiming) {
@@ -112,91 +115,5 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {
 	public void setOpponent(LivingEntity opponent) {
 		this.opponent = opponent;
 	}
-	
-	
-	
-	
-	
-	
-	
-
-
-
-
-
-	
-
-
-
-
-	/*
-	private transient Entity champion = null;
-	@Override
-	public Entity getChampionPlayerFightingWith() {
-		return champion;
-	}
-
-	@Override
-	public void setChampionPlayerFightingWith(Entity champion) {
-		this.champion = champion;
-	}
-
-	/////////////////////////////////////////////////////////////
-	private transient Kingdom invited;
-	@Override
-	public Kingdom getInvited() {
-		return invited;
-	}
-
-	@Override
-	public void setInvited(Kingdom kingdom) {
-		this.invited = kingdom;
-	}
-	
-	private transient Queue<Location> blocks = new LinkedList<Location>();
-	@Override
-	public Queue<Location> getLastMarkedChunk() {
-		return blocks;
-	}
-
-
-	private transient long lastDisplayTime = 0;
-	@Override
-	public Long getLastDisplayTime() {
-		return lastDisplayTime;
-	}
-
-	@Override
-	public void setLastDisplayTime(Long time) {
-		lastDisplayTime = time;
-	}
-	///////////////////////////////////////////////////////////////////////
-	private transient List<String> isConfirmed = new ArrayList<String>();
-	@Override
-	public boolean resetAllConfirmation() {
-		if(isConfirmed.isEmpty()) return false;
-
-		isConfirmed.clear();
-		return true;
-	}
-	@Override
-	public boolean isConfirmed(String key) {
-		return isConfirmed.remove(key);
-	}
-	@Override
-	public void setConfirmed(String key) {
-		isConfirmed.add(key);
-	}
-	/////////////////////////////////////////////////////////////////////////
-	private transient KChestSign modifyingSign = null;
-	@Override
-	public KChestSign getModifyingSign() {
-		return modifyingSign;
-	}
-	@Override
-	public void setModifyingSign(KChestSign sign) {
-		modifyingSign = sign;
-	}
-	*/
 
 }
