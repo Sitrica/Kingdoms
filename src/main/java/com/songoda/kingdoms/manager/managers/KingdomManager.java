@@ -8,9 +8,6 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
 import org.bukkit.Bukkit;
@@ -133,7 +130,7 @@ public class KingdomManager extends Manager {
 		Kingdoms.debugMessage("Fetching info for online kingdom: " + name);
 		return kingdoms.parallelStream()
 				.filter(kingdom -> kingdom.getName().equalsIgnoreCase(name))
-				.map(kingdom -> kingdom instanceof Kingdom ? (Kingdom) kingdom : kingdom.getKingdom())
+				.map(kingdom -> kingdom instanceof Kingdom ? (Kingdom) kingdom : convert(kingdom))
 				.findAny();
 	}
 
@@ -157,34 +154,24 @@ public class KingdomManager extends Manager {
 
 	private Kingdom loadKingdom(String name) {
 		Kingdoms.debugMessage("Attemping loading for kingdom: " + name);
-		FutureTask<Kingdom> future = new FutureTask<>(() -> {
-			OfflineKingdom databaseKingdom = database.get(name);
-			if (databaseKingdom == null) {
-				Kingdoms.debugMessage("No data found for kingdom: " + name);
-				return null;
-			}
-			Kingdom kingdom = new Kingdom(databaseKingdom);
-			if (kingdom != null) {
-				long invasionCooldown = kingdom.getInvasionCooldown();
-				if (invasionCooldown > 0) {
-					KingdomCooldown cooldown = new KingdomCooldown(kingdom, "attackcd", invasionCooldown);
-					cooldown.start();
-					kingdom.setInvasionCooldown(0);
-				}
-				updateUpgrades(kingdom);
-				kingdoms.add(kingdom);
-				Bukkit.getPluginManager().callEvent(new KingdomLoadEvent(kingdom));
-			}
-			return kingdom;
-		});
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		executor.execute(future);
-		try {
-			return future.get();
-		} catch (InterruptedException | ExecutionException e) {
-			e.printStackTrace();
+		OfflineKingdom databaseKingdom = database.get(name);
+		if (databaseKingdom == null) {
+			Kingdoms.debugMessage("No data found for kingdom: " + name);
+			return null;
 		}
-		return null;
+		Kingdom kingdom = new Kingdom(databaseKingdom);
+		if (kingdom != null) {
+			long invasionCooldown = kingdom.getInvasionCooldown();
+			if (invasionCooldown > 0) {
+				KingdomCooldown cooldown = new KingdomCooldown(kingdom, "attackcd", invasionCooldown);
+				cooldown.start();
+				kingdom.setInvasionCooldown(0);
+			}
+			updateUpgrades(kingdom);
+			kingdoms.add(kingdom);
+			Bukkit.getPluginManager().callEvent(new KingdomLoadEvent(kingdom));
+		}
+		return kingdom;
 	}
 
 	public void onPlayerLeave(KingdomPlayer player, Kingdom kingdom) {
@@ -550,7 +537,6 @@ public class KingdomManager extends Manager {
 		if (autoSaveThread != null)
 			autoSaveThread.cancel();
 		saveTask.run();
-		kingdoms.clear();
 	}
 
 }

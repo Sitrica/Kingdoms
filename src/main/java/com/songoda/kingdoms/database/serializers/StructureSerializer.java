@@ -1,7 +1,7 @@
 package com.songoda.kingdoms.database.serializers;
 
 import java.lang.reflect.Type;
-import java.util.Optional;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -15,19 +15,16 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.Serializer;
-import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.structures.Structure;
 import com.songoda.kingdoms.objects.structures.StructureType;
 
 public class StructureSerializer implements Serializer<Structure> {
 
-	private final KingdomManager kingdomManager;
 	private final Kingdoms instance;
 
 	public StructureSerializer() {
 		this.instance = Kingdoms.getInstance();
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 	}
 
 	@Override
@@ -51,9 +48,6 @@ public class StructureSerializer implements Serializer<Structure> {
 		JsonElement kingdomElement = object.get("kingdom");
 		if (kingdomElement == null || kingdomElement.isJsonNull())
 			return null;
-		Optional<OfflineKingdom> optional = kingdomManager.getOfflineKingdom(kingdomElement.getAsString());
-		if (!optional.isPresent())
-			return null;
 		JsonElement worldElement = object.get("world");
 		if (worldElement == null || worldElement.isJsonNull())
 			return null;
@@ -70,10 +64,10 @@ public class StructureSerializer implements Serializer<Structure> {
 		StructureType structureType = StructureType.valueOf(typeElement.getAsString());
 		if (structureType == null)
 			return null;
-		OfflineKingdom kingdom = optional.get();
+		String kingdom = kingdomElement.getAsString();
 		Structure structure = new Structure(kingdom, location, structureType);
 		Block structureBlock = location.getBlock();
-		structureBlock.setMetadata(structureType.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
+		structureBlock.setMetadata(structureType.getMetaData(), new FixedMetadataValue(instance, kingdom));
 		return structure;
 	}
 

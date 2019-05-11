@@ -11,7 +11,6 @@ public class KingdomLoadEvent extends Event {
 	private Kingdom kingdom;
 
 	public KingdomLoadEvent(Kingdom kingdom) {
-		super(true);
 		this.kingdom = kingdom;
 	}
 

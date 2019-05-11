@@ -293,7 +293,7 @@ public class StructureManager extends Manager {
 			return;
 		}
 		Location location = block.getLocation();
-		Structure structure = new Structure(kingdom, location, type);
+		Structure structure = new Structure(kingdom.getName(), location, type);
 		//special cases
 		if (type == StructureType.REGULATOR)
 			structure = new Regulator(kingdom, location);

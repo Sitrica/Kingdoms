@@ -29,13 +29,6 @@ public class CommandInfo extends AbstractCommand {
 	protected ReturnType runCommand(Kingdoms instance, CommandSender sender, String... arguments) {
 		Player player = (Player) sender;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		Kingdom kingdom = kingdomPlayer.getKingdom();
-		if (kingdom == null) {
-			new MessageBuilder("commands.info.no-kingdom")
-					.setPlaceholderObject(kingdomPlayer)
-					.send(player);
-			return ReturnType.FAILURE;
-		}
 		if (arguments.length > 0) {
 			String name = String.join(" ", arguments);
 			Optional<Kingdom> find = kingdomManager.getKingdom(name);
@@ -50,9 +43,16 @@ public class CommandInfo extends AbstractCommand {
 					.send(player);
 			return ReturnType.SUCCESS;
 		}
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null) {
+			new MessageBuilder("commands.info.no-kingdom")
+					.setPlaceholderObject(kingdomPlayer)
+					.send(player);
+			return ReturnType.FAILURE;
+		}
 		new ListMessageBuilder(false, "commands.info.info")
-				.setKingdom(kingdomPlayer.getKingdom())
 				.setPlaceholderObject(kingdomPlayer)
+				.setKingdom(kingdom)
 				.send(player);
 		return ReturnType.SUCCESS;
 	}

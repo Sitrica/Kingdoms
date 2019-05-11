@@ -143,7 +143,7 @@ public class NexusManager extends Manager {
 	}
 
 	public void placeNexus(Land land, Block block, Kingdom kingdom, KingdomPlayer player) {
-		land.setStructure(new Structure(kingdom, block.getLocation(), type));
+		land.setStructure(new Structure(kingdom.getName(), block.getLocation(), type));
 		block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
 		block.setType(type.getBlockMaterial());
 		kingdom.setNexusLocation(block.getLocation());

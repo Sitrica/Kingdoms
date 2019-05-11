@@ -233,9 +233,9 @@ public class OfflineKingdom {
 	}
 
 	public Kingdom getKingdom() {
-//		Optional<Kingdom> optional = kingdomManager.getKingdom(name);
-//		if (optional.isPresent())
-//			return optional.get();
+		Optional<Kingdom> optional = kingdomManager.getKingdom(name);
+		if (optional.isPresent())
+			return optional.get();
 		return kingdomManager.convert(this);
 	}
 
