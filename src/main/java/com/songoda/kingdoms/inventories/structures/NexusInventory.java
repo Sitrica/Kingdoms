@@ -101,7 +101,13 @@ public class NexusInventory extends StructureInventory implements Listener {
 			}
 			kingdom.subtractResourcePoints(memberCost);
 			kingdom.setMaxMembers(kingdom.getMaxMembers() + 1);
-			openInventory(player);
+			new MessageBuilder("structures.max-members-purchase")
+					.setPlaceholderObject(kingdomPlayer)
+					.replace("%cost%", memberCost)
+					.replace("%max%", max)
+					.setKingdom(kingdom)
+					.send(player);
+			reopen(kingdomPlayer);
 		});
 		ItemStack battle = new ItemStackBuilder(section.getConfigurationSection("battle-log"))
 				.setPlaceholderObject(kingdomPlayer)

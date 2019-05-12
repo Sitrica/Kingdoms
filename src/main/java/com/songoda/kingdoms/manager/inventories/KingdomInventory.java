@@ -48,6 +48,11 @@ public abstract class KingdomInventory {
 		inventoryManager.opening(player.getUniqueId(), this);
 	}
 
+	protected void reopen(KingdomPlayer kingdomPlayer) {
+		inventory.clear();
+		build(kingdomPlayer);
+	}
+
 	public Optional<Consumer<InventoryClickEvent>> getAction(int slot) {
 		return Optional.ofNullable(actions.get(slot));
 	}

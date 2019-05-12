@@ -90,6 +90,7 @@ structures:
     # Special placeholders are %cost% and %max% for max members allowed.
     nexus-max-member-cant-afford: "&cYour Kingdom does not currently have %cost% resource points to upgrade!"
     max-members-reached: "&cMaximum member count already reached!"
+    max-members-purchase: "&aPurchased +1 member spot for %cost% resource points."
     # Special placeholders: %warp% (old name) and %location%
     rename-warp: "&bType in chat the new name for this warp. Type 'cancel' to cancel rename."
     # Special placeholders: %old% (old name), %new% (new name), and %location%
