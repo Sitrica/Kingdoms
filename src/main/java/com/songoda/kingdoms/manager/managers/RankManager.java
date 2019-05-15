@@ -163,6 +163,18 @@ public class RankManager extends Manager {
 				.collect(Collectors.toList());
 	}
 
+	public List<Rank> getRanksAbove(Rank rank) {
+		return ranks.parallelStream()
+				.filter(spot -> ranks.indexOf(spot) < ranks.indexOf(rank))
+				.collect(Collectors.toList());
+	}
+
+	public List<Rank> getRanksBelow(Rank rank) {
+		return ranks.parallelStream()
+				.filter(spot -> ranks.indexOf(spot) > ranks.indexOf(rank))
+				.collect(Collectors.toList());
+	}
+
 	/**
 	 * Only used for chat formatting, displaying in the /k info
 	 * 

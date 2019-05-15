@@ -1,9 +1,7 @@
 package com.songoda.kingdoms.objects.kingdom;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -23,7 +21,7 @@ import com.songoda.kingdoms.objects.structures.WarpPad;
 
 public class OfflineKingdom {
 
-	protected final List<RankPermissions> permissions = new ArrayList<>();
+	protected final Set<RankPermissions> permissions = new HashSet<>();
 	protected final Set<String> enemies = new HashSet<>();
 	protected final Set<String> allies = new HashSet<>();
 	protected final Set<WarpPad> warps = new HashSet<>();
@@ -269,7 +267,7 @@ public class OfflineKingdom {
 		this.shieldTime = new KingdomCooldown(this, "SHIELD", seconds);
 	}
 
-	public List<RankPermissions> getPermissions() {
+	public Set<RankPermissions> getPermissions() {
 		return permissions;
 	}
 

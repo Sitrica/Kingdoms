@@ -196,7 +196,6 @@ public class PlayerManager extends Manager {
 			Kingdoms.consoleMessage("SQL connection failed! Saving to file DB");
 			save.run();
 		}
-		users.clear();
 	}
 
 }
