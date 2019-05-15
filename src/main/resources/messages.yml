@@ -163,6 +163,7 @@ kingdoms:
     pacifist-cannot-be-damaged: "&cYou cannot harm neutral members in their own land!"
     soldier-name: "&cKingdom Guard"
     siege-breaker-name: "&dKingdom Siege Breaker"
+    rank-too-low-edit-permissions: "&cYour rank is too low to edit permissions, only rank %rank% and higher can edit permissions."
 
 # All messages relating to maps and chunks.
 map:

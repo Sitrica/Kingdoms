@@ -7,7 +7,7 @@ import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 
 public class RankPermissions {
 
-	private boolean claiming, unclaiming, invade, nexus, alliance, turrets, spawn, chest, invite, broadcast, useSpawn, build, nexusBuild, regulator, structures, protectedChests, xp;
+	private boolean claiming, unclaiming, invade, nexus, alliance, turrets, spawn, chest, invite, broadcast, useSpawn, build, nexusBuild, regulator, structures, protectedChests, xp, permissions;
 	private final FileConfiguration configuration;
 	private final String node;
 	private final Rank rank;
@@ -17,6 +17,7 @@ public class RankPermissions {
 		this.rank = rank;
 		this.configuration = Kingdoms.getInstance().getConfiguration("ranks").get();
 		this.node = rank.getConfigurationNode() + ".default-permissions";
+		this.permissions = getDefaultValue(node + ".edit-permissions");
 		this.regulator = getDefaultValue(node + ".override-regulator");
 		this.max = configuration.getInt(node + ".max-claims", -1);
 		this.nexusBuild = getDefaultValue(node + ".nexus-build");
@@ -45,6 +46,14 @@ public class RankPermissions {
 
 	public void setProtectedAccess(boolean protectedChests) {
 		this.protectedChests = protectedChests;
+	}
+
+	public boolean canEditPermissions() {
+		return permissions;
+	}
+
+	public void setEditPermissions(boolean permissions) {
+		this.permissions = permissions;
 	}
 
 	public boolean canOverrideRegulator() {

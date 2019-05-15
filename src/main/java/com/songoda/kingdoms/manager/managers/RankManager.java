@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -20,6 +21,7 @@ import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.MessageBuilder;
+import com.songoda.kingdoms.utils.Utils;
 
 import net.md_5.bungee.api.ChatColor;
 
@@ -34,13 +36,14 @@ public class RankManager extends Manager {
 		rankConfiguration = instance.getConfiguration("ranks").get();
 		this.section = rankConfiguration.getConfigurationSection("ranks");
 		for (String rank : section.getKeys(false)) {
+			Material material = Utils.materialAttempt(section.getString(rank + ".permission-editor-item", "STONE"), "WHITE_WOOL");
 			ChatColor chat = ChatColor.valueOf(section.getString(rank + ".chat-color", "WHITE"));
 			ChatColor color = ChatColor.valueOf(section.getString(rank + ".color", "WHITE"));
 			String unicode = section.getString(rank + ".unicode-icon", "");
 			int priority = section.getInt(rank + ".priority", 99);
 			String name = section.getString(rank + ".name", rank);
 			String node = "ranks." + rank;
-			ranks.add(new Rank(rank, node, name, unicode, chat, color, priority));
+			ranks.add(new Rank(rank, node, name, unicode, chat, color, priority, material));
 		}
 	}
 
@@ -48,10 +51,12 @@ public class RankManager extends Manager {
 
 		private final String name, unicode, node, configurationName;
 		private final ChatColor color, chat;
+		private final Material material;
 		private final int priority;
 
-		private Rank(String configurationName, String node, String name, String unicode, ChatColor chat, ChatColor color, int priority) {
+		private Rank(String configurationName, String node, String name, String unicode, ChatColor chat, ChatColor color, int priority, Material material) {
 			this.configurationName = configurationName;
+			this.material = material;
 			this.priority = priority;
 			this.unicode = unicode;
 			this.color = color;
@@ -92,6 +97,10 @@ public class RankManager extends Manager {
 			return node;
 		}
 
+		public Material getEditMaterial() {
+			return material;
+		}
+
 		public ChatColor getChatColor() {
 			return chat;
 		}
@@ -112,6 +121,10 @@ public class RankManager extends Manager {
 			return name;
 		}
 
+	}
+
+	public Rank getLowestAndDefault(OfflineKingdom kingdom, Predicate<RankPermissions> predicate) {
+		return getLowestFor(kingdom, predicate).orElse(getDefaultRank());
 	}
 
 	public Optional<Rank> getLowestFor(OfflineKingdom kingdom, Predicate<RankPermissions> predicate) {

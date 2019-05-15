@@ -43,6 +43,7 @@ ranks:
         priority: 0
         # The color the rank gets. Colors can be viewed here https://hub.spigotmc.org/javadocs/spigot/org/bukkit/ChatColor.html
         color: "RED"
+        permission-editor-item: "RED_WOOL"
         chat-color: "GRAY"
         # Ranks can have a CSS unicode as their symbol in Minecraft.
         # The kings unicode is a crown. You can view unicodes here: https://unicode-table.com
@@ -63,6 +64,7 @@ ranks:
     general:
         priority: 2
         color: "GOLD"
+        permission-editor-item: "GRAY_WOOL"
         chat-color: "GRAY"
         unicode-icon: "\u265b"
         name: "General"
@@ -72,6 +74,8 @@ ranks:
         # If the default permissions aren't set they will be assumed true, just like in the King's section.
         # All permissions can be changed via the Kingdom permissions manager.
         default-permissions:
+            # If the rank can edit permissions.
+            edit-permissions: false
             # If the rank can access protected chests.
             protected-chests: false
             nexus-access: false
@@ -106,6 +110,7 @@ ranks:
     knight:
         priority: 3
         color: "BLUE"
+        permission-editor-item: "WHITE_WOOL"
         chat-color: "GRAY"
         unicode-icon: "\u2694"
         name: "Knight"
@@ -114,6 +119,7 @@ ranks:
         # Default permissions are the base permission set when a new Kingdom is created.
         # If the default permissions aren't set they will be assumed true, just like in the King's section.
         default-permissions:
+            edit-permissions: false
             protected-chests: false
             nexus-access: false
             nexus-build: false
@@ -135,6 +141,7 @@ ranks:
         # Default it's going to be the lowest priority.
         priority: 99
         color: "GRAY"
+        permission-editor-item: "PURPLE_WOOL"
         chat-color: "GRAY"
         unicode-icon: "\u265f"
         name: "Member"
@@ -143,6 +150,7 @@ ranks:
         # Default permissions are the base permission set when a new Kingdom is created.
         # If the default permissions aren't set they will be assumed true, just like in the King's section.
         default-permissions:
+            edit-permissions: false
             protected-chests: false
             nexus-access: false
             nexus-build: false

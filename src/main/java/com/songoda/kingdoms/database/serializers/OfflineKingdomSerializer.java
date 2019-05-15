@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.bukkit.inventory.ItemStack;
 
@@ -12,10 +13,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
-import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.Serializer;
 import com.songoda.kingdoms.database.handlers.OfflineKingdomHandler;
-import com.songoda.kingdoms.manager.managers.RankManager;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.DefenderUpgrade;
 import com.songoda.kingdoms.objects.kingdom.KingdomChest;
@@ -24,18 +23,14 @@ import com.songoda.kingdoms.objects.kingdom.MiscUpgradeType;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.kingdom.Powerup;
 import com.songoda.kingdoms.objects.kingdom.PowerupType;
-import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
+import com.songoda.kingdoms.utils.Utils;
 
 public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 
-	private final OfflineKingdomPlayerSerializer playerSerializer;
 	private final ItemStackSerializer itemSerializer;
 	private final OfflineKingdomHandler handler;
-	private final RankManager rankManager;
 
 	public OfflineKingdomSerializer() {
-		this.rankManager = Kingdoms.getInstance().getManager("rank", RankManager.class);
-		this.playerSerializer = new OfflineKingdomPlayerSerializer();
 		this.itemSerializer = new ItemStackSerializer();
 		this.handler = new OfflineKingdomHandler();
 	}
@@ -49,9 +44,9 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 		json.addProperty("invaded", kingdom.hasInvaded());
 		json.addProperty("max-members", kingdom.getMaxMembers());
 		json.addProperty("first-claim", kingdom.hasUsedFirstClaim());
+		json.addProperty("owner", kingdom.getOwner().getUniqueId() + "");
 		json.addProperty("resource-points", kingdom.getResourcePoints());
 		json.addProperty("invasion-cooldown", kingdom.getInvasionCooldown());
-		// KingdomChest
 		JsonObject chest = new JsonObject();
 		JsonObject contentsObject = new JsonObject();
 		Map<Integer, ItemStack> contents = kingdom.getKingdomChest().getContents();
@@ -62,7 +57,6 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 		}
 		chest.add("contents", contentsObject);
 		json.add("chest", chest);
-		// MiscUpgrade
 		JsonObject miscUpgrade = new JsonObject();
 		JsonObject bought = new JsonObject();
 		MiscUpgrade upgrade = kingdom.getMiscUpgrades();
@@ -82,17 +76,16 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 	@Override
 	public OfflineKingdom deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws JsonParseException {
 		JsonObject object = json.getAsJsonObject();
-		JsonElement kingElement = object.get("king");
-		if (kingElement == null || kingElement.isJsonNull())
+		JsonElement ownerElement = object.get("owner");
+		if (ownerElement == null || ownerElement.isJsonNull())
 			return null;
-		OfflineKingdomPlayer king = playerSerializer.deserialize(kingElement, OfflineKingdomPlayer.class, context);
-		if (king == null)
+		UUID uuid = Utils.getUniqueId(ownerElement.getAsString());
+		if (uuid == null)
 			return null;
 		JsonElement nameElement = object.get("name");
 		if (nameElement == null || nameElement.isJsonNull())
 			return null;
-		king.setRank(rankManager.getOwnerRank());
-		OfflineKingdom kingdom = new OfflineKingdom(king.getUniqueId(), nameElement.getAsString());
+		OfflineKingdom kingdom = new OfflineKingdom(uuid, nameElement.getAsString());
 		JsonElement loreElement = object.get("lore");
 		if (loreElement != null && !loreElement.isJsonNull())
 			kingdom.setLore(loreElement.getAsString());

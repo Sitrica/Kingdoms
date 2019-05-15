@@ -46,7 +46,6 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 	public JsonObject serialize(OfflineKingdom kingdom, JsonObject json, JsonSerializationContext context) {
 		json.add("spawn", locationSerializer.serialize(kingdom.getSpawn(), Location.class, context));
 		json.add("powerup", powerupSerializer.serialize(kingdom.getPowerup(), Powerup.class, context));
-		json.add("king", playerSerializer.serialize(kingdom.getOwner(), OfflineKingdomPlayer.class, context));
 		json.add("nexus", locationSerializer.serialize(kingdom.getNexusLocation(), Location.class, context));
 		json.add("defender-info", defenderSerializer.serialize(kingdom.getDefenderInfo(), DefenderInfo.class, context));
 		JsonArray claims = new JsonArray();

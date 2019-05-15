@@ -9,7 +9,7 @@ import com.songoda.kingdoms.utils.ItemStackBuilder;
 public class ConfirmationMenu extends KingdomInventory {
 
 	public ConfirmationMenu() {
-		super(InventoryType.HOPPER, "Confirmation", 69);
+		super(InventoryType.HOPPER, "confirmation", 69);
 	}
 
 	@Override

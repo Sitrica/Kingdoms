@@ -180,7 +180,7 @@ public class ItemStackBuilder {
 	 */
 	public ItemStack build() {
 		if (section == null) {
-			Kingdoms.consoleMessage("A configuration node is formated incorrectly.");
+			Kingdoms.consoleMessage("A configuration node is formatted incorrectly.");
 			return null;
 		}
 		String title = section.getString("title", "");

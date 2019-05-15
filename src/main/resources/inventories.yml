@@ -45,6 +45,8 @@ confirm:
 
 # All configurations relating to structures.
 inventories:
+    confirmation:
+        title: "&8&lConfirm action?"
     resource-points:
         title: "&bResource Points"
         material: "HAY_BLOCK"
@@ -390,4 +392,106 @@ inventories:
             lore:
                 - "&aClick to fire at this land!"
                 - "&7Each shot cost %cost%."
-
+    permissions:
+        title: "&8Permission Editor"
+        access-protected:
+            title: "&6&lAccess Protected Areas"
+            lore:
+                - "&7Change the access to protected Kingdom land."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        alliance:
+            title: "&6&lAlliance Creation"
+            lore:
+                - "&7Change the access to create new alliances."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        broadcast:
+            title: "&6&lUsers Broadcasts"
+            lore:
+                - "&7Change the access to send broadcasts to members and allies."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        build:
+            title: "&6&lBuilding"
+            lore:
+                - "&7Change the access to be able to build in Kingdom land."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        build-in-nexus:
+            title: "&6&lBuilding In Nexus"
+            lore:
+                - "&7Change the access to be able to build in the Nexus land."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        build-structures:
+            title: "&6&lBuilding Structures"
+            lore:
+                - "&7Change the access to be able to build new structures."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        claiming:
+            title: "&6&lClaiming Land"
+            lore:
+                - "&7Change the access to claiming new land."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        edit-permissions:
+            title: "&6&lEdit Permissions"
+            lore:
+                - "&7Change the access to this menu, if users can change permissions."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        grab-experience:
+            title: "&6&lGrab Experience"
+            lore:
+                - "&7Change the access to grab experience from the nexus."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        invade:
+            title: "&6&lInvade Access"
+            lore:
+                - "&7Change the access to be able to invade."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        invite:
+            title: "&6&lInvite Access"
+            lore:
+                - "&7Change the access to be able to invite."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        regulator:
+            title: "&6&lOverride Regulator"
+            lore:
+                - "&7Change the access to be able to override the regulator."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        set-spawn:
+            title: "&6&lSet Spawn"
+            lore:
+                - "&7Change the access to be able to set the spawn location of the Kingdom."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        unclaim:
+            title: "&6&lUnclaim Land"
+            lore:
+                - "&7Change the access to be able to unclaim land."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        spawn:
+            title: "&6&lUse Spawn"
+            lore:
+                - "&7Change the access to be able to use the spawn teleport command."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        turrets:
+            title: "&6&lUse Turrets"
+            lore:
+                - "&7Change the access to be able to use Kingdom turrets."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        chest-access:
+            title: "&6&lChest Access"
+            lore:
+                - "&7Change the access to Kingdom chests."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        nexus-access:
+            title: "&6&lNexus Access"
+            lore:
+                - "&7Change the access to the Kingdom's Nexus."
+                - "&fCurrently only %color%%rank%&f and above may access."
+        max-claims:
+            title: "&6&lMaximum Claims %rank%"
+            lore:
+                - "&7Change the maximum claims this rank may claim."
+                - "&6Current maximum claims for %rank% is %amount%"
+                - "&a&lLeft-Click&f To raise the count."
+                - "&c&lRight-Click&f To lower the count."
+        back-button:
+            title: "&cBack"
+            lore:
+                - "&7Go back to the Nexus menu."

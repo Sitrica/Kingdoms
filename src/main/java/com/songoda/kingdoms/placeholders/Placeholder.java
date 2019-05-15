@@ -1,6 +1,9 @@
 package com.songoda.kingdoms.placeholders;
 
+import java.util.Arrays;
+
 import com.google.common.reflect.TypeToken;
+import com.songoda.kingdoms.Kingdoms;
 
 public abstract class Placeholder<T> {
 	
@@ -29,9 +32,15 @@ public abstract class Placeholder<T> {
 	
 	@SuppressWarnings("unchecked")
 	public String replace_i(Object object) {
-		Object replacement = replace((T) object);
-		if (replacement == null)
+		Object replacement = null;
+		try {
+			replacement = replace((T) object);
+			if (replacement == null)
+				return null;
+		} catch (ClassCastException e) {
+			Kingdoms.consoleMessage("There was an issue with class casting being incorrect in the placeholders: " + Arrays.toString(syntaxes));
 			return null;
+		}
 		return replacement.toString();
 	}
 	

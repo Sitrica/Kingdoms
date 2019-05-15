@@ -20,6 +20,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.google.common.collect.Lists;
+import com.songoda.kingdoms.inventories.PermissionsMenu;
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
 import com.songoda.kingdoms.manager.managers.ChestManager;
 import com.songoda.kingdoms.manager.managers.MasswarManager;
@@ -120,7 +121,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(8, permissions);
-//TODO		setAction(8, event -> GUIManagement.getPermissionsGUIManager().openMenu(kingdomPlayer));
+		setAction(8, event -> inventoryManager.getInventory(PermissionsMenu.class).build(kingdomPlayer));
 		ItemStack defender = new ItemStackBuilder(section.getConfigurationSection("defender-upgrades"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
