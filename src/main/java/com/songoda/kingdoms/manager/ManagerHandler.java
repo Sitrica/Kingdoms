@@ -104,8 +104,4 @@ public class ManagerHandler {
 		return managers;
 	}
 
-	public void clear() {
-		managers.clear();
-	}
-
 }

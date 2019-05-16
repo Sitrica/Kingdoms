@@ -61,12 +61,7 @@ public class Kingdoms extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
-		Iterator<Manager> iterator = managerHandler.getManagers().iterator();
-		while (iterator.hasNext()) {
-			Manager manager = iterator.next();
-			manager.onDisable();
-		}
-		managerHandler.clear();
+		managerHandler.getManagers().forEach(manager -> manager.onDisable());
 	}
 
 	public <T extends ExternalManager> Optional<T> getExternalManager(String name, Class<T> expected) {

@@ -29,19 +29,13 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 public class PlayerManager extends Manager {
 
 	private final Map<UUID, OfflineKingdomPlayer> users = new HashMap<>();
-	private Database<OfflineKingdomPlayer> database;
+	private final Database<OfflineKingdomPlayer> database;
 	private KingdomManager kingdomManager;
 	private WorldManager worldManager;
 	private BukkitTask autoSaveThread;
 
 	public PlayerManager() {
 		super("player", true, "rank");
-	}
-
-	@Override
-	public void initalize() {
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
 		String table = configuration.getString("database.player-table", "Players");
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(table, OfflineKingdomPlayer.class);
@@ -51,6 +45,12 @@ public class PlayerManager extends Manager {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
 			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, save, 0, IntervalUtils.getInterval(interval) * 20);
 		}
+	}
+
+	@Override
+	public void initalize() {
+		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.worldManager = instance.getManager("world", WorldManager.class);
 	}
 
 	private final Runnable save = new Runnable() {
@@ -105,6 +105,8 @@ public class PlayerManager extends Manager {
 				.map(entry -> entry.getValue())
 				.findFirst()
 				.orElseGet(() -> {
+					if (database == null)
+						Kingdoms.debugMessage("wat");
 					OfflineKingdomPlayer player = database.get(uuid + "");
 					if (player != null) {
 						Kingdoms.debugMessage("Successfuly fetched data for kingdoms player: " + uuid);
