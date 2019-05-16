@@ -226,7 +226,7 @@ public class InvadingManager extends Manager {
 		defender.getEquipment().setHelmet(new ItemStack(helmet));
 		
 		UUID uuid = defender.getUniqueId();
-		challenger.setInvadingLand(land);
+		challenger.setInvadingLand(landManager.new LandInfo(land));
 		fighting.put(challenger, uuid);
 		entities.put(uuid, kingdom);
 		invading.put(land, uuid);
@@ -444,7 +444,7 @@ public class InvadingManager extends Manager {
 		player.setGameMode(GameMode.SURVIVAL);
 		Monster defender = (Monster) location.getWorld().spawnEntity(location, type);
 		startChampionCountdown(defender);
-		challenger.setInvadingLand(land);
+		challenger.setInvadingLand(landManager.new LandInfo(land));
 		UUID uuid = defender.getUniqueId();
 		entities.put(uuid, landKingdom);
 		fighting.put(challenger, uuid);

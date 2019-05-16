@@ -5,12 +5,14 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.KingdomManager;
+import com.songoda.kingdoms.manager.managers.LandManager.LandInfo;
 import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.manager.managers.RankManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
@@ -19,26 +21,28 @@ import com.songoda.kingdoms.objects.land.Land;
 
 public class OfflineKingdomPlayer {
 
-	private final Set<Land> claims = new HashSet<>(); // Kingdom claims that this user has claimed.
-	protected final KingdomManager kingdomManager;
-	protected final PlayerManager playerManager;
+	protected final Set<LandInfo> claims = new HashSet<>(); // Kingdom claims that this user has claimed.
 	protected final Kingdoms instance;
 	protected final String name;
 	protected final UUID uuid;
 	protected String kingdom;
-	protected Rank rank;
+	protected String rank;
 
 	public OfflineKingdomPlayer(UUID uuid) {
 		this(Bukkit.getOfflinePlayer(uuid));
 	}
 
 	public OfflineKingdomPlayer(OfflinePlayer player) {
-		this.name = player.getName();
-		this.uuid = player.getUniqueId();
+		this(player, null);
+	}
+
+	public OfflineKingdomPlayer(OfflinePlayer player, Rank rank) {
 		this.instance = Kingdoms.getInstance();
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
-		this.rank = instance.getManager("rank", RankManager.class).getDefaultRank();
+		this.uuid = player.getUniqueId();
+		this.name = player.getName();
+		this.rank = instance.getManager("rank", RankManager.class).getDefaultRank().getName();
+		if (rank != null)
+			this.rank = rank.getName();
 	}
 
 	public boolean hasKingdom() {
@@ -54,17 +58,24 @@ public class OfflineKingdomPlayer {
 	}
 
 	public Rank getRank() {
-		return rank;
+		Optional<Rank> optional = instance.getManager("rank", RankManager.class).getRank(rank);
+		if (!optional.isPresent())
+			return null;
+		return optional.get();
 	}
 
 	public void setRank(Rank rank) {
-		this.rank = rank;
+		if (rank == null) {
+			this.rank = null;
+			return;
+		}
+		this.rank = rank.getName();
 	}
 
 	public OfflineKingdom getKingdom() {
 		if (kingdom == null)
 			return null;
-		Optional<OfflineKingdom> optional = kingdomManager.getOfflineKingdom(kingdom);
+		Optional<OfflineKingdom> optional = instance.getManager("kingdom", KingdomManager.class).getOfflineKingdom(kingdom);
 		if (optional.isPresent())
 			return optional.get();
 		return null;
@@ -79,18 +90,20 @@ public class OfflineKingdomPlayer {
 	}
 
 	public Optional<KingdomPlayer> getKingdomPlayer() {
-		return playerManager.getKingdomPlayer(uuid);
+		return instance.getManager("player", PlayerManager.class).getKingdomPlayer(uuid);
 	}
 
 	public Set<Land> getClaims() {
-		return claims;
+		return claims.parallelStream()
+				.map(info -> info.get())
+				.collect(Collectors.toSet());
 	}
 
-	public void addClaim(Land land) {
+	public void addClaim(LandInfo land) {
 		claims.add(land);
 	}
 
-	public void addClaims(Collection<Land> lands) {
+	public void addClaims(Collection<LandInfo> lands) {
 		claims.addAll(lands);
 	}
 

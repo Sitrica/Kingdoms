@@ -2,6 +2,7 @@ package com.songoda.kingdoms.objects.player;
 
 import org.bukkit.entity.LivingEntity;
 
+import com.songoda.kingdoms.manager.managers.LandManager.LandInfo;
 import com.songoda.kingdoms.objects.land.Land;
 
 public interface Challenger {
@@ -14,6 +15,6 @@ public interface Challenger {
 	
 	public boolean isInvading();
 	
-	public void setInvadingLand(Land land);
+	public void setInvadingLand(LandInfo land);
 
 }

@@ -9,7 +9,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.inventories.structures.NexusInventory;
 import com.songoda.kingdoms.manager.inventories.InventoryManager;
 import com.songoda.kingdoms.manager.inventories.KingdomInventory;
@@ -38,7 +37,7 @@ public class PermissionsMenu extends KingdomInventory {
 			return;
 		if (!kingdom.getPermissions(kingdomPlayer.getRank()).canEditPermissions()) {
 			new MessageBuilder("kingdoms.rank-too-low-edit-permissions")
-					.withPlaceholder(kingdom.getLowestRankFor(low -> low.canBuildStructures()), new Placeholder<Optional<Rank>>("%rank%") {
+					.withPlaceholder(kingdom.getLowestRankFor(low -> low.canEditPermissions()), new Placeholder<Optional<Rank>>("%rank%") {
 						@Override
 						public String replace(Optional<Rank> rank) {
 							if (rank.isPresent())
@@ -145,6 +144,8 @@ public class PermissionsMenu extends KingdomInventory {
 		for (Rank rank : rankManager.getRanks()) {
 			if (i >= inventory.getSize() - 1) // Holy cow that's a lot of ranks! (That many ranks is not going to be supported)
 				continue;
+			if (rank.equals(rankManager.getOwnerRank()))
+				continue;
 			ItemStack maxClaims = new ItemStack(rank.getEditMaterial());
 		    ItemMeta meta = maxClaims.getItemMeta();
 			meta.setDisplayName(new MessageBuilder(false, "inventories.permissions.max-claims.title")
@@ -167,12 +168,18 @@ public class PermissionsMenu extends KingdomInventory {
 			setAction(i, event -> {
 				RankPermissions permissions = kingdom.getPermissions(rank);
 				int max = permissions.getMaximumClaims();
-				if (event.isRightClick() && max > 0) {
-					permissions.setMaximumClaims(max--);
+				if (event.isRightClick()) {
+					if (max <= 0)
+						return;
+					permissions.setMaximumClaims(max - 1);
+					kingdom.setRankPermissions(permissions);
 					reopen(kingdomPlayer);
-				} else if (event.isLeftClick() && allowed <= 0 || max < allowed) {
-					permissions.setMaximumClaims(max++);
-					reopen(kingdomPlayer);
+				} else if (event.isLeftClick()) {
+					if (allowed <= 0 || max < allowed) {
+						permissions.setMaximumClaims(max + 1);
+						kingdom.setRankPermissions(permissions);
+						reopen(kingdomPlayer);
+					}
 				}
 			});
 			i++;

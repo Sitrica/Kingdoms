@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
+
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -19,36 +21,41 @@ public class Land {
 
 	private final Set<ChestSign> signs = new HashSet<>();
 	private final Set<Turret> turrets = new HashSet<>();
-	protected transient OfflineKingdom kingdomCache;
-	private final KingdomManager kingdomManager;
-	private final LandManager landManager;
 	private final Kingdoms instance;
 	private Structure structure;
-	private final Chunk chunk;
+	private final String world;
 	private String kingdom;
+	private final int x, z;
 	private long claimTime;
 
 	public Land(Chunk chunk) {
-		this.chunk = chunk;
+		this.x = chunk.getX();
+		this.z = chunk.getZ();
 		this.instance = Kingdoms.getInstance();
-		this.landManager = instance.getManager("land", LandManager.class);
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.world = chunk.getWorld().getName();
 	}
 
 	public int getX() {
-		return chunk.getX();
+		return x;
 	}
 
 	public int getZ() {
-		return chunk.getZ();
+		return z;
+	}
+
+	public String getKingdomName() {
+		return kingdom;
 	}
 
 	public Chunk getChunk() {
-		return chunk;
+		World world = getWorld();
+		if (world == null)
+			return null;
+		return world.getChunkAt(x, z);
 	}
 
 	public World getWorld() {
-		return chunk.getWorld();
+		return Bukkit.getWorld(world);
 	}
 
 	public Long getClaimTime() {
@@ -72,20 +79,13 @@ public class Land {
 	}
 
 	public Optional<OfflineKingdom> getKingdomOwner() {
-		if (kingdomCache != null)
-			return Optional.of(kingdomCache);
 		if (kingdom == null)
 			return Optional.empty();
-		Optional<OfflineKingdom> optional = kingdomManager.getOfflineKingdom(kingdom);
-		if (optional.isPresent())
-			kingdomCache = optional.get();
-		return optional;
+		return instance.getManager("kingdom", KingdomManager.class).getOfflineKingdom(kingdom);
 	}
 
 	public void setKingdomOwner(String kingdom) {
 		this.kingdom = kingdom;
-		if (kingdom == null)
-			kingdomCache = null;
 	}
 
 	public boolean hasTurret(Turret turret) {
@@ -136,33 +136,41 @@ public class Land {
 
 	public Set<Land> getSurrounding() {
 		Set<Land> lands = new HashSet<>();
+		World world = getWorld();
+		if (world == null)
+			return lands;
+		LandManager landManager = instance.getManager("land", LandManager.class);
 		// North
-		Chunk north = chunk.getWorld().getChunkAt(chunk.getX(), chunk.getZ() - 9);
+		Chunk north = world.getChunkAt(x, z - 9);
 		lands.add(landManager.getLand(north));
 		// North-East
-		Chunk northEast = chunk.getWorld().getChunkAt(chunk.getX() + 9, chunk.getZ() - 9);
+		Chunk northEast = world.getChunkAt(x + 9, z - 9);
 		lands.add(landManager.getLand(northEast));
 		// East
-		Chunk east = chunk.getWorld().getChunkAt(chunk.getX() + 9, chunk.getZ());
+		Chunk east = world.getChunkAt(x + 9, z);
 		lands.add(landManager.getLand(east));
 		// South-East
-		Chunk southEast = chunk.getWorld().getChunkAt(chunk.getX() + 9, chunk.getZ() + 9);
+		Chunk southEast = world.getChunkAt(x + 9, z + 9);
 		lands.add(landManager.getLand(southEast));
 		// South
-		Chunk south = chunk.getWorld().getChunkAt(chunk.getX(), chunk.getZ() + 9);
+		Chunk south = world.getChunkAt(x, z + 9);
 		lands.add(landManager.getLand(south));
 		// South-West
-		Chunk southWest = chunk.getWorld().getChunkAt(chunk.getX() - 9, chunk.getZ() + 9);
+		Chunk southWest = world.getChunkAt(x - 9, z + 9);
 		lands.add(landManager.getLand(southWest));
 		// West
-		Chunk west = chunk.getWorld().getChunkAt(chunk.getX() - 9, chunk.getZ());
+		Chunk west = world.getChunkAt(x - 9, z);
 		lands.add(landManager.getLand(west));
 		// North-West
-		Chunk northWest = chunk.getWorld().getChunkAt(chunk.getX() - 9, chunk.getZ() - 9);
+		Chunk northWest = world.getChunkAt(x - 9, z - 9);
 		lands.add(landManager.getLand(northWest));
 		return lands;
 	}
 
+	/**
+	 * Checks if this Land is worthy of being saved to a database.
+	 * @return boolean If this chunk serves no purpose.
+	 */
 	public boolean isSignificant() {
 		if (!turrets.isEmpty())
 			return true;

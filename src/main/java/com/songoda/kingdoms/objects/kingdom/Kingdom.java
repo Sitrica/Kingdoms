@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.manager.managers.WorldManager;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 
@@ -61,6 +62,7 @@ public class Kingdom extends OfflineKingdom {
 
 	public Set<KingdomPlayer> getOnlineAllies() {
 		Set<KingdomPlayer> allies = new HashSet<>();
+		PlayerManager playerManager = instance.getManager("player", PlayerManager.class);
 		Bukkit.getWorlds().parallelStream()
 				.filter(world -> worldManager.acceptsWorld(world))
 				.forEach(world -> {
@@ -78,6 +80,7 @@ public class Kingdom extends OfflineKingdom {
 
 	public Set<KingdomPlayer> getOnlineEnemies() {
 		Set<KingdomPlayer> enemies = new HashSet<>();
+		PlayerManager playerManager = instance.getManager("player", PlayerManager.class);
 		Bukkit.getWorlds().parallelStream()
 				.filter(world -> worldManager.acceptsWorld(world))
 				.forEach(world -> {

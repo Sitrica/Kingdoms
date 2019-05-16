@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.utils.Utils;
@@ -21,11 +22,11 @@ public class InventoryManager extends Manager {
 
 	private final Map<UUID, KingdomInventory> opened = new HashMap<>();
 	private final Set<KingdomInventory> inventories = new HashSet<>();
-	
+
 	public InventoryManager() {
 		super("inventory", true);
 	}
-	
+
 	@Override
 	public void initalize() {
 		Utils.getClassesOf(instance, instance.getPackageName() + ".inventories", KingdomInventory.class).forEach(clazz -> {
@@ -58,7 +59,7 @@ public class InventoryManager extends Manager {
 	public void opening(UUID uuid, KingdomInventory inventory) {
 		opened.put(uuid, inventory);
 	}
-	
+
 	@EventHandler
 	public void onInventoryClick(InventoryClickEvent event){
 		Player player = (Player) event.getWhoClicked();
@@ -79,12 +80,15 @@ public class InventoryManager extends Manager {
 			return;
 		consumer.get().accept(event);
 	}
-	
+
+	@EventHandler
+	public void onQuit(PlayerQuitEvent event) {
+		opened.remove(event.getPlayer().getUniqueId());
+	}
+
 	@EventHandler
 	public void onInventoryClose(InventoryCloseEvent event) {
-		UUID uuid = event.getPlayer().getUniqueId();
-		if (opened.containsKey(uuid))
-			opened.remove(uuid);
+		opened.remove(event.getPlayer().getUniqueId());
 	}
 
 	@Override

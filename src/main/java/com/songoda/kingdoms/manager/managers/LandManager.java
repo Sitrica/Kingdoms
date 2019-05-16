@@ -1,12 +1,10 @@
 package com.songoda.kingdoms.manager.managers;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -63,7 +61,6 @@ import com.songoda.kingdoms.utils.Utils;
 
 public class LandManager extends Manager {
 
-	private final List<String> unclaiming = new ArrayList<>(); //TODO test if this is even required. It's a queue to avoid claiming and removing at same time.
 	private final Map<Chunk, Land> lands = new HashMap<>();
 	private final Set<String> forbidden = new HashSet<>();
 	private Optional<WorldGuardManager> worldGuardManager;
@@ -215,6 +212,55 @@ public class LandManager extends Manager {
 		Kingdoms.consoleMessage("Total of [" + getLoadedLand().size() + "] lands are initialized");
 	}
 
+	public class LandInfo {
+
+		private final boolean hasKingdom;
+		private final String world;
+		private final int x, z;
+		private String kingdom;
+
+		public LandInfo(Land land) {
+			this(land.getChunk(), land.getKingdomName());
+		}
+
+		public LandInfo(Chunk chunk, String kingdom) {
+			this(chunk.getX(), chunk.getZ(), chunk.getWorld().getName(), kingdom);
+		}
+
+		public LandInfo(int x, int z, String world, String kingdom) {
+			this.hasKingdom = kingdom == null;
+			this.kingdom = kingdom;
+			this.world = world;
+			this.x = x;
+			this.z = z;
+		}
+
+		public String getKingdomName() {
+			return kingdom;
+		}
+
+		public boolean hasKingdom() {
+			return hasKingdom;
+		}
+
+		public World getWorld() {
+			return Bukkit.getWorld(world);
+		}
+
+		public int getX() {
+			return x;
+		}
+
+		public int getZ() {
+			return z;
+		}
+
+		public Land get() {
+			return getLand(this);
+		}
+
+	}
+
 	/**
 	 * @return Set<Chunk> of all loaded land locations.
 	 */
@@ -224,6 +270,28 @@ public class LandManager extends Manager {
 
 	public Land getLandAt(Location location) {
 		return getLand(location.getChunk());
+	}
+
+	public Set<Land> getLands(Collection<LandInfo> infos) {
+		return infos.parallelStream()
+				.map(info -> getLand(info))
+				.collect(Collectors.toSet());
+	}
+
+	/**
+	 * Converts a LandInfo into a Land object, used for lite caching.
+	 * 
+	 * @param info The LandInfo to read from.
+	 * @return The deserialized Land object from the info.
+	 */
+	public Land getLand(LandInfo info) {
+		World world = info.getWorld();
+		if (world == null)
+			return null;
+		Land land = getLand(world.getChunkAt(info.getX(), info.getZ()));
+		if (info.hasKingdom())
+			land.setKingdomOwner(info.getKingdomName());
+		return land;
 	}
 
 	/**
@@ -410,9 +478,8 @@ public class LandManager extends Manager {
 	 * @param chunk Chunk to unclaim
 	 * @param kingdom Kingdom whom is unclaiming.
 	 */
-	public void unclaimLand(OfflineKingdom kingdom, Chunk... chunks) {
-		for (Chunk chunk : chunks) {
-			Land land = getLand(chunk);
+	public void unclaimLand(OfflineKingdom kingdom, Land... lands) {
+		for (Land land : lands) {
 			Optional<OfflineKingdom> optional = land.getKingdomOwner();
 			if (!optional.isPresent())
 				continue;
@@ -431,7 +498,7 @@ public class LandManager extends Manager {
 			if (land.getStructure() != null)
 				structureManager.breakStructureAt(land);
 			if (dynmapManager.isPresent())
-				dynmapManager.get().update(chunk);
+				dynmapManager.get().update(land.getChunk());
 		}
 	}
 
@@ -450,10 +517,6 @@ public class LandManager extends Manager {
 	 * @return number of lands unclaimed
 	 */
 	public int unclaimAllLand(OfflineKingdom kingdom) {
-		String name = kingdom.getName();
-		if (unclaiming.contains(name))
-			return -1;
-		unclaiming.add(name);
 		Set<Land> unclaims = getLoadedLand().stream()
 				.filter(entry -> {
 					Optional<OfflineKingdom> optional = entry.getValue().getKingdomOwner();
@@ -467,8 +530,7 @@ public class LandManager extends Manager {
 				.collect(Collectors.toSet());
 		long count = unclaims.size();
 		kingdom.getMembers().forEach(player -> player.onKingdomLeave());
-		unclaims.forEach(land -> unclaimLand(kingdom, land.getChunk()));
-		unclaiming.remove(name);
+		unclaims.forEach(land -> unclaimLand(kingdom, land));
 		return (int)count;
 	}
 
@@ -491,12 +553,8 @@ public class LandManager extends Manager {
 	 * @return number of lands unclaimed
 	 */
 	public int unclaimDisconnectedLand(Kingdom kingdom) {
-		String name = kingdom.getName();
-		if (unclaiming.contains(name))
-			return -1;
-		unclaiming.add(name);
 		Set<Land> connected = new HashSet<>();
-		getLoadedLand().parallelStream()
+		getLoadedLand().stream()
 				.filter(entry -> entry.getValue().getStructure() != null)
 				.filter(entry -> {
 					Optional<OfflineKingdom> optional = entry.getValue().getKingdomOwner();
@@ -520,8 +578,7 @@ public class LandManager extends Manager {
 				.map(entry -> entry.getValue())
 				.filter(land -> !connected.contains(land));
 		long count = stream.count();
-		stream.forEach(land -> unclaimLand(kingdom, land.getChunk()));
-		unclaiming.remove(name);
+		stream.forEach(land -> unclaimLand(kingdom, land));
 		return (int)count;
 	}
 

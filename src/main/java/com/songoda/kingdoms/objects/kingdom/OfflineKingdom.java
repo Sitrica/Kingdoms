@@ -28,10 +28,7 @@ public class OfflineKingdom {
 	protected final Set<UUID> members = new HashSet<>();
 	protected final Set<Land> claims = new HashSet<>();
 	protected long resourcePoints = 0, invasionCooldown = 0;
-	protected final KingdomManager kingdomManager;
-	protected final PlayerManager playerManager;
 	protected boolean neutral, first, invaded;
-	protected final RankManager rankManager;
 	protected KingdomCooldown shieldTime;
 	protected KingdomChest kingdomChest;
 	protected DefenderInfo defenderInfo;
@@ -52,11 +49,8 @@ public class OfflineKingdom {
 	 */
 	public OfflineKingdom(UUID owner, String name) {
 		this.instance = Kingdoms.getInstance();
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.rankManager = instance.getManager("rank", RankManager.class);
+		this.dynmapColor = instance.getManager("kingdom", KingdomManager.class).getRandomColor();
 		this.max = instance.getConfig().getInt("base-max-members", 10);
-		this.dynmapColor = kingdomManager.getRandomColor();
 		this.members.add(owner);
 		this.owner = owner;
 		this.name = name;
@@ -91,7 +85,7 @@ public class OfflineKingdom {
 	}
 
 	public OfflineKingdomPlayer getOwner() {
-		return playerManager.getOfflineKingdomPlayer(owner).get();
+		return instance.getManager("player", PlayerManager.class).getOfflineKingdomPlayer(owner).get();
 	}
 
 	public void setOwner(OfflineKingdomPlayer owner) {
@@ -229,10 +223,11 @@ public class OfflineKingdom {
 	}
 
 	public boolean isOnline() {
-		return kingdomManager.isOnline(this);
+		return instance.getManager("kingdom", KingdomManager.class).isOnline(this);
 	}
 
 	public Kingdom getKingdom() {
+		KingdomManager kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		Optional<Kingdom> optional = kingdomManager.getKingdom(name);
 		if (optional.isPresent())
 			return optional.get();
@@ -256,6 +251,7 @@ public class OfflineKingdom {
 	}
 
 	public Set<OfflineKingdomPlayer> getMembers() {
+		PlayerManager playerManager = instance.getManager("player", PlayerManager.class);
 		return members.parallelStream()
 				.map(uuid -> playerManager.getKingdomPlayer(uuid))
 				.filter(optional -> optional.isPresent())
@@ -293,14 +289,15 @@ public class OfflineKingdom {
 	 * @return Optional<Rank> Which is the returned value if any are present.
 	 */
 	public Optional<Rank> getLowestRankFor(Predicate<RankPermissions> predicate) {
-		return rankManager.getLowestFor(this, predicate);
+		return instance.getManager("rank", RankManager.class).getLowestFor(this, predicate);
 	}
 
 	public Rank getLowestRankOrDefault(Predicate<RankPermissions> predicate) {
-		return rankManager.getLowestAndDefault(this, predicate);
+		return instance.getManager("rank", RankManager.class).getLowestAndDefault(this, predicate);
 	}
 
 	public Set<OfflineKingdom> getAllies() {
+		KingdomManager kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		return allies.parallelStream()
 				.map(name -> kingdomManager.getOfflineKingdom(name))
 				.filter(optional -> optional.isPresent())
@@ -333,6 +330,7 @@ public class OfflineKingdom {
 	}
 
 	public Set<OfflineKingdom> getEnemies() {
+		KingdomManager kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		return enemies.parallelStream()
 				.map(name -> kingdomManager.getOfflineKingdom(name))
 				.filter(optional -> optional.isPresent())

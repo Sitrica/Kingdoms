@@ -9,21 +9,22 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class KingdomChest {
 
 	private final Map<Integer, ItemStack> contents = new HashMap<>();
-	private final OfflineKingdom kingdom;
 	private final Kingdoms instance;
+	private final String kingdom;
 	private Inventory inventory;
 	private final String title;
 	private int size = 27;
 
 	public KingdomChest(OfflineKingdom kingdom) {
-		this.kingdom = kingdom;
+		this.kingdom = kingdom.getName();
 		this.instance = Kingdoms.getInstance();
-		this.title = new MessageBuilder("inventories.nexus-chest.title")
+		this.title = new MessageBuilder(false, "inventories.nexus-chest.title")
 				.fromConfiguration(instance.getConfiguration("inventories").get())
 				.setKingdom(kingdom)
 				.get();
@@ -38,7 +39,7 @@ public class KingdomChest {
 	}
 
 	public OfflineKingdom getKingdom() {
-		return kingdom;
+		return instance.getManager("kingdom", KingdomManager.class).getOfflineKingdom(kingdom).get();
 	}
 
 	public Map<Integer, ItemStack> getContents() {

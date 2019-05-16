@@ -154,7 +154,7 @@ public class CommandUnclaim extends AbstractCommand {
 						.send(player);
 				return ReturnType.FAILURE;
 			}
-			landManager.unclaimLand(kingdom, chunk);
+			landManager.unclaimLand(kingdom, land);
 			new MessageBuilder("commands.unclaim.success")
 					.setPlaceholderObject(kingdomPlayer)
 					.setKingdom(landKingdom)

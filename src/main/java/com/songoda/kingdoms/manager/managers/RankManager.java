@@ -153,7 +153,7 @@ public class RankManager extends Manager {
 
 	public Optional<Rank> getRank(String name) {
 		return ranks.parallelStream()
-				.filter(rank -> rank.getConfigurationName().equals(name))
+				.filter(rank -> rank.getConfigurationName().equalsIgnoreCase(name))
 				.findFirst();
 	}
 

@@ -15,6 +15,7 @@ import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.command.AbstractCommand;
 import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.manager.managers.PlayerManager;
+import com.songoda.kingdoms.manager.managers.VisualizerManager;
 import com.songoda.kingdoms.manager.managers.external.VaultManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
@@ -26,11 +27,13 @@ import com.songoda.kingdoms.utils.Utils;
 public class CommandCreateKingdom extends AbstractCommand {
 
 	private final Optional<VaultManager> vaultManager;
+	private final VisualizerManager visualizerManager;
 	private final KingdomManager kingdomManager;
 	private final PlayerManager playerManager;
 
 	public CommandCreateKingdom() {
 		super(false, "create");
+		visualizerManager = instance.getManager("visualizer", VisualizerManager.class);
 		vaultManager = instance.getExternalManager("vault", VaultManager.class);
 		kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		playerManager = instance.getManager("player", PlayerManager.class);
@@ -130,6 +133,7 @@ public class CommandCreateKingdom extends AbstractCommand {
 			vaultManager.get().withdraw(player, cost);
 		Kingdom kingdom = kingdomManager.createNewKingdom(name, kingdomPlayer);
 		if (kingdom != null) {
+			visualizerManager.visualizeLand(kingdomPlayer, player.getLocation().getChunk());
 			new MessageBuilder("commands.create-kingdom.create-success")
 					.setPlaceholderObject(kingdomPlayer)
 					.replace("%kingdom%", name)
