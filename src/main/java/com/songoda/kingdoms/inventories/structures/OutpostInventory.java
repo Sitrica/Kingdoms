@@ -2,9 +2,9 @@ package com.songoda.kingdoms.inventories.structures;
 
 import java.util.Optional;
 
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
@@ -23,10 +23,9 @@ public class OutpostInventory extends StructureInventory {
 	}
 
 	@Override
-	public void build(KingdomPlayer kingdomPlayer) {
+	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		Player player = kingdomPlayer.getPlayer();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
-		ConfigurationSection section = inventories.getConfigurationSection("inventories.outpost");
 		int cost = structures.getInt("structures.outpost.experience-bottle-cost", 5);
 		ItemStack xp1 = new ItemStackBuilder(section.getConfigurationSection("buy-xp1"))
 				.setPlaceholderObject(kingdomPlayer)
@@ -68,6 +67,7 @@ public class OutpostInventory extends StructureInventory {
 			}
 			kingdom.subtractResourcePoints(cost);
 			player.getInventory().addItem(new ItemStack(Utils.materialAttempt("EXPERIENCE_BOTTLE", "EXP_BOTTLE")));
+			reopen(kingdomPlayer);
 		});
 		int cost64 = cost * 64;
 		ItemStack xp64 = new ItemStackBuilder(section.getConfigurationSection("buy-xp64"))
@@ -110,13 +110,8 @@ public class OutpostInventory extends StructureInventory {
 			}
 			kingdom.subtractResourcePoints(cost64);
 			player.getInventory().addItem(new ItemStack(Utils.materialAttempt("EXPERIENCE_BOTTLE", "EXP_BOTTLE"), 64));
+			reopen(kingdomPlayer);
 		});
-		inventory.setItem(8, new ItemStackBuilder("inventories.resource-points")
-				.setPlaceholderObject(kingdomPlayer)
-				.fromConfiguration(inventories)
-				.setKingdom(kingdom)
-				.build());
-		openInventory(player);
 	}
 
 }

@@ -101,6 +101,7 @@ inventories:
             material-meta: ""
             glowing: false
     nexus:
+        title: "&8&l%kingdom%'s Nexus"
         donate-title: "&9Close Inventory to confirm."
         use-filler: true
         # The filler block to make things look fancy.

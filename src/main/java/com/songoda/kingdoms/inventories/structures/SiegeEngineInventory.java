@@ -3,9 +3,9 @@ package com.songoda.kingdoms.inventories.structures;
 import java.util.Optional;
 
 import org.bukkit.Location;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
@@ -24,23 +24,23 @@ public class SiegeEngineInventory extends StructureInventory {
 
 	private final SiegeEngineManager siegeEngineManager;
 	private final LandManager landManager;
-	
+
 	public SiegeEngineInventory() {
 		super(InventoryType.CHEST, "siege-engine", 27);
 		this.landManager = instance.getManager("land", LandManager.class);
 		this.siegeEngineManager = instance.getManager("siege-engine", SiegeEngineManager.class);
 	}
-	
+
 	@Override
-	public void build(KingdomPlayer kingdomPlayer) {
+	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		throw new UnsupportedOperationException("This method should not be called, use openSiegeMenu(Land, KingdomPlayer)");
 	}
-	
+
 	public void openSiegeMenu(Land engineLand, KingdomPlayer kingdomPlayer) {
 		Structure structure = engineLand.getStructure();
 		if (structure == null)
 			return;
-		ConfigurationSection section = inventories.getConfigurationSection("inventories.siege-engine");
+		Inventory inventory = createInventory(kingdomPlayer);
 		SiegeEngine engine = (SiegeEngine) structure;
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		Player player = kingdomPlayer.getPlayer();
@@ -127,7 +127,7 @@ public class SiegeEngineInventory extends StructureInventory {
 				}
 				inventory.setItem((1 + x) + (9 * (z + 1)), item);
 			}
-			openInventory(player);
+			openInventory(inventory, player);
 		}
 		inventory.setItem(8, new ItemStackBuilder("inventories.resource-points")
 				.setPlaceholderObject(kingdomPlayer)

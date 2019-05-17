@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 import com.google.common.collect.Sets;
@@ -29,8 +29,8 @@ public class MessageBuilder {
 	private Map<Placeholder<?>, Object> placeholders = new HashMap<>();
 	private final Set<KingdomPlayer> kingdomPlayers = new HashSet<>();
 	private final List<CommandSender> senders = new ArrayList<>();
-	private FileConfiguration configuration;
 	private Object defaultPlaceholderObject;
+	private ConfigurationSection section;
 	private OfflineKingdom kingdom;
 	private KingdomPlayer self;
 	private String complete;
@@ -121,8 +121,8 @@ public class MessageBuilder {
 	 * @param configuration The FileConfiguration to read from.
 	 * @return The MessageBuilder for chaining.
 	 */
-	public MessageBuilder fromConfiguration(FileConfiguration configuration) {
-		this.configuration = configuration;
+	public MessageBuilder fromConfiguration(ConfigurationSection section) {
+		this.section = section;
 		return this;
 	}
 
@@ -231,12 +231,12 @@ public class MessageBuilder {
 	 */
 	public String get() {
 		Kingdoms instance = Kingdoms.getInstance();
-		if (configuration == null)
-			configuration = instance.getConfiguration("messages").orElse(instance.getConfig());
+		if (section == null)
+			section = instance.getConfiguration("messages").orElse(instance.getConfig());
 		if (prefix)
-			complete = Formatting.messagesPrefixed(configuration, nodes);
+			complete = Formatting.messagesPrefixed(section, nodes);
 		else
-			complete = Formatting.messages(configuration, nodes);
+			complete = Formatting.messages(section, nodes);
 		complete = applyPlaceholders(complete);
 		return complete;
 	}
@@ -279,7 +279,7 @@ public class MessageBuilder {
 			}
 		}
 		// This allows users to insert new lines into their lores.
-		int i = configuration.getInt("kingdoms.new-lines", 4); //The max about of new lines users are allowed.
+		int i = section.getInt("kingdoms.new-lines", 4); //The max about of new lines users are allowed.
 		while (input.contains("%newline%") || input.contains("%nl%")) {
 			input = input.replaceAll(Pattern.quote("%newline%"), "\n");
 			input = input.replaceAll(Pattern.quote("%nl%"), "\n");
@@ -304,17 +304,17 @@ public class MessageBuilder {
 	 */
 	public void sendTitle() {
 		Kingdoms instance = Kingdoms.getInstance();
-		if (configuration == null)
-			configuration = instance.getConfiguration("messages").orElse(instance.getConfig());
+		if (section == null)
+			section = instance.getConfiguration("messages").orElse(instance.getConfig());
 		if (nodes.length != 1)
 			return;
-		if (!configuration.getBoolean(nodes[0] + ".enabled", false))
+		if (!section.getBoolean(nodes[0] + ".enabled", false))
 			return;
-		String subtitle = configuration.getString(nodes[0] + ".subtitle", "");
-		String title = configuration.getString(nodes[0] + ".title", "");
-		int fadeOut = configuration.getInt(nodes[0] + ".fadeOut", 20);
-		int fadeIn = configuration.getInt(nodes[0] + ".fadeIn", 20);
-		int stay = configuration.getInt(nodes[0] + ".stay", 200);
+		String subtitle = section.getString(nodes[0] + ".subtitle", "");
+		String title = section.getString(nodes[0] + ".title", "");
+		int fadeOut = section.getInt(nodes[0] + ".fadeOut", 20);
+		int fadeIn = section.getInt(nodes[0] + ".fadeIn", 20);
+		int stay = section.getInt(nodes[0] + ".stay", 200);
 		title = applyPlaceholders(title).replaceAll("\n", "");
 		subtitle = applyPlaceholders(subtitle).replaceAll("\n", "");
 		Player[] players = senders.parallelStream()

@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -31,7 +32,7 @@ public class PermissionsMenu extends KingdomInventory {
 	}
 
 	@Override
-	public void build(KingdomPlayer kingdomPlayer) {
+	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null)
 			return;
@@ -198,8 +199,7 @@ public class PermissionsMenu extends KingdomInventory {
 				.get());
 		back.setItemMeta(meta);
 		inventory.setItem(inventory.getSize() - 1, back);
-		setAction(inventory.getSize() - 1, event -> instance.getManager("inventory", InventoryManager.class).getInventory(NexusInventory.class).build(kingdomPlayer));
-	    openInventory(kingdomPlayer.getPlayer());
+		setAction(inventory.getSize() - 1, event -> instance.getManager("inventory", InventoryManager.class).getInventory(NexusInventory.class).open(kingdomPlayer));
 	}
 
 	public Rank shuffle(Kingdom kingdom, KingdomPlayer kingdomPlayer, Rank rank, Consumer<RankPermissions> predicate, Consumer<RankPermissions> negate) {

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -21,6 +22,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.google.common.collect.Lists;
 import com.songoda.kingdoms.inventories.PermissionsMenu;
+import com.songoda.kingdoms.manager.inventories.InventoryManager;
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
 import com.songoda.kingdoms.manager.managers.ChestManager;
 import com.songoda.kingdoms.manager.managers.MasswarManager;
@@ -39,24 +41,18 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class NexusInventory extends StructureInventory implements Listener {
 
-	private final Map<Player, OfflineKingdom> donations = new HashMap<>();
-	private final MasswarManager masswarManager;
-	private final PlayerManager playerManager;
-	private final ChestManager chestManager;
+	private final Map<UUID, OfflineKingdom> donations = new HashMap<>();
 
 	public NexusInventory() {
 		super(InventoryType.CHEST, "nexus", 27);
-		this.chestManager = instance.getManager("chest", ChestManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.masswarManager = instance.getManager("masswar", MasswarManager.class);
 		instance.getServer().getPluginManager().registerEvents(this, instance);
 	}
 
 	@Override
-	public void build(KingdomPlayer kingdomPlayer) {
+	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
+		InventoryManager inventoryManager = instance.getManager("inventory", InventoryManager.class);
 		Player player = kingdomPlayer.getPlayer();
 		Kingdom kingdom = kingdomPlayer.getKingdom(); // Can't be null.
-		ConfigurationSection section = inventories.getConfigurationSection("inventories.nexus");
 		if (section.getBoolean("use-filler", true)) {
 			ItemStack filler = new ItemStackBuilder(section.getConfigurationSection("filler"))
 					.setPlaceholderObject(kingdomPlayer)
@@ -121,7 +117,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(8, permissions);
-		setAction(8, event -> inventoryManager.getInventory(PermissionsMenu.class).build(kingdomPlayer));
+		setAction(8, event -> inventoryManager.getInventory(PermissionsMenu.class).open(kingdomPlayer));
 		ItemStack defender = new ItemStackBuilder(section.getConfigurationSection("defender-upgrades"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
@@ -152,6 +148,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.build();
 		inventory.setItem(13, members);
 //TODO		setAction(13, event -> GUIManagement.getMemberManager().openMenu(kingdomPlayer));
+		MasswarManager masswarManager = instance.getManager("masswar", MasswarManager.class);
 		ItemStackBuilder masswar = new ItemStackBuilder(section.getConfigurationSection("masswar-on"))
 				.replace("%time%", masswarManager.getTimeLeftInString())
 				.setPlaceholderObject(kingdomPlayer)
@@ -206,7 +203,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 					.replace("%size%", (size + 9) / 9)
 					.setKingdom(kingdom)
 					.send(player);
-			openInventory(player);
+			reopen(kingdomPlayer);
 		});
 		if (configuration.getBoolean("kingdoms.allow-pacifist")) {
 			ItemStackBuilder builder = new ItemStackBuilder(section.getConfigurationSection("neutral-off"))
@@ -235,7 +232,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 						.setPlaceholderObject(kingdomPlayer)
 						.setKingdom(kingdom)
 						.send(player);
-				openInventory(player);
+				reopen(kingdomPlayer);
 				return;
 			});
 		}
@@ -275,11 +272,9 @@ public class NexusInventory extends StructureInventory implements Listener {
 				}
 				kingdom.subtractResourcePoints(type.getCost());
 				powerup.setLevel(level + 1, type);
-				openInventory(player);
+				reopen(kingdomPlayer);
 			});
 		}
-		//getShieldDisplayItem(kingdom); This was planned but never made it to the nexus menu I guess - Lime
-		openInventory(player);
 	}
 
 	public void openKingdomChest(KingdomPlayer kingdomPlayer) {
@@ -301,7 +296,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 					.send(kingdomPlayer);
 			return;
 		}
-		chestManager.openChest(kingdomPlayer, kingdom);
+		instance.getManager("chest", ChestManager.class).openChest(kingdomPlayer, kingdom);
 	}
 
 	public void openDonateInventory(OfflineKingdom kingdom, KingdomPlayer kingdomPlayer) {
@@ -313,7 +308,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 		Player player = kingdomPlayer.getPlayer();
 		Inventory inventory = instance.getServer().createInventory(null, 54, title);
 		player.openInventory(inventory);
-		donations.put(player, kingdom);
+		donations.put(player.getUniqueId(), kingdom);
 	}
 
 	private int consumeDonationItems(Inventory inventory, KingdomPlayer kingdomPlayer) {
@@ -414,27 +409,29 @@ public class NexusInventory extends StructureInventory implements Listener {
 	@EventHandler
 	public void onDonateInventoryClose(InventoryCloseEvent event) {
 		Player player = (Player) event.getPlayer();
+		UUID uuid = player.getUniqueId();
+		PlayerManager playerManager = instance.getManager("player", PlayerManager.class);
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		if (donations.containsKey(player)) {
+		if (donations.containsKey(uuid)) {
 			int donated = consumeDonationItems(event.getInventory(), kingdomPlayer);
 			if (donated == -1) {
-				donations.remove(player);
+				donations.remove(uuid);
 				return;
 			}
 			if (donated < 1) {
 				new MessageBuilder("kingdoms.donate-not-enough")
 						.setPlaceholderObject(kingdomPlayer)
 						.send(player);
-				donations.remove(player);
+				donations.remove(uuid);
 				return;
 			}
 			Kingdom kingdom = kingdomPlayer.getKingdom();
 			if (kingdom == null) {
-				donations.remove(player);
+				donations.remove(uuid);
 				return;
 			}
-			OfflineKingdom donatingTo = donations.get(player);
-			donations.remove(player);
+			OfflineKingdom donatingTo = donations.get(uuid);
+			donations.remove(uuid);
 			if (kingdom.equals(donatingTo)) {
 				kingdom.addResourcePoints(donated);
 				new MessageBuilder("kingdoms.donated-kingdom")

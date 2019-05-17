@@ -4,25 +4,26 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import com.songoda.kingdoms.Kingdoms;
 
 public class Formatting {
 
-	public static String messagesPrefixed(FileConfiguration configuration, String... nodes) {
+	public static String messagesPrefixed(ConfigurationSection section, String... nodes) {
 		Kingdoms instance = Kingdoms.getInstance();
 		FileConfiguration messages = instance.getConfiguration("messages").orElse(instance.getConfig());
 		String complete = messages.getString("messages.prefix", "&7[&6Kingdoms&7] &r");
-		return Formatting.color(complete + messages(configuration, Arrays.copyOfRange(nodes, 0, nodes.length)));
+		return Formatting.color(complete + messages(section, Arrays.copyOfRange(nodes, 0, nodes.length)));
 	}
 
-	public static String messages(FileConfiguration configuration, String... nodes) {
+	public static String messages(ConfigurationSection section, String... nodes) {
 		String complete = "";
 		List<String> list = Arrays.asList(nodes);
 		Collections.reverse(list);
 		for (String node : list.toArray(new String[list.size()])) {
-			complete = configuration.getString(node, "Not set '" + Arrays.toString(nodes) + "'") + " " + complete;
+			complete = section.getString(node, "Not set '" + Arrays.toString(nodes) + "'") + " " + complete;
 		}
 		return Formatting.color(complete);
 	}

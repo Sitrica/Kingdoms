@@ -30,7 +30,7 @@ public class ConfirmationManager extends Manager implements Listener {
 	}
 
 	public void openConfirmation(KingdomPlayer kingdomPlayer, Consumer<Boolean> consumer) {
-		inventoryManager.getInventory(ConfirmationMenu.class).build(kingdomPlayer);
+		inventoryManager.getInventory(ConfirmationMenu.class).open(kingdomPlayer);
 		waiting.put(kingdomPlayer.getPlayer(), consumer);
 	}
 

@@ -11,13 +11,14 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class ExtractorInventory extends StructureInventory {
-	
+
 	private final long amount, time;
-	
+
 	public ExtractorInventory() {
 		super(InventoryType.HOPPER, "extractor", 1);
 		FileConfiguration structures = instance.getConfiguration("structures").get();
@@ -25,19 +26,21 @@ public class ExtractorInventory extends StructureInventory {
 		String interval = structures.getString("structures.extractor.reward-delayt", "24 hours");
 		this.time = IntervalUtils.getInterval(interval);
 	}
-	
+
 	@Override
-	public void build(KingdomPlayer kingdomPlayer) {
+	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		throw new UnsupportedOperationException("This method should not be called, use openExtractorMenu(Extractor, KingdomPlayer)");
 	}
 
 	public void openExtractorMenu(Extractor extractor, KingdomPlayer kingdomPlayer) {
+		if (extractor == null)
+			return;
+		Inventory inventory = createInventory(kingdomPlayer);
 		boolean ready = extractor.isReady();
 		long timeLeft = extractor.getTimeLeft();
 		if (timeLeft > time)
 			extractor.resetTime();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
-		ConfigurationSection section = inventories.getConfigurationSection("inventories.extractor");
 		ItemStackBuilder collectBuilder = new ItemStackBuilder(section.getConfigurationSection("collect-item"))
 				.setKingdom(kingdom != null ? kingdom : null)
 				.setPlaceholderObject(kingdomPlayer)
@@ -80,7 +83,7 @@ public class ExtractorInventory extends StructureInventory {
 		else
 			inventory.setItem(2, timeBuilder.build());
 		Player player = kingdomPlayer.getPlayer();
-		openInventory(player);
+		openInventory(inventory, player);
 		setAction(2, event -> extractor.collect(kingdomPlayer));
 		new BukkitRunnable() {
 			@Override

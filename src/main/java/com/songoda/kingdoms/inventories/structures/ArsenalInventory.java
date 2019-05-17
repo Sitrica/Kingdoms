@@ -3,6 +3,7 @@ package com.songoda.kingdoms.inventories.structures;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
 import com.songoda.kingdoms.objects.kingdom.ArsenalItem;
@@ -20,7 +21,7 @@ public class ArsenalInventory extends StructureInventory {
 	}
 	
 	@Override
-	public void build(KingdomPlayer kingdomPlayer) {
+	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		Player player = kingdomPlayer.getPlayer();
 		int i = 0;
 		for (ArsenalItem item : ArsenalItem.values()) {
@@ -58,12 +59,11 @@ public class ArsenalInventory extends StructureInventory {
 							.replace("%cost%", cost)
 							.setKingdom(kingdom)
 							.send(player);
-					openInventory(player);
+					reopen(kingdomPlayer);
 				}
 			);
 			i++;
 		}
-		openInventory(player);
 	}
 
 }

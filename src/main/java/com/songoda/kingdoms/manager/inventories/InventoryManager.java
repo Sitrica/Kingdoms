@@ -16,7 +16,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import com.songoda.kingdoms.manager.Manager;
-import com.songoda.kingdoms.utils.Utils;
 
 public class InventoryManager extends Manager {
 
@@ -25,18 +24,6 @@ public class InventoryManager extends Manager {
 
 	public InventoryManager() {
 		super("inventory", true);
-	}
-
-	@Override
-	public void initalize() {
-		Utils.getClassesOf(instance, instance.getPackageName() + ".inventories", KingdomInventory.class).forEach(clazz -> {
-			try {
-				KingdomInventory inventory = clazz.newInstance();
-				inventories.add(inventory);
-			} catch (InstantiationException | IllegalAccessException e) {
-				e.printStackTrace();
-			}
-		});
 	}
 
 	@SuppressWarnings("unchecked")
@@ -90,6 +77,9 @@ public class InventoryManager extends Manager {
 	public void onInventoryClose(InventoryCloseEvent event) {
 		opened.remove(event.getPlayer().getUniqueId());
 	}
+
+	@Override
+	public void initalize() {}
 
 	@Override
 	public void onDisable() {

@@ -1,9 +1,9 @@
 package com.songoda.kingdoms.inventories.structures;
 
 import org.bukkit.Location;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
 import com.songoda.kingdoms.manager.managers.RenameManager;
@@ -17,19 +17,18 @@ import com.songoda.kingdoms.utils.LocationUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class WarppadInventory extends StructureInventory {
-	
+
 	private final RenameManager renameManager;
-	
+
 	public WarppadInventory() {
 		super(InventoryType.CHEST, "warp-pad", 54);
 		this.renameManager = instance.getManager("rename", RenameManager.class);
 	}
-	
+
 	@Override
-	public void build(KingdomPlayer kingdomPlayer) {
+	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		Player player = kingdomPlayer.getPlayer();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
-		ConfigurationSection section = inventories.getConfigurationSection("inventories.warp-pad");
 		int slot = 0;
 		for (WarpPad warp : kingdom.getWarps()) {
 			if (warp == null)
@@ -75,7 +74,6 @@ public class WarppadInventory extends StructureInventory {
 				}
 			});
 		}
-		openInventory(player);
 	}
 
 }

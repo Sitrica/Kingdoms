@@ -10,12 +10,12 @@ import com.songoda.kingdoms.utils.ListMessageBuilder;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class MasswarManager extends Manager {
-	
+
 	private final SimpleDateFormat format = new SimpleDateFormat("HH'h' mm'm' ss's'");
 	private WorldManager worldManager;
 	private long start;
 	private int time; //in seconds
-	
+
 	public MasswarManager() {
 		super("masswar", true);
 		format.setTimeZone(TimeZone.getTimeZone("GMT+0"));
@@ -39,20 +39,20 @@ public class MasswarManager extends Manager {
 	public void onDisable() {
 		stopMassWar();
 	}
-	
+
 	public boolean isWarOn() {
 		return getTimeLeft() > 0 ? true : false;
 	}
-	
+
 	public long getTimeLeft() {
 		if (time == -1)
 			return -1;
 		return (start + time * 1000L) - System.currentTimeMillis();
 	}
-	
+
 	public String getTimeLeftInString() {
 		if (time == -1)
-			return new MessageBuilder("masswar.not-on").get();
+			return new MessageBuilder(false, "masswar.not-on").get();
 		Date date = new Date(getTimeLeft() < 0 ? 0 : getTimeLeft());
 		return format.format(date)+" left.";
 	}

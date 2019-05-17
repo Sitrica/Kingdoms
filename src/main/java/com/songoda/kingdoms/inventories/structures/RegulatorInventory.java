@@ -6,6 +6,7 @@ import java.util.List;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -30,7 +31,7 @@ public class RegulatorInventory extends StructureInventory {
 	}
 	
 	@Override
-	public void build(KingdomPlayer kingdomPlayer) {
+	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		throw new UnsupportedOperationException("This method should not be called, use openRegulatorMenu(Land, KingdomPlayer)");
 	}
 	
@@ -38,9 +39,9 @@ public class RegulatorInventory extends StructureInventory {
 		Structure structure = land.getStructure();
 		if (structure == null || !(structure instanceof Regulator))
 			return;
+		Inventory inventory = createInventory(kingdomPlayer);
 		Player player = kingdomPlayer.getPlayer();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
-		ConfigurationSection section = inventories.getConfigurationSection("inventories.regulator");
 		Regulator regulator = (Regulator) structure;
 		ConfigurationSection viewer = inventories.getConfigurationSection("inventories.regulator-viewer");
 		ItemStack build = new ItemStackBuilder(section.getConfigurationSection("build"))
@@ -152,7 +153,7 @@ public class RegulatorInventory extends StructureInventory {
 				openRegulatorMenu(land, kingdomPlayer);
 			});
 		}
-		openInventory(player);
+		openInventory(inventory, player);
 	}
 
 }
