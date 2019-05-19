@@ -221,6 +221,7 @@ public class KingdomManager extends Manager {
 					.send(kingPlayer.get());
 		kingdom.setOwner(null);
 		for (OfflineKingdomPlayer player : kingdom.getMembers()) {
+			player.onKingdomLeave();
 			player.setKingdom(null);
 			player.setRank(null);
 		}

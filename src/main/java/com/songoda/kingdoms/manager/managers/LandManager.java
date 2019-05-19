@@ -503,7 +503,7 @@ public class LandManager extends Manager {
 	}
 
 	/**
-	 * Unclaims ALL existing land in database
+	 * Unclaim ALL existing land in database
 	 * Use at own risk.
 	 */
 	public void unclaimAllExistingLand() {
@@ -511,25 +511,22 @@ public class LandManager extends Manager {
 	}
 
 	/**
-	 * Unclaim all lands thatbelong to kingdom.
+	 * Unclaim all lands that belong to the kingdom.
 	 * 
 	 * @param kingdom Kingdom owner
 	 * @return number of lands unclaimed
 	 */
 	public int unclaimAllLand(OfflineKingdom kingdom) {
 		Set<Land> unclaims = getLoadedLand().stream()
-				.filter(entry -> {
-					Optional<OfflineKingdom> optional = entry.getValue().getKingdomOwner();
+				.map(entry -> entry.getValue())
+				.filter(land -> {
+					Optional<OfflineKingdom> optional = land.getKingdomOwner();
 					if (!optional.isPresent())
 						return false;
-					if (!optional.get().equals(kingdom))
-						return false;
-					return true;
+					return optional.get().equals(kingdom);
 				})
-				.map(entry -> entry.getValue())
 				.collect(Collectors.toSet());
 		long count = unclaims.size();
-		kingdom.getMembers().forEach(player -> player.onKingdomLeave());
 		unclaims.forEach(land -> unclaimLand(kingdom, land));
 		return (int)count;
 	}

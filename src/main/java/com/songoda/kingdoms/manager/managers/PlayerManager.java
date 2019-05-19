@@ -105,8 +105,6 @@ public class PlayerManager extends Manager {
 				.map(entry -> entry.getValue())
 				.findFirst()
 				.orElseGet(() -> {
-					if (database == null)
-						Kingdoms.debugMessage("wat");
 					OfflineKingdomPlayer player = database.get(uuid + "");
 					if (player != null) {
 						Kingdoms.debugMessage("Successfuly fetched data for kingdoms player: " + uuid);

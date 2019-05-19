@@ -249,11 +249,8 @@ public class NexusManager extends Manager {
 		}
 		event.setCancelled(true);
 	}
-	
-	@EventHandler
+
 	public void onNexusClick(PlayerInteractEvent event) {
-		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
-			return;
 		Block block = event.getClickedBlock();
 		if (block.getType() != StructureType.NEXUS.getBlockMaterial())
 			return;
