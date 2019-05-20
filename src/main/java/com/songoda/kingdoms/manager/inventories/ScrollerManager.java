@@ -10,17 +10,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 public class ScrollerManager extends Manager {
-	
+
 	private final Set<ScrollerInventory> scrollers = new HashSet<>();
-	
+
 	public ScrollerManager() {
-		super("scroller", true);
+		super( true);
 	}
-	
+
 	public void registerScroller(ScrollerInventory scroller) {
 		this.scrollers.add(scroller);
 	}
-	
+
 	@EventHandler(ignoreCancelled = true)
 	public void onClick(InventoryClickEvent event) {
 		Player player = (Player) event.getWhoClicked();

@@ -48,6 +48,17 @@ public class MessageBuilder {
 	}
 
 	/**
+	 * Creates a MessageBuilder from the defined ConfigurationSection.
+	 * 
+	 * @param node The configuration nodes from the ConfigurationSection.
+	 * @param section The ConfigurationSection to read from.
+	 */
+	public MessageBuilder(boolean prefix, String node, ConfigurationSection section) {
+		this(prefix, node);
+		this.section = section;
+	}
+
+	/**
 	 * Creates a MessageBuilder with the defined nodes, and if it should contain the prefix.
 	 * 
 	 * @param prefix The boolean to enable or disable prefixing this message.
@@ -336,7 +347,7 @@ public class MessageBuilder {
 	public void sendActionbar() {
 		get();
 		complete = complete.replaceAll("\n", "");
-		ActionbarManager actionbar = Kingdoms.getInstance().getManager("actionbar", ActionbarManager.class);
+		ActionbarManager actionbar = Kingdoms.getInstance().getManager(ActionbarManager.class);
 		if (senders != null && senders.size() > 0) {
 			for (CommandSender sender : senders) {
 				if (sender instanceof Player)
@@ -363,6 +374,11 @@ public class MessageBuilder {
 				sender.sendMessage(complete);
 			}
 		}
+	}
+
+	@Override
+	public String toString() {
+		return get();
 	}
 
 }

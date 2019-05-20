@@ -46,7 +46,7 @@ public abstract class KingdomInventory {
 
 	protected void openInventory(Inventory inventory, Player player) {
 		player.openInventory(inventory);
-		instance.getManager("inventory", InventoryManager.class).opening(player.getUniqueId(), this);
+		instance.getManager(InventoryManager.class).opening(player.getUniqueId(), this);
 	}
 
 	protected Inventory createInventory(KingdomPlayer kingdomPlayer) {

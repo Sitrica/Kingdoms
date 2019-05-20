@@ -47,7 +47,7 @@ public class ManagerHandler {
 		}
 		Collections.sort(sorted);
 		for (Manager manager : sorted) {
-			Kingdoms.debugMessage("&dInitalizing manager " + manager.getName());
+			Kingdoms.debugMessage("&dInitalizing manager " + manager.getClass().getSimpleName());
 			manager.initalize();
 		}
 		for (Manager manager : sorted) {
@@ -75,6 +75,15 @@ public class ManagerHandler {
 		Optional<Manager> optional = Optional.empty();
 		for (Manager manager : managers) {
 			if (manager.getName().equalsIgnoreCase(name))
+				optional = Optional.of(manager);
+		}
+		return new ManagerOptional<Manager>(optional);
+	}
+
+	public <M extends Manager> ManagerOptional<Manager> getManager(Class<M> clazz) {
+		Optional<Manager> optional = Optional.empty();
+		for (Manager manager : managers) {
+			if (manager.getClass().equals(clazz))
 				optional = Optional.of(manager);
 		}
 		return new ManagerOptional<Manager>(optional);

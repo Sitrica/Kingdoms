@@ -36,6 +36,8 @@ database:
 plugin:
     # If special characters can be used in the Kingdom names.
     allow-special-characters: false
+    # The time the player must wait before teleporting to Kingdom places.
+    teleport-delay: "5 seconds"
 
 # All configurations relating to HolographicDisplays.
 # In order for holograms to be active, you need to install ProtocolLib and HolographicDisplays.
@@ -163,6 +165,10 @@ claiming:
     cost: 5
     # unclaim all confirmation delay
     unclaim-all-confirmation-delay: "25 seconds"
+    # Users can type '/k undoclaim X' The X represents the users input.
+    # This option below tells Kingdoms how many claims to save in compressed memory.
+    max-undo-claims: 10
+    refund-unclaims: false
 
 # Blocks that can't be replaced when placing a structure.
 unreplaceable-blocks:

@@ -24,9 +24,25 @@ public abstract class Manager implements Listener, Comparable<Manager> {
 	protected final FileConfiguration configuration;
 	protected final Kingdoms instance;
 	private final boolean listener;
-	private final String name;
 	private String[] after;
+	@Deprecated
+	private String name;
 
+	protected Manager(boolean listener) {
+		this.listener = listener;
+		this.instance = Kingdoms.getInstance();
+		this.configuration = instance.getConfig();
+	}
+
+	protected Manager(boolean listener, String... after) {
+		this(listener);
+		this.after = after;
+	}
+
+	/**
+	 * @Deprecated Names are not useful anymore.
+	 */
+	@Deprecated
 	protected Manager(String name, boolean listener) {
 		this.name = name;
 		this.listener = listener;
@@ -34,6 +50,10 @@ public abstract class Manager implements Listener, Comparable<Manager> {
 		this.configuration = instance.getConfig();
 	}
 
+	/**
+	 * @Deprecated Names are not useful anymore.
+	 */
+	@Deprecated
 	protected Manager(String name, boolean listener, String... after) {
 		this(name, listener);
 		this.after = after;

@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 import com.google.common.collect.Sets;
@@ -28,20 +28,31 @@ public class ListMessageBuilder {
 	private Map<Placeholder<?>, Object> placeholders = new HashMap<>();
 	private final Set<KingdomPlayer> kingdomPlayers = new HashSet<>();
 	private final List<CommandSender> senders = new ArrayList<>();
-	private FileConfiguration configuration;
+	private ConfigurationSection configuration;
 	private Object defaultPlaceholderObject;
 	private final Kingdoms instance;
 	private OfflineKingdom kingdom;
-	private final String node;
 	private boolean prefix;
+	private String node;
 
 	/**
 	 * Creates a ListMessageBuilder with the defined node.
 	 * 
-	 * @param nodes The configuration nodes from the messages.yml
+	 * @param node The configuration nodes from the messages.yml
 	 */
 	public ListMessageBuilder(String node) {
 		this(true, node);
+	}
+
+	/**
+	 * Creates a ListMessageBuilder with the defined ConfigurationSection.
+	 * 
+	 * @param node The configuration nodes from the ConfigurationSection
+	 * @param section The ConfigurationSection to read from.
+	 */
+	public ListMessageBuilder(boolean prefix, String node, ConfigurationSection section) {
+		this(prefix, node);
+		this.configuration = section;
 	}
 
 	/**
@@ -119,8 +130,8 @@ public class ListMessageBuilder {
 	 * @param configuration The FileConfiguration to read from.
 	 * @return The ListMessageBuilder for chaining.
 	 */
-	public ListMessageBuilder fromConfiguration(FileConfiguration configuration) {
-		this.configuration = configuration;
+	public ListMessageBuilder fromConfiguration(ConfigurationSection section) {
+		this.configuration = section;
 		return this;
 	}
 

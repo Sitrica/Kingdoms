@@ -27,22 +27,18 @@ import com.songoda.kingdoms.utils.Utils;
 public class CommandCreateKingdom extends AbstractCommand {
 
 	private final Optional<VaultManager> vaultManager;
-	private final VisualizerManager visualizerManager;
 	private final KingdomManager kingdomManager;
-	private final PlayerManager playerManager;
 
 	public CommandCreateKingdom() {
 		super(false, "create");
-		visualizerManager = instance.getManager("visualizer", VisualizerManager.class);
 		vaultManager = instance.getExternalManager("vault", VaultManager.class);
-		kingdomManager = instance.getManager("kingdom", KingdomManager.class);
-		playerManager = instance.getManager("player", PlayerManager.class);
+		kingdomManager = instance.getManager(KingdomManager.class);
 	}
 
 	@Override
 	protected ReturnType runCommand(Kingdoms instance, CommandSender sender, String... arguments) {
 		Player player = (Player) sender;
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		Kingdom playerKingdom = kingdomPlayer.getKingdom();
 		if (playerKingdom != null) {
 			new MessageBuilder("commands.create-kingdom.already-in-kingdom")
@@ -133,7 +129,7 @@ public class CommandCreateKingdom extends AbstractCommand {
 			vaultManager.get().withdraw(player, cost);
 		Kingdom kingdom = kingdomManager.createNewKingdom(name, kingdomPlayer);
 		if (kingdom != null) {
-			visualizerManager.visualizeLand(kingdomPlayer, player.getLocation().getChunk());
+			instance.getManager(VisualizerManager.class).visualizeLand(kingdomPlayer, player.getLocation().getChunk());
 			new MessageBuilder("commands.create-kingdom.create-success")
 					.setPlaceholderObject(kingdomPlayer)
 					.replace("%kingdom%", name)

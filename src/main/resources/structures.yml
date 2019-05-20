@@ -64,6 +64,8 @@ structures:
     powercell:
         enabled: true
         cost: 250
+        # A Key in Square Icon
+        icon: "\u26BF"
         title: "&bPowercell"
         material: "REDSTONE_TORCH"
         inventory-material: "MUSIC_DISC_BLOCKS"

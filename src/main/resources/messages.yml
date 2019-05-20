@@ -43,6 +43,8 @@ messages:
     # When the player's inventory is full.
     # Placeholders: All KingdomPlayer placeholders.
     inventory-full: "&cYour inventory is full, you need at least one empty slot in your inventory."
+    # Bonus Placeholder: %location%
+    teleport-moved: "&cYou moved while waiting for teleport to %location%, cancelling teleportation."
 
 defenders:
     drag: "&cThe champion dragged you back!"
@@ -165,8 +167,8 @@ kingdoms:
     siege-breaker-name: "&dKingdom Siege Breaker"
     rank-too-low-edit-permissions: "&cYour rank is too low to edit permissions, only rank %rank% and higher can edit permissions."
 
-# All messages relating to maps and chunks.
-map:
+# These messages are for chunk changing when a player moves into a new chunk for action bars and titles.
+chunk-changing:
     # Called when a user walks into an unoccupied chunk of land.
     # Placeholders: %player%, %kingdom%, %lore%, %world%, %color% and %chunk% - which is the chunk the player is walking into.
     unoccupied-land:
@@ -187,15 +189,6 @@ map:
     enemy-land:
         actionbar: "&c&lEnemy's Land - &4(&f%kingdom%&4)"
         message: "&eYou have entered %kingdom%'s kingdom and they're an enemy with you!%newline%&7%lore%"
-    you: "You"
-    nexus: "Nexus Chunk"
-    kingdom: "Your Kingdom"
-    outpost: "Outpost Chunk"
-    enemies: "Enemy Kingdoms"
-    alliance: "Allied Kingdoms"
-    powercell: "PowerCell Chunk"
-    unoccupied: "Unoccupied Land"
-    unidentified: "Unidentified Kingdom"
 
 # All messages relating to claiming.
 claiming:
@@ -334,6 +327,15 @@ commands:
         # Placeholders: All KingdomPlayer placeholders.
         description: "View admin commands."
         syntax: "&c/k admin"
+    map:
+        description: "Shows a map of surrounding territory."
+        syntax: "/k map"
+    undo:
+        description: "Undo any recent claims."
+        syntax: "/k undo (<amount>)"
+        undid: "&eYou just undid %amount% claims."
+        no-recent-claims: "&cThere were no recent claims found."
+        not-valid-amount: "&c%amount% is not a valid amount."
 
 # All messages relating to invading.
 invading:
@@ -450,7 +452,6 @@ Command_Help_Disband: Disbands your kingdom
 Command_Help_Donate: Donates the specified amount of resource points to another kingdom
 Command_Help_Rename: Renames your kingdom
 Command_Help_Deposit: 'Changes the specified amount into resourcepoints for your kingdom. Cannot be undone. You will gain 1 resourcepoint for %moneyforonerp%'
-Command_Help_Map: Shows a map of the surrounding territory
 Command_Help_Show: Shows information of the specified kingdom or player's kingdom
 Command_Help_Defend: Use to teleport to the last area where someone invaded the kingdom
 Command_Help_Admin_Toggle: Allows the ability to damage players regardless of kingdom, and break blocks in other kingdom land

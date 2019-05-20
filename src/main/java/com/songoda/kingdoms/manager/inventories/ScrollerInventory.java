@@ -18,7 +18,7 @@ import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.ItemStackBuilder;
 
 public class ScrollerInventory {
-	
+
 	private final List<Inventory> pages = new ArrayList<>();
 	private final Set<Player> users = new HashSet<>();
 	private Consumer<InventoryClickEvent> consumer;
@@ -27,13 +27,13 @@ public class ScrollerInventory {
 	private final Kingdoms instance;
 	private final int size, total;
 	private int current = 0;
-	
+
 	public ScrollerInventory(List<ItemStack> items, int size, String name, Player player) {
 		if (size == 9)
 			size = 18;
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfiguration("inventories").get();
-		this.scrollerManager = instance.getManager("scroller", ScrollerManager.class);
+		this.scrollerManager = instance.getManager(ScrollerManager.class);
 		this.size = size;
 		if (name.length() > 32)
 			name = name.substring(0, 32);
@@ -71,11 +71,11 @@ public class ScrollerInventory {
 					.build());
 		return page;
 	}
-	
+
 	public void fromConfiguration(FileConfiguration configuration) {
 		this.configuration = configuration;
 	}
-	
+
 	public void nextPage(Player player) {
 		if (!users.contains(player))
 			return;
@@ -84,7 +84,7 @@ public class ScrollerInventory {
 		current++;
 		player.openInventory(pages.get(current));
 	}
-	
+
 	public void previousPage(Player player) {
 		if (!users.contains(player))
 			return;
@@ -93,24 +93,24 @@ public class ScrollerInventory {
 			player.openInventory(pages.get(current));
 		}
 	}
-	
+
 	public void setAction(Consumer<InventoryClickEvent> consumer) {
 		this.consumer = consumer;
 	}
-	
+
 	public void runAction(InventoryClickEvent event) {
 		if (consumer != null)
 			consumer.accept(event);
 	}
-	
+
 	public int getSize() {
 		return size;
 	}
-	
+
 	public Set<Player> getUsers() {
 		return users;
 	}
-	
+
 	public void openInventory(KingdomPlayer kingdomPlayer) {
 		kingdomPlayer.getPlayer().openInventory(pages.get(current));
 	}

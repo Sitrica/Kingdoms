@@ -13,6 +13,7 @@ import org.bukkit.World;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.manager.managers.LandManager;
+import com.songoda.kingdoms.manager.managers.LandManager.LandInfo;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.structures.Structure;
 import com.songoda.kingdoms.objects.turrets.Turret;
@@ -21,7 +22,6 @@ public class Land {
 
 	private final Set<ChestSign> signs = new HashSet<>();
 	private final Set<Turret> turrets = new HashSet<>();
-	private final Kingdoms instance;
 	private Structure structure;
 	private final String world;
 	private String kingdom;
@@ -31,7 +31,6 @@ public class Land {
 	public Land(Chunk chunk) {
 		this.x = chunk.getX();
 		this.z = chunk.getZ();
-		this.instance = Kingdoms.getInstance();
 		this.world = chunk.getWorld().getName();
 	}
 
@@ -45,6 +44,10 @@ public class Land {
 
 	public String getKingdomName() {
 		return kingdom;
+	}
+
+	public LandInfo toInfo() {
+		return Kingdoms.getInstance().getManager("land", LandManager.class).getInfo(this);
 	}
 
 	public Chunk getChunk() {
@@ -81,7 +84,7 @@ public class Land {
 	public Optional<OfflineKingdom> getKingdomOwner() {
 		if (kingdom == null)
 			return Optional.empty();
-		return instance.getManager("kingdom", KingdomManager.class).getOfflineKingdom(kingdom);
+		return Kingdoms.getInstance().getManager("kingdom", KingdomManager.class).getOfflineKingdom(kingdom);
 	}
 
 	public void setKingdomOwner(String kingdom) {
@@ -139,7 +142,7 @@ public class Land {
 		World world = getWorld();
 		if (world == null)
 			return lands;
-		LandManager landManager = instance.getManager("land", LandManager.class);
+		LandManager landManager = Kingdoms.getInstance().getManager("land", LandManager.class);
 		// North
 		Chunk north = world.getChunkAt(x, z - 9);
 		lands.add(landManager.getLand(north));

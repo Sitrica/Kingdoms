@@ -479,8 +479,6 @@ public class StructureManager extends Manager {
 				}
 				inventoryManager.getInventory(RegulatorInventory.class).openRegulatorMenu(land, kingdomPlayer);
 				break;
-			case SHIELD_BATTERY:
-				break;
 			case SIEGE_ENGINE:
 				if (!(structure instanceof SiegeEngine)) {
 					land.setStructure(new SiegeEngine(kingdom, structure.getLocation()));

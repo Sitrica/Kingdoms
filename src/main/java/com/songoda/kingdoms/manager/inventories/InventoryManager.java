@@ -23,7 +23,7 @@ public class InventoryManager extends Manager {
 	private final Set<KingdomInventory> inventories = new HashSet<>();
 
 	public InventoryManager() {
-		super("inventory", true);
+		super(true);
 	}
 
 	@SuppressWarnings("unchecked")

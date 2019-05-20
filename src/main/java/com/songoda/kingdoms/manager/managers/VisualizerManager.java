@@ -40,14 +40,14 @@ public class VisualizerManager extends Manager {
 	private LandManager landManager;
 
 	public VisualizerManager() {
-		super("visualizer", true);
+		super(true);
 	}
 
 	@Override
 	public void initalize() {
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
-		this.landManager = instance.getManager("land", LandManager.class);
+		this.playerManager = instance.getManager(PlayerManager.class);
+		this.worldManager = instance.getManager(WorldManager.class);
+		this.landManager = instance.getManager(LandManager.class);
 	}
 
 	public void removeVisualizer(UUID uuid) {

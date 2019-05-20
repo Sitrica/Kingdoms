@@ -77,7 +77,7 @@ public class LandManager extends Manager {
 	private LandManager landManager;
 
 	public LandManager() {
-		super("land", true, "rank");
+		super(true, "rank");
 		this.forbidden.addAll(configuration.getStringList("kingdoms.forbidden-inventories"));
 	}
 
@@ -86,14 +86,14 @@ public class LandManager extends Manager {
 	public void initalize() {
 		this.worldGuardManager = instance.getExternalManager("worldguard", WorldGuardManager.class);
 		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
-		this.visualizerManager = instance.getManager("visualizer", VisualizerManager.class);
+		this.visualizerManager = instance.getManager(VisualizerManager.class);
 		this.dynmapManager = instance.getExternalManager("dynmap", DynmapManager.class);
-		this.structureManager = instance.getManager("structure", StructureManager.class);
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
-		this.nexusManager = instance.getManager("nexus", NexusManager.class);
-		this.landManager = instance.getManager("land", LandManager.class);
+		this.structureManager = instance.getManager(StructureManager.class);
+		this.kingdomManager = instance.getManager(KingdomManager.class);
+		this.playerManager = instance.getManager(PlayerManager.class);
+		this.worldManager = instance.getManager(WorldManager.class);
+		this.nexusManager = instance.getManager(NexusManager.class);
+		this.landManager = instance.getManager(LandManager.class);
 		String table = configuration.getString("database.land-table", "Lands");
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(table, Land.class);
@@ -261,6 +261,10 @@ public class LandManager extends Manager {
 
 	}
 
+	public LandInfo getInfo(Land land) {
+		return new LandInfo(land);
+	}
+
 	/**
 	 * @return Set<Chunk> of all loaded land locations.
 	 */
@@ -314,7 +318,7 @@ public class LandManager extends Manager {
 		return land;
 	}
 
-	public void playerClaimLand(KingdomPlayer kingdomPlayer) {
+	public void playerClaimLand(KingdomPlayer kingdomPlayer, Land land) {
 		Player player = kingdomPlayer.getPlayer();
 		if (!worldManager.acceptsWorld(player.getWorld())) {
 			new MessageBuilder("claiming.world-disabled")
@@ -348,7 +352,6 @@ public class LandManager extends Manager {
 				new MessageBuilder("claiming.worldguard").send(player);
 				return;
 			}
-		Land land = getLand(player.getLocation().getChunk());
 		Chunk chunk = land.getChunk();
 		String chunkString = LocationUtils.chunkToString(chunk);
 		Optional<OfflineKingdom> optional = land.getKingdomOwner();
@@ -445,19 +448,20 @@ public class LandManager extends Manager {
 						.send(player);
 			}
 		}
-		claimLand(kingdom, chunk);
+		claimLand(kingdom, landManager.getLand(chunk));
 		visualizerManager.visualizeLand(kingdomPlayer, chunk);
 	}
 
 	/**
 	 * Claim a new land. This does not check if chunk is already occupied.
+	 * <p>
+	 * This is only used by the API, this does not do any checks.
 	 * 
-	 * @param chunk Chunk location
-	 * @param kingdom Kingdom owner
+	 * @param chunk Chunk location.
+	 * @param kingdom Kingdom owner.
 	 */
-	public void claimLand(Kingdom kingdom, Chunk... chunks) {
-		for (Chunk chunk : chunks) {
-			Land land = getLand(chunk);
+	public void claimLand(Kingdom kingdom, Land... lands) {
+		for (Land land : lands) {
 			LandClaimEvent event = new LandClaimEvent(land, kingdom);
 			Bukkit.getPluginManager().callEvent(event);
 			if (event.isCancelled())
@@ -467,15 +471,16 @@ public class LandManager extends Manager {
 			land.setKingdomOwner(kingdom.getName());
 			String name = LocationUtils.chunkToString(land.getChunk());
 			database.put(name, land);
+			kingdom.addUndoClaim(land);
 			if (dynmapManager.isPresent())
-				dynmapManager.get().update(chunk);
+				dynmapManager.get().update(land.getChunk());
 		}
 	}
 
 	/**
 	 * Unclaim the land. This does not check if chunk is occupied.
 	 * 
-	 * @param chunk Chunk to unclaim
+	 * @param chunk Chunk to unclaim.
 	 * @param kingdom Kingdom whom is unclaiming.
 	 */
 	public void unclaimLand(OfflineKingdom kingdom, Land... lands) {
@@ -495,6 +500,10 @@ public class LandManager extends Manager {
 			land.setKingdomOwner(null);
 			structureManager.breakStructureAt(land);
 			database.delete(LocationUtils.chunkToString(land.getChunk()));
+			if (configuration.getBoolean("claiming.refund-unclaims", false)) {
+				int cost = configuration.getInt("claiming.cost", 5);
+				kingdom.addResourcePoints(cost);
+			}
 			if (land.getStructure() != null)
 				structureManager.breakStructureAt(land);
 			if (dynmapManager.isPresent())
@@ -817,7 +826,7 @@ public class LandManager extends Manager {
 		if (kingdomPlayer.isAutoClaiming()) {
 			Bukkit.getScheduler().scheduleSyncDelayedTask(Kingdoms.getInstance(), new Runnable() {
 				public void run() {
-					playerClaimLand(kingdomPlayer);
+					playerClaimLand(kingdomPlayer, getLand(player.getLocation().getChunk()));
 				}
 			}, 1L);
 		}

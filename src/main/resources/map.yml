@@ -1,0 +1,283 @@
+#!     ▄█   ▄█▄  ▄█  ███▄▄▄▄      ▄██████▄  ████████▄   ▄██████▄    ▄▄▄▄███▄▄▄▄      ▄████████ 
+#!    ███ ▄███▀ ███  ███▀▀▀██▄   ███    ███ ███   ▀███ ███    ███ ▄██▀▀▀███▀▀▀██▄   ███    ███ 
+#!    ███▐██▀   ███▌ ███   ███   ███    █▀  ███    ███ ███    ███ ███   ███   ███   ███    █▀  
+#!   ▄█████▀    ███▌ ███   ███  ▄███        ███    ███ ███    ███ ███   ███   ███   ███        
+#!  ▀▀█████▄    ███▌ ███   ███ ▀▀███ ████▄  ███    ███ ███    ███ ███   ███   ███ ▀███████████ 
+#!    ███▐██▄   ███  ███   ███   ███    ███ ███    ███ ███    ███ ███   ███   ███          ███ 
+#!    ███ ▀███▄ ███  ███   ███   ███    ███ ███   ▄███ ███    ███ ███   ███   ███    ▄█    ███ 
+#!    ███   ▀█▀ █▀    ▀█   █▀    ████████▀  ████████▀   ▀██████▀   ▀█   ███   █▀   ▄████████▀  
+#!    ▀                                                                                        
+#!
+# The version is to help determine which version this config is. Please don't modify this value.
+version: "@version@"
+
+# Configurations for the /k map command.
+configure:
+    requires-permission: true
+    height: 10
+    width: 35
+    key-header: "   &7&m&l-&f&l&m[&b&l&m--&r &f&lKey&r &b&l&m--&f&l&m]&7&l&m-&r"
+
+messages:
+    no-kingdom: "(No Kingdom)"
+    teleport: "&eYou were teleported to (&6%chunk%&e)."
+
+# All configurations for the map.
+# Kingdom placeholders supported.
+# %relation% placeholder will be the color depending on the relation of the element to the viewer.
+# %chunk% will be the Chunk location, formatted like world, 13, 37
+elements:
+    # The element that marks the viewer's location.
+    you:
+        # Own Hover message is used to display info when the own viewer hovers over this element.
+        hover-message:
+            - "&fThis is where you are &a(&2%chunk%&a)"
+        legend-message: "You"
+        # Open Square
+        icon: "\u20DE"
+    # The element that marks a Nexus location.
+    nexus:
+        # Legend message is used to define what this element means.
+        # Placeholders should not be used here.
+        # It's designed to display the description of this element for all other elements of this type.
+        legend-message: "Nexus"
+        # Icons must be in "C/C++/Java source code" Unicode format.
+        # http://www.fileformat.info/info/unicode/char/ is a good website for that.
+        # White Chess Rook.
+        icon: "\u2656"
+        # Relations are based on who is viewing this element in the map.
+        # For example, if it's a Nexus owned by an enemy, it could be red. etc.
+        relations:
+            # Hover message is used to display a list when this element is hovered over.
+            # The default hover message will be used if you don't want to define a hover-message node for each relation.
+            # Remove this default-hover-message and have no hover-message in the relation section to have no hover message.
+            default-hover-message:
+                - "%relation%%kingdom%'s Nexus (&7%chunk%%relation%)"
+            # An Alliance's Kingdom Nexus of viewer.
+            alliance:
+                color: "&a"
+                action: "command:/k visit %kingdom%"
+                hover-message:
+                    - "&a%kingdom%'s Nexus &7(&a%chunk%&7)"
+                    - "&7You can go here and donate to this ally."
+                    - "&7&lClick to teleport to this Ally's Nexus"
+            # An Enemy's Kingdom Nexus of viewer.
+            enemy:
+                color: "&c"
+                action: "command:/k invade %kingdom%"
+                hover-message:
+                    - "&4Enemy %kingdom%'s Nexus &7(&c%chunk%&7)"
+                    - "&cClick to attempt invade this Kingdom"
+            # A Kingdom's Nexus that has no relevance to the viewer.
+            other:
+                color: "&7"
+                action: "command:/k invade %kingdom%"
+                hover-message:
+                    - "&7%kingdom%'s Nexus &7(%chunk%&7)"
+                    - "&cClick to attempt invade this Kingdom"
+            # Own Kingdom's Nexus of viewer.
+            own:
+                color: "&e"
+                # Actions are special actions that can be executed when clicking on the element.
+                # Action types are:
+                #   command:<COMMAND> - Replace <COMMAND> with your command.
+                #   teleport - Teleport to the land area if it's their own. (Has wait time for teleport)
+                action: "teleport"
+                hover-message:
+                    - "&eYour Nexus"
+                    - "&7&lClick to teleport to your Nexus location"
+    land:
+        legend-message: "Land"
+        # Square with Lines.
+        icon: "\u25A9"
+        relations:
+            default-hover-message:
+                - "&7This land is owned by Kingdom %relation%%kingdom%"
+            alliance:
+                color: "&a"
+            enemy:
+                color: "&c"
+            other:
+                color: "&7"
+                action: "command:/k claim %x% %z%"
+                hover-message:
+                    - "&fThis land is unclaimed."
+                    - "&aClick to claim this land at (&7%chunk%&a)."
+            own:
+                color: "&e"
+                hover-message:
+                    - "&eYour Kingdom owns this land."
+    powercell:
+        legend-message: "Powercell"
+        # A Cell icon.
+        icon: "\u25A5"
+        relations:
+            default-hover-message:
+                - "&7A Powercell owned by %relation%%kingdom%"
+            alliance:
+                color: "&a"
+            enemy:
+                color: "&c"
+            other:
+                color: "&7"
+            own:
+                color: "&e"
+                hover-message:
+                    - "&eOne of your Kingdom's Powercells"
+                    - "&7Powercells are required to be invaded before the Nexus"
+                    - "&7Making invading harder for enemies"
+    outpost:
+        legend-message: "Outpost"
+        # Hashtag Icon
+        icon: "\u2317"
+        relations:
+            default-hover-message:
+                - "&7An Outpost owned by %relation%%kingdom%"
+            alliance:
+                color: "&a"
+            enemy:
+                color: "&c"
+            other:
+                color: "&7"
+            own:
+                color: "&e"
+                hover-message:
+                    - "&eOne of your Kingdom's Outposts"
+                    - "&7Outposts give remote access to your Nexus"
+    siege-engine:
+        legend-message: "Siege-Engine"
+        # A small X
+        icon: "\u0078"
+        relations:
+            default-hover-message:
+                - "&7A Siege-Engine owned by %relation%%kingdom%"
+            alliance:
+                color: "&a"
+            enemy:
+                color: "&c"
+                hover-message:
+                    - "&cOne of your enemies %kingdom%'s Siege-Engine"
+                    - "&7Watch out, it can fire at you"
+                    - "&7if an enemy is using it."
+            other:
+                color: "&7"
+            own:
+                color: "&e"
+                hover-message:
+                    - "&eOne of your Kingdom's Siege-Engine"
+                    - "&7You can use this to fire at enemies"
+    extractor:
+        legend-message: "Extractor"
+        # Black star, looks like a StarWars logo.
+        icon: "\u2734"
+        relations:
+            default-hover-message:
+                - "&7An Extractor owned by %relation%%kingdom%"
+            alliance:
+                color: "&a"
+            enemy:
+                color: "&c"
+                hover-message:
+                    - "&cOne of your enemies %kingdom%'s Extractor"
+                    - "&7Extrators allow Enemies to gain Resource Points"
+            other:
+                color: "&7"
+            own:
+                color: "&e"
+                hover-message:
+                    - "&eOne of your Kingdom's Extractor"
+                    - "&7You can collect resource points here over time"
+    regulator:
+        legend-message: "Regulator"
+        # White star
+        icon: "\u2606"
+        relations:
+            default-hover-message:
+                - "&7A Regulator owned by %relation%%kingdom%"
+            alliance:
+                color: "&a"
+            enemy:
+                color: "&c"
+                hover-message:
+                    - "&cOne of your enemies %kingdom%'s Regulators"
+            other:
+                color: "&7"
+            own:
+                color: "&e"
+                hover-message:
+                    - "&eOne of your Kingdom's Regulator"
+                    - "&7You can change options of the Kingdom claims at it"
+                    - "&7Player permissions, what can spawn and what can happen. etc"
+    warp-pad:
+        legend-message: "Warp-Pad"
+        # Cloud
+        icon: "\u2601"
+        relations:
+            default-hover-message:
+                - "&7A Warp-Pad owned by %relation%%kingdom%"
+            alliance:
+                color: "&a"
+                action: "teleport"
+                hover-message:
+                    - "&aOne of your alliance %kingdom%'s Warp-Pad"
+                    - "&7&lClick to teleport to this Alliance's Warp-Pad"
+            enemy:
+                color: "&c"
+                hover-message:
+                    - "&cOne of your enemies %kingdom%'s Warp-Pad"
+                    - "&7Destory it to avoid enemies teleporting to it"
+            other:
+                color: "&7"
+            own:
+                color: "&e"
+                action: "teleport"
+                hover-message:
+                    - "&eOne of your Kingdom's Regulator"
+                    - "&7Allows members or alliances to teleport to this warp-pad"
+                    - "&7&lClick to teleport to this Warp-Pad"
+    arsenal:
+        legend-message: "Arsenal"
+        # Triple lines
+        icon: "\u039E"
+        relations:
+            default-hover-message:
+                - "&7A Arsenal owned by %relation%%kingdom%"
+            alliance:
+                color: "&a"
+                hover-message:
+                    - "&aOne of your alliance %kingdom%'s Arsenal"
+            enemy:
+                color: "&c"
+                hover-message:
+                    - "&cOne of your enemies %kingdom%'s Arsenal"
+                    - "&7Destory it to avoid enemies getting special weapons."
+            other:
+                color: "&7"
+            own:
+                color: "&e"
+                hover-message:
+                    - "&eOne of your Kingdom's Arsenal"
+                    - "&7Allows members to aquire special weapons"
+    radar:
+        legend-message: "Radar"
+        # Circle
+        icon: "\u2299"
+        relations:
+            default-hover-message:
+                - "&7A Radar owned by %relation%%kingdom%"
+            alliance:
+                color: "&a"
+                hover-message:
+                    - "&aOne of your alliance %kingdom%'s Radar"
+            enemy:
+                color: "&c"
+                hover-message:
+                    - "&cOne of your enemies %kingdom%'s Radar"
+                    - "&7Destory it to avoid enemies knowing nearby structures."
+            other:
+                color: "&7"
+            own:
+                color: "&e"
+                hover-message:
+                    - "&eOne of your Kingdom's Radar"
+                    - "&7Allows members to see nearby structures"

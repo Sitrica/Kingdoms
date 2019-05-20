@@ -1,5 +1,6 @@
 package com.songoda.kingdoms;
 
+import com.songoda.kingdoms.command.ActionCommand;
 import com.songoda.kingdoms.command.CommandHandler;
 import com.songoda.kingdoms.manager.ExternalManager;
 import com.songoda.kingdoms.manager.Manager;
@@ -24,6 +25,7 @@ public class Kingdoms extends JavaPlugin {
 	private ManagerHandler managerHandler;
 	private CommandHandler commandHandler;
 	private static Kingdoms instance;
+	private ActionCommand actions;
 
 	@Override
 	public void onEnable() {
@@ -35,7 +37,7 @@ public class Kingdoms extends JavaPlugin {
 				configFile.delete();
 		}
 		//Create all the default files.
-		for (String name : Arrays.asList("config", "messages", "turrets", "structures", "defender-upgrades", "ranks", "arsenal-items", "inventories", "powerups", "misc-upgrades")) {
+		for (String name : Arrays.asList("config", "messages", "turrets", "structures", "defender-upgrades", "ranks", "arsenal-items", "inventories", "powerups", "misc-upgrades", "map")) {
 			File file = new File(getDataFolder(), name + ".yml");
 			if (!file.exists()) {
 				file.getParentFile().mkdirs();
@@ -53,6 +55,8 @@ public class Kingdoms extends JavaPlugin {
 		managerHandler = new ManagerHandler(instance);
 		managerHandler.start();
 		commandHandler = new CommandHandler(this);
+		actions = new ActionCommand();
+		getCommand("kingdomsaction").setExecutor(actions);
 		consoleMessage("&a=============================");
 		consoleMessage("&7Kingdoms " + getDescription().getVersion() + " by &5Songoda <3&7!");
 		consoleMessage("&7Kingdoms has been &aEnabled.");
@@ -79,8 +83,29 @@ public class Kingdoms extends JavaPlugin {
 		return Optional.ofNullable(configurations.get(configuration));
 	}
 
+	/**
+	 * Grab a Manager by it's name and create it's expected class if not present.
+	 * 
+	 * @param <T> <T extends Manager>
+	 * @param name The name of the Manager.
+	 * @param expected The expected Class that extends Manager.
+	 * @Deprecated Use {@link #getManager(Class)} instead.
+	 * @return The Manager with the defined name.
+	 */
+	@Deprecated
 	public <T extends Manager> T getManager(String name, Class<T> expected) {
-		return (T) getManager(name).orElseCreate(expected);
+		return (T) getManager(expected);
+	}
+
+	/**
+	 * Grab a Manager by it's class and create it if not present.
+	 * 
+	 * @param <T> <T extends Manager>
+	 * @param expected The expected Class that extends Manager.
+	 * @return The Manager that matches the defined class.
+	 */
+	public <T extends Manager> T getManager(Class<T> expected) {
+		return (T) managerHandler.getManager(expected).orElseCreate(expected);
 	}
 
 	public ManagerOptional<Manager> getManager(String name) {
@@ -113,6 +138,15 @@ public class Kingdoms extends JavaPlugin {
 
 	public List<Manager> getManagers() {
 		return managerHandler.getManagers();
+	}
+
+	/**
+	 * Used to add ActionConsumers to the ActionCommand for ClickEvents.
+	 * 
+	 * @return ActionCommand used for '/k map' ClickEvents.
+	 */
+	public ActionCommand getActions() {
+		return actions;
 	}
 
 	public String getPackageName() {

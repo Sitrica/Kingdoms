@@ -15,8 +15,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public enum StructureType {
-	
-	SHIELD_BATTERY("shield-battery", "shieldbattery"), // Second string is for old metadata on strucutres.
+
+	//SHIELD_BATTERY("shield-battery", "shieldbattery"), // Second string is for old metadata on strucutres.
 	SIEGE_ENGINE("siege-engine", "siegeengine"), // Second string is for old metadata on strucutres.
 	POWERCELL("powercell"),
 	EXTRACTOR("extractor"),
@@ -26,7 +26,7 @@ public enum StructureType {
 	ARSENAL("arsenal"),
 	NEXUS("nexus"),
 	RADAR("radar");
-	
+
 	private final List<String> description = new ArrayList<>();
 	private final List<String> additional = new ArrayList<>();
 	private final Material material, item;
@@ -34,11 +34,11 @@ public enum StructureType {
 	private final boolean enabled;
 	private ItemStack itemstack;
 	private final long cost;
-	
+
 	StructureType(String node) {
 		this(node, null);
 	}
-	
+
 	StructureType(String node, String metadata) {
 		FileConfiguration configuration = Kingdoms.getInstance().getConfiguration("structures").get();
 		ConfigurationSection section = configuration.getConfigurationSection("structures." + node);
@@ -47,29 +47,29 @@ public enum StructureType {
 		this.additional.addAll(configuration.getStringList("structures.additional-lore"));
 		this.description.addAll(section.getStringList("description"));
 		this.enabled = section.getBoolean("enabled", true);
-		this.cost = section.getLong("cost", 0);
 		this.title = section.getString("name");
+		this.cost = section.getLong("cost", 0);
 		if (metadata == null) { 
 			this.metadata = node;
 			return;
 		}
 		this.metadata = metadata;
 	}
-	
+
 	public Material getBlockMaterial() {
 		return material;
 	}
-	
+
 	public Material getItemMaterial() {
 		return item;
 	}
-	
+
 	public List<String> getDescription() {
 		return description.parallelStream()
 				.map(string -> Formatting.color(string))
 				.collect(Collectors.toList());
 	}
-	
+
 	public boolean isEnabled() {
 		return enabled;
 	}
@@ -77,15 +77,15 @@ public enum StructureType {
 	public String getTitle() {
 		return Formatting.color(title);
 	}
-	
+
 	public long getCost() {
 		return cost;
 	}
-	
+
 	public String getMetaData() {
 		return metadata.toLowerCase();
 	}
-	
+
 	public ItemStack build() {
 		if (itemstack != null)
 			return itemstack;

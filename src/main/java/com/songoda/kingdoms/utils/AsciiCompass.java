@@ -25,7 +25,7 @@ public class AsciiCompass {
 		}
 
 		public Point reverseDirection() {
-			switch(this){
+			switch(this) {
 				case E:
 					return W;
 				case N:
@@ -114,19 +114,18 @@ public class AsciiCompass {
 		row += Point.W.toString(Point.W == point, color, colorDefault);
 		row += Point.SW.toString(Point.NE == point, color, colorDefault);
 		list.add(row);
-	   
+
 		row = "";
 		row += Point.N.toString(Point.N == point, color, colorDefault);
 		row += colorDefault+"+";
 		row += Point.S.toString(Point.S == point, color, colorDefault);
 		list.add(row);
-	   
+
 		row = "";
 		row += Point.NE.toString(Point.SW == point, color, colorDefault);
 		row += Point.E.toString(Point.E == point, color, colorDefault);
 		row += Point.SE.toString(Point.SE == point, color, colorDefault);
 		list.add(row);
-
 		return list;
 	}
 

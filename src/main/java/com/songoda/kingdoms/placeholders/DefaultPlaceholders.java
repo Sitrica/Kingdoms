@@ -22,7 +22,7 @@ public class DefaultPlaceholders {
 	public static void initalize() {
 		Kingdoms instance = Kingdoms.getInstance();
 		FileConfiguration configuration = instance.getConfig();
-		RankManager rankManager = instance.getManager("rank", RankManager.class);
+		RankManager rankManager = instance.getManager(RankManager.class);
 		Placeholders.registerPlaceholder(new SimplePlaceholder("%prefix%") {
 			@Override
 			public String get() {

@@ -12,6 +12,10 @@ commands:
     default: true
     aliases: [k, kingdom, kingdoms]
     usage: /k
+  kingdomsaction:
+    description: Used to access special mapped actions from click events.
+    default: true
+    usage: /kingdomsaction
 permissions:
   kingdoms.*:
     description: Gives access to all Kingdom commands.

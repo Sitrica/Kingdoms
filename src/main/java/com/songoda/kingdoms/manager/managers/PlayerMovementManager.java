@@ -186,7 +186,7 @@ public class PlayerMovementManager extends Manager {
 		Optional<OfflineKingdom> optional = landTo.getKingdomOwner();
 		if (!optional.isPresent()) {
 			if (configuration.getBoolean("kingdoms.land-enter-unoccupied.actionbar", true))
-				new MessageBuilder(false, "map.unoccupied-land.actionbar")
+				new MessageBuilder(false, "chunk-changing.unoccupied-land.actionbar")
 						.setPlaceholderObject(LocationUtils.chunkToString(chunkFrom)) // %string% can be used.
 						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
 						.replace("%player%", player.getName())
@@ -198,7 +198,7 @@ public class PlayerMovementManager extends Manager {
 					return;
 			}
 			if (configuration.getBoolean("kingdoms.land-enter-unoccupied.message", false))
-				new MessageBuilder(false, "map.unoccupied-land.message")
+				new MessageBuilder(false, "chunk-changing.unoccupied-land.message")
 						.setPlaceholderObject(LocationUtils.chunkToString(chunkFrom))
 						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
 						.replace("%player%", player.getName())
@@ -229,7 +229,7 @@ public class PlayerMovementManager extends Manager {
 		// Player walked into a Kingdom that is neutral to them.
 		if (kingdom.isNeutral() || color == ChatColor.WHITE) {
 			if (configuration.getBoolean("kingdoms.land-enter-neutral.actionbar", true))
-				new MessageBuilder(false, "map.neutral-land.actionbar")
+				new MessageBuilder(false, "chunk-changing.neutral-land.actionbar")
 						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
 						.replace("%player%", player.getName())
 						.replace("%world%", world.getName())
@@ -242,7 +242,7 @@ public class PlayerMovementManager extends Manager {
 					return;
 			}
 			if (configuration.getBoolean("kingdoms.land-enter-neutral.message", false))
-				new MessageBuilder(false, "map.neutral-land.message")
+				new MessageBuilder(false, "chunk-changing.neutral-land.message")
 						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
 						.replace("%player%", player.getName())
 						.replace("%world%", world.getName())
@@ -263,7 +263,7 @@ public class PlayerMovementManager extends Manager {
 		}
 		if (color == ChatColor.YELLOW) {
 			if (configuration.getBoolean("kingdoms.land-enter-allience.actionbar", true))
-				new MessageBuilder(false, "map.allience-land.actionbar")
+				new MessageBuilder(false, "chunk-changing.allience-land.actionbar")
 						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
 						.replace("%player%", player.getName())
 						.replace("%world%", world.getName())
@@ -276,7 +276,7 @@ public class PlayerMovementManager extends Manager {
 					return;
 			}
 			if (configuration.getBoolean("kingdoms.land-enter-allience.message", false))
-				new MessageBuilder(false, "map.allience-land.message")
+				new MessageBuilder(false, "chunk-changing.allience-land.message")
 						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
 						.replace("%player%", player.getName())
 						.replace("%world%", world.getName())
@@ -295,7 +295,7 @@ public class PlayerMovementManager extends Manager {
 			return;
 		}
 		if (configuration.getBoolean("kingdoms.land-enter-enemy.actionbar", true))
-			new MessageBuilder(false, "map.enemy-land.actionbar")
+			new MessageBuilder(false, "chunk-changing.enemy-land.actionbar")
 					.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
 					.replace("%player%", player.getName())
 					.replace("%world%", world.getName())
@@ -308,7 +308,7 @@ public class PlayerMovementManager extends Manager {
 				return;
 		}
 		if (configuration.getBoolean("kingdoms.land-enter-enemy.message", false))
-			new MessageBuilder(false, "map.enemy-land.message")
+			new MessageBuilder(false, "chunk-changing.enemy-land.message")
 					.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
 					.replace("%player%", player.getName())
 					.replace("%world%", world.getName())
