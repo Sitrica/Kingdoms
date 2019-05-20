@@ -39,7 +39,7 @@ public class KingdomChest {
 	}
 
 	public OfflineKingdom getKingdom() {
-		return instance.getManager("kingdom", KingdomManager.class).getOfflineKingdom(kingdom).get();
+		return instance.getManager(KingdomManager.class).getOfflineKingdom(kingdom).get();
 	}
 
 	public Map<Integer, ItemStack> getContents() {

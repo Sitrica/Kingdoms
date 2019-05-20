@@ -16,15 +16,8 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class CommandDelete extends AdminCommand {
 
-	private final ConfirmationManager confirmationManager;
-	private final KingdomManager kingdomManager;
-	private final PlayerManager playerManager;
-
 	public CommandDelete() {
 		super(false, "delete", "remove", "r", "d");
-		playerManager = instance.getManager("player", PlayerManager.class);
-		kingdomManager = instance.getManager("kingdom", KingdomManager.class);
-		confirmationManager = instance.getManager("confirmation", ConfirmationManager.class);
 	}
 
 	@Override
@@ -32,8 +25,9 @@ public class CommandDelete extends AdminCommand {
 		Player player = (Player) sender;
 		if (arguments.length == 0)
 			return ReturnType.SYNTAX_ERROR;
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		String string = String.join(" ", arguments);
+		KingdomManager kingdomManager = instance.getManager(KingdomManager.class);
 		Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(string);
 		if (!kingdom.isPresent()) {
 			new MessageBuilder("commands.delete.no-kingdom-found")
@@ -42,7 +36,7 @@ public class CommandDelete extends AdminCommand {
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		confirmationManager.openConfirmation(kingdomPlayer, result -> {
+		instance.getManager(ConfirmationManager.class).openConfirmation(kingdomPlayer, result -> {
 			if (!result) {
 				new MessageBuilder("commands.delete.cancelled")
 						.setPlaceholderObject(kingdomPlayer)

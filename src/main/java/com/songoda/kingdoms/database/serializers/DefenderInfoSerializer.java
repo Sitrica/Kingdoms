@@ -16,12 +16,6 @@ import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 
 public class DefenderInfoSerializer implements Serializer<DefenderInfo> {
 
-	private final KingdomManager kingdomManager;
-
-	public DefenderInfoSerializer() {
-		this.kingdomManager = Kingdoms.getInstance().getManager("kingdom", KingdomManager.class);
-	}
-
 	@Override
 	public JsonElement serialize(DefenderInfo upgrade, Type type, JsonSerializationContext context) {
 		JsonObject json = new JsonObject();
@@ -42,7 +36,7 @@ public class DefenderInfoSerializer implements Serializer<DefenderInfo> {
 		JsonElement kingdomElement = object.get("kingdom");
 		if (kingdomElement == null || kingdomElement.isJsonNull())
 			return null;
-		Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(kingdomElement.getAsString());
+		Optional<OfflineKingdom> kingdom = Kingdoms.getInstance().getManager(KingdomManager.class).getOfflineKingdom(kingdomElement.getAsString());
 		if (!kingdom.isPresent())
 			return null;
 		DefenderInfo info = new DefenderInfo(kingdom.get());

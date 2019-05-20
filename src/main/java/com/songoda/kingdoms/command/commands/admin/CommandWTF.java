@@ -12,13 +12,8 @@ import com.songoda.kingdoms.objects.player.KingdomPlayer;
 
 public class CommandWTF extends AdminCommand {
 
-	private final InventoryManager inventoryManager;
-	private final PlayerManager playerManager;
-
 	public CommandWTF() {
 		super(false, "nexus", "n");
-		playerManager = instance.getManager("player", PlayerManager.class);
-		inventoryManager = instance.getManager("inventory", InventoryManager.class);
 	}
 
 	@Override
@@ -26,8 +21,8 @@ public class CommandWTF extends AdminCommand {
 		Player player = (Player) sender;
 		if (arguments.length != 0)
 			return ReturnType.SYNTAX_ERROR;
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		inventoryManager.getInventory(NexusInventory.class).open(kingdomPlayer);
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
+		instance.getManager(InventoryManager.class).getInventory(NexusInventory.class).open(kingdomPlayer);
 		return ReturnType.SUCCESS;
 	}
 

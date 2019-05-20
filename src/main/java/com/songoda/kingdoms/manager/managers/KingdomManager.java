@@ -53,7 +53,7 @@ public class KingdomManager extends Manager {
 	private RankManager rankManager;
 
 	public KingdomManager() {
-		super("kingdom", true);
+		super(true);
 	}
 
 	@Override
@@ -177,8 +177,10 @@ public class KingdomManager extends Manager {
 	public void onPlayerLeave(KingdomPlayer player, Kingdom kingdom) {
 		database.put(kingdom.getName(), kingdom);
 		instance.getServer().getScheduler().scheduleSyncDelayedTask(instance, () -> {
-			if (kingdom.getOnlinePlayers().isEmpty())
+			if (kingdom.getOnlinePlayers().isEmpty()) {
 				kingdoms.remove(kingdom);
+				database.delete(kingdom.getName());
+			}
 		}, 2);
 	}
 

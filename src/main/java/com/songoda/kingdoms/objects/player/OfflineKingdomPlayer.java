@@ -40,7 +40,7 @@ public class OfflineKingdomPlayer {
 		this.instance = Kingdoms.getInstance();
 		this.uuid = player.getUniqueId();
 		this.name = player.getName();
-		this.rank = instance.getManager("rank", RankManager.class).getDefaultRank().getName();
+		this.rank = instance.getManager(RankManager.class).getDefaultRank().getName();
 		if (rank != null)
 			this.rank = rank.getName();
 	}
@@ -58,7 +58,7 @@ public class OfflineKingdomPlayer {
 	}
 
 	public Rank getRank() {
-		Optional<Rank> optional = instance.getManager("rank", RankManager.class).getRank(rank);
+		Optional<Rank> optional = instance.getManager(RankManager.class).getRank(rank);
 		if (!optional.isPresent())
 			return null;
 		return optional.get();
@@ -75,7 +75,7 @@ public class OfflineKingdomPlayer {
 	public OfflineKingdom getKingdom() {
 		if (kingdom == null)
 			return null;
-		Optional<OfflineKingdom> optional = instance.getManager("kingdom", KingdomManager.class).getOfflineKingdom(kingdom);
+		Optional<OfflineKingdom> optional = instance.getManager(KingdomManager.class).getOfflineKingdom(kingdom);
 		if (optional.isPresent())
 			return optional.get();
 		return null;
@@ -90,7 +90,7 @@ public class OfflineKingdomPlayer {
 	}
 
 	public Optional<KingdomPlayer> getKingdomPlayer() {
-		return instance.getManager("player", PlayerManager.class).getKingdomPlayer(uuid);
+		return instance.getManager(PlayerManager.class).getKingdomPlayer(uuid);
 	}
 
 	public Set<Land> getClaims() {
@@ -115,6 +115,7 @@ public class OfflineKingdomPlayer {
 		claims.clear();
 		kingdom = null;
 		rank = null;
+		instance.getManager(PlayerManager.class).save(this);
 	}
 
 }

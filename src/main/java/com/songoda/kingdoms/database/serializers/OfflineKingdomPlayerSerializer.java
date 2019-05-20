@@ -50,7 +50,7 @@ public class OfflineKingdomPlayerSerializer implements Serializer<OfflineKingdom
 		OfflineKingdomPlayer player = new OfflineKingdomPlayer(uuid);
 		JsonElement rankElement = object.get("rank");
 		if (rankElement != null && !rankElement.isJsonNull()) {
-			RankManager rankManager = instance.getManager("rank", RankManager.class);
+			RankManager rankManager = instance.getManager(RankManager.class);
 			Rank rank = rankManager.getRank(rankElement.getAsString()).orElse(rankManager.getDefaultRank());
 			player.setRank(rank);
 		}
@@ -61,7 +61,7 @@ public class OfflineKingdomPlayerSerializer implements Serializer<OfflineKingdom
 		if (claimsElement != null && !claimsElement.isJsonNull() && claimsElement.isJsonArray()) {
 			LandSerializer landSerializer = new LandSerializer();
 			JsonArray array = claimsElement.getAsJsonArray();
-			LandManager landManager = instance.getManager("land", LandManager.class);
+			LandManager landManager = instance.getManager(LandManager.class);
 			array.forEach(element -> {
 				Land land = landSerializer.deserialize(element, Land.class, context);
 				if (land != null)

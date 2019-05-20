@@ -32,7 +32,7 @@ public class RankManager extends Manager {
 	private final ConfigurationSection section;
 
 	public RankManager() {
-		super("rank", false);
+		super(false);
 		rankConfiguration = instance.getConfiguration("ranks").get();
 		this.section = rankConfiguration.getConfigurationSection("ranks");
 		for (String rank : section.getKeys(false)) {
@@ -83,7 +83,7 @@ public class RankManager extends Manager {
 			return false;
 		}
 
-		public boolean isHigher(Rank target) {
+		public boolean isHigherThan(Rank target) {
 			if (this.priority < target.priority)
 				return true;
 			return false;

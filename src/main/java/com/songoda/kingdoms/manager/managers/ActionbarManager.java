@@ -10,12 +10,12 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 
 public class ActionbarManager extends Manager {
-	
+
 	// Caching
 	private final boolean classes, method;
-	
+
 	public ActionbarManager() {
-		super("actionbar", false);
+		super(false);
 		this.classes = Utils.classExists("net.md_5.bungee.api.ChatMessageType") && Utils.classExists("net.md_5.bungee.api.chat.TextComponent");
 		if (!classes) {
 			method = false;
@@ -23,7 +23,7 @@ public class ActionbarManager extends Manager {
 		}
 		this.method = Utils.methodExists(Player.Spigot.class, "sendMessage", ChatMessageType.class, TextComponent.class);
 	}
-	
+
 	public void sendActionBar(Player player, String... messages) {
 		if (classes && method) {
 			for (String message : messages) {
@@ -31,7 +31,7 @@ public class ActionbarManager extends Manager {
 			}
 		}
 	}
-	
+
 	@Override
 	public void initalize() {}
 

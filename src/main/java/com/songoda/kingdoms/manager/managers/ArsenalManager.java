@@ -31,16 +31,16 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 
 public class ArsenalManager extends Manager {
-	
+
 	private final String ROCKET_META = "kingdoms-siege-rocket";
 	private final FileConfiguration arsenal;
 	private TurretManager turretManager;
 	private PlayerManager playerManager;
 	private WorldManager worldManager;
 	private LandManager landManager;
-	
+
 	public ArsenalManager() {
-		super("arsenal", true);
+		super(true);
 		this.arsenal = instance.getConfiguration("arsenal-items").get();
 	}
 
@@ -114,7 +114,7 @@ public class ArsenalManager extends Manager {
 		}
 		
 	}
-	
+
 	private void destroyFence(ArsenalItem type, PlayerInteractEvent event) {
 		Player player = event.getPlayer();
 		Block block = event.getClickedBlock();
@@ -180,7 +180,7 @@ public class ArsenalManager extends Manager {
 				.update(true)
 				.send();
 	}
-	
+
 	@EventHandler
 	public void rocketDestruction(EntityExplodeEvent event) {
 		Entity entity = event.getEntity();
@@ -196,7 +196,7 @@ public class ArsenalManager extends Manager {
 		entity.getWorld().createExplosion(location.getX(), location.getY(), location.getZ(), radius, fire, breakBlocks);
 		entity.remove();
 	}
-	
+
 	@Override
 	public void onDisable() {}
 

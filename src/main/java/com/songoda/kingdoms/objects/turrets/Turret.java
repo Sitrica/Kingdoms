@@ -17,7 +17,6 @@ public class Turret {
 
 	private final Set<LivingEntity> following = new HashSet<>();
 	private long fire, reload, currentAmmo, disabledCooldown;
-	private final TurretManager turretManager;
 	private final Location location;
 	private final TurretType type;
 	private final boolean post;
@@ -29,7 +28,6 @@ public class Turret {
 	}
 	
 	public Turret(Location location, TurretType type, boolean post) {
-		this.turretManager = Kingdoms.getInstance().getManager("turret", TurretManager.class);
 		this.disabledCooldown = System.currentTimeMillis();
 		this.reload = System.currentTimeMillis();
 		this.fire = System.currentTimeMillis();
@@ -127,7 +125,7 @@ public class Turret {
 	
 	public void fireAt(Player target) {
 		if (!disabled)
-			turretManager.fire(this, target);
+			Kingdoms.getInstance().getManager(TurretManager.class).fire(this, target);
 	}
 
 }

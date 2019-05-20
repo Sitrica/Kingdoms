@@ -336,6 +336,19 @@ commands:
         undid: "&eYou just undid %amount% claims."
         no-recent-claims: "&cThere were no recent claims found."
         not-valid-amount: "&c%amount% is not a valid amount."
+    kick:
+        description: "Kicks a player from your Kingdom."
+        syntax: "/k kick <player>"
+        rank-too-low-kick: "&cYour rank is too low to kick members, only rank %rank% and higher can kick members."
+        cant-kick-self: "&cYou can't kick yourself, you need to execute /k leave or /k disband if owner."
+        player-not-found: "&cPlayer %input% was not found."
+        user-more-superior: "&cThe user %input% has a higher rank than you, thus you cannot kick this member."
+        kick-broadcast: "&6%player% has kicked %kicked% from the Kingdom!"
+    leave:
+        description: "Leave your Kingdom."
+        syntax: "/k leave"
+        cancelled: "&cCancelled."
+        leave-broadcast: "&6%player% has left the Kingdom!"
 
 # All messages relating to invading.
 invading:
@@ -439,7 +452,6 @@ Command_Help_Mod: Promotes a member in your kingdom into a Kingdom mod
 Command_Help_General: Promotes a member in your kingdom into a Kingdom general
 Command_Help_Demote: Demotes a mod in your kingdom to a normal Kingdom member
 Command_Help_Setlore: sets the lore of your Kingdom
-Command_Help_Kick: Kicks a player from your kingdom
 Command_Help_Invite: Invites a player to your kingdom so he can join
 Command_Help_Uninvite: Uninvites an invited player from your kingdom
 Command_Help_Home: Teleports to your kingdom home

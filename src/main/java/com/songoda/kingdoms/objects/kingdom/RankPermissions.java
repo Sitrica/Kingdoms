@@ -7,7 +7,7 @@ import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 
 public class RankPermissions {
 
-	private boolean claiming, unclaiming, invade, nexus, alliance, turrets, spawn, chest, invite, broadcast, useSpawn, build, nexusBuild, regulator, structures, protectedChests, xp, permissions;
+	private boolean claiming, unclaiming, invade, nexus, alliance, turrets, spawn, chest, invite, broadcast, useSpawn, build, nexusBuild, regulator, structures, protectedChests, xp, permissions, kick;
 	private final FileConfiguration configuration;
 	private final String node;
 	private final Rank rank;
@@ -34,6 +34,7 @@ public class RankPermissions {
 		this.invade = getDefaultValue(node + ".invade");
 		this.invite = getDefaultValue(node + ".invite");
 		this.build = getDefaultValue(node + ".build");
+		this.kick = getDefaultValue(node + ".kick");
 	}
 
 	public boolean getDefaultValue(String node) {
@@ -190,6 +191,14 @@ public class RankPermissions {
 
 	public void setBuild(boolean build) {
 		this.build = build;
+	}
+
+	public boolean canKick() {
+		return kick;
+	}
+
+	public void setKick(boolean kick) {
+		this.kick = kick;
 	}
 
 	public Rank getRank() {

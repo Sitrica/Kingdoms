@@ -485,6 +485,11 @@ inventories:
             lore:
                 - "&7Change the access to the Kingdom's Nexus."
                 - "&fCurrently only %color%%rank%&f and above may access."
+        kick:
+            title: "&6&lKick Access"
+            lore:
+                - "&7Change the access to kick members from the Kingdom."
+                - "&fCurrently only %color%%rank%&f and above may access."
         max-claims:
             title: "&6&lMaximum Claims %rank%"
             lore:

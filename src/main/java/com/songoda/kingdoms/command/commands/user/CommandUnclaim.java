@@ -29,21 +29,17 @@ import org.bukkit.entity.Player;
 public class CommandUnclaim extends AbstractCommand {
 
 	private final Set<KingdomPlayer> confirmations = new HashSet<>();
-	private final InvadingManager invadingManager;
-	private final PlayerManager playerManager;
 	private final LandManager landManager;
 
 	public CommandUnclaim() {
 		super(false, "unclaim", "u");
-		invadingManager = instance.getManager("invading", InvadingManager.class);
-		playerManager = instance.getManager("player", PlayerManager.class);
 		landManager = instance.getManager("land", LandManager.class);
 	}
 
 	@Override
 	protected ReturnType runCommand(Kingdoms instance, CommandSender sender, String... arguments) {
 		Player player = (Player) sender;
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null) {
 			new MessageBuilder("claiming.no-kingdom")
@@ -92,7 +88,7 @@ public class CommandUnclaim extends AbstractCommand {
 					if (nexus == null)
 						return ReturnType.FAILURE;
 					Land nexusLand = landManager.getLand(nexus.getChunk());
-					if (invadingManager.isBeingInvaded(nexusLand))
+					if (instance.getManager(InvadingManager.class).isBeingInvaded(nexusLand))
 						new MessageBuilder("commands.unclaim.unclaim-all-nexus")
 								.setPlaceholderObject(kingdomPlayer)
 								.setKingdom(kingdom)

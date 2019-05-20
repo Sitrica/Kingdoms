@@ -44,7 +44,7 @@ public class PlayerMovementManager extends Manager {
 	private LandManager landManager;
 	
 	public PlayerMovementManager() {
-		super("player-movement", true);
+		super(true);
 	}
 
 	@Override

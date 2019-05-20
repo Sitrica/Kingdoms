@@ -16,22 +16,17 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class CommandInfo extends AbstractCommand {
 
-	private final KingdomManager kingdomManager;
-	private final PlayerManager playerManager;
-
 	public CommandInfo() {
 		super(false, "info", "show", "i");
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 	}
 
 	@Override
 	protected ReturnType runCommand(Kingdoms instance, CommandSender sender, String... arguments) {
 		Player player = (Player) sender;
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		if (arguments.length > 0) {
 			String name = String.join(" ", arguments);
-			Optional<Kingdom> find = kingdomManager.getKingdom(name);
+			Optional<Kingdom> find = instance.getManager(KingdomManager.class).getKingdom(name);
 			if (!find.isPresent()) {
 				new MessageBuilder("commands.info.no-kingdom-found")
 						.setPlaceholderObject(kingdomPlayer)
