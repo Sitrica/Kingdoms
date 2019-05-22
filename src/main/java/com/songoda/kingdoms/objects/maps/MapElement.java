@@ -6,6 +6,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.objects.Relation;
 import com.songoda.kingdoms.objects.maps.RelationOptions;
 import com.songoda.kingdoms.objects.maps.RelationOptions.RelationAction;
 import com.songoda.kingdoms.objects.structures.StructureType;
@@ -85,7 +86,7 @@ public enum MapElement {
 				return enemy.getHover();
 			case OWN:
 				return own.getHover();
-			case NONE:
+			case NEUTRAL:
 			default:
 				return none.getHover();
 		}
@@ -103,7 +104,7 @@ public enum MapElement {
 				return enemy.getColor();
 			case OWN:
 				return own.getColor();
-			case NONE:
+			case NEUTRAL:
 			default:
 				return none.getColor();
 		}
@@ -123,7 +124,7 @@ public enum MapElement {
 				if (own.getAction() == null)
 					return Optional.empty();
 				return Optional.of(own.getAction());
-			case NONE:
+			case NEUTRAL:
 			default:
 				if (none.getAction() == null)
 					return Optional.empty();

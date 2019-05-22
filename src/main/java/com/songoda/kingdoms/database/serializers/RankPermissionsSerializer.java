@@ -16,16 +16,13 @@ import com.songoda.kingdoms.objects.kingdom.RankPermissions;
 
 public class RankPermissionsSerializer implements Serializer<RankPermissions> {
 
-	private final RankManager rankManager;
-
-	public RankPermissionsSerializer() {
-		this.rankManager = Kingdoms.getInstance().getManager("rank", RankManager.class);
-	}
-
 	@Override
 	public JsonElement serialize(RankPermissions permissions, Type type, JsonSerializationContext context) {
 		JsonObject json = new JsonObject();
+		json.addProperty("kick", permissions.canKick());
+		json.addProperty("enemy", permissions.canEnemy());
 		json.addProperty("claim", permissions.canClaim());
+		json.addProperty("lore", permissions.canSetLore());
 		json.addProperty("unclaim", permissions.canUnclaim());
 		json.addProperty("can-build", permissions.canBuild());
 		json.addProperty("can-invade", permissions.canInvade());
@@ -43,12 +40,14 @@ public class RankPermissionsSerializer implements Serializer<RankPermissions> {
 		json.addProperty("grab-experience", permissions.canGrabExperience());
 		json.addProperty("build-structures", permissions.canBuildStructures());
 		json.addProperty("access-protected", permissions.canAccessProtected());
+		json.addProperty("edit-permissions", permissions.canEditPermissions());
 		json.addProperty("override-regulator", permissions.canOverrideRegulator());
 		return json;
 	}
 
 	@Override
 	public RankPermissions deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws JsonParseException {
+		RankManager rankManager = Kingdoms.getInstance().getManager(RankManager.class);
 		JsonObject object = json.getAsJsonObject();
 		Rank rank = Optional.ofNullable(object.get("rank"))
 				.filter(element -> !element.isJsonNull())
@@ -65,6 +64,15 @@ public class RankPermissionsSerializer implements Serializer<RankPermissions> {
 		JsonElement regulatorElement = object.get("override-regulator");
 		if (regulatorElement != null && !regulatorElement.isJsonNull())
 			permissions.setOverrideRegulator(regulatorElement.getAsBoolean());
+		JsonElement permissionsElement = object.get("edit-permissions");
+		if (permissionsElement != null && !permissionsElement.isJsonNull())
+			permissions.setEditPermissions(permissionsElement.getAsBoolean());
+		JsonElement kickElement = object.get("kick");
+		if (kickElement != null && !kickElement.isJsonNull())
+			permissions.setKick(kickElement.getAsBoolean());
+		JsonElement enemyElement = object.get("enemy");
+		if (enemyElement != null && !enemyElement.isJsonNull())
+			permissions.setEnemy(enemyElement.getAsBoolean());
 		JsonElement structuresElement = object.get("build-structures");
 		if (structuresElement != null && !structuresElement.isJsonNull())
 			permissions.setBuildStructures(structuresElement.getAsBoolean());
@@ -113,6 +121,9 @@ public class RankPermissionsSerializer implements Serializer<RankPermissions> {
 		JsonElement buildElement = object.get("can-build");
 		if (buildElement != null && !buildElement.isJsonNull())
 			permissions.setBuild(buildElement.getAsBoolean());
+		JsonElement loreElement = object.get("lore");
+		if (loreElement != null && !loreElement.isJsonNull())
+			permissions.setLore(loreElement.getAsBoolean());
 		return permissions;
 	}
 

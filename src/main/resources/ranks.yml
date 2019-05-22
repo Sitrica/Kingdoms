@@ -106,6 +106,12 @@ ranks:
             invade: true
             # If the rank can build within the Kingdom.
             build: true
+            # If the rank can set enemies
+            enemy: true
+            # If the rank can kick members
+            kick: true
+            # If the rank can set the lore of the Kingdom
+            lore: true
     # Knights was previously called moderators.
     knight:
         priority: 3
@@ -137,6 +143,9 @@ ranks:
             max-claims: 5
             invade: true
             build: true
+            enemy: true
+            kick: false
+            lore: true
     member:
         # Default it's going to be the lowest priority.
         priority: 99
@@ -168,3 +177,6 @@ ranks:
             max-claims: 3
             invade: true
             build: true
+            enemy: false
+            kick: false
+            lore: false

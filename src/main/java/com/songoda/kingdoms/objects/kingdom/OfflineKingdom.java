@@ -338,6 +338,10 @@ public class OfflineKingdom {
 				.collect(Collectors.toSet());
 	}
 
+	public void addEnemy(OfflineKingdom kingdom) {
+		enemies.add(kingdom.getName());
+	}
+
 	public void addEnemy(String kingdom) {
 		enemies.add(kingdom);
 	}

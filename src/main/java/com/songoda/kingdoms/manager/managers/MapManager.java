@@ -10,11 +10,11 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.objects.Relation;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.maps.ActionInfo;
 import com.songoda.kingdoms.objects.maps.MapElement;
-import com.songoda.kingdoms.objects.maps.Relation;
 import com.songoda.kingdoms.objects.maps.RelationOptions.RelationAction;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.structures.Structure;

@@ -5,9 +5,15 @@ import org.bukkit.configuration.file.FileConfiguration;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 
+/**
+ * When adding new Permissions, you need to update the following to:
+ * 		- ranks.yml
+ * 		- inventories.yml (node inventories.permissions.X)
+ * 		- RankPermissionsSerializer.class
+ */
 public class RankPermissions {
 
-	private boolean claiming, unclaiming, invade, nexus, alliance, turrets, spawn, chest, invite, broadcast, useSpawn, build, nexusBuild, regulator, structures, protectedChests, xp, permissions, kick;
+	private boolean claiming, unclaiming, invade, nexus, alliance, turrets, spawn, chest, invite, broadcast, useSpawn, build, nexusBuild, regulator, structures, protectedChests, xp, permissions, kick, enemy, lore;
 	private final FileConfiguration configuration;
 	private final String node;
 	private final Rank rank;
@@ -34,7 +40,9 @@ public class RankPermissions {
 		this.invade = getDefaultValue(node + ".invade");
 		this.invite = getDefaultValue(node + ".invite");
 		this.build = getDefaultValue(node + ".build");
+		this.kick = getDefaultValue(node + ".enemy");
 		this.kick = getDefaultValue(node + ".kick");
+		this.lore = getDefaultValue(node + ".lore");
 	}
 
 	public boolean getDefaultValue(String node) {
@@ -145,6 +153,14 @@ public class RankPermissions {
 		this.alliance = alliance;
 	}
 
+	public boolean canEnemy() {
+		return enemy;
+	}
+
+	public void setEnemy(boolean enemy) {
+		this.enemy = enemy;
+	}
+
 	public boolean canUseTurrets() {
 		return turrets;
 	}
@@ -191,6 +207,14 @@ public class RankPermissions {
 
 	public void setBuild(boolean build) {
 		this.build = build;
+	}
+
+	public boolean canSetLore() {
+		return lore;
+	}
+
+	public void setLore(boolean lore) {
+		this.lore = lore;
 	}
 
 	public boolean canKick() {

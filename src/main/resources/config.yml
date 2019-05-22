@@ -38,6 +38,11 @@ plugin:
     allow-special-characters: false
     # The time the player must wait before teleporting to Kingdom places.
     teleport-delay: "5 seconds"
+    # The time before an alliance request expires.
+    alliance-expiration: "10 minutes"
+    # The max length in characters the lore can be.
+    # Set to -1 to have no limit.
+    max-lore-length: 64
 
 # All configurations relating to HolographicDisplays.
 # In order for holograms to be active, you need to install ProtocolLib and HolographicDisplays.
