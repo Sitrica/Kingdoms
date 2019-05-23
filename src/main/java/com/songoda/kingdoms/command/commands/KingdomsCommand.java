@@ -23,6 +23,8 @@ public class KingdomsCommand extends AbstractCommand {
 		for (AbstractCommand command : instance.getCommandHandler().getCommands()) {
 			if (command instanceof AdminCommand)
 				continue;
+			if (command.getConfigurationNode() == null)
+				continue;
 			if (command.getPermissionNode() == null || sender.hasPermission(command.getPermissionNode())) {
 				sender.sendMessage(Formatting.color("&8 - &6" + command.getSyntax(sender) + "&7 - " + command.getDescription(sender)));
 			}

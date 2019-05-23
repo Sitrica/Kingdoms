@@ -31,11 +31,10 @@ public class PlayerManager extends Manager {
 	private final Map<UUID, OfflineKingdomPlayer> users = new HashMap<>();
 	private final Database<OfflineKingdomPlayer> database;
 	private KingdomManager kingdomManager;
-	private WorldManager worldManager;
 	private BukkitTask autoSaveThread;
 
 	public PlayerManager() {
-		super("player", true, "rank");
+		super( true, "rank");
 		String table = configuration.getString("database.player-table", "Players");
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(table, OfflineKingdomPlayer.class);
@@ -50,7 +49,6 @@ public class PlayerManager extends Manager {
 	@Override
 	public void initalize() {
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
 	}
 
 	private final Runnable save = new Runnable() {
@@ -140,7 +138,7 @@ public class PlayerManager extends Manager {
 	public void onRespawn(PlayerRespawnEvent event) {
 		if (configuration.getBoolean("kingdoms.respawn-at-kingdom", false)) {
 			Player player = event.getPlayer();
-			if (worldManager.acceptsWorld(player.getWorld())) {
+			if (instance.getManager(WorldManager.class).acceptsWorld(player.getWorld())) {
 				KingdomPlayer kingdomPlayer = getKingdomPlayer(player);
 				if (kingdomPlayer.getKingdom() != null) {
 					Kingdom kingdom = kingdomPlayer.getKingdom();

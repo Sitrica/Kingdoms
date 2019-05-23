@@ -108,6 +108,10 @@ public class OfflineKingdom {
 		return neutral;
 	}
 
+	public int getMemberSize() {
+		return members.size();
+	}
+
 	public void setNeutral(boolean neutral) {
 		this.neutral = neutral;
 	}

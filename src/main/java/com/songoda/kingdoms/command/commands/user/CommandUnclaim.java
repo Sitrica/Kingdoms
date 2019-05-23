@@ -29,17 +29,16 @@ import org.bukkit.entity.Player;
 public class CommandUnclaim extends AbstractCommand {
 
 	private final Set<KingdomPlayer> confirmations = new HashSet<>();
-	private final LandManager landManager;
 
 	public CommandUnclaim() {
 		super(false, "unclaim", "u");
-		landManager = instance.getManager("land", LandManager.class);
 	}
 
 	@Override
 	protected ReturnType runCommand(Kingdoms instance, CommandSender sender, String... arguments) {
 		Player player = (Player) sender;
 		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
+		LandManager landManager = instance.getManager(LandManager.class);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null) {
 			new MessageBuilder("claiming.no-kingdom")
