@@ -14,9 +14,10 @@ public class ConfirmationMenu extends KingdomInventory {
 	}
 
 	@Override
-	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
+	public Inventory build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		inventory.setItem(1, new ItemStackBuilder(inventories.getConfigurationSection("confirm.accept")).build());
 		inventory.setItem(3, new ItemStackBuilder(inventories.getConfigurationSection("confirm.cancel")).build());
+		return inventory;
 	}
 
 }

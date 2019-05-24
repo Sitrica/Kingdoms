@@ -49,8 +49,8 @@ public class NexusInventory extends StructureInventory implements Listener {
 	}
 
 	@Override
-	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
-		InventoryManager inventoryManager = instance.getManager("inventory", InventoryManager.class);
+	public Inventory build(Inventory inventory, KingdomPlayer kingdomPlayer) {
+		InventoryManager inventoryManager = instance.getManager(InventoryManager.class);
 		Player player = kingdomPlayer.getPlayer();
 		Kingdom kingdom = kingdomPlayer.getKingdom(); // Can't be null.
 		if (section.getBoolean("use-filler", true)) {
@@ -66,7 +66,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(0, converter);
-		setAction(0, event -> openDonateInventory(kingdom, kingdomPlayer));
+		setAction(player.getUniqueId(), 0, event -> openDonateInventory(kingdom, kingdomPlayer));
 		int memberCost = configuration.getInt("kingdoms.cost-per-max-member-upgrade", 10);
 		int max = configuration.getInt("kingdoms.max-members-via-upgrade", 30);
 		ItemStack maxMembers = new ItemStackBuilder(section.getConfigurationSection("max-members"))
@@ -76,7 +76,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(1, maxMembers);
-		setAction(1, event -> {
+		setAction(player.getUniqueId(), 1, event -> {
 			long points = kingdom.getResourcePoints();
 			if (memberCost > points) {
 				new MessageBuilder("structures.nexus-max-member-cant-afford")
@@ -117,7 +117,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(8, permissions);
-		setAction(8, event -> inventoryManager.getInventory(PermissionsMenu.class).open(kingdomPlayer));
+		setAction(player.getUniqueId(), 8, event -> inventoryManager.getInventory(PermissionsMenu.class).open(kingdomPlayer));
 		ItemStack defender = new ItemStackBuilder(section.getConfigurationSection("defender-upgrades"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
@@ -147,8 +147,8 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(13, members);
-//TODO		setAction(13, event -> GUIManagement.getMemberManager().openMenu(kingdomPlayer));
-		MasswarManager masswarManager = instance.getManager("masswar", MasswarManager.class);
+		//setAction(player.getUniqueId(), 13, event -> inventoryManager.getInventory(MembersMenu.class).open(kingdomPlayer));
+		MasswarManager masswarManager = instance.getManager(MasswarManager.class);
 		ItemStackBuilder masswar = new ItemStackBuilder(section.getConfigurationSection("masswar-on"))
 				.replace("%time%", masswarManager.getTimeLeftInString())
 				.setPlaceholderObject(kingdomPlayer)
@@ -167,7 +167,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(16, chest);
-		setAction(16, event -> openKingdomChest(kingdomPlayer));
+		setAction(player.getUniqueId(), 16, event -> openKingdomChest(kingdomPlayer));
 		KingdomChest kingdomChest = kingdom.getKingdomChest();
 		int size = kingdomChest.getSize();
 		int cost = configuration.getInt("kingdoms.chest-size-upgrade-cost", 30);
@@ -180,7 +180,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(17, chestSize);
-		setAction(17, event -> {
+		setAction(player.getUniqueId(), 17, event -> {
 			if (chestCost > kingdom.getResourcePoints()) {
 				new MessageBuilder("kingdoms.not-enough-resourcepoints-chest-upgrade")
 						.setPlaceholderObject(kingdomPlayer)
@@ -217,7 +217,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 						.setKingdom(kingdom);
 			}
 			inventory.setItem(22, builder.build());
-			setAction(22, event -> {
+			setAction(player.getUniqueId(), 22, event -> {
 				if (kingdom.hasInvaded()) {
 					new MessageBuilder("kingdoms.cannot-be-neutral")
 							.replace("%status%", kingdom.isNeutral())
@@ -250,7 +250,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 							return powerup.getLevel(type);
 						}
 					}).build());
-			setAction(slot, event -> {
+			setAction(player.getUniqueId(), slot, event -> {
 				if (type.getCost() > kingdom.getResourcePoints()) {
 					new MessageBuilder("kingdoms.not-enough-resourcepoints-powerup")
 							.replace("%powerup%", type.name().toLowerCase().replaceAll("_", "-"))
@@ -275,6 +275,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				reopen(kingdomPlayer);
 			});
 		}
+		return inventory;
 	}
 
 	public void openKingdomChest(KingdomPlayer kingdomPlayer) {
@@ -296,7 +297,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 					.send(kingdomPlayer);
 			return;
 		}
-		instance.getManager("chest", ChestManager.class).openChest(kingdomPlayer, kingdom);
+		instance.getManager(ChestManager.class).openChest(kingdomPlayer, kingdom);
 	}
 
 	public void openDonateInventory(OfflineKingdom kingdom, KingdomPlayer kingdomPlayer) {
@@ -410,7 +411,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 	public void onDonateInventoryClose(InventoryCloseEvent event) {
 		Player player = (Player) event.getPlayer();
 		UUID uuid = player.getUniqueId();
-		PlayerManager playerManager = instance.getManager("player", PlayerManager.class);
+		PlayerManager playerManager = instance.getManager(PlayerManager.class);
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		if (donations.containsKey(uuid)) {
 			int donated = consumeDonationItems(event.getInventory(), kingdomPlayer);

@@ -23,7 +23,7 @@ public class OutpostInventory extends StructureInventory {
 	}
 
 	@Override
-	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
+	public Inventory build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		Player player = kingdomPlayer.getPlayer();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		int cost = structures.getInt("structures.outpost.experience-bottle-cost", 5);
@@ -33,7 +33,7 @@ public class OutpostInventory extends StructureInventory {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(0, xp1);
-		setAction(0, event -> {
+		setAction(player.getUniqueId(), 0, event -> {
 			if (!kingdom.getPermissions(kingdomPlayer.getRank()).canGrabExperience()) {
 				new MessageBuilder("kingdoms.rank-too-low-grab-experience")
 						.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canGrabExperience()), new Placeholder<Optional<Rank>>("%rank%") {
@@ -76,7 +76,7 @@ public class OutpostInventory extends StructureInventory {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(1, xp64);
-		setAction(1, event -> {
+		setAction(player.getUniqueId(), 1, event -> {
 			if (!kingdom.getPermissions(kingdomPlayer.getRank()).canGrabExperience()) {
 				new MessageBuilder("kingdoms.rank-too-low-grab-experience")
 						.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canGrabExperience()), new Placeholder<Optional<Rank>>("%rank%") {
@@ -112,6 +112,7 @@ public class OutpostInventory extends StructureInventory {
 			player.getInventory().addItem(new ItemStack(Utils.materialAttempt("EXPERIENCE_BOTTLE", "EXP_BOTTLE"), 64));
 			reopen(kingdomPlayer);
 		});
+		return inventory;
 	}
 
 }

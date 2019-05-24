@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -14,8 +13,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.Inventory;
 
 import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.inventories.KingdomInventory.SlotAction;
 
 public class InventoryManager extends Manager {
 
@@ -55,17 +56,18 @@ public class InventoryManager extends Manager {
 		UUID uuid = player.getUniqueId();
 		if (!opened.containsKey(uuid))
 			return;
+		Inventory clicked = event.getClickedInventory();
 		event.setCancelled(true);
-		if (event.getRawSlot() >= event.getInventory().getSize())
+		if (event.getRawSlot() >= clicked.getSize())
 			return;
 		Optional<KingdomInventory> optional = Optional.ofNullable(opened.get(uuid));
 		if (!optional.isPresent())
 			return;
 		KingdomInventory inventory = optional.get();
-		Optional<Consumer<InventoryClickEvent>> consumer = inventory.getAction(event.getSlot());
-		if (!consumer.isPresent())
+		Optional<SlotAction> action = inventory.getAction(clicked, uuid, event.getSlot());
+		if (!action.isPresent())
 			return;
-		consumer.get().accept(event);
+		action.get().accept(event);
 	}
 
 	@EventHandler
@@ -75,7 +77,8 @@ public class InventoryManager extends Manager {
 
 	@EventHandler
 	public void onInventoryClose(InventoryCloseEvent event) {
-		opened.remove(event.getPlayer().getUniqueId());
+		UUID uuid = event.getPlayer().getUniqueId();
+		opened.remove(uuid);
 	}
 
 	@Override

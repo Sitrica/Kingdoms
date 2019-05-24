@@ -22,17 +22,12 @@ import com.songoda.kingdoms.utils.ItemStackBuilder;
 
 public class SiegeEngineInventory extends StructureInventory {
 
-	private final SiegeEngineManager siegeEngineManager;
-	private final LandManager landManager;
-
 	public SiegeEngineInventory() {
 		super(InventoryType.CHEST, "siege-engine", 27);
-		this.landManager = instance.getManager("land", LandManager.class);
-		this.siegeEngineManager = instance.getManager("siege-engine", SiegeEngineManager.class);
 	}
 
 	@Override
-	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
+	public Inventory build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		throw new UnsupportedOperationException("This method should not be called, use openSiegeMenu(Land, KingdomPlayer)");
 	}
 
@@ -45,10 +40,11 @@ public class SiegeEngineInventory extends StructureInventory {
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		Player player = kingdomPlayer.getPlayer();
 		Location location = engine.getLocation();
-		Land land = landManager.getLand(location.getChunk());
+		Land land = instance.getManager(LandManager.class).getLand(location.getChunk());
 		Optional<OfflineKingdom> optional = land.getKingdomOwner();
 		if (!optional.isPresent())
 			return;
+		SiegeEngineManager siegeEngineManager = instance.getManager(SiegeEngineManager.class);
 		for (int x = -1; x <= 1; x++) {
 			for (int z = -1; z <= 1; z++) {
 				//No diagonal Firing.
@@ -118,7 +114,7 @@ public class SiegeEngineInventory extends StructureInventory {
 									.replace("%cost%", cost)
 									.setKingdom(landKingdom)
 									.build();
-							setAction((1 + x) + (9 * (z + 1)), event -> {
+							setAction(player.getUniqueId(), (1 + x) + (9 * (z + 1)), event -> {
 								player.closeInventory();
 								siegeEngineManager.fireSiegeEngine(engine, land, kingdom, landKingdom);
 							});

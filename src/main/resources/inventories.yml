@@ -183,11 +183,12 @@ inventories:
         # The item that represents the memebrs item.
         members:
             title: "&bMembers"
-            material: "JACK_O_LANTERN"
+            material: "PLAYER_HEAD"
             material-meta: ""
             glowing: false
             lore:
-                - "&7Click to monitor donation status"
+                - "&7Click to view members of your Kingdom."
+                - "&7You can edit roles"
         # The item that represents the item when the masswar is on.
         masswar-on:
             title: "&bMasswar Status"

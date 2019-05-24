@@ -18,15 +18,12 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class WarppadInventory extends StructureInventory {
 
-	private final RenameManager renameManager;
-
 	public WarppadInventory() {
 		super(InventoryType.CHEST, "warp-pad", 54);
-		this.renameManager = instance.getManager("rename", RenameManager.class);
 	}
 
 	@Override
-	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
+	public Inventory build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		Player player = kingdomPlayer.getPlayer();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		int slot = 0;
@@ -49,7 +46,7 @@ public class WarppadInventory extends StructureInventory {
 					.setKingdom(kingdom)
 					.build();
 			inventory.setItem(slot, item);
-			setAction(slot, event -> {
+			setAction(player.getUniqueId(), slot, event -> {
 				if (event.isRightClick()) {
 					player.teleport(location.add(0, 0.3, 0));
 					player.closeInventory();
@@ -60,7 +57,7 @@ public class WarppadInventory extends StructureInventory {
 							.replace("%warp%", warp.getName())
 							.setKingdom(kingdom)
 							.send(player);
-					renameManager.rename(player, chat -> {
+					instance.getManager(RenameManager.class).rename(player, chat -> {
 						String message = chat.getMessage();
 						new MessageBuilder("structures.rename-success")
 								.replace("%location%", LocationUtils.locationToString(location))
@@ -74,6 +71,7 @@ public class WarppadInventory extends StructureInventory {
 				}
 			});
 		}
+		return inventory;
 	}
 
 }

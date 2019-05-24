@@ -10,7 +10,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.songoda.kingdoms.manager.inventories.ScrollerInventory;
+import com.songoda.kingdoms.manager.inventories.ScrollerInventoryOLD;
 import com.songoda.kingdoms.manager.inventories.ScrollerManager;
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
@@ -22,19 +22,19 @@ import com.songoda.kingdoms.objects.structures.Structure;
 import com.songoda.kingdoms.utils.ItemStackBuilder;
 
 public class RegulatorInventory extends StructureInventory {
-	
+
 	private final ScrollerManager scrollerManager;
-	
+
 	public RegulatorInventory() {
 		super(InventoryType.HOPPER, "regulator", 69);
 		this.scrollerManager = instance.getManager("scroller", ScrollerManager.class);
 	}
-	
+
 	@Override
-	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
+	public Inventory build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		throw new UnsupportedOperationException("This method should not be called, use openRegulatorMenu(Land, KingdomPlayer)");
 	}
-	
+
 	public void openRegulatorMenu(Land land, KingdomPlayer kingdomPlayer) {
 		Structure structure = land.getStructure();
 		if (structure == null || !(structure instanceof Regulator))
@@ -49,7 +49,7 @@ public class RegulatorInventory extends StructureInventory {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(0, build);
-		setAction(0, event -> {
+		setAction(player.getUniqueId(), 0, event -> {
 			List<ItemStack> items = new ArrayList<ItemStack>();
 			for (OfflineKingdomPlayer offlineKingdomPlayer : kingdom.getMembers()) {
 				if (offlineKingdomPlayer.equals(kingdomPlayer))
@@ -71,14 +71,14 @@ public class RegulatorInventory extends StructureInventory {
 			int size = Math.round(items.size() / 9);
 			if (size > 6)
 				size = 6;
-			scrollerManager.registerScroller(new ScrollerInventory(items, size * 9, viewer.getString("build-title", "&4Click to edit build permissions"), kingdomPlayer.getPlayer()));
+			scrollerManager.registerScroller(new ScrollerInventoryOLD(items, size * 9, viewer.getString("build-title", "&4Click to edit build permissions"), kingdomPlayer.getPlayer()));
 		});
 		ItemStack interact = new ItemStackBuilder(section.getConfigurationSection("interact"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(1, interact);
-		setAction(1, event -> {
+		setAction(player.getUniqueId(), 1, event -> {
 			List<ItemStack> items = new ArrayList<ItemStack>();
 			for (OfflineKingdomPlayer offlineKingdomPlayer : kingdom.getMembers()) {
 				if (offlineKingdomPlayer.equals(kingdomPlayer))
@@ -100,7 +100,7 @@ public class RegulatorInventory extends StructureInventory {
 			int size = Math.round(items.size() / 9);
 			if (size > 6)
 				size = 6;
-			ScrollerInventory scroller = new ScrollerInventory(items, size * 9, viewer.getString("interact-title", "&4Click to edit interact permissions"), kingdomPlayer.getPlayer());
+			ScrollerInventoryOLD scroller = new ScrollerInventoryOLD(items, size * 9, viewer.getString("interact-title", "&4Click to edit interact permissions"), kingdomPlayer.getPlayer());
 			scroller.setAction(click -> {
 				ItemStack item = click.getCurrentItem();
 				String name = item.getItemMeta().getDisplayName();
@@ -136,7 +136,7 @@ public class RegulatorInventory extends StructureInventory {
 			if (!regulator.canSpawnMonsters())
 				monsters.setConfigurationSection(section.getConfigurationSection("monsters-cannot-spawn"));
 			inventory.setItem(2, monsters.build());
-			setAction(2, event -> {
+			setAction(player.getUniqueId(), 2, event -> {
 				regulator.setMonstersSpawning(!regulator.canSpawnMonsters());
 				openRegulatorMenu(land, kingdomPlayer);
 			});
@@ -148,7 +148,7 @@ public class RegulatorInventory extends StructureInventory {
 			if (!regulator.canSpawnAnimals())
 				animals.setConfigurationSection(section.getConfigurationSection("animals-cannot-spawn"));
 			inventory.setItem(3, animals.build());
-			setAction(3, event -> {
+			setAction(player.getUniqueId(), 3, event -> {
 				regulator.setAnimalsSpawning(!regulator.canSpawnAnimals());
 				openRegulatorMenu(land, kingdomPlayer);
 			});

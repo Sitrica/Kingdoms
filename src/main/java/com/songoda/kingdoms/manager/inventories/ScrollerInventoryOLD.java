@@ -17,7 +17,7 @@ import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.ItemStackBuilder;
 
-public class ScrollerInventory {
+public class ScrollerInventoryOLD {
 
 	private final List<Inventory> pages = new ArrayList<>();
 	private final Set<Player> users = new HashSet<>();
@@ -28,7 +28,7 @@ public class ScrollerInventory {
 	private final int size, total;
 	private int current = 0;
 
-	public ScrollerInventory(List<ItemStack> items, int size, String name, Player player) {
+	public ScrollerInventoryOLD(List<ItemStack> items, int size, String name, Player player) {
 		if (size == 9)
 			size = 18;
 		this.instance = Kingdoms.getInstance();

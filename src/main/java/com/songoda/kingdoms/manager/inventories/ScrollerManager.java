@@ -11,13 +11,13 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 
 public class ScrollerManager extends Manager {
 
-	private final Set<ScrollerInventory> scrollers = new HashSet<>();
+	private final Set<ScrollerInventoryOLD> scrollers = new HashSet<>();
 
 	public ScrollerManager() {
-		super( true);
+		super(true);
 	}
 
-	public void registerScroller(ScrollerInventory scroller) {
+	public void registerScroller(ScrollerInventoryOLD scroller) {
 		this.scrollers.add(scroller);
 	}
 

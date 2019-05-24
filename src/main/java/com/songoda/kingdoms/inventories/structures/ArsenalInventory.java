@@ -21,14 +21,14 @@ public class ArsenalInventory extends StructureInventory {
 	}
 	
 	@Override
-	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
+	public Inventory build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		Player player = kingdomPlayer.getPlayer();
 		int i = 0;
 		for (ArsenalItem item : ArsenalItem.values()) {
 			if (!item.isEnabled())
 				continue;
 			inventory.setItem(i, item.build(true));
-			setAction(i, event -> {
+			setAction(player.getUniqueId(), i, event -> {
 					Kingdom kingdom = kingdomPlayer.getKingdom();
 					if (kingdom == null)
 						return;
@@ -64,6 +64,7 @@ public class ArsenalInventory extends StructureInventory {
 			);
 			i++;
 		}
+		return inventory;
 	}
 
 }

@@ -28,7 +28,7 @@ public class ExtractorInventory extends StructureInventory {
 	}
 
 	@Override
-	public void build(Inventory inventory, KingdomPlayer kingdomPlayer) {
+	public Inventory build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		throw new UnsupportedOperationException("This method should not be called, use openExtractorMenu(Extractor, KingdomPlayer)");
 	}
 
@@ -84,7 +84,7 @@ public class ExtractorInventory extends StructureInventory {
 			inventory.setItem(2, timeBuilder.build());
 		Player player = kingdomPlayer.getPlayer();
 		openInventory(inventory, player);
-		setAction(2, event -> extractor.collect(kingdomPlayer));
+		setAction(player.getUniqueId(), 2, event -> extractor.collect(kingdomPlayer));
 		new BukkitRunnable() {
 			@Override
 			public void run() {
