@@ -14,6 +14,7 @@ version: "@version@"
 
 prefix-format: "%prefix%%color%%player%&7:"
 message-format: "%chatcolor%%message%"
+gui-prefix: "%prefix%%color%%player%&r"
 # If %player% should use the player's display name instead of actual name.
 # (Display name can be formatted by other plugins like essentials)
 use-display-name: false

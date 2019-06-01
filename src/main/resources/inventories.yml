@@ -30,6 +30,12 @@ scroller:
         material-meta: "MHF_ArrowLeft"
         lore:
             - "&7Click to go to the previous page. &8(&c%previous%&7/&4%total%&8)"
+    back-item:
+        title: "&c&lBack"
+        # Use SKULL for 1.8...
+        material: "REDSTONE_BLOCK"
+        lore:
+            - "&7Click to go back to the previous menu."
 
 confirm:
     accept:
@@ -188,7 +194,7 @@ inventories:
             glowing: false
             lore:
                 - "&7Click to view members of your Kingdom."
-                - "&7You can edit roles"
+                - "&7You can edit roles, view stats and more for members."
         # The item that represents the item when the masswar is on.
         masswar-on:
             title: "&bMasswar Status"
@@ -513,3 +519,14 @@ inventories:
             title: "&cBack"
             lore:
                 - "&7Go back to the Nexus menu."
+    members:
+        # This inventory has a custom placeholder %gui-format%
+        # which copies the 'gui-format' string from the ranks.yml file.
+        player-item:
+            title: "%gui-format%"
+            material: "PLAYER_SKULL"
+            material-meta: "%player%"
+            lore:
+                - "&7%player%'s current rank is %rankcolor%&l%rank%&7."
+                - "&a&lLeft-Click&f To promote their rank."
+                - "&c&lRight-Click&f To demote their rank."

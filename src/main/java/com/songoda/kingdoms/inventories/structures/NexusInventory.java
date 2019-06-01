@@ -21,6 +21,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.google.common.collect.Lists;
+import com.songoda.kingdoms.inventories.MembersMenu;
 import com.songoda.kingdoms.inventories.PermissionsMenu;
 import com.songoda.kingdoms.manager.inventories.InventoryManager;
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
@@ -147,7 +148,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(13, members);
-		//setAction(player.getUniqueId(), 13, event -> inventoryManager.getInventory(MembersMenu.class).open(kingdomPlayer));
+		setAction(player.getUniqueId(), 13, event -> inventoryManager.getInventory(MembersMenu.class).open(kingdomPlayer));
 		MasswarManager masswarManager = instance.getManager(MasswarManager.class);
 		ItemStackBuilder masswar = new ItemStackBuilder(section.getConfigurationSection("masswar-on"))
 				.replace("%time%", masswarManager.getTimeLeftInString())

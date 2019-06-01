@@ -21,17 +21,15 @@ public class ChatManager extends Manager {
 
 	private final FileConfiguration ranks;
 	private PlayerManager playerManager;
-	private WorldManager worldManager;
 
 	public ChatManager() {
-		super("chat", true);
+		super(true);
 		this.ranks = instance.getConfiguration("ranks").get();
 	}
 
 	@Override
 	public void initalize() {
 		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
 	}
 
 	public enum ChatChannel {
@@ -45,7 +43,7 @@ public class ChatManager extends Manager {
 		if (event.isCancelled())
 			return;
 		Player player = event.getPlayer();
-		if (!worldManager.acceptsWorld(player.getWorld()))
+		if (!instance.getManager(WorldManager.class).acceptsWorld(player.getWorld()))
 			return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		if (!kingdomPlayer.hasKingdom())
@@ -97,7 +95,7 @@ public class ChatManager extends Manager {
 							return kingdomPlayer.getName();
 					}
 				})
-				.setPlaceholderObject(message)
+				.setPlaceholderObject(kingdomPlayer)
 				.fromConfiguration(ranks);
 		if (chat)
 			builder.setNodes("message-format");

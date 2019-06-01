@@ -31,6 +31,7 @@ public class ItemStackBuilder {
 	private final Kingdoms instance;
 	private OfflineKingdom kingdom;
 	private boolean glowing;
+	private String node;
 
 	/**
 	 * Creates a ItemStackBuilder with the defined nodes..
@@ -38,6 +39,7 @@ public class ItemStackBuilder {
 	 * @param nodes The configuration nodes from the messages.yml
 	 */
 	public ItemStackBuilder(String node) {
+		this.node = node;
 		this.instance = Kingdoms.getInstance();
 		this.configuration = instance.getConfig();
 		this.section = configuration.getConfigurationSection(node);
@@ -92,6 +94,8 @@ public class ItemStackBuilder {
 	 */
 	public ItemStackBuilder fromConfiguration(ConfigurationSection section) {
 		this.section = section;
+		if (node != null)
+			this.section = section.getConfigurationSection(node);
 		return this;
 	}
 
@@ -198,7 +202,7 @@ public class ItemStackBuilder {
 					.map(lore -> Formatting.color(lore))
 					.collect(Collectors.toList()));
 		}
-		DeprecationUtils.setupItemMeta(itemstack, section.getString("material-meta", ""));
+		DeprecationUtils.setupItemMeta(itemstack, applyPlaceholders(section.getString("material-meta", "")));
 		if (section.getBoolean("glowing", false) || glowing) {
 			if (material == Material.BOW) {
 				itemstack.addUnsafeEnchantment(Enchantment.WATER_WORKER, 69);

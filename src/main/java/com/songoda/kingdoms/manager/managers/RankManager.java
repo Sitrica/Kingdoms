@@ -47,7 +47,7 @@ public class RankManager extends Manager {
 		}
 	}
 
-	public class Rank {
+	public class Rank implements Comparable<Rank> {
 
 		private final String name, unicode, node, configurationName;
 		private final ChatColor color, chat;
@@ -89,6 +89,12 @@ public class RankManager extends Manager {
 			return false;
 		}
 
+		public boolean isEqualTo(Rank target) {
+			if (this.priority == target.priority)
+				return true;
+			return false;
+		}
+
 		public String getConfigurationName() {
 			return configurationName;
 		}
@@ -119,6 +125,11 @@ public class RankManager extends Manager {
 
 		public String getName() {
 			return name;
+		}
+
+		@Override
+		public int compareTo(Rank rank) {
+			return isHigherOrEqual(rank) ? (isEqualTo(rank) ? 0 : 1) : -1;
 		}
 
 	}
@@ -172,6 +183,12 @@ public class RankManager extends Manager {
 	public List<Rank> getRanksBelow(Rank rank) {
 		return ranks.parallelStream()
 				.filter(spot -> ranks.indexOf(spot) > ranks.indexOf(rank))
+				.collect(Collectors.toList());
+	}
+
+	public List<OfflineKingdomPlayer> sortByRanks(Collection<OfflineKingdomPlayer> players) {
+		return players.parallelStream()
+				.sorted(Comparator.comparing(OfflineKingdomPlayer::getRank))
 				.collect(Collectors.toList());
 	}
 

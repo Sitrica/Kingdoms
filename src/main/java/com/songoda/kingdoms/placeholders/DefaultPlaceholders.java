@@ -3,6 +3,7 @@ package com.songoda.kingdoms.placeholders;
 import java.util.Optional;
 import java.util.Set;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -48,6 +49,16 @@ public class DefaultPlaceholders {
 				if (rank == null)
 					return "No rank";
 				return rank.getName();
+			}
+		});
+
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%rankcolor%", "%rankcolour%") {
+			@Override
+			public String replace(OfflineKingdomPlayer player) {
+				Rank rank = player.getRank();
+				if (rank == null)
+					return ChatColor.WHITE + "";
+				return rank.getColor() + "";
 			}
 		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%offlinecount%", "%membercount%") {

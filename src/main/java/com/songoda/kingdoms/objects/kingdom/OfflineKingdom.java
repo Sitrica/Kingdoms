@@ -1,7 +1,9 @@
 package com.songoda.kingdoms.objects.kingdom;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -381,6 +383,29 @@ public class OfflineKingdom {
 					permissions.add(permission);
 					return permission;
 				});
+	}
+
+	public List<Rank> getSortedRanks() {
+		return permissions.parallelStream()
+				.sorted(Comparator.comparing(RankPermissions::getRank))
+				.map(rankPermissions -> rankPermissions.getRank())
+				.collect(Collectors.toList());
+	}
+
+	public Rank getPreviousRank(Rank rank) {
+		List<Rank> sorted = getSortedRanks();
+		int index = sorted.indexOf(rank);
+		if (index <= 0)
+			return rank;
+		return sorted.get(index - 1);
+	}
+
+	public Rank getNextRank(Rank rank) {
+		List<Rank> sorted = getSortedRanks();
+		int index = sorted.indexOf(rank);
+		if (index >= sorted.size() - 1)
+			return rank;
+		return sorted.get(index + 1);
 	}
 
 	public void setRankPermissions(RankPermissions rankPermissions) {

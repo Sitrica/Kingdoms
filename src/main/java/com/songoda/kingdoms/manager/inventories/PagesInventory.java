@@ -89,7 +89,7 @@ public abstract class PagesInventory extends KingdomInventory {
 					.build());
 		Consumer<InventoryClickEvent> back = getBackAction(kingdomPlayer);
 		if (current > 1 || back != null) {
-			inventory.setItem(size - 9, new ItemStackBuilder("scroller.previous-item")
+			inventory.setItem(size - 9, new ItemStackBuilder("scroller.back-item")
 					.setPlaceholderObject(kingdomPlayer)
 					.replace("%previous%", current - 1)
 					.fromConfiguration(inventories)

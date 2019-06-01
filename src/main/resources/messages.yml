@@ -166,6 +166,8 @@ kingdoms:
     soldier-name: "&cKingdom Guard"
     siege-breaker-name: "&dKingdom Siege Breaker"
     rank-too-low-edit-permissions: "&cYour rank is too low to edit permissions, only rank %rank% and higher can edit permissions."
+    owner-transfer-command-only: "&cYou may only transfer the ownership through the /k owner command."
+    owner-may-not-be-modified: "&cThe owner rank may not be modified."
 
 # These messages are for chunk changing when a player moves into a new chunk for action bars and titles.
 chunk-changing:
