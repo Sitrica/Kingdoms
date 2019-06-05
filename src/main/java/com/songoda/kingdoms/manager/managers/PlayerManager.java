@@ -30,7 +30,6 @@ public class PlayerManager extends Manager {
 
 	private final Map<UUID, OfflineKingdomPlayer> users = new HashMap<>();
 	private final Database<OfflineKingdomPlayer> database;
-	private KingdomManager kingdomManager;
 	private BukkitTask autoSaveThread;
 
 	public PlayerManager() {
@@ -44,11 +43,6 @@ public class PlayerManager extends Manager {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
 			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, save, 0, IntervalUtils.getInterval(interval) * 20);
 		}
-	}
-
-	@Override
-	public void initalize() {
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 	}
 
 	private final Runnable save = new Runnable() {
@@ -177,7 +171,7 @@ public class PlayerManager extends Manager {
 		users.remove(uuid);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom != null)
-			kingdomManager.onPlayerLeave(kingdomPlayer, kingdom);
+			instance.getManager(KingdomManager.class).onPlayerLeave(kingdomPlayer, kingdom);
 	}
 
 	@Override
@@ -195,5 +189,8 @@ public class PlayerManager extends Manager {
 			save.run();
 		}
 	}
+
+	@Override
+	public void initalize() {}
 
 }

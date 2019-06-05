@@ -47,7 +47,6 @@ public class KingdomManager extends Manager {
 	private Database<OfflineKingdom> database;
 	private PlayerManager playerManager;
 	private WorldManager worldManager;
-	private CooldownManager cooldowns;
 	private BukkitTask autoSaveThread;
 	private LandManager landManager;
 	private RankManager rankManager;
@@ -59,7 +58,6 @@ public class KingdomManager extends Manager {
 	@Override
 	public void initalize() {
 		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
-		this.cooldowns = instance.getManager("cooldown", CooldownManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
@@ -78,6 +76,7 @@ public class KingdomManager extends Manager {
 	private final Runnable saveTask = new Runnable() {
 		@Override 
 		public void run() {
+			CooldownManager cooldowns = instance.getManager(CooldownManager.class);
 			for (OfflineKingdom kingdom : kingdoms) {
 				String name = kingdom.getName();
 				Kingdoms.debugMessage("Saving Kingdom: " + name);
@@ -177,10 +176,8 @@ public class KingdomManager extends Manager {
 	public void onPlayerLeave(KingdomPlayer player, Kingdom kingdom) {
 		database.put(kingdom.getName(), kingdom);
 		instance.getServer().getScheduler().scheduleSyncDelayedTask(instance, () -> {
-			if (kingdom.getOnlinePlayers().isEmpty()) {
+			if (kingdom.getOnlinePlayers().isEmpty())
 				kingdoms.remove(kingdom);
-				database.delete(kingdom.getName());
-			}
 		}, 2);
 	}
 
