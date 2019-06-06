@@ -16,8 +16,12 @@ version: "@version@"
 structures:
     # Adds placement instructions by default to the bottom lore.
     additional-lore:
-        - "&6Right click the ground with the disk item given to build."
+        - ""
+        - "&6Right click the ground to build."
         - "&cOnly one structure is allowed per land."
+    shop-lore:
+        - ""
+        - "&cThis structure costs %cost% resource points."
     nexus:
         title: "&bNexus"
         # The block material that will be used.

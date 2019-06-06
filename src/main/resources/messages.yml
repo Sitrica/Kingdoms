@@ -99,6 +99,9 @@ structures:
     rename-success: "&bThe name of this warp has been changed from %old% to %new%"
     siege-warning: "&c&lYour Kingdom land at %chunk% was sieged by %kingdom%!"
     siege-success: "&a&lSiege cannon hit %kingdom%."
+    cannot-afford: "&cYour Kingdom does not have %cost% resource points to purchase a %structure%&c."
+    inventory-full-purchase: "&cYour inventory is currently full, cancelling purchase of Structure %structure%&c."
+    purchase: "&aYou have just purchased %structure%&a the item has been added to your inventory, click a block in a land you own to place."
 
 # All messages relating to Kingdoms.
 kingdoms:

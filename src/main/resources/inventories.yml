@@ -531,3 +531,6 @@ inventories:
                 - "&7%player%'s current rank is %rankcolor%&l%rank%&7."
                 - "&a&lLeft-Click&f To promote their rank."
                 - "&c&lRight-Click&f To demote their rank."
+    structure-shop:
+        title: "&8&lStructure Shop"
+        

@@ -1,11 +1,9 @@
 package com.songoda.kingdoms.objects.kingdom;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
@@ -13,7 +11,6 @@ import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.manager.managers.LandManager.LandInfo;
-import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.manager.managers.WorldManager;
 import com.songoda.kingdoms.objects.land.Land;

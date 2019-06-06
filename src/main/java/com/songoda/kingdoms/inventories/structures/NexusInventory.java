@@ -23,6 +23,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import com.google.common.collect.Lists;
 import com.songoda.kingdoms.inventories.MembersMenu;
 import com.songoda.kingdoms.inventories.PermissionsMenu;
+import com.songoda.kingdoms.inventories.StructureShopMenu;
 import com.songoda.kingdoms.manager.inventories.InventoryManager;
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
 import com.songoda.kingdoms.manager.managers.ChestManager;
@@ -136,7 +137,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(11, structure);
-//TODO		setAction(11, event -> GUIManagement.getStructureGUIManager().openMenu(kingdomPlayer));
+		setAction(player.getUniqueId(), 11, event -> inventoryManager.getInventory(StructureShopMenu.class).open(kingdomPlayer));
 		ItemStack turret = new ItemStackBuilder(section.getConfigurationSection("turrets"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)

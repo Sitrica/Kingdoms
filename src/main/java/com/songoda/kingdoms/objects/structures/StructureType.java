@@ -1,6 +1,7 @@
 package com.songoda.kingdoms.objects.structures;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.Utils;
 
@@ -29,8 +30,9 @@ public enum StructureType {
 
 	private final List<String> description = new ArrayList<>();
 	private final List<String> additional = new ArrayList<>();
+	private final List<String> shop = new ArrayList<>();
+	private final String title, metadata, input;
 	private final Material material, item;
-	private final String title, metadata;
 	private final boolean enabled;
 	private ItemStack itemstack;
 	private final long cost;
@@ -45,9 +47,11 @@ public enum StructureType {
 		this.item = Utils.materialAttempt(section.getString("inventory-material", "MUSIC_DISC_WAIT"), "RECORD_3");
 		this.material = Utils.materialAttempt(section.getString("material"), "REDSTONE_BLOCK");
 		this.additional.addAll(configuration.getStringList("structures.additional-lore"));
+		this.shop.addAll(configuration.getStringList("structures.shop-lore"));
 		this.description.addAll(section.getStringList("description"));
 		this.enabled = section.getBoolean("enabled", true);
-		this.title = section.getString("name");
+		this.input = section.getString("material-meta");
+		this.title = section.getString("title");
 		this.cost = section.getLong("cost", 0);
 		if (metadata == null) { 
 			this.metadata = node;
@@ -93,10 +97,41 @@ public enum StructureType {
 		ItemMeta meta = itemstack.getItemMeta();
 		meta.setDisplayName(Formatting.color(title));
 		List<String> lores = new ArrayList<>();
-		getDescription().forEach(line -> lores.add(line));
-		additional.forEach(lore -> lores.add(Formatting.color(lore)));
+		getDescription().parallelStream()
+				.map(line -> line.replace("%cost%", cost + ""))
+				.forEach(line -> lores.add(line));
+		additional.parallelStream()
+				.map(line -> line.replace("%cost%", cost + ""))
+				.forEach(lore -> lores.add(Formatting.color(lore)));
 		meta.setLore(lores);
-		itemstack.setItemMeta(meta);
+		if (input != null)
+			itemstack.setItemMeta(DeprecationUtils.setupItemMeta(meta, input));
+		else
+			itemstack.setItemMeta(meta);
+		return itemstack;
+	}
+
+	public ItemStack buildShopItem() {
+		if (itemstack != null)
+			return itemstack;
+		itemstack = new ItemStack(item);
+		ItemMeta meta = itemstack.getItemMeta();
+		meta.setDisplayName(Formatting.color(title));
+		List<String> lores = new ArrayList<>();
+		getDescription().parallelStream()
+				.map(line -> line.replace("%cost%", cost + ""))
+				.forEach(line -> lores.add(line));
+		additional.parallelStream()
+				.map(line -> line.replace("%cost%", cost + ""))
+				.forEach(lore -> lores.add(Formatting.color(lore)));
+		shop.parallelStream()
+				.map(line -> line.replace("%cost%", cost + ""))
+				.forEach(lore -> lores.add(Formatting.color(lore)));
+		meta.setLore(lores);
+		if (input != null)
+			itemstack.setItemMeta(DeprecationUtils.setupItemMeta(meta, input));
+		else
+			itemstack.setItemMeta(meta);
 		return itemstack;
 	}
 
