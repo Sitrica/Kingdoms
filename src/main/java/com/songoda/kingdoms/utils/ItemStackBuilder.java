@@ -202,7 +202,6 @@ public class ItemStackBuilder {
 					.map(lore -> Formatting.color(lore))
 					.collect(Collectors.toList()));
 		}
-		DeprecationUtils.setupItemMeta(itemstack, applyPlaceholders(section.getString("material-meta", "")));
 		if (section.getBoolean("glowing", false) || glowing) {
 			if (material == Material.BOW) {
 				itemstack.addUnsafeEnchantment(Enchantment.WATER_WORKER, 69);
@@ -211,7 +210,8 @@ public class ItemStackBuilder {
 			}
 			meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 		}
-		itemstack.setItemMeta(meta);
+		// Sets the itemMeta
+		itemstack.setItemMeta(DeprecationUtils.setupItemMeta(meta, applyPlaceholders(section.getString("material-meta", ""))));
 		return itemstack;
 	}
 

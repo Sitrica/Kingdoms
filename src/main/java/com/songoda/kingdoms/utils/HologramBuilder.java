@@ -296,7 +296,7 @@ public class HologramBuilder {
 		boolean item = configuration.getBoolean(node + "item.enabled", false);
 		Material material = Utils.materialAttempt(configuration.getString(node + "item.material", "DIAMOND_SWORD"), "DIAMOND_SWORD");
 		ItemStack itemstack = new ItemStack(material);
-		DeprecationUtils.setupItemMeta(itemstack, configuration.getString(node + "item.material-meta", ""));
+		itemstack.setItemMeta(DeprecationUtils.setupItemMeta(itemstack.getItemMeta(), configuration.getString(node + "item.material-meta", "")));
 		if (above && item)
 			hologram.appendItemLine(itemstack);
 		for (String string : configuration.getStringList(node + "lines")) {
@@ -328,7 +328,7 @@ public class HologramBuilder {
 		boolean item = configuration.getBoolean(node + "item.enabled", false);
 		Material material = Utils.materialAttempt(configuration.getString(node + "item.material", "DIAMOND_SWORD"), "DIAMOND_SWORD");
 		ItemStack itemstack = new ItemStack(material);
-		DeprecationUtils.setupItemMeta(itemstack, configuration.getString(node + "item.material-meta", ""));
+		itemstack.setItemMeta(DeprecationUtils.setupItemMeta(itemstack.getItemMeta(), configuration.getString(node + "item.material-meta", "")));
 		if (above && item) {
 			HologramLine line = hologram.getLine(0);
 			if (!(line instanceof ItemLine))

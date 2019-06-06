@@ -31,6 +31,7 @@ public class CommandInfo extends AbstractCommand {
 			if (!find.isPresent()) {
 				new MessageBuilder("commands.info.no-kingdom-found")
 						.setPlaceholderObject(kingdomPlayer)
+						.replace("%kingdom%", name)
 						.send(player);
 				return ReturnType.FAILURE;
 			}

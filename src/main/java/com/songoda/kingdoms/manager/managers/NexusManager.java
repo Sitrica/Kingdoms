@@ -3,6 +3,7 @@ package com.songoda.kingdoms.manager.managers;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
@@ -38,42 +39,34 @@ import org.bukkit.metadata.FixedMetadataValue;
 
 public class NexusManager extends Manager {
 
-	private final Set<KingdomPlayer> placing = new HashSet<>();
 	private final StructureType type = StructureType.NEXUS;
 	private Optional<WorldGuardManager> worldGuardManager;
-	private InventoryManager inventoryManager;
-	private TurretManager turretManager;
-	private PlayerManager playerManager;
-	private LandManager landManager;
+	private final Set<UUID> placing = new HashSet<>();
 
 	public NexusManager() {
-		super("nexus", true);
+		super(true);
 	}
 
 	@Override
 	public void initalize() {
 		this.worldGuardManager = instance.getExternalManager("worldguard", WorldGuardManager.class);
-		this.inventoryManager = instance.getManager("inventory", InventoryManager.class);
-		this.turretManager = instance.getManager("turret", TurretManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.landManager = instance.getManager("land", LandManager.class);
 	}
 
-	public void startNexusSet(KingdomPlayer kingdomPlayer) {
-		placing.add(kingdomPlayer);
+	public void startNexusSet(UUID uuid) {
+		placing.add(uuid);
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onQuit(PlayerQuitEvent event) {
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
-		placing.remove(kingdomPlayer);
+		placing.remove(event.getPlayer().getUniqueId());
 	}
 
 	@EventHandler
 	public void onChunkChange(PlayerChangeChunkEvent event) {
 		Player player = event.getPlayer();
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		if (!placing.contains(kingdomPlayer))
+		UUID uuid = player.getUniqueId();
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
+		if (!placing.contains(uuid))
 			return;
 		new MessageBuilder("kingdoms.nexus-setting-cancelled")
 				.setPlaceholderObject(kingdomPlayer)
@@ -81,13 +74,14 @@ public class NexusManager extends Manager {
 		new MessageBuilder("kingdoms.nexus-setting-cancelled-moved")
 				.setPlaceholderObject(kingdomPlayer)
 				.send(player);
-		placing.remove(kingdomPlayer);
+		placing.remove(uuid);
 	}
 
 	// Part of this is handled in the StructureManager
 	public void onNexusPlace(PlayerInteractEvent event, Block block, Player player, Kingdom kingdom, Land land) {
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		if (!placing.contains(kingdomPlayer))
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
+		UUID uuid = player.getUniqueId();
+		if (!placing.contains(uuid))
 			return;
 		if (worldGuardManager.isPresent())
 			if (!worldGuardManager.get().canBuild(player, block.getLocation())) {
@@ -97,20 +91,20 @@ public class NexusManager extends Manager {
 				return;
 			}
 		//check if replacing with turret
-		if (turretManager.getTurretBlock(block) != TurretBlock.NOT_TURRET) {
+		if (instance.getManager(TurretManager.class).getTurretBlock(block) != TurretBlock.NOT_TURRET) {
 			new MessageBuilder("kingdoms.nexus-cannot-replace")
 					.setPlaceholderObject(kingdomPlayer)
 					.send(player);
 			return;
 		}
-		placing.remove(kingdomPlayer);
+		placing.remove(uuid);
 		NexusPlaceEvent placeEvent = new NexusPlaceEvent(kingdomPlayer, kingdom, block.getLocation(), land);
 		Bukkit.getPluginManager().callEvent(placeEvent);
 		if (placeEvent.isCancelled())
 			return;
 		Location nexus = kingdom.getNexusLocation();
 		if (nexus != null) {
-			Land previousNexus = landManager.getLand(nexus.getChunk());
+			Land previousNexus = instance.getManager(LandManager.class).getLand(nexus.getChunk());
 			NexusMoveEvent move = new NexusMoveEvent(kingdomPlayer, kingdom, block.getLocation(), nexus, land, previousNexus);
 			Bukkit.getPluginManager().callEvent(move);
 			if (move.isCancelled()) {
@@ -158,15 +152,16 @@ public class NexusManager extends Manager {
 		if (action != Action.LEFT_CLICK_AIR && action != Action.LEFT_CLICK_BLOCK)
 			return;
 		Player player = event.getPlayer();
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		UUID uuid = player.getUniqueId();
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null) {
-			placing.remove(kingdomPlayer);
+			placing.remove(uuid);
 			return;
 		}
-		if (!placing.contains(kingdomPlayer))
+		if (!placing.contains(uuid))
 			return;
-		placing.remove(kingdomPlayer);
+		placing.remove(uuid);
 		new MessageBuilder("kingdoms.nexus-setting-cancelled")
 				.setKingdom(kingdom)
 				.send(player);
@@ -192,11 +187,11 @@ public class NexusManager extends Manager {
 		if (!block.hasMetadata(type.getMetaData()))
 			return;
 		Player player = event.getPlayer();
-		KingdomPlayer invader = playerManager.getKingdomPlayer(player);
+		KingdomPlayer invader = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		Kingdom kingdom = invader.getKingdom();
 		if (kingdom == null)
 			return;
-		Land land = landManager.getLand(block.getLocation().getChunk());
+		Land land = instance.getManager(LandManager.class).getLand(block.getLocation().getChunk());
 		Optional<OfflineKingdom> optional = land.getKingdomOwner();
 		if (!optional.isPresent()) {
 			event.setCancelled(true);
@@ -257,7 +252,7 @@ public class NexusManager extends Manager {
 		if (!block.hasMetadata(StructureType.NEXUS.getMetaData()))
 			return;
 		Player player = event.getPlayer();
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		event.setCancelled(true);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null) {
@@ -266,14 +261,14 @@ public class NexusManager extends Manager {
 					.send(player);
 			return;
 		}
-		Land land = landManager.getLand(block.getChunk());
+		Land land = instance.getManager(LandManager.class).getLand(block.getChunk());
 		Optional<OfflineKingdom> optional = land.getKingdomOwner();
 		if (!optional.isPresent()) {
 			block.setType(Material.AIR);
 			return;
 		}
 		OfflineKingdom landKingdom = optional.get();
-		NexusInventory inventory = inventoryManager.getInventory(NexusInventory.class);
+		NexusInventory inventory = instance.getManager(InventoryManager.class).getInventory(NexusInventory.class);
 		if (landKingdom.isAllianceWith(kingdom)) {
 			inventory.openDonateInventory(landKingdom, kingdomPlayer);
 		} else if (landKingdom.equals(kingdom)) {

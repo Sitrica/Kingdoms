@@ -77,8 +77,8 @@ public enum ArsenalItem {
 		if (spacing)
 			lores.add(" ");
 		itemmeta.setLore(lores);
-		itemstack.setItemMeta(itemmeta);
-		return DeprecationUtils.setupItemMeta(itemstack, meta);
+		itemstack.setItemMeta(DeprecationUtils.setupItemMeta(itemmeta, meta));
+		return itemstack;
 	}
 
 }

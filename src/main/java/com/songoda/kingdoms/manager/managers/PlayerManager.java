@@ -168,8 +168,8 @@ public class PlayerManager extends Manager {
 							.setKingdom(kingdom)
 							.send();
 				});
-		users.remove(uuid);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
+		users.remove(uuid);
 		if (kingdom != null)
 			instance.getManager(KingdomManager.class).onPlayerLeave(kingdomPlayer, kingdom);
 	}

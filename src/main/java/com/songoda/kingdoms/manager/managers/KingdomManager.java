@@ -178,7 +178,7 @@ public class KingdomManager extends Manager {
 		instance.getServer().getScheduler().scheduleSyncDelayedTask(instance, () -> {
 			if (kingdom.getOnlinePlayers().isEmpty())
 				kingdoms.remove(kingdom);
-		}, 2);
+		}, 1);
 	}
 
 	/**

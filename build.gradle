@@ -52,7 +52,7 @@ repositories {
 dependencies {
 	
 	// HolographicDisplays
-	implementation (group: 'com.gmail.filoghost.holographicdisplays', name: 'holographicdisplays-plugin', version: '2.3.3-SNAPSHOT') {
+	implementation (group: 'com.gmail.filoghost.holographicdisplays', name: 'holographicdisplays-plugin', version: '2.3.2') {
 		exclude group: 'org.bstats', module: 'bstats-bukkit-lite'
 	}
 	

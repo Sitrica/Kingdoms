@@ -520,11 +520,12 @@ inventories:
             lore:
                 - "&7Go back to the Nexus menu."
     members:
+        title: "&8&lMembers"
         # This inventory has a custom placeholder %gui-format%
         # which copies the 'gui-format' string from the ranks.yml file.
         player-item:
             title: "%gui-format%"
-            material: "PLAYER_SKULL"
+            material: "PLAYER_HEAD"
             material-meta: "%player%"
             lore:
                 - "&7%player%'s current rank is %rankcolor%&l%rank%&7."
