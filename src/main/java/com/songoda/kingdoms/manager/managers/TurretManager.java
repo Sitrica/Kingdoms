@@ -81,7 +81,7 @@ public class TurretManager extends Manager {
 	private LandManager landManager;
 
 	public TurretManager() {
-		super("turret", true);
+		super(true);
 		for (String turret : instance.getConfiguration("turrets").get().getConfigurationSection("turrets.turrets").getKeys(false)) {
 			types.add(new TurretType(turret));
 		}
@@ -95,7 +95,10 @@ public class TurretManager extends Manager {
 		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
-		//instance.getServer().getScheduler().scheduleSyncRepeatingTask(instance, new TurretTask(instance), 0, 5);
+	}
+ 
+	public Set<TurretType> getTypes() {
+		return types;
 	}
 
 	public Optional<TurretType> getTurretTypeByName(String name) {

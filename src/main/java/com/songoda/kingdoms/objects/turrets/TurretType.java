@@ -23,7 +23,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public class TurretType {
-	
+
 	/*
 	HEATBEAM(Kingdoms.getLang().getString("Guis_Turret_Heatbeam"),
 		Kingdoms.getLang().getString("Guis_Turret_Heatbeam_Desc"),
@@ -76,7 +76,7 @@ public class TurretType {
 	private final Material material;
 	private HealthInfo health;
 	private Potions potions;
-	
+
 	public TurretType(String node) {
 		configuration = Kingdoms.getInstance().getConfiguration("turrets").get();
 		ConfigurationSection section = configuration.getConfigurationSection("turrets.turrets." + node);
@@ -121,82 +121,82 @@ public class TurretType {
 		this.meta = item.getString("meta");
 		this.node = node;
 	}
-	
+
 	public ParticleProjectile getParticleProjectile() {
 		return particleProjectile;
 	}
-	
+
 	public SoundPlayer getReloadingSounds() {
 		return reloading;
 	}
-	
+
 	public SoundPlayer getShootingSounds() {
 		return shooting;
 	}
-	
+
 	public SoundPlayer getPlacingSounds() {
 		return placing;
 	}
-	
+
 	public boolean isParticleProjectile() {
 		return particle;
 	}
-	
+
 	public List<String> getDescription() {
 		return description;
 	}
-	
+
 	public Set<TargetType> getTargets() {
 		return targets;
 	}
-	
+
 	public HealthInfo getHealthInfo() {
 		return health;
 	}
-	
+
 	public EntityType getProjectile() {
 		return projectile;
 	}
-	
+
 	/**
 	 * Cooldown is in milliseconds.
 	 */
 	public long getReloadCooldown() {
 		return cooldown * 1000;
 	}
-	
+
 	public Material getMaterial() {
 		return material;
 	}
-	
+
 	public boolean isCritical() {
 		return critical;
 	}
-	
+
 	public int getArrowSpread() {
 		return spread;
 	}
-	
+
 	public Potions getPotions() {
 		return potions;
 	}
-	
+
 	public boolean hasPotions() {
 		return usePotions;
 	}
-	
+
 	public boolean isNatural() {
 		return natural;
 	}
-	
+
 	public boolean isEnabled() {
 		return enabled;
 	}
-	
+
 	public boolean isHealer() {
 		return heal;
 	}
-	
+
 	/*
 	 * Firerate is in milliseconds.
 	 */
@@ -207,11 +207,11 @@ public class TurretType {
 	public String getTitle() {
 		return title;
 	}
-	
+
 	public boolean isFlame() {
 		return flame;
 	}
-	
+
 	public String getDecal() {
 		return decal;
 	}
@@ -219,31 +219,31 @@ public class TurretType {
 	public String getName() {
 		return node;
 	}
-	
+
 	public int getMaximum() {
 		return max;
 	}
-	
+
 	public int getDamage() {
 		return damage;
 	}
-	
+
 	public int getRange() {
 		return range;
 	}
-	
+
 	public int getCost() {
 		return cost;
 	}
-	
+
 	public int getAmmo() {
 		return ammo;
 	}
-	
+
 	public OfflinePlayer getSkullOwner() {
 		return DeprecationUtils.getSkullOwner(skin);
 	}
-	
+
 	public OfflinePlayer getReloadingSkullOwner() {
 		return DeprecationUtils.getSkullOwner(reload);
 	}
@@ -254,7 +254,7 @@ public class TurretType {
 		KINGDOM,
 		ENEMIES;
 	}
-	
+
 	public ItemStack build(OfflineKingdom kingdom, boolean shop) {
 		boolean useDecals = configuration.getBoolean("turrets.decals", false);
 		boolean spacing = configuration.getBoolean("turrets.spacing", false);

@@ -533,4 +533,6 @@ inventories:
                 - "&c&lRight-Click&f To demote their rank."
     structure-shop:
         title: "&8&lStructure Shop"
+    turret-shop:
+        title: "&8&lTurret Shop"
         

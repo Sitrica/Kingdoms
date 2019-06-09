@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.songoda.kingdoms.inventories.MembersMenu;
 import com.songoda.kingdoms.inventories.PermissionsMenu;
 import com.songoda.kingdoms.inventories.StructureShopMenu;
+import com.songoda.kingdoms.inventories.TurretShopMenu;
 import com.songoda.kingdoms.manager.inventories.InventoryManager;
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
 import com.songoda.kingdoms.manager.managers.ChestManager;
@@ -143,7 +144,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(12, turret);
-//TODO		setAction(12, event -> GUIManagement.getTurretGUIManager().openMenu(kingdomPlayer));
+		setAction(player.getUniqueId(), 12, event -> inventoryManager.getInventory(TurretShopMenu.class).open(kingdomPlayer));
 		ItemStack members = new ItemStackBuilder(section.getConfigurationSection("members"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)

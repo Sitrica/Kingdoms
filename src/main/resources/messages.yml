@@ -227,6 +227,9 @@ turrets:
     already-occupied: "&cTurrets need to either be placed on a fence, or have a two block open height to be placed!"
     # Placeholders %amount%, %type% and all Kingdom related
     turret-limit: "&cYou can only place %amount% %type% turrets in one land chunk."
+    cannot-afford: "&cYour Kingdom does not have %cost% resource points to purchase a %turret%&c."
+    inventory-full-purchase: "&cYour inventory is currently full, cancelling purchase of Turret %turret%&c."
+    purchase: "&aYou have just purchased %turret%&a the item has been added to your inventory, click a block in a land you own to place."
 
 # All command releated messages
 commands:
