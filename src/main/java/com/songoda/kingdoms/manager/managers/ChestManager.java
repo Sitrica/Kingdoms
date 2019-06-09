@@ -23,7 +23,7 @@ public class ChestManager extends Manager {
 	private final Map<UUID, KingdomChest> viewing = new HashMap<>();
 
 	public ChestManager() {
-		super("chest", true);
+		super(true);
 		instance.getServer().getPluginManager().registerEvents(new StoreListener(), instance);
 	}
 

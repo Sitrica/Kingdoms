@@ -14,6 +14,7 @@ import com.songoda.kingdoms.events.DefenderTargetEvent;
 import com.songoda.kingdoms.events.DefenderThorEvent;
 import com.songoda.kingdoms.events.InvadingSurrenderEvent;
 import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.managers.LandManager.LandInfo;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
@@ -75,25 +76,22 @@ import java.util.UUID;
 
 public class InvadingManager extends Manager {
 
-	private final Map<OfflineKingdom, DefenderInfo> infos = new HashMap<>();
-	private final Map<KingdomPlayer, Location> defenders = new HashMap<>();
-	private final Map<UUID, OfflineKingdom> entities = new HashMap<>();
-	private final Map<KingdomPlayer, UUID> fighting = new HashMap<>();
+	private final Map<String, DefenderInfo> infos = new HashMap<>(); //Kingdom name, Info
+	private final Map<UUID, Location> defenders = new HashMap<>(); //KingdomPlayer, Start Location
+	private final Map<UUID, String> entities = new HashMap<>(); //KingdomPlayer, Kingdom name
+	private final Map<UUID, UUID> fighting = new HashMap<>(); //KingdomPlayer (Challenger), Entity (Defender)
 	private final Map<UUID, Integer> dragTasks = new HashMap<>();
 	private final Map<UUID, Integer> thorTasks = new HashMap<>();
 	private final Map<UUID, Integer> plowTasks = new HashMap<>();
-	private final Map<Land, UUID> invading = new HashMap<>();
+	private final Map<LandInfo, UUID> invading = new HashMap<>();
 	private Optional<CitizensManager> citizensManager;
 	private final FileConfiguration defenderUpgrades;
 	private final Random random = new Random();
 	private TurretManager turretManager;
-	private PlayerManager playerManager;
-	private GuardsManager guardsManager;
-	private WorldManager worldManager;
 	private LandManager landManager;
 
 	public InvadingManager() {
-		super("invading", true);
+		super(true);
 		this.defenderUpgrades = instance.getConfiguration("defender-upgrades").get();
 	}
 
@@ -101,9 +99,6 @@ public class InvadingManager extends Manager {
 	public void initalize() {
 		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		this.turretManager = instance.getManager("turret", TurretManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.guardsManager = instance.getManager("guards", GuardsManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
 	}
 
@@ -114,15 +109,18 @@ public class InvadingManager extends Manager {
 	 * @return boolean If it's being invaded.
 	 */
 	public boolean isBeingInvaded(Land land) {
-		return invading.containsKey(land);
+		return invading.keySet().parallelStream()
+				.filter(info -> info.equals(land.toInfo()))
+				.findFirst()
+				.isPresent();
 	}
 
 	/**
 	 * Grabs all the land chunks current being invaded and the UUID of the entity defender on the land.
 	 * 
-	 * @return Map<Land, UUID> mapping the land being invaded to the UUID of the defender.
+	 * @return Map<LandInfo, UUID> mapping the land being invaded to the UUID of the defender.
 	 */
-	public Map<Land, UUID> getInvadingChunks() {
+	public Map<LandInfo, UUID> getInvadingChunks() {
 		return invading;
 	}
 
@@ -139,14 +137,14 @@ public class InvadingManager extends Manager {
 	/**
 	 * Grab the defender fighting with the KingdomPlayer.
 	 * 
-	 * @param kingdomPlayer The KingdomPlayer to check.
+	 * @param uuid The uuid of the KingdomPlayer to check.
 	 * @return The defender Entity instance.
 	 */
-	public Optional<Entity> getDefender(KingdomPlayer kingdomPlayer) {
-		UUID uuid = fighting.get(kingdomPlayer);
-		if (uuid == null)
+	public Optional<Entity> getDefender(UUID uuid) {
+		UUID entityUuid = fighting.get(uuid);
+		if (entityUuid == null)
 			return Optional.empty();
-		return Optional.ofNullable(Bukkit.getEntity(uuid));
+		return Optional.ofNullable(Bukkit.getEntity(entityUuid));
 	}
 
 	/**
@@ -156,7 +154,10 @@ public class InvadingManager extends Manager {
 	 * @return owner Optional<OfflineKingdom>
 	 */
 	public Optional<OfflineKingdom> getDefenderOwner(Entity entity) {
-		return Optional.ofNullable(entities.get(entity.getUniqueId()));
+		Optional<String> name = Optional.ofNullable(entities.get(entity.getUniqueId()));
+		if (!name.isPresent())
+			return Optional.empty();
+		return instance.getManager(KingdomManager.class).getOfflineKingdom(name.get());
 	}
 
 	/**
@@ -169,6 +170,9 @@ public class InvadingManager extends Manager {
 		return fighting.entrySet().parallelStream()
 				.filter(entry -> entry.getValue() == entity.getUniqueId())
 				.map(entry -> entry.getKey())
+				.map(uuid -> instance.getManager(PlayerManager.class).getKingdomPlayer(uuid))
+				.filter(optional -> optional.isPresent())
+				.map(optional -> optional.get())
 				.findFirst();
 	}
 
@@ -179,9 +183,9 @@ public class InvadingManager extends Manager {
 	 * @return DefenderInfo
 	 */
 	public DefenderInfo getDefenderInfo(OfflineKingdom kingdom) {
-		return Optional.ofNullable(infos.get(kingdom)).orElseGet(() -> {
+		return Optional.ofNullable(infos.get(kingdom.getName())).orElseGet(() -> {
 			DefenderInfo defenderInfo = new DefenderInfo(kingdom);
-			infos.put(kingdom, defenderInfo);
+			infos.put(kingdom.getName(), defenderInfo);
 			return defenderInfo;
 		});
 	}
@@ -198,13 +202,13 @@ public class InvadingManager extends Manager {
 		Optional<OfflineKingdom> optional = land.getKingdomOwner();
 		if (!optional.isPresent())
 			return null;
+		PlayerManager playerManager = instance.getManager(PlayerManager.class);
 		OfflineKingdom kingdom = optional.get();
-		if (kingdom.isOnline()) {
-			kingdom.getKingdom().getOnlinePlayers().forEach(player -> defenders.put(player, location));
-		}
+		if (kingdom.isOnline())
+			kingdom.getKingdom().getOnlinePlayers().forEach(player -> defenders.put(player.getUniqueId(), location));
 		Player player = challenger.getPlayer();
 		player.setGameMode(GameMode.SURVIVAL);
-		
+
 		// Spawn defender zombie.
 		Zombie defender = (Zombie) location.getWorld().spawnEntity(location, EntityType.ZOMBIE);
 		startChampionCountdown(defender);
@@ -224,13 +228,13 @@ public class InvadingManager extends Manager {
 		defender.getEquipment().setChestplateDropChance(0);
 		DeprecationUtils.setItemInHandDropChance(defender, 0);
 		defender.getEquipment().setHelmet(new ItemStack(helmet));
-		
+
 		UUID uuid = defender.getUniqueId();
 		challenger.setInvadingLand(landManager.new LandInfo(land));
-		fighting.put(challenger, uuid);
-		entities.put(uuid, kingdom);
-		invading.put(land, uuid);
-		
+		fighting.put(challenger.getUniqueId(), uuid);
+		entities.put(uuid, kingdom.getName());
+		invading.put(land.toInfo(), uuid);
+
 		// Start applying upgrades.
 		DefenderInfo info = getDefenderInfo(kingdom);
 		
@@ -247,7 +251,7 @@ public class InvadingManager extends Manager {
 				if (land.equals(nexusLand)) {
 					DeprecationUtils.setMaxHealth(defender, defender.getHealth() + 200);
 					if (kingdom.getMiscUpgrades().hasNexusGuard()) {
-						guardsManager.spawnNexusGuard(location, kingdom, challenger);
+						instance.getManager(GuardsManager.class).spawnNexusGuard(location, kingdom, challenger);
 					}
 				}
 			} else if (structure.getType() == StructureType.POWERCELL) {
@@ -260,7 +264,7 @@ public class InvadingManager extends Manager {
 		if (info.getArmor() > 0)
 			armor.addUnsafeEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, info.getArmor() - 1);
 		defender.getEquipment().setChestplate(armor);
-		
+
 		if (info.getMimic() > 0) {
 			ItemStack item = player.getInventory().getHelmet();
 			if (item == null)
@@ -405,7 +409,7 @@ public class InvadingManager extends Manager {
 	 *
 	 * @param challenger KingdomPlayer challenger.
 	 */
-	public void stopFight(KingdomPlayer challenger) {
+	public void stopFight(UUID challenger) {
 		UUID uuid = fighting.get(challenger);
 		Entity defender = Bukkit.getEntity(uuid);
 		if (defender == null)
@@ -421,9 +425,13 @@ public class InvadingManager extends Manager {
 			Bukkit.getScheduler().cancelTask(plowTask);
 		entities.remove(uuid);
 		fighting.remove(challenger);
-		invading.remove(challenger.getInvadingLand());
-		challenger.setInvadingLand(null);
 		defender.remove();
+		Optional<KingdomPlayer> optional = instance.getManager(PlayerManager.class).getKingdomPlayer(challenger);
+		if (!optional.isPresent())
+			return;
+		KingdomPlayer kingdomPlayer = optional.get();
+		invading.entrySet().removeIf(entry -> entry.getKey().equals(kingdomPlayer.getInvadingLand().toInfo()));
+		kingdomPlayer.setInvadingLand(null);
 	}
 
 	/**
@@ -446,9 +454,9 @@ public class InvadingManager extends Manager {
 		startChampionCountdown(defender);
 		challenger.setInvadingLand(landManager.new LandInfo(land));
 		UUID uuid = defender.getUniqueId();
-		entities.put(uuid, landKingdom);
-		fighting.put(challenger, uuid);
-		invading.put(land, uuid);
+		fighting.put(challenger.getUniqueId(), uuid);
+		entities.put(uuid, landKingdom.getName());
+		invading.put(land.toInfo(), uuid);
 		defender.setTarget(player);
 		return defender;
 	}
@@ -482,30 +490,33 @@ public class InvadingManager extends Manager {
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onChallengerQuit(PlayerQuitEvent event) {
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(event.getPlayer());
-		Optional<Entity> defender = getDefender(kingdomPlayer);
+		Player player = event.getPlayer();
+		UUID uuid = player.getUniqueId();
+		Optional<Entity> defender = getDefender(uuid);
 		if (!defender.isPresent())
 			return;
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		Land land = kingdomPlayer.getInvadingLand();
 		if (land == null)
 			return;
 		Optional<OfflineKingdom> landKingdom = land.getKingdomOwner();
 		if (!landKingdom.isPresent()) {
-			stopFight(kingdomPlayer);
+			stopFight(uuid);
 			return;
 		}
-		stopFight(kingdomPlayer);
+		stopFight(uuid);
 		Bukkit.getPluginManager().callEvent(new InvadingSurrenderEvent(kingdomPlayer, landKingdom.get(), land));
 	}
 
 	@EventHandler
 	public void onChallengerDeath(PlayerDeathEvent event) {
 		Player player = event.getEntity();
+		UUID uuid = player.getUniqueId();
 		if (citizensManager.isPresent())
 			if (citizensManager.get().isCitizen(player))
 				return;
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		Optional<Entity> defender = getDefender(kingdomPlayer);
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
+		Optional<Entity> defender = getDefender(uuid);
 		if (!defender.isPresent())
 			return;
 		Land land = kingdomPlayer.getInvadingLand();
@@ -513,10 +524,10 @@ public class InvadingManager extends Manager {
 			return;
 		Optional<OfflineKingdom> landKingdom = land.getKingdomOwner();
 		if (!landKingdom.isPresent()) {
-			stopFight(kingdomPlayer);
+			stopFight(uuid);
 			return;
 		}
-		stopFight(kingdomPlayer);
+		stopFight(uuid);
 		Bukkit.getPluginManager().callEvent(new InvadingSurrenderEvent(kingdomPlayer, landKingdom.get(), land));
 	}
 
@@ -537,7 +548,7 @@ public class InvadingManager extends Manager {
 		if (citizensManager.isPresent())
 			if (citizensManager.get().isCitizen(entity))
 				return;
-		if (!worldManager.acceptsWorld(entity.getWorld()))
+		if (!instance.getManager(WorldManager.class).acceptsWorld(entity.getWorld()))
 			return;
 		Optional<KingdomPlayer> optional = getDefenderChallenger(entity);
 		if (!optional.isPresent())
@@ -549,7 +560,7 @@ public class InvadingManager extends Manager {
 		Land land = challenger.getInvadingLand();
 		Optional<OfflineKingdom> landKingdom = land.getKingdomOwner();
 		Bukkit.getPluginManager().callEvent(new InvadingSurrenderEvent(challenger, landKingdom.orElse(null), land));
-		stopFight(challenger);
+		stopFight(challenger.getUniqueId());
 		new MessageBuilder("kingdoms.defender-void-death")
 				.setPlaceholderObject(challenger)
 				.setKingdom(landKingdom.isPresent() ? landKingdom.get() : null)
@@ -562,7 +573,7 @@ public class InvadingManager extends Manager {
 		if (citizensManager.isPresent())
 			if (citizensManager.get().isCitizen(entity))
 				return;
-		if (!worldManager.acceptsWorld(entity.getWorld()))
+		if (!instance.getManager(WorldManager.class).acceptsWorld(entity.getWorld()))
 			return;
 		Optional<OfflineKingdom> optional = getDefenderOwner(entity);
 		if (!optional.isPresent())
@@ -572,7 +583,7 @@ public class InvadingManager extends Manager {
 		if (!(attacker instanceof Player))
 			return;
 		Player damager = (Player) attacker;
-		KingdomPlayer challenger = playerManager.getKingdomPlayer(damager);
+		KingdomPlayer challenger = instance.getManager(PlayerManager.class).getKingdomPlayer(damager);
 		Kingdom kingdom = challenger.getKingdom();
 		if (kingdom == null)
 			return;
@@ -597,7 +608,7 @@ public class InvadingManager extends Manager {
 	public void onDefenderTurretDamage(EntityDamageByEntityEvent event) {
 		Entity victim = event.getEntity();
 		World world = event.getEntity().getWorld();
-		if (!worldManager.acceptsWorld(world))
+		if (!instance.getManager(WorldManager.class).acceptsWorld(world))
 			return;
 		Optional<OfflineKingdom> optional = getDefenderOwner(victim);
 		if (!optional.isPresent())
@@ -623,8 +634,9 @@ public class InvadingManager extends Manager {
 	public void onDefenderPotionDamage(PotionSplashEvent event) {
 		Entity victim = event.getHitEntity();
 		World world = victim.getWorld();
-		if (!worldManager.acceptsWorld(world))
+		if (!instance.getManager(WorldManager.class).acceptsWorld(world))
 			return;
+		PlayerManager playerManager = instance.getManager(PlayerManager.class);
 		Iterator<LivingEntity> iterator = event.getAffectedEntities().iterator();
 		while (iterator.hasNext()) {
 			Entity entity = iterator.next();
@@ -653,7 +665,7 @@ public class InvadingManager extends Manager {
 	public void onDefenderDeath(EntityDeathEvent event) {
 		LivingEntity victim = event.getEntity();
 		World world = victim.getWorld();
-		if (!worldManager.acceptsWorld(world))
+		if (!instance.getManager(WorldManager.class).acceptsWorld(world))
 			return;
 		if (citizensManager.isPresent())
 			if (citizensManager.get().isCitizen(victim))
@@ -676,10 +688,10 @@ public class InvadingManager extends Manager {
 			return;
 		Optional<OfflineKingdom> landKingdom = land.getKingdomOwner();
 		if (!landKingdom.isPresent()) {
-			stopFight(challenger);
+			stopFight(challenger.getUniqueId());
 			return;
 		}	
-		stopFight(challenger);
+		stopFight(challenger.getUniqueId());
 		event.getDrops().clear();
 		//TODO Should not be the end of the invasion, should only be a Defender death event.
 		//instance.getServer().getPluginManager().callEvent(new KingdomPlayerWonEvent(challenger, defenderKingdom, land));
@@ -689,24 +701,25 @@ public class InvadingManager extends Manager {
 	public void onDefenderDeathWhileInvade(PlayerDeathEvent event) {
 		Player player = event.getEntity();
 		World world = player.getWorld();
-		if (!worldManager.acceptsWorld(world))
+		if (!instance.getManager(WorldManager.class).acceptsWorld(world))
 			return;
 		if (citizensManager.isPresent())
 			if (citizensManager.get().isCitizen(player))
 				return;
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		if (!getDefender(kingdomPlayer).isPresent())
+		UUID uuid = player.getUniqueId();
+		if (!getDefender(uuid).isPresent())
 			return;
-		stopFight(kingdomPlayer);
+		stopFight(uuid);
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onCommandWhileFight(PlayerCommandPreprocessEvent event) {
 		Player player = event.getPlayer();
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		Optional<Entity> defender = getDefender(kingdomPlayer);
+		UUID uuid = player.getUniqueId();
+		Optional<Entity> defender = getDefender(uuid);
 		if (!defender.isPresent())
 			return;
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		String command = event.getMessage();
 		if (command.equalsIgnoreCase("/k ff") || command.equalsIgnoreCase("/kingdoms ff") || command.equalsIgnoreCase("/kingdom ff")) {
 			if (player.hasPermission("kingdoms.surrender") || player.hasPermission("kingdoms.player"))
@@ -730,7 +743,7 @@ public class InvadingManager extends Manager {
 	public void onTargetChange(EntityTargetLivingEntityEvent event) {
 		Entity entity = event.getEntity();
 		World world = entity.getWorld();
-		if (!worldManager.acceptsWorld(world))
+		if (!instance.getManager(WorldManager.class).acceptsWorld(world))
 			return;
 		if (citizensManager.isPresent())
 			if (citizensManager.get().isCitizen(entity))
@@ -749,7 +762,7 @@ public class InvadingManager extends Manager {
 		if (targetEvent.isCancelled())
 			return;
 		if (target instanceof Player) {
-			KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer((Player) target);
+			KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer((Player) target);
 			Kingdom kingdom = kingdomPlayer.getKingdom();
 			if (kingdom == null)
 				return;
@@ -788,11 +801,12 @@ public class InvadingManager extends Manager {
 	@EventHandler
 	public void onMockPlace(BlockPlaceEvent event) {
 		Player player = event.getPlayer();
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		UUID uuid = player.getUniqueId();
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null)
 			return;
-		Optional<Entity> optional = getDefender(kingdomPlayer);
+		Optional<Entity> optional = getDefender(uuid);
 		if (!optional.isPresent())
 			return;
 		Entity defender = optional.get();
@@ -916,7 +930,7 @@ public class InvadingManager extends Manager {
 			return;
 		Collection<PotionEffect> effects = player.getActivePotionEffects();
 		if (effects.size() > 0) {
-			DefenderFocusEvent focusEvent = new DefenderFocusEvent(defenderKingdom, attacker, playerManager.getKingdomPlayer(player));
+			DefenderFocusEvent focusEvent = new DefenderFocusEvent(defenderKingdom, attacker, instance.getManager(PlayerManager.class).getKingdomPlayer(player));
 			Bukkit.getPluginManager().callEvent(focusEvent);
 			if (focusEvent.isCancelled())
 				return;
@@ -948,7 +962,7 @@ public class InvadingManager extends Manager {
 		if (strength <= 0)
 			return;
 		if (new Random().nextInt(100) <= strength) {
-			DefenderStrengthEvent strengthEvent = new DefenderStrengthEvent(defenderKingdom, attacker, playerManager.getKingdomPlayer(player), strength);
+			DefenderStrengthEvent strengthEvent = new DefenderStrengthEvent(defenderKingdom, attacker, instance.getManager(PlayerManager.class).getKingdomPlayer(player), strength);
 			Bukkit.getPluginManager().callEvent(strengthEvent);
 			if (strengthEvent.isCancelled())
 				return;
@@ -1000,7 +1014,7 @@ public class InvadingManager extends Manager {
 	@Override
 	public void onDisable() {
 		infos.clear(); //TODO save these
-		fighting.keySet().forEach(kingdomPlayer -> stopFight(kingdomPlayer));
+		fighting.keySet().forEach(uuid -> stopFight(uuid));
 		fighting.clear();
 		entities.clear();
 		invading.clear();

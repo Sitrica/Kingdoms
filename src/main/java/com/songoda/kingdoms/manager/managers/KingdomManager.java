@@ -491,7 +491,7 @@ public class KingdomManager extends Manager {
 		if (!worldManager.acceptsWorld(player.getWorld()))
 			return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		Land land = landManager.getLand(kingdomPlayer.getLocation().getChunk());
+		Land land = landManager.getLandAt(kingdomPlayer.getLocation());
 		Optional<OfflineKingdom> optional = land.getKingdomOwner();
 		if (!optional.isPresent())
 			return;

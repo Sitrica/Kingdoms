@@ -20,16 +20,10 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 public class ChatManager extends Manager {
 
 	private final FileConfiguration ranks;
-	private PlayerManager playerManager;
 
 	public ChatManager() {
 		super(true);
 		this.ranks = instance.getConfiguration("ranks").get();
-	}
-
-	@Override
-	public void initalize() {
-		this.playerManager = instance.getManager("player", PlayerManager.class);
 	}
 
 	public enum ChatChannel {
@@ -45,7 +39,7 @@ public class ChatManager extends Manager {
 		Player player = event.getPlayer();
 		if (!instance.getManager(WorldManager.class).acceptsWorld(player.getWorld()))
 			return;
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		if (!kingdomPlayer.hasKingdom())
 			return;
 		Kingdom kingdom = kingdomPlayer.getKingdom();
@@ -104,5 +98,8 @@ public class ChatManager extends Manager {
 
 	@Override
 	public void onDisable() {}
+
+	@Override
+	public void initalize() {}
 
 }

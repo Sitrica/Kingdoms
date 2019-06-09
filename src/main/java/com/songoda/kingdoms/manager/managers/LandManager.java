@@ -259,6 +259,18 @@ public class LandManager extends Manager {
 			return getLand(this);
 		}
 
+		public boolean equals(LandInfo other) {
+			if (other.hasKingdom != hasKingdom)
+				return false;
+			if (!other.world.equalsIgnoreCase(world))
+				return false;
+			if (other.kingdom != null && kingdom != null && !other.kingdom.equalsIgnoreCase(kingdom))
+				return false;
+			if (other.x != x || other.z != z)
+				return false;
+			return true;
+		}
+
 	}
 
 	public LandInfo getInfo(Land land) {
