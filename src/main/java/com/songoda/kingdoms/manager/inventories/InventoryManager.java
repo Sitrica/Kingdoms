@@ -72,12 +72,16 @@ public class InventoryManager extends Manager {
 
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
-		opened.remove(event.getPlayer().getUniqueId());
+		UUID uuid = event.getPlayer().getUniqueId();
+		opened.values().forEach(inventory -> inventory.close(uuid));
+		opened.remove(uuid);
 	}
 
 	@EventHandler
 	public void onInventoryClose(InventoryCloseEvent event) {
-		opened.remove(event.getPlayer().getUniqueId());
+		UUID uuid = event.getPlayer().getUniqueId();
+		opened.values().forEach(inventory -> inventory.close(uuid));
+		opened.remove(uuid);
 	}
 
 	@Override

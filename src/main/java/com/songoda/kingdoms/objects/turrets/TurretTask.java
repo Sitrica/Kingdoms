@@ -17,18 +17,13 @@ import com.songoda.kingdoms.objects.land.Land;
 
 public class TurretTask implements Runnable {
 
-	private final Optional<CitizensManager> citizensManager;
-	private final LandManager landManager;
-
-	public TurretTask(Kingdoms instance) {
-		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
-		this.landManager = instance.getManager("land", LandManager.class);
-	}
-
 	@Override
 	public void run() {
+		Kingdoms instance = Kingdoms.getInstance();
+		LandManager landManager = instance.getManager(LandManager.class);
+		Optional<CitizensManager> citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		for (Player player : Bukkit.getOnlinePlayers()) {
-			WorldManager worldManager = Kingdoms.getInstance().getManager(WorldManager.class);
+			WorldManager worldManager = instance.getManager(WorldManager.class);
 			World world = player.getWorld();
 			if (worldManager.acceptsWorld(world))
 				return;

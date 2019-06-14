@@ -205,7 +205,7 @@ public class TurretType {
 	}
 
 	public String getTitle() {
-		return title;
+		return Formatting.color(title);
 	}
 
 	public boolean isFlame() {

@@ -28,6 +28,7 @@ import com.songoda.kingdoms.inventories.TurretShopMenu;
 import com.songoda.kingdoms.manager.inventories.InventoryManager;
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
 import com.songoda.kingdoms.manager.managers.ChestManager;
+import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.manager.managers.MasswarManager;
 import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
@@ -44,7 +45,7 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class NexusInventory extends StructureInventory implements Listener {
 
-	private final Map<UUID, OfflineKingdom> donations = new HashMap<>();
+	private final Map<UUID, String> donations = new HashMap<>(); //KingdomPlayer, OfflineKingdom
 
 	public NexusInventory() {
 		super(InventoryType.CHEST, "nexus", 27);
@@ -312,7 +313,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 		Player player = kingdomPlayer.getPlayer();
 		Inventory inventory = instance.getServer().createInventory(null, 54, title);
 		player.openInventory(inventory);
-		donations.put(player.getUniqueId(), kingdom);
+		donations.put(player.getUniqueId(), kingdom.getName());
 	}
 
 	private int consumeDonationItems(Inventory inventory, KingdomPlayer kingdomPlayer) {
@@ -434,7 +435,12 @@ public class NexusInventory extends StructureInventory implements Listener {
 				donations.remove(uuid);
 				return;
 			}
-			OfflineKingdom donatingTo = donations.get(uuid);
+			Optional<Kingdom> optional = instance.getManager(KingdomManager.class).getKingdom(donations.get(uuid));
+			if (optional.isPresent()) { //Shouldn't happen.
+				donations.remove(uuid);
+				return;
+			}
+			Kingdom donatingTo = optional.get();
 			donations.remove(uuid);
 			if (kingdom.equals(donatingTo)) {
 				kingdom.addResourcePoints(donated);

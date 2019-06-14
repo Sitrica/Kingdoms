@@ -44,6 +44,7 @@ public abstract class KingdomInventory {
 	}
 
 	public void open(KingdomPlayer kingdomPlayer) {
+		close(kingdomPlayer.getUniqueId());
 		Inventory inventory = createInventory(kingdomPlayer);
 		Inventory built = build(inventory, kingdomPlayer);
 		openInventory(built, kingdomPlayer.getPlayer());

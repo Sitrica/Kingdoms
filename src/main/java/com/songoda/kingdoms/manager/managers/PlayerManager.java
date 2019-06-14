@@ -1,9 +1,8 @@
 package com.songoda.kingdoms.manager.managers;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -28,12 +27,12 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class PlayerManager extends Manager {
 
-	private final Map<UUID, OfflineKingdomPlayer> users = new HashMap<>();
+	private final Set<OfflineKingdomPlayer> users = new HashSet<>();
 	private final Database<OfflineKingdomPlayer> database;
 	private BukkitTask autoSaveThread;
 
 	public PlayerManager() {
-		super( true, "rank");
+		super(true, "rank");
 		String table = configuration.getString("database.player-table", "Players");
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(table, OfflineKingdomPlayer.class);
@@ -41,20 +40,9 @@ public class PlayerManager extends Manager {
 			database = getFileDatabase(table, OfflineKingdomPlayer.class);
 		if (configuration.getBoolean("database.auto-save.enabled", true)) {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
-			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, save, 0, IntervalUtils.getInterval(interval) * 20);
+			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, () -> users.forEach(player -> save(player)), 0, IntervalUtils.getInterval(interval) * 20);
 		}
 	}
-
-	private final Runnable save = new Runnable() {
-		@Override 
-		public void run() {
-			for (Entry<UUID, OfflineKingdomPlayer> entry : users.entrySet()) {
-				OfflineKingdomPlayer player = entry.getValue();
-				Kingdoms.debugMessage("Saving player " + player.getName());
-				database.put(entry.getKey() + "", player);
-			}
-		}
-	};
 
 	public void save(OfflineKingdomPlayer player) {
 		database.put(player.getUniqueId() + "", player);
@@ -70,21 +58,21 @@ public class PlayerManager extends Manager {
 	public KingdomPlayer getKingdomPlayer(Player player) {
 		UUID uuid = player.getUniqueId();
 		Optional<OfflineKingdomPlayer> kingdomPlayer = getOfflineKingdomPlayer(uuid);
-		if (kingdomPlayer.isPresent()) {
-			OfflineKingdomPlayer value = kingdomPlayer.get();
-			return value instanceof KingdomPlayer ? (KingdomPlayer) value : convert(player, value);
+		if (!kingdomPlayer.isPresent()) {
+			Kingdoms.debugMessage("Adding new kingdoms player: " + uuid);
+			KingdomPlayer newPlayer = new KingdomPlayer(player);
+			users.add(newPlayer);
+			save(newPlayer);
+			return newPlayer;
 		}
-		Kingdoms.debugMessage("Adding new kingdoms player: " + uuid);
-		KingdomPlayer newPlayer = new KingdomPlayer(player);
-		users.put(uuid, newPlayer);
-		return newPlayer;
-	}
-
-	private KingdomPlayer convert(Player player, OfflineKingdomPlayer other) {
-		KingdomPlayer kingdomPlayer = new KingdomPlayer(player, other);
-		Kingdoms.debugMessage("Converting kingdom offline player to online player: " + player.getUniqueId());
-		users.put(player.getUniqueId(), kingdomPlayer);
-		return kingdomPlayer;
+		OfflineKingdomPlayer value = kingdomPlayer.get();
+		if (value instanceof KingdomPlayer)
+			return (KingdomPlayer) value;
+		Kingdoms.debugMessage("Converting offline player to online player: " + player.getUniqueId());
+		KingdomPlayer converted = new KingdomPlayer(player, value);
+		users.removeIf(remove -> remove.getUniqueId().equals(uuid));
+		users.add(converted);
+		return converted;
 	}
 
 	public Optional<OfflineKingdomPlayer> getOfflineKingdomPlayer(OfflinePlayer player) {
@@ -92,15 +80,14 @@ public class PlayerManager extends Manager {
 	}
 
 	public Optional<OfflineKingdomPlayer> getOfflineKingdomPlayer(UUID uuid) {
-		return Optional.ofNullable(users.entrySet().parallelStream()
-				.filter(entry -> entry.getKey().equals(uuid))
-				.map(entry -> entry.getValue())
+		return Optional.ofNullable(users.parallelStream()
+				.filter(player -> player.getUniqueId().equals(uuid))
 				.findFirst()
 				.orElseGet(() -> {
 					OfflineKingdomPlayer player = database.get(uuid + "");
 					if (player != null) {
-						Kingdoms.debugMessage("Successfuly fetched data for kingdoms player: " + uuid);
-						users.put(uuid, player);
+						Kingdoms.debugMessage("Successfuly fetched data for kingdom player: " + uuid);
+						users.add(player);
 					}
 					return player; // Null caught by optional ofNullable.
 				}));
@@ -130,48 +117,41 @@ public class PlayerManager extends Manager {
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onRespawn(PlayerRespawnEvent event) {
-		if (configuration.getBoolean("kingdoms.respawn-at-kingdom", false)) {
-			Player player = event.getPlayer();
-			if (instance.getManager(WorldManager.class).acceptsWorld(player.getWorld())) {
-				KingdomPlayer kingdomPlayer = getKingdomPlayer(player);
-				if (kingdomPlayer.getKingdom() != null) {
-					Kingdom kingdom = kingdomPlayer.getKingdom();
-					Location spawn = kingdom.getSpawn();
-					if (spawn != null)
-						event.setRespawnLocation(spawn);
-				}
-			}
-		}
+		if (!configuration.getBoolean("kingdoms.respawn-at-kingdom", false))
+			return;
+		Player player = event.getPlayer();
+		if (!instance.getManager(WorldManager.class).acceptsWorld(player.getWorld()))
+			return;
+		KingdomPlayer kingdomPlayer = getKingdomPlayer(player);
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null)
+			return;
+		Location spawn = kingdom.getSpawn();
+		if (spawn != null)
+			event.setRespawnLocation(spawn);
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onQuit(PlayerQuitEvent event) {
-		Player eventPlayer = event.getPlayer();
-		KingdomPlayer kingdomPlayer = getKingdomPlayer(eventPlayer);
-		UUID uuid = eventPlayer.getUniqueId();
-		users.entrySet().parallelStream()
-				.filter(entry -> entry.getKey().equals(uuid))
-				.map(entry -> entry.getValue())
-				.map(player -> (KingdomPlayer) player)
-				.forEach(player -> {
-					database.put(uuid + "", player);
-					if (player.isVanished())
-						return;
-					Kingdom kingdom = player.getKingdom();
-					if (kingdom == null)
-						return;
-					new MessageBuilder("kingdoms.member-leave")
-							.toKingdomPlayers(kingdom.getOnlinePlayers())
-							.toKingdomPlayers(kingdom.getOnlineAllies())
-							.setPlaceholderObject(player)
-							.ignoreSelf(kingdomPlayer)
-							.setKingdom(kingdom)
-							.send();
-				});
+		Player player = event.getPlayer();
+		UUID uuid = player.getUniqueId();
+		KingdomPlayer kingdomPlayer = getKingdomPlayer(player);
+		database.put(uuid + "", kingdomPlayer);
+		if (kingdomPlayer.isVanished())
+			return;
 		Kingdom kingdom = kingdomPlayer.getKingdom();
-		users.remove(uuid);
+		if (kingdom == null)
+			return;
+		new MessageBuilder("kingdoms.member-leave")
+				.toKingdomPlayers(kingdom.getOnlinePlayers())
+				.toKingdomPlayers(kingdom.getOnlineAllies())
+				.setPlaceholderObject(player)
+				.ignoreSelf(kingdomPlayer)
+				.setKingdom(kingdom)
+				.send();
 		if (kingdom != null)
 			instance.getManager(KingdomManager.class).onPlayerLeave(kingdomPlayer, kingdom);
+		instance.getServer().getScheduler().runTaskLaterAsynchronously(instance, () -> users.removeIf(remove -> remove.getUniqueId().equals(uuid)), 1);
 	}
 
 	@Override
@@ -182,11 +162,10 @@ public class PlayerManager extends Manager {
 			return;
 		Kingdoms.consoleMessage("Saving [" + users.size() + "] loaded players...");
 		try {
-			save.run();
+			users.forEach(player -> save(player));
 			Kingdoms.consoleMessage("Done!");
 		} catch (Exception e) {
-			Kingdoms.consoleMessage("SQL connection failed! Saving to file DB");
-			save.run();
+			Kingdoms.consoleMessage("SQL connection failed!");
 		}
 	}
 
