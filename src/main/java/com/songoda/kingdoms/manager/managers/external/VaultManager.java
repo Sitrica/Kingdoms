@@ -42,6 +42,11 @@ public class VaultManager extends ExternalManager {
 	}
 
 	@Override
+	public boolean isEnabled() {
+		return economy != null;
+	}
+
+	@Override
 	public void onDisable() {}
 
 }

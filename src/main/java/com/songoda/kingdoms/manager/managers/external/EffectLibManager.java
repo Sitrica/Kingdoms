@@ -137,6 +137,11 @@ public class EffectLibManager extends ExternalManager {
 		}
 	}
 
+	@Override
+	public boolean isEnabled() {
+		return true;
+	}
+
 	public EffectManager getEffectManager() {
 		return effectManager;
 	}

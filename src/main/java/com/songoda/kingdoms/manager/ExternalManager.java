@@ -11,7 +11,7 @@ public abstract class ExternalManager implements Listener {
 	protected final FileConfiguration configuration;
 	protected final Kingdoms instance;
 	protected final String name;
-	
+
 	protected ExternalManager(String name, boolean listener) {
 		this.name = name;
 		this.instance = Kingdoms.getInstance();
@@ -19,11 +19,13 @@ public abstract class ExternalManager implements Listener {
 		if (listener)
 			Bukkit.getPluginManager().registerEvents(this, instance);
 	}
-	
+
 	public String getName() {
 		return name;
 	}
-	
+
+	public abstract boolean isEnabled();
+
 	public abstract void onDisable();
 
 }

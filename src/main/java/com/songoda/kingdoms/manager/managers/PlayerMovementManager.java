@@ -1,6 +1,9 @@
 package com.songoda.kingdoms.manager.managers;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -27,6 +30,7 @@ import com.songoda.kingdoms.events.PlayerWaterlogEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 import com.songoda.kingdoms.manager.managers.external.WorldGuardManager;
+import com.songoda.kingdoms.objects.Relation;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
@@ -38,11 +42,10 @@ public class PlayerMovementManager extends Manager {
 
 	private Optional<WorldGuardManager> worldGuardManager;
 	private Optional<CitizensManager> citizensManager;
-	private long spam = System.currentTimeMillis();
+	private Map<UUID, Long> spam = new HashMap<>();
 	private PlayerManager playerManager;
-	private WorldManager worldManager;
 	private LandManager landManager;
-	
+
 	public PlayerMovementManager() {
 		super(true);
 	}
@@ -52,10 +55,13 @@ public class PlayerMovementManager extends Manager {
 		this.worldGuardManager = instance.getExternalManager("worldguard", WorldGuardManager.class);
 		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
+		final long time = IntervalUtils.getInterval(configuration.getString("kingdoms.message-spam-cooldown", "5 seconds"));
+		instance.getServer().getScheduler().runTaskTimerAsynchronously(instance, () -> {
+			spam.entrySet().removeIf(entry -> (System.currentTimeMillis() - entry.getValue()) * 1000 > time);
+		}, 0, 20);
 	}
-	
+
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
@@ -126,13 +132,13 @@ public class PlayerMovementManager extends Manager {
 
 	@EventHandler
 	public void onChunkChange(PlayerMoveEvent event) {
-		Player player = event.getPlayer();
 		Location from = event.getFrom();
 		Location to = event.getTo();
 		Chunk chunkFrom = from.getChunk();
 		Chunk chunkTo = to.getChunk();
 		if (chunkTo.equals(chunkFrom))
 			return;
+		Player player = event.getPlayer();
 		if (configuration.getBoolean("invading.invading-deny-chunk-change", true)) {
 			KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 			if (kingdomPlayer.isInvading()) {
@@ -164,13 +170,12 @@ public class PlayerMovementManager extends Manager {
 	public void onChunkChange(PlayerChangeChunkEvent event) {
 		Player player = event.getPlayer();
 		World world = player.getWorld();
-		if (worldManager.acceptsWorld(world))
+		if (!instance.getManager(WorldManager.class).acceptsWorld(world))
 			return;
 		//TODO add configuration option to ignore or not regions.
 		if (worldGuardManager.isPresent())
 			if (worldGuardManager.get().isInRegion(player.getLocation()))
 				return;
-		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		Chunk chunkFrom = event.getFromChunk();
 		Chunk chunkTo = event.getToChunk();
 		Land landTo = landManager.getLand(chunkTo);
@@ -180,9 +185,11 @@ public class PlayerMovementManager extends Manager {
 			Optional<OfflineKingdom> toOwner = landTo.getKingdomOwner();
 			if (!fromOwner.isPresent() && !toOwner.isPresent())
 				return;
-			else if (toOwner.get().equals(fromOwner.get()))
-				return;
+			else if (fromOwner.isPresent() && toOwner.isPresent())
+				if (toOwner.get().equals(fromOwner.get()))
+					return;
 		}
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		Optional<OfflineKingdom> optional = landTo.getKingdomOwner();
 		if (!optional.isPresent()) {
 			if (configuration.getBoolean("kingdoms.land-enter-unoccupied.actionbar", true))
@@ -194,7 +201,7 @@ public class PlayerMovementManager extends Manager {
 						.sendActionbar(player);
 			if (configuration.getBoolean("kingdoms.message-spam", true)) {
 				long time = IntervalUtils.getInterval(configuration.getString("kingdoms.message-spam-cooldown", "5 seconds"));
-				if ((System.currentTimeMillis() - spam) * 1000 <= time)
+				if ((System.currentTimeMillis() - spam.getOrDefault(player.getUniqueId(), 0L)) * 1000 <= time)
 					return;
 			}
 			if (configuration.getBoolean("kingdoms.land-enter-unoccupied.message", false))
@@ -212,118 +219,101 @@ public class PlayerMovementManager extends Manager {
 						.replace("%world%", world.getName())
 						.fromConfiguration(configuration)
 						.sendTitle(player);
-			spam = System.currentTimeMillis();
+			spam.put(player.getUniqueId(), System.currentTimeMillis());
 			return;
 		}
-		OfflineKingdom kingdom = optional.get();
-		ChatColor color = ChatColor.WHITE;
-		// Player has no Kingdom, so they have no alliances nor enemies.
-		if (kingdomPlayer.getKingdom() == null)
-			color = ChatColor.WHITE;
-		else if (kingdomPlayer.getKingdom().isAllianceWith(kingdom))
-			color = ChatColor.YELLOW;
-		else if (kingdomPlayer.getKingdom().isEnemyWith(kingdom))
-			color = ChatColor.RED;
-		else if (kingdomPlayer.getKingdom().equals(kingdom))
-			color = ChatColor.GREEN;
-		// Player walked into a Kingdom that is neutral to them.
-		if (kingdom.isNeutral() || color == ChatColor.WHITE) {
-			if (configuration.getBoolean("kingdoms.land-enter-neutral.actionbar", true))
-				new MessageBuilder(false, "chunk-changing.neutral-land.actionbar")
-						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
-						.replace("%player%", player.getName())
-						.replace("%world%", world.getName())
-						.setPlaceholderObject(kingdom)
-						.replace("%color%", color)
-						.sendActionbar(player);
-			if (configuration.getBoolean("kingdoms.message-spam", true)) {
-				long time = IntervalUtils.getInterval(configuration.getString("kingdoms.message-spam-cooldown", "5 seconds"));
-				if ((System.currentTimeMillis() - spam) * 1000 <= time)
-					return;
-			}
-			if (configuration.getBoolean("kingdoms.land-enter-neutral.message", false))
-				new MessageBuilder(false, "chunk-changing.neutral-land.message")
-						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
-						.replace("%player%", player.getName())
-						.replace("%world%", world.getName())
-						.setPlaceholderObject(kingdom)
-						.replace("%color%", color)
-						.send(player);
-			if (configuration.getBoolean("kingdoms.land-enter-neutral.title.enabled", true))
-				new MessageBuilder(false, "kingdoms.land-enter-neutral.title")
-						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
-						.replace("%player%", player.getName())
-						.replace("%world%", world.getName())
-						.fromConfiguration(configuration)
-						.setPlaceholderObject(kingdom)
-						.replace("%color%", color)
-						.sendTitle(player);
-			spam = System.currentTimeMillis();
-			return;
-		}
-		if (color == ChatColor.YELLOW) {
-			if (configuration.getBoolean("kingdoms.land-enter-allience.actionbar", true))
-				new MessageBuilder(false, "chunk-changing.allience-land.actionbar")
-						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
-						.replace("%player%", player.getName())
-						.replace("%world%", world.getName())
-						.setPlaceholderObject(kingdom)
-						.replace("%color%", color)
-						.sendActionbar(player);
-			if (configuration.getBoolean("kingdoms.message-spam", true)) {
-				long time = IntervalUtils.getInterval(configuration.getString("kingdoms.message-spam-cooldown", "5 seconds"));
-				if ((System.currentTimeMillis() - spam) * 1000 <= time)
-					return;
-			}
-			if (configuration.getBoolean("kingdoms.land-enter-allience.message", false))
-				new MessageBuilder(false, "chunk-changing.allience-land.message")
-						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
-						.replace("%player%", player.getName())
-						.replace("%world%", world.getName())
-						.setPlaceholderObject(kingdom)
-						.send(player);
-			if (configuration.getBoolean("kingdoms.land-enter-allience.title.enabled", true))
-				new MessageBuilder(false, "kingdoms.land-enter-allience.title")
-						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
-						.replace("%player%", player.getName())
-						.replace("%world%", world.getName())
-						.fromConfiguration(configuration)
-						.setPlaceholderObject(kingdom)
-						.replace("%color%", color)
-						.sendTitle(player);
-			spam = System.currentTimeMillis();
-			return;
-		}
-		if (configuration.getBoolean("kingdoms.land-enter-enemy.actionbar", true))
-			new MessageBuilder(false, "chunk-changing.enemy-land.actionbar")
-					.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
-					.replace("%player%", player.getName())
-					.replace("%world%", world.getName())
-					.setPlaceholderObject(kingdom)
-					.replace("%color%", color)
-					.sendActionbar(player);
 		if (configuration.getBoolean("kingdoms.message-spam", true)) {
 			long time = IntervalUtils.getInterval(configuration.getString("kingdoms.message-spam-cooldown", "5 seconds"));
-			if ((System.currentTimeMillis() - spam) * 1000 <= time)
+			if ((System.currentTimeMillis() - spam.getOrDefault(player.getUniqueId(), 0L)) * 1000 <= time)
 				return;
 		}
-		if (configuration.getBoolean("kingdoms.land-enter-enemy.message", false))
-			new MessageBuilder(false, "chunk-changing.enemy-land.message")
-					.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
-					.replace("%player%", player.getName())
-					.replace("%world%", world.getName())
-					.setPlaceholderObject(kingdom)
-					.send(player);
-		if (configuration.getBoolean("kingdoms.land-enter-enemy.title.enabled", true))
-			new MessageBuilder(false, "kingdoms.land-enter-enemy.title")
-					.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
-					.replace("%player%", player.getName())
-					.replace("%world%", world.getName())
-					.fromConfiguration(configuration)
-					.setPlaceholderObject(kingdom)
-					.replace("%color%", color)
-					.sendTitle(player);
-		spam = System.currentTimeMillis();
+		OfflineKingdom kingdom = optional.get();
+		Relation relation = Relation.getRelation(kingdom, kingdomPlayer.getKingdom());
+		ChatColor color = relation.getColor();
+		switch (relation) {
+			case ALLIANCE:
+				if (configuration.getBoolean("kingdoms.land-enter-allience.actionbar", true))
+					new MessageBuilder(false, "chunk-changing.allience-land.actionbar")
+							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
+							.replace("%player%", player.getName())
+							.replace("%world%", world.getName())
+							.setPlaceholderObject(kingdom)
+							.replace("%color%", color)
+							.sendActionbar(player);
+				if (configuration.getBoolean("kingdoms.land-enter-allience.message", false))
+					new MessageBuilder(false, "chunk-changing.allience-land.message")
+							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
+							.replace("%player%", player.getName())
+							.replace("%world%", world.getName())
+							.setPlaceholderObject(kingdom)
+							.send(player);
+				if (configuration.getBoolean("kingdoms.land-enter-allience.title.enabled", true))
+					new MessageBuilder(false, "kingdoms.land-enter-allience.title")
+							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
+							.replace("%player%", player.getName())
+							.replace("%world%", world.getName())
+							.fromConfiguration(configuration)
+							.setPlaceholderObject(kingdom)
+							.replace("%color%", color)
+							.sendTitle(player);
+				break;
+			case ENEMY:
+				if (configuration.getBoolean("kingdoms.land-enter-enemy.actionbar", true))
+					new MessageBuilder(false, "chunk-changing.enemy-land.actionbar")
+							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
+							.replace("%player%", player.getName())
+							.replace("%world%", world.getName())
+							.setPlaceholderObject(kingdom)
+							.replace("%color%", color)
+							.sendActionbar(player);
+				if (configuration.getBoolean("kingdoms.land-enter-enemy.message", false))
+					new MessageBuilder(false, "chunk-changing.enemy-land.message")
+							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
+							.replace("%player%", player.getName())
+							.replace("%world%", world.getName())
+							.setPlaceholderObject(kingdom)
+							.send(player);
+				if (configuration.getBoolean("kingdoms.land-enter-enemy.title.enabled", true))
+					new MessageBuilder(false, "kingdoms.land-enter-enemy.title")
+							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
+							.replace("%player%", player.getName())
+							.replace("%world%", world.getName())
+							.fromConfiguration(configuration)
+							.setPlaceholderObject(kingdom)
+							.replace("%color%", color)
+							.sendTitle(player);
+				break;
+			case NEUTRAL:
+				if (configuration.getBoolean("kingdoms.land-enter-neutral.actionbar", true))
+					new MessageBuilder(false, "chunk-changing.neutral-land.actionbar")
+							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
+							.replace("%player%", player.getName())
+							.replace("%world%", world.getName())
+							.setPlaceholderObject(kingdom)
+							.replace("%color%", color)
+							.sendActionbar(player);
+				if (configuration.getBoolean("kingdoms.land-enter-neutral.message", false))
+					new MessageBuilder(false, "chunk-changing.neutral-land.message")
+							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
+							.replace("%player%", player.getName())
+							.replace("%world%", world.getName())
+							.setPlaceholderObject(kingdom)
+							.replace("%color%", color)
+							.send(player);
+				if (configuration.getBoolean("kingdoms.land-enter-neutral.title.enabled", true))
+					new MessageBuilder(false, "kingdoms.land-enter-neutral.title")
+							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
+							.replace("%player%", player.getName())
+							.replace("%world%", world.getName())
+							.fromConfiguration(configuration)
+							.setPlaceholderObject(kingdom)
+							.replace("%color%", color)
+							.sendTitle(player);
+				break;
+			case OWN:
+				return;
+		}
+		spam.put(player.getUniqueId(), System.currentTimeMillis());
 		return;
 	}
 

@@ -65,8 +65,11 @@ public class ManagerHandler {
 	@SuppressWarnings("unchecked")
 	public <T extends ExternalManager> Optional<T> getExternalManager(String name) {
 		for (ExternalManager manager : externalManagers) {
-			if (manager.getName().equalsIgnoreCase(name))
+			if (manager.getName().equalsIgnoreCase(name)) {
+				if (!manager.isEnabled())
+					continue;
 				return (Optional<T>) Optional.of(manager);
+			}
 		}
 		return Optional.empty();
 	}

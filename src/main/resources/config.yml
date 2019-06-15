@@ -323,6 +323,12 @@ kingdoms:
             fadeOut: 20
             fadeIn: 20
             stay: 200
+    relations:
+        colors:
+            alliance: "GREEN"
+            neutral: "WHITE"
+            enemy: "RED"
+            own: "YELLOW"
     # Users can use %newline% or %nl% to make line breaks in their Kingdom lores.
     # This limits how many new lines they're allowed. The more lines the longer the chat message can be.
     new-lines: 4

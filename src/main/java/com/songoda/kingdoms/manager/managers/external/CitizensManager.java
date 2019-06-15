@@ -30,6 +30,11 @@ public class CitizensManager extends ExternalManager {
 	}
 
 	@Override
+	public boolean isEnabled() {
+		return citizens != null;
+	}
+
+	@Override
 	public void onDisable() {}
 
 }

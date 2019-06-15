@@ -25,6 +25,7 @@ public class HolographicDisplaysManager extends ExternalManager {
 	/**
 	 * @return boolean if HolographicDisplays is enabled.
 	 */
+	@Override
 	public boolean isEnabled() {
 		return holographic != null;
 	}

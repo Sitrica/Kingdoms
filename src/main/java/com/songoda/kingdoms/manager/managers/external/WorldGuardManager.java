@@ -52,6 +52,11 @@ public class WorldGuardManager extends ExternalManager implements WorldGuardKing
 	}
 
 	@Override
+	public boolean isEnabled() {
+		return worldGuard != null;
+	}
+
+	@Override
 	public void onDisable() {}
 
 }

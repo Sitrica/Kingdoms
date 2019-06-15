@@ -52,6 +52,11 @@ public class DynmapManager extends ExternalManager {
 		server.getScheduler().runTaskTimerAsynchronously(instance, () -> landManager.getLoadedLand().forEach(entry -> consumer.accept(entry.getKey())), 0, 20);
 	}
 
+	@Override
+	public boolean isEnabled() {
+		return dynmap != null;
+	}
+
 	public void update(Chunk chunk) {
 		instance.getServer().getScheduler().runTaskAsynchronously(instance, () -> consumer.accept(chunk));
 	}
