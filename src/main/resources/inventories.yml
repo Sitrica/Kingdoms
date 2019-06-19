@@ -49,6 +49,21 @@ confirm:
         material-meta: ""
         glowing: true
 
+search:
+    search-item:
+        title: "Search..."
+        material: "PAPER"
+        glowing: true
+    accept:
+        title: "&a&lAccept"
+        material: "EMERALD_BLOCK"
+        material-meta: ""
+        glowing: true
+    cancel:
+        title: "&c&lCancel"
+        material: "REDSTONE_BLOCK"
+        glowing: true
+
 # All configurations relating to structures.
 inventories:
     confirmation:
@@ -535,4 +550,105 @@ inventories:
         title: "&8&lStructure Shop"
     turret-shop:
         title: "&8&lTurret Shop"
-        
+    list:
+        main:
+            title: "&8&lList Kingdoms"
+            # The item before clicking the all Kingdoms sorted by online state.
+            all:
+                title: "&6&lView all Kingdoms"
+                material: "BEACON"
+                lore:
+                    - "&7View all Kingdoms sorted by online state."
+            # All Kingdoms in a radius around the player's current location.
+            # %radius% is the 'commands.list-command-radius' configuration node in the config.yml
+            nearby:
+                title: "&6&lKingdoms in Radius"
+                material: "COMPASS"
+                lore:
+                    - "&7View all Kingdoms in a %radius% radius around you."
+                    - "&7Sorted by closest Kingdom to you."
+            # All Kingdoms sorted by the most powerful Kingdom.
+            powerful:
+                title: "&6&lPowerful Kingdoms"
+                material: "DIAMOND_BLOCK"
+                lore:
+                    - "&7View all Kingdoms in a %radius% block radius around you."
+                    - "&7Sorted by closest Kingdom to you."
+            # All Kingdoms sorted by the most powerful Kingdom.
+            alphabetical:
+                title: "&6&lAlphabetical Kingdoms"
+                material: "BOOKSHELF"
+                lore:
+                    - "&7View all Kingdoms in alphabetical order."
+            # All Kingdoms sorted by the most powerful Kingdom.
+            search:
+                title: "&6&lSearch Kingdoms"
+                material: "PAPER"
+                lore:
+                    - "&7Search for a Kingdoms name."
+        all:
+            title: "&8&lAll Kingdoms"
+            item:
+                title: "&6&l%kingdom% %online-state%"
+                material: "BEACON"
+                lore:
+                    - "&dDescription: &7%description%"
+                    - "&cEnemies: &7%enemies%"
+                    - "&aAllies: &7%allies%"
+                    - "&dOwner: &7%owner%"
+                    - "&dNeutral: &7%neutral%"
+                    - "&dResource points: &e%resourcepoints%"
+                    - "&dMembers: &a%onlinecount%&7/&7%offlinecount%&7/&c%maxmembers%"
+                    - "&dClaims: &a%claims%&7/&c%maxclaims%"
+                    - "&dMembers: %members%"
+        nearby:
+            title: "&8&lNearby Kingdoms"
+            greater: ">%max%"
+            decimal-format: "###.##"
+            item:
+                title: "&6&l%kingdom%"
+                material: "BEACON"
+                lore:
+                    - "&6Distance: &e%distance%"
+                    - "&dOnline state: %online-state%"
+                    - "&dDescription: &7%description%"
+                    - "&cEnemies: &7%enemies%"
+                    - "&aAllies: &7%allies%"
+                    - "&dOwner: &7%owner%"
+                    - "&dNeutral: &7%neutral%"
+                    - "&dResource points: &e%resourcepoints%"
+                    - "&dMembers: &a%onlinecount%&7/&7%offlinecount%&7/&c%maxmembers%"
+                    - "&dClaims: &a%claims%&7/&c%maxclaims%"
+                    - "&dMembers: %members%"
+        powerful:
+            title: "&8&lPowerful Kingdoms"
+            item:
+                title: "&6&l%kingdom% &6(&e%resourcepoints% &6resource points)"
+                material: "BEACON"
+                lore:
+                    - "&dOnline state: %online-state%"
+                    - "&dDescription: &7%description%"
+                    - "&cEnemies: &7%enemies%"
+                    - "&aAllies: &7%allies%"
+                    - "&dOwner: &7%owner%"
+                    - "&dNeutral: &7%neutral%"
+                    - "&dResource points: &e%resourcepoints%"
+                    - "&dMembers: &a%onlinecount%&7/&7%offlinecount%&7/&c%maxmembers%"
+                    - "&dClaims: &a%claims%&7/&c%maxclaims%"
+                    - "&dMembers: %members%"
+        alphabetical:
+            title: "&8&lKingdoms"
+            item:
+                title: "&6&l%kingdom%"
+                material: "BEACON"
+                lore:
+                    - "&dOnline state: %online-state%"
+                    - "&dDescription: &7%description%"
+                    - "&cEnemies: &7%enemies%"
+                    - "&aAllies: &7%allies%"
+                    - "&dOwner: &7%owner%"
+                    - "&dNeutral: &7%neutral%"
+                    - "&dResource points: &e%resourcepoints%"
+                    - "&dMembers: &a%onlinecount%&7/&7%offlinecount%&7/&c%maxmembers%"
+                    - "&dClaims: &a%claims%&7/&c%maxclaims%"
+                    - "&dMembers: %members%"

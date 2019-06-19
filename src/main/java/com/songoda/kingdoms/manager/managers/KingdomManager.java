@@ -9,6 +9,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
@@ -92,6 +93,15 @@ public class KingdomManager extends Manager {
 	 */
 	public Set<OfflineKingdom> getKingdoms() {
 		return kingdoms;
+	}
+
+	public Set<OfflineKingdom> getAllKingdoms() {
+		database.getKeys().parallelStream().forEach(name -> Kingdoms.debugMessage(name));
+		return database.getKeys().parallelStream()
+				.map(name -> getOfflineKingdom(name))
+				.filter(kingdom -> kingdom.isPresent())
+				.map(optional -> optional.get())
+				.collect(Collectors.toSet());
 	}
 
 	/**

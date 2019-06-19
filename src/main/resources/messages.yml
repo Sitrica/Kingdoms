@@ -105,6 +105,8 @@ structures:
 
 # All messages relating to Kingdoms.
 kingdoms:
+    online: "&a&lONLINE"
+    offline: "&c&lOFFLINE"
     deleted: "&eYour Kingdom &l%kingdom%&e has been disbanded."
     no-kingdom: "&cYou are not apart of any Kingdom!"
     cannot-attack-members: "&cYou can't attack your own kingdom members!"
@@ -315,6 +317,9 @@ commands:
             - "&dClaims: &a%claims%&7/&c%maxclaims%"
             - "&d%members%"
             - ""
+    list:
+        description: "View all Kingdoms."
+        syntax: "/k list"
     disband:
         # Placeholders: All KingdomPlayer placeholders.
         description: "Disband the Kingdom."

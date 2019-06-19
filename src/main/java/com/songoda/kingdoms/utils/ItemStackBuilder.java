@@ -117,6 +117,8 @@ public class ItemStackBuilder {
 	 * @return The ItemStackBuilder for chaining.
 	 */
 	public ItemStackBuilder glowingIf(Supplier<Boolean> glowing) {
+		if (!section.getBoolean("glowing", true))
+			return this;
 		this.glowing = glowing.get();
 		return this;
 	}

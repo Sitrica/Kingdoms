@@ -19,19 +19,13 @@ import com.songoda.kingdoms.objects.player.KingdomPlayer;
 public class ConfirmationManager extends Manager {
 
 	private final Map<UUID, Consumer<Boolean>> waiting = new HashMap<>();
-	private InventoryManager inventoryManager;
 
 	public ConfirmationManager() {
 		super(true);
 	}
 
-	@Override
-	public void initalize() {
-		this.inventoryManager = instance.getManager(InventoryManager.class);
-	}
-
 	public void openConfirmation(KingdomPlayer kingdomPlayer, Consumer<Boolean> consumer) {
-		inventoryManager.getInventory(ConfirmationMenu.class).open(kingdomPlayer);
+		instance.getManager(InventoryManager.class).getInventory(ConfirmationMenu.class).open(kingdomPlayer);
 		waiting.put(kingdomPlayer.getPlayer().getUniqueId(), consumer);
 	}
 
@@ -65,5 +59,8 @@ public class ConfirmationManager extends Manager {
 	public void onDisable() {
 		waiting.clear();
 	}
+
+	@Override
+	public void initalize() {}
 
 }

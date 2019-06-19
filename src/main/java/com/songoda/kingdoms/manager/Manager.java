@@ -75,7 +75,7 @@ public abstract class Manager implements Listener, Comparable<Manager> {
 		Database<T> database = null;
 		try {
 			database = new MySQLDatabase<>(address, name, table, user, password, type);
-			Kingdoms.consoleMessage("MySQL connection " + address + " was a success!");
+			Kingdoms.debugMessage("MySQL connection " + address + " was a success!");
 			databases.put(type, (MySQLDatabase<?>) database);
 			if (configuration.getBoolean("database.transfer.mysql", false)) {
 				TransferPair<T> transfer = new TransferPair<T>(database, getFileDatabase(table, type));
@@ -103,7 +103,7 @@ public abstract class Manager implements Listener, Comparable<Manager> {
 		try {
 			//TODO make a database that reads db.db SQLite database if it exists and convert that old data.
 			database = new H2Database<>(table, type);
-			Kingdoms.consoleMessage("Using H2 database for " + type.getSimpleName() + " data");
+			Kingdoms.debugMessage("Using H2 database for " + type.getSimpleName() + " data");
 			databases.put(type, database);
 		} catch (ClassNotFoundException | SQLException e) {
 			Kingdoms.consoleMessage("H2 failed...");

@@ -17,7 +17,7 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 public class CommandLeave extends AbstractCommand {
 
 	public CommandLeave() {
-		super(false, "leave", "part", "l");
+		super(false, "leave", "part");
 	}
 
 	@Override

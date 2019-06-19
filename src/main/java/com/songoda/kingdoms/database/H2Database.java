@@ -112,18 +112,16 @@ public class H2Database<T> extends Database<T> {
 
 	public Set<String> getKeys() {
 		Set<String> tempset = new HashSet<>();
-		new Thread(() -> {
-			try {
-				PreparedStatement statement = connection.prepareStatement("SELECT `id` FROM %table;".replace("%table", tablename));
-				ResultSet result = statement.executeQuery();
-				while (result.next())
-					tempset.add(result.getString("id"));
-				result.close();
-				statement.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}).start();
+		try {
+			PreparedStatement statement = connection.prepareStatement("SELECT `id` FROM %table;".replace("%table", tablename));
+			ResultSet result = statement.executeQuery();
+			while (result.next())
+				tempset.add(result.getString("id"));
+			result.close();
+			statement.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return tempset;
 	}
 

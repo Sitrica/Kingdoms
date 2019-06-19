@@ -480,6 +480,9 @@ invading:
 commands:
     # If the command or arguments contains a string, cancel it.
     contains: false
+    list-command-radius: 150
+    # If the player's own Kingdom will be visible in the '/k list' command guis'.
+    list-command-contains-own: true
     denied-in-neutral:
         - "/example"
         - "/example1"

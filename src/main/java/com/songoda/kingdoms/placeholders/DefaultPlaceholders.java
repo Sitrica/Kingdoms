@@ -17,6 +17,7 @@ import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.LocationUtils;
+import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class DefaultPlaceholders {
 
@@ -81,6 +82,18 @@ public class DefaultPlaceholders {
 			@Override
 			public String replace(OfflineKingdom kingdom) {
 				return kingdom.getResourcePoints() + "";
+			}
+		});
+		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%online-state%", "%online%") {
+			@Override
+			public String replace(OfflineKingdom kingdom) {
+				if (kingdom.isOnline())
+					return new MessageBuilder(false, "kingdoms.online")
+							.setKingdom(kingdom)
+							.get();
+				return new MessageBuilder(false, "kingdoms.offline")
+						.setKingdom(kingdom)
+						.get();
 			}
 		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%description%", "%lore%") {

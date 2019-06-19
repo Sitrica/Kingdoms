@@ -179,8 +179,10 @@ public class StructureManager extends Manager {
 
 	@EventHandler
 	public void onAnvilRenameStructure(InventoryClickEvent event) {
-		Inventory inventory = event.getInventory();
+		Inventory inventory = event.getClickedInventory();
 		if (inventory.getType() != InventoryType.ANVIL)
+			return;
+		if (!(inventory instanceof AnvilInventory))
 			return;
 		AnvilInventory anvil = (AnvilInventory) inventory;
 		Bukkit.getScheduler().runTaskLater(instance, new Runnable(){

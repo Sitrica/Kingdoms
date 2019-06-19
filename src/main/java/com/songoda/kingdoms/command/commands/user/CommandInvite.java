@@ -66,8 +66,8 @@ public class CommandInvite extends AbstractCommand {
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		KingdomPlayer target = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
-		if (target.getKingdom() != null){
+		KingdomPlayer target = instance.getManager(PlayerManager.class).getKingdomPlayer(find);
+		if (target.getKingdom() != null) {
 			new MessageBuilder("commands.invite.player-in-another-kingdom")
 					.setPlaceholderObject(kingdomPlayer)
 					.replace("%input%", name)

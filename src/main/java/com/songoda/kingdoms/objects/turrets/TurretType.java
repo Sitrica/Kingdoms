@@ -273,7 +273,7 @@ public class TurretType {
 				.get());
 		lores.add(new MessageBuilder(false, "turrets.formats.damage")
 				.fromConfiguration(configuration)
-				.replace("%range%", damage)
+				.replace("%damage%", damage)
 				.get());
 		lores.add(new MessageBuilder(false, "turrets.formats.rate")
 				.fromConfiguration(configuration)
