@@ -226,7 +226,10 @@ public class RankManager extends Manager {
 					builder.append(", ");
 				});
 		String string = builder.toString();
-		return string.substring(0, string.lastIndexOf(", "));
+		int index = string.lastIndexOf(", ");
+		if (index <= 0)
+			return string;
+		return string.substring(0, index);
 	}
 
 	public Rank getDefaultRank() {

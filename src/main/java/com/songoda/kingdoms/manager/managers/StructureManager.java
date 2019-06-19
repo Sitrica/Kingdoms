@@ -45,6 +45,7 @@ import com.songoda.kingdoms.inventories.structures.SiegeEngineInventory;
 import com.songoda.kingdoms.inventories.structures.WarppadInventory;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.inventories.InventoryManager;
+import com.songoda.kingdoms.manager.managers.LandManager.LandInfo;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
@@ -63,7 +64,7 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class StructureManager extends Manager {
 
-	private final Queue<Land> loadQueue = new LinkedList<Land>();
+	private final Queue<LandInfo> loadQueue = new LinkedList<LandInfo>();
 	private InventoryManager inventoryManager;
 	private PlayerManager playerManager;
 	private WorldManager worldManager;
@@ -72,15 +73,16 @@ public class StructureManager extends Manager {
 	private final BukkitTask task;
 
 	public StructureManager() {
-		super("structure", true);
-		task = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
+		super(true);
+		task = Bukkit.getScheduler().runTaskTimer(instance, new Runnable() {
 			@Override
 			public void run() {
 				if (loadQueue.isEmpty())
 					return;
-				Land land = loadQueue.poll();
-				if (land == null)
+				LandInfo info = loadQueue.poll();
+				if (info == null)
 					return;
+				Land land = info.get();
 				Structure structure = land.getStructure();
 				if (structure == null)
 					return;
@@ -180,6 +182,8 @@ public class StructureManager extends Manager {
 	@EventHandler
 	public void onAnvilRenameStructure(InventoryClickEvent event) {
 		Inventory inventory = event.getClickedInventory();
+		if (inventory == null)
+			return;
 		if (inventory.getType() != InventoryType.ANVIL)
 			return;
 		if (!(inventory instanceof AnvilInventory))
@@ -548,7 +552,7 @@ public class StructureManager extends Manager {
 
 	@EventHandler
 	public void onLandLoad(LandLoadEvent event) {
-		loadQueue.add(event.getLand());
+		loadQueue.add(event.getLand().toInfo());
 	}
 
 	@Override

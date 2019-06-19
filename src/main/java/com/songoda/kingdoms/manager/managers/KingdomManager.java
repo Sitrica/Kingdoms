@@ -2,6 +2,7 @@ package com.songoda.kingdoms.manager.managers;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -78,9 +79,13 @@ public class KingdomManager extends Manager {
 		@Override 
 		public void run() {
 			CooldownManager cooldowns = instance.getManager(CooldownManager.class);
-			for (OfflineKingdom kingdom : kingdoms) {
-				if (kingdom.getMembers().isEmpty()) {
-					deleteKingdom(kingdom.getName());
+			Iterator<OfflineKingdom> iterator = kingdoms.iterator();
+			while (iterator.hasNext()) {
+				OfflineKingdom kingdom = iterator.next();
+				// Checks and deletes if a Kigndom is empty and also makes sure the server isn't shutting down.
+				if (kingdom.getMembers().isEmpty() && !autoSaveThread.isCancelled()) {
+					iterator.remove();
+					instance.getServer().getScheduler().runTask(instance, () -> deleteKingdom(kingdom.getName()));
 					continue;
 				}
 				String name = kingdom.getName();
@@ -100,7 +105,6 @@ public class KingdomManager extends Manager {
 	}
 
 	public Set<OfflineKingdom> getOfflineKingdoms() {
-		database.getKeys().parallelStream().forEach(name -> Kingdoms.debugMessage(name));
 		return database.getKeys().parallelStream()
 				.map(name -> getOfflineKingdom(name))
 				.filter(kingdom -> kingdom.isPresent())
@@ -182,7 +186,7 @@ public class KingdomManager extends Manager {
 			}
 			updateUpgrades(kingdom);
 			kingdoms.add(kingdom);
-			Bukkit.getPluginManager().callEvent(new KingdomLoadEvent(kingdom));
+			instance.getServer().getScheduler().runTask(instance, () -> Bukkit.getPluginManager().callEvent(new KingdomLoadEvent(kingdom)));
 		}
 		return kingdom;
 	}
@@ -229,8 +233,7 @@ public class KingdomManager extends Manager {
 	public boolean deleteKingdom(String name) {
 		if (name == null)
 			return false;
-		kingdoms.stream()
-				.filter(kingdom -> kingdom.getName().equalsIgnoreCase(name))
+		kingdoms.stream().filter(kingdom -> kingdom.getName().equalsIgnoreCase(name))
 				.forEach(kingdom -> {
 					database.delete(kingdom.getName());
 					OfflineKingdomPlayer owner = kingdom.getOwner();

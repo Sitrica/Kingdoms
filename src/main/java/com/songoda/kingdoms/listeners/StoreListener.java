@@ -76,7 +76,10 @@ public class StoreListener implements Listener {
 	public void onStore(InventoryClickEvent event) {
 		InventoryAction action = event.getAction();
 		Player player = (Player) event.getWhoClicked();
-		InventoryType type = event.getClickedInventory().getType();
+		Inventory inventory = event.getClickedInventory();
+		if (inventory == null)
+			return;
+		InventoryType type = inventory.getType();
 		ItemStack cursor = event.getCursor().clone();
 		if (check(action, InventoryAction.PLACE_ONE, InventoryAction.PLACE_SOME, InventoryAction.PLACE_ALL, InventoryAction.SWAP_WITH_CURSOR)) {
 			if (!isAcceptableInventory(type))

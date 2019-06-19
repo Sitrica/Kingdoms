@@ -129,6 +129,9 @@ public class DefaultPlaceholders {
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%members%") {
 			@Override
 			public String replace(OfflineKingdom kingdom) {
+				Set<OfflineKingdomPlayer> members = kingdom.getMembers();
+				if (members.isEmpty())
+					return "";
 				return rankManager.list(kingdom.getMembers());
 			}
 		});

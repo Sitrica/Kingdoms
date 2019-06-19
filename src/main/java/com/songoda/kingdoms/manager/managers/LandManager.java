@@ -180,36 +180,29 @@ public class LandManager extends Manager {
 	};
 
 	private void initLands() {
-		database.delete("LandData");
-		Set<String> keys = database.getKeys();
-		if (keys.isEmpty())
-			return;
-		for (String name : keys) {
-			// Old data
-			if (name.equals("LandData") || name.endsWith("_temp"))
-				continue;
-			Kingdoms.debugMessage("Loading land: " + name);
-			try{
-				Land land = database.get(name);
-				Chunk chunk = LocationUtils.stringToChunk(name);
-				if (chunk == null)
-					continue;
-				Optional<OfflineKingdom> kingdom = land.getKingdomOwner();
-				if (kingdom.isPresent()) {
+		instance.getServer().getScheduler().runTaskAsynchronously(instance, () -> {
+			long total = database.getKeys().parallelStream().map(name -> {
+				Kingdoms.debugMessage("Loading land: " + name);
+				try {
+					Land land = database.get(name);
+					Chunk chunk = LocationUtils.stringToChunk(name);
+					if (chunk == null)
+						return null;
+					if (!land.hasOwner())
+						Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
+					LandLoadEvent event = new LandLoadEvent(land);
+					Bukkit.getPluginManager().callEvent(new LandLoadEvent(land));
+					if (!!event.isCancelled() && !lands.containsKey(chunk))
+						lands.put(chunk, land);
+				} catch (Exception e) {
 					Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
-					Kingdoms.consoleMessage("The land owner is [" + kingdom.get().getName() + "] but no such kingdom with the name exists");
+					if (instance.getConfig().getBoolean("debug", true))
+						e.printStackTrace();
 				}
-				LandLoadEvent event = new LandLoadEvent(land);
-				Bukkit.getPluginManager().callEvent(new LandLoadEvent(land));
-				if (!!event.isCancelled() && !lands.containsKey(chunk))
-					lands.put(chunk, land);
-			} catch(Exception e) {
-				Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
-				if (instance.getConfig().getBoolean("debug", true))
-					e.printStackTrace();
-			}
-		}
-		Kingdoms.consoleMessage("Total of [" + getLoadedLand().size() + "] lands are initialized");
+				return name;
+			}).count();
+			Kingdoms.consoleMessage("Total of [" + total + "] lands were loaded.");
+		});
 	}
 
 	public class LandInfo {

@@ -20,6 +20,7 @@ import com.songoda.kingdoms.manager.inventories.KingdomInventory;
 import com.songoda.kingdoms.manager.inventories.PagesInventory;
 import com.songoda.kingdoms.manager.inventories.SearchManager;
 import com.songoda.kingdoms.manager.managers.KingdomManager;
+import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.placeholders.Placeholder;
@@ -96,7 +97,8 @@ public class ListMenu extends KingdomInventory {
 			return instance.getManager(KingdomManager.class).getOfflineKingdoms().parallelStream()
 					.sorted(comparator)
 					.filter(kingdom -> {
-						if (!kingdomPlayer.getKingdom().equals(kingdom))
+						Kingdom playerKingdom = kingdomPlayer.getKingdom();
+						if (playerKingdom == null || !playerKingdom.equals(kingdom))
 							return true;
 						return configuration.getBoolean("commands.list-command-contains-own", true);
 					})
