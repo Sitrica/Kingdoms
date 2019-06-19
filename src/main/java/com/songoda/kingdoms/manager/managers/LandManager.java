@@ -129,7 +129,7 @@ public class LandManager extends Manager {
 										.replace("%amount%", amount)
 										.setKingdom(kingdom)
 										.send();
-								kingdomManager.deleteKingdom(kingdom);
+								kingdomManager.deleteKingdom(kingdom.getName());
 								return;
 							}
 							kingdom.setResourcePoints(resourcePoints - amount);

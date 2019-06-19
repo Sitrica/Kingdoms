@@ -265,7 +265,8 @@ inventories:
             material-meta: ""
             glowing: true
             lore:
-                - "&7You can't invade other kingdoms, and other kingdoms can't invade you while you're pacifist."
+                - "&7You can't invade other kingdoms, and yours can't be invaded"
+                - "&7while this pacifist option is enabled."
                 - "&7Once you invade, your kingdom cannot become pacifist again."
                 - "&6Currently: &a&lENABLED"
         # The item that represents the neutral item when it's disabled.

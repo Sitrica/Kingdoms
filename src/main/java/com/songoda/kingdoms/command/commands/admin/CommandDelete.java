@@ -44,7 +44,7 @@ public class CommandDelete extends AdminCommand {
 						.send(kingdomPlayer);
 				return;
 			}
-			kingdomManager.deleteKingdom(kingdom.get());
+			kingdomManager.deleteKingdom(kingdom.get().getName());
 			new MessageBuilder("commands.delete.deleted")
 					.setPlaceholderObject(kingdomPlayer)
 					.replace("%kingdom%", string)

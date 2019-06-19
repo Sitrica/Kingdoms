@@ -44,7 +44,7 @@ public class CommandDisband extends AbstractCommand {
 						.send(kingdomPlayer);
 				return;
 			}
-			instance.getManager(KingdomManager.class).deleteKingdom(kingdom);
+			instance.getManager(KingdomManager.class).deleteKingdom(kingdom.getName());
 		});
 		return ReturnType.SUCCESS;
 	}

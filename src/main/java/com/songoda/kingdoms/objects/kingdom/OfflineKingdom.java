@@ -154,6 +154,14 @@ public class OfflineKingdom {
 		this.spawn = spawn;
 	}
 
+	public void removeMember(OfflineKingdomPlayer player) {
+		removeMember(player.getUniqueId());
+	}
+
+	public void removeMember(UUID player) {
+		members.removeIf(uuid -> player.equals(uuid));
+	}
+
 	public KingdomChest getKingdomChest() {
 		if (kingdomChest == null)
 			kingdomChest = new KingdomChest(this);

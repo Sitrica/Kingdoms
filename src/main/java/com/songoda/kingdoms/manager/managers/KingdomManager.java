@@ -79,6 +79,10 @@ public class KingdomManager extends Manager {
 		public void run() {
 			CooldownManager cooldowns = instance.getManager(CooldownManager.class);
 			for (OfflineKingdom kingdom : kingdoms) {
+				if (kingdom.getMembers().isEmpty()) {
+					deleteKingdom(kingdom.getName());
+					continue;
+				}
 				String name = kingdom.getName();
 				Kingdoms.debugMessage("Saving Kingdom: " + name);
 				if (cooldowns.isInCooldown(kingdom, "attackcd"))
@@ -95,7 +99,7 @@ public class KingdomManager extends Manager {
 		return kingdoms;
 	}
 
-	public Set<OfflineKingdom> getAllKingdoms() {
+	public Set<OfflineKingdom> getOfflineKingdoms() {
 		database.getKeys().parallelStream().forEach(name -> Kingdoms.debugMessage(name));
 		return database.getKeys().parallelStream()
 				.map(name -> getOfflineKingdom(name))
@@ -184,6 +188,12 @@ public class KingdomManager extends Manager {
 	}
 
 	public void onPlayerLeave(KingdomPlayer player, Kingdom kingdom) {
+		kingdom.removeMember(player);
+		if (kingdom.getMembers().isEmpty()) {
+			deleteKingdom(kingdom.getName());
+			kingdoms.remove(kingdom);
+			return;
+		}
 		database.put(kingdom.getName(), kingdom);
 		instance.getServer().getScheduler().scheduleSyncDelayedTask(instance, () -> {
 			if (kingdom.getOnlinePlayers().isEmpty())
@@ -214,29 +224,32 @@ public class KingdomManager extends Manager {
 	/**
 	 * schedule kingdom delete task
 	 *
-	 * @param kingdomName name of kingdom to delete
-	 * @return true if scheduled; false if kingdom doesn't exist
+	 * @param name name of kingdom to delete
 	 */
-	public boolean deleteKingdom(OfflineKingdom kingdom) {
-		if (kingdom == null)
+	public boolean deleteKingdom(String name) {
+		if (name == null)
 			return false;
-		database.delete(kingdom.getName());
-		OfflineKingdomPlayer owner = kingdom.getOwner();
-		Optional<KingdomPlayer> kingPlayer = owner.getKingdomPlayer();
-		if (kingPlayer.isPresent())
-			new MessageBuilder("kingdoms.deleted")
-					.setPlaceholderObject(owner)
-					.setKingdom(kingdom)
-					.send(kingPlayer.get());
-		kingdom.setOwner(null);
-		for (OfflineKingdomPlayer player : kingdom.getMembers()) {
-			player.onKingdomLeave();
-			player.setKingdom(null);
-			player.setRank(null);
-		}
-		Bukkit.getPluginManager().callEvent(new KingdomDeleteEvent(kingdom));
-		landManager.unclaimAllLand(kingdom);
-		kingdoms.removeIf(k -> k.getName().equalsIgnoreCase(kingdom.getName()));
+		kingdoms.stream()
+				.filter(kingdom -> kingdom.getName().equalsIgnoreCase(name))
+				.forEach(kingdom -> {
+					database.delete(kingdom.getName());
+					OfflineKingdomPlayer owner = kingdom.getOwner();
+					Optional<KingdomPlayer> kingPlayer = owner.getKingdomPlayer();
+					if (kingPlayer.isPresent())
+						new MessageBuilder("kingdoms.deleted")
+								.setPlaceholderObject(owner)
+								.setKingdom(kingdom)
+								.send(kingPlayer.get());
+					kingdom.setOwner(null);
+					for (OfflineKingdomPlayer player : kingdom.getMembers()) {
+						player.onKingdomLeave();
+						player.setKingdom(null);
+						player.setRank(null);
+					}
+					Bukkit.getPluginManager().callEvent(new KingdomDeleteEvent(kingdom));
+					landManager.unclaimAllLand(kingdom);
+				});
+		kingdoms.removeIf(k -> k.getName().equalsIgnoreCase(name));
 		return true;
 	}
 

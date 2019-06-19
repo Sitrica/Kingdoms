@@ -93,7 +93,7 @@ public class ListMenu extends KingdomInventory {
 					break;
 			}
 			double max = configuration.getDouble("commands.list-command-radius", 150);
-			return instance.getManager(KingdomManager.class).getAllKingdoms().parallelStream()
+			return instance.getManager(KingdomManager.class).getOfflineKingdoms().parallelStream()
 					.sorted(comparator)
 					.filter(kingdom -> {
 						if (!kingdomPlayer.getKingdom().equals(kingdom))
