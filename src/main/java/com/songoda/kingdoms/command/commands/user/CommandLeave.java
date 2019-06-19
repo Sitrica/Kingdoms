@@ -43,7 +43,13 @@ public class CommandLeave extends AbstractCommand {
 			kingdomPlayer.onKingdomLeave();
 			kingdomPlayer.setKingdom(null);
 			kingdomPlayer.setRank(null);
-			instance.getManager(KingdomManager.class).onPlayerLeave(kingdomPlayer, kingdom);
+			KingdomManager kingdomManager = instance.getManager(KingdomManager.class);
+			kingdomManager.onPlayerLeave(kingdomPlayer, kingdom);
+			kingdom.removeMember(kingdomPlayer);
+			if (kingdom.getMembers().isEmpty()) {
+				kingdomManager.deleteKingdom(kingdom.getName());
+				return;
+			}
 			Bukkit.getPluginManager().callEvent(new MemberLeaveEvent(kingdomPlayer, kingdom));
 			new MessageBuilder("commands.leave.leave-broadcast")
 					.setPlaceholderObject(kingdomPlayer)

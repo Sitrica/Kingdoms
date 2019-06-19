@@ -82,12 +82,6 @@ public class KingdomManager extends Manager {
 			Iterator<OfflineKingdom> iterator = kingdoms.iterator();
 			while (iterator.hasNext()) {
 				OfflineKingdom kingdom = iterator.next();
-				// Checks and deletes if a Kigndom is empty and also makes sure the server isn't shutting down.
-				if (kingdom.getMembers().isEmpty() && !autoSaveThread.isCancelled()) {
-					iterator.remove();
-					instance.getServer().getScheduler().runTask(instance, () -> deleteKingdom(kingdom.getName()));
-					continue;
-				}
 				String name = kingdom.getName();
 				Kingdoms.debugMessage("Saving Kingdom: " + name);
 				if (cooldowns.isInCooldown(kingdom, "attackcd"))
@@ -191,13 +185,10 @@ public class KingdomManager extends Manager {
 		return kingdom;
 	}
 
+	/*
+	 * When a player leaves the server NOT the Kingdom.
+	 */
 	public void onPlayerLeave(KingdomPlayer player, Kingdom kingdom) {
-		kingdom.removeMember(player);
-		if (kingdom.getMembers().isEmpty()) {
-			deleteKingdom(kingdom.getName());
-			kingdoms.remove(kingdom);
-			return;
-		}
 		database.put(kingdom.getName(), kingdom);
 		instance.getServer().getScheduler().scheduleSyncDelayedTask(instance, () -> {
 			if (kingdom.getOnlinePlayers().isEmpty())
