@@ -78,8 +78,8 @@ public class CommandLore extends AbstractCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
-		return "kingdoms.lore";
+	public String[] getPermissionNodes() {
+		return new String[] {"kingdoms.lore", "kingdoms.player"};
 	}
 
 }

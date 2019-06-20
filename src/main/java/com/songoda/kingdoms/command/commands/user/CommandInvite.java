@@ -101,8 +101,8 @@ public class CommandInvite extends AbstractCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
-		return "kingdoms.invite";
+	public String[] getPermissionNodes() {
+		return new String[] {"kingdoms.invite", "kingdoms.player"};
 	}
 
 }

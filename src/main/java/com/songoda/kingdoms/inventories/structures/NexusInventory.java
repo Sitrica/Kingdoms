@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -317,37 +318,31 @@ public class NexusInventory extends StructureInventory implements Listener {
 	}
 
 	private int consumeDonationItems(Inventory inventory, KingdomPlayer kingdomPlayer) {
+		ConfigurationSection section = configuration.getConfigurationSection("kingdoms.resource-donation");
+		ItemStack[] items = inventory.getContents();
 		Set<ItemStack> returning = new HashSet<>();
 		Player player = kingdomPlayer.getPlayer();
-		ConfigurationSection section = configuration.getConfigurationSection("kingdoms.resource-donation");
 		int worth = 0;
-		ItemStack[] items = inventory.getContents();
-		int length = 0;
 		List<ItemStack> contents = new ArrayList<>();
 		for (ItemStack item : items) {
 			if (item == null) //air
 				continue;
-			length++;
 			contents.add(item);
 		}
-		if (length <= 0)
+		if (contents.isEmpty())
 			return -1;
-		if (length <= 2) {
-			contents.forEach(item -> player.getInventory().addItem(item));
-			return 0;
-		}
+
+		// Calculate
 		Set<Material> added = new HashSet<>();
 		if (section.getBoolean("use-list", false)) {
 			ConfigurationSection list = section.getConfigurationSection("list");
 			Set<String> nodes = list.getKeys(false);
-			for (ItemStack item : items) {
-				if (item == null)
-					continue;
+			for (ItemStack item : contents) {
 				Material type = item.getType();
 				if (added.contains(type))
 					continue;
 				Optional<Double> points = nodes.parallelStream()
-						.filter(node -> node.equals(type.name()))
+						.filter(node -> node.equalsIgnoreCase(type.name()))
 						.map(node -> list.getDouble(node, 3))
 						.findFirst();
 				if (!points.isPresent()) {
@@ -362,9 +357,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 			}
 		} else {
 			double points = section.getDouble("points-per-item", 3);
-			for (ItemStack item : items) {
-				if (item == null)
-					continue;
+			for (ItemStack item : contents) {
 				Material type = item.getType();
 				if (added.contains(type))
 					continue;
@@ -380,13 +373,29 @@ public class NexusInventory extends StructureInventory implements Listener {
 				added.add(type);
 			}
 		}
+
+		// Return if worth is not enough
+		if (worth < 1) {
+			contents.forEach(item -> player.getInventory().addItem(item));
+			new MessageBuilder("kingdoms.donate-not-enough")
+					.setPlaceholderObject(kingdomPlayer)
+					.send(player);
+			return -1;
+		}
+
+		// Message and Return
 		Set<Material> displayed = new HashSet<>();
 		for (ItemStack item : returning) {
+			// Count
 			Material material = item.getType();
-			String name = inventory.all(material).size() + " of " + material.name().toLowerCase();
+			int amount = 0;
+			for (ItemStack i : inventory.all(material).values())
+				amount += i.getAmount();
+
+			String name = amount + " of " + material.name().toLowerCase(Locale.forLanguageTag(player.getLocale().replace("_", "-")));
 			ItemMeta meta = item.getItemMeta();
 			boolean modified = false;
-			if (meta != null && meta.getDisplayName() != null) {
+			if (meta != null && meta.hasDisplayName()) {
 				name = meta.getDisplayName();
 				modified = true;
 			} else {
@@ -404,10 +413,6 @@ public class NexusInventory extends StructureInventory implements Listener {
 			displayed.add(material);
 			player.getInventory().addItem(item);
 		}
-		if (worth < 1) {
-			contents.forEach(item -> player.getInventory().addItem(item));
-			return 0;
-		}
 		return Math.round(worth);
 	}
 
@@ -419,14 +424,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		if (donations.containsKey(uuid)) {
 			int donated = consumeDonationItems(event.getInventory(), kingdomPlayer);
-			if (donated == -1) {
-				donations.remove(uuid);
-				return;
-			}
-			if (donated < 1) {
-				new MessageBuilder("kingdoms.donate-not-enough")
-						.setPlaceholderObject(kingdomPlayer)
-						.send(player);
+			if (donated <= 0) {
 				donations.remove(uuid);
 				return;
 			}
@@ -436,7 +434,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				return;
 			}
 			Optional<Kingdom> optional = instance.getManager(KingdomManager.class).getKingdom(donations.get(uuid));
-			if (optional.isPresent()) { //Shouldn't happen.
+			if (!optional.isPresent()) { // If the Kingdom got deleted while donating.
 				donations.remove(uuid);
 				return;
 			}

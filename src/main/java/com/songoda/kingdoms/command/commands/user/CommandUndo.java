@@ -99,8 +99,8 @@ public class CommandUndo extends AbstractCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
-		return "kingdoms.undo";
+	public String[] getPermissionNodes() {
+		return new String[] {"kingdoms.undo", "kingdoms.player"};
 	}
 
 }

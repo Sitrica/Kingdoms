@@ -27,9 +27,15 @@ public class ChatManager extends Manager {
 	}
 
 	public enum ChatChannel {
+
 		KINGDOM,
 		PUBLIC,
 		ALLY;
+
+		public String getName() {
+			return new MessageBuilder(false, "commands.chat." + name().toLowerCase()).get();
+		}
+
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -43,14 +49,13 @@ public class ChatManager extends Manager {
 		if (!kingdomPlayer.hasKingdom())
 			return;
 		Kingdom kingdom = kingdomPlayer.getKingdom();
-		if (kingdom == null)
-			return;
 		Set<KingdomPlayer> senders = new HashSet<>();
 		String message = event.getMessage();
 		switch (kingdomPlayer.getChatChannel()) {
 			case ALLY:
 				senders.addAll(kingdom.getOnlineAllies());
 			case KINGDOM:
+				event.setCancelled(true);
 				senders.addAll(kingdom.getOnlinePlayers());
 				senders.forEach(k -> k.getPlayer().sendMessage(format(k, message)));
 				break;

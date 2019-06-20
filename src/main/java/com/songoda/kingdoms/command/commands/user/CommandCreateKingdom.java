@@ -151,8 +151,8 @@ public class CommandCreateKingdom extends AbstractCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
-		return "kingdoms.create";
+	public String[] getPermissionNodes() {
+		return new String[] {"kingdoms.create", "kingdoms.player"};
 	}
 
 }

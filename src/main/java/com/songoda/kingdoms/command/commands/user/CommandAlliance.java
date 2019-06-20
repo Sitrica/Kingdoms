@@ -208,8 +208,8 @@ public class CommandAlliance extends AbstractCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
-		return "kingdoms.alliance";
+	public String[] getPermissionNodes() {
+		return new String[] {"kingdoms.alliance", "kingdoms.player"};
 	}
 
 }

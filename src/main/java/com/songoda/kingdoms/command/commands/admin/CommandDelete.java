@@ -59,8 +59,8 @@ public class CommandDelete extends AdminCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
-		return "kingdoms.delete";
+	public String[] getPermissionNodes() {
+		return new String[] {"kingdoms.delete", "kingdoms.admin"};
 	}
 
 }

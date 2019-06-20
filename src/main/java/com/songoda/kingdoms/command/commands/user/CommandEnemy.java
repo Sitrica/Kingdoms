@@ -129,8 +129,8 @@ public class CommandEnemy extends AbstractCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
-		return "kingdoms.enemy";
+	public String[] getPermissionNodes() {
+		return new String[] {"kingdoms.enemy", "kingdoms.player"};
 	}
 
 }

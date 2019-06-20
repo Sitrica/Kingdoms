@@ -60,8 +60,8 @@ public class CommandInfo extends AbstractCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
-		return "kingdoms.info";
+	public String[] getPermissionNodes() {
+		return new String[] {"kingdoms.info", "kingdoms.player"};
 	}
 
 }

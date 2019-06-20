@@ -6,6 +6,8 @@ import com.songoda.kingdoms.command.AdminCommand;
 import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
+import java.util.Arrays;
+
 import org.bukkit.command.CommandSender;
 
 public class KingdomsCommand extends AbstractCommand {
@@ -25,7 +27,7 @@ public class KingdomsCommand extends AbstractCommand {
 				continue;
 			if (command.getConfigurationNode() == null)
 				continue;
-			if (command.getPermissionNode() == null || sender.hasPermission(command.getPermissionNode())) {
+			if (command.getPermissionNodes() == null || Arrays.stream(command.getPermissionNodes()).parallel().anyMatch(permission -> sender.hasPermission(permission))) {
 				sender.sendMessage(Formatting.color("&8 - &6" + command.getSyntax(sender) + "&7 - " + command.getDescription(sender)));
 			}
 		}
@@ -34,7 +36,7 @@ public class KingdomsCommand extends AbstractCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
+	public String[] getPermissionNodes() {
 		return null;
 	}
 

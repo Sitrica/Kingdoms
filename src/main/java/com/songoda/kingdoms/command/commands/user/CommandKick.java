@@ -94,8 +94,8 @@ public class CommandKick extends AbstractCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
-		return "kingdoms.kick";
+	public String[] getPermissionNodes() {
+		return new String[] {"kingdoms.kick", "kingdoms.player"};
 	}
 
 }

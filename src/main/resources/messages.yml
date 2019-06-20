@@ -414,6 +414,17 @@ commands:
             - ""
     accept:
         no-invite: "&cYou currently have no pending invite."
+    chat:
+        description: "Change your chat channel."
+        syntax: "/k chat [<channel>]"
+        invalid: "&c%channel% is an invalid channel, current channels are: Kingdom, Alliance (Ally), and Public"
+        kingdom: "&lKingdom"
+        public: "&7&lPublic"
+        ally: "&2&lAlly"
+        set:
+            - ""
+            - "&6You have switched chat channels to &l%channel%"
+            - ""
 
 # All messages relating to invading.
 invading:

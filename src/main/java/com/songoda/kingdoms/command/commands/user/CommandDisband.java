@@ -55,7 +55,7 @@ public class CommandDisband extends AbstractCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
+	public String[] getPermissionNodes() {
 		return null;
 	}
 

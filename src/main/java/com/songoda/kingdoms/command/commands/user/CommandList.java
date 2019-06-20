@@ -29,8 +29,8 @@ public class CommandList extends AbstractCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
-		return "kingdoms.list";
+	public String[] getPermissionNodes() {
+		return new String[] {"kingdoms.list", "kingdoms.player"};
 	}
 
 }

@@ -46,7 +46,7 @@ public abstract class AbstractCommand {
 
 	public abstract String getConfigurationNode();
 
-	public abstract String getPermissionNode();
+	public abstract String[] getPermissionNodes();
 
 	public String getDescription(CommandSender sender) {
 		FileConfiguration messages = instance.getConfiguration("messages").get();

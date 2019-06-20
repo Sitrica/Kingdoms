@@ -50,9 +50,9 @@ public class CommandMap extends AbstractCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
+	public String[] getPermissionNodes() {
 		boolean permission = instance.getConfiguration("map").get().getBoolean("configure.requires-permission", false);
-		return permission ? "kingdoms.map" : null;
+		return permission ? new String[] {"kingdoms.map", "kingdoms.player"} : null;
 	}
 
 }

@@ -58,8 +58,8 @@ public class CommandClaim extends AbstractCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
-		return "kingdoms.claim";
+	public String[] getPermissionNodes() {
+		return new String[] {"kingdoms.claim", "kingdoms.player"};
 	}
 
 }

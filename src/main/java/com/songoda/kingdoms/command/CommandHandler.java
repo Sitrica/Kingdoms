@@ -58,7 +58,7 @@ public class CommandHandler implements CommandExecutor {
 			 		.send(sender);
 			return;
 		}
-		if (command.getPermissionNode() == null || sender.hasPermission(command.getPermissionNode())) {
+		if (command.getPermissionNodes() == null || Arrays.stream(command.getPermissionNodes()).parallel().anyMatch(permission -> sender.hasPermission(permission))) {
 			if (command instanceof AdminCommand) {
 				if (sender instanceof Player && !sender.hasPermission("kingdoms.admin")) {
 					new MessageBuilder("messages.no-permission").send(sender);

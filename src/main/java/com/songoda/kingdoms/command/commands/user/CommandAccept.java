@@ -46,7 +46,7 @@ public class CommandAccept extends AbstractCommand {
 	}
 
 	@Override
-	public String getPermissionNode() {
+	public String[] getPermissionNodes() {
 		return null;
 	}
 
