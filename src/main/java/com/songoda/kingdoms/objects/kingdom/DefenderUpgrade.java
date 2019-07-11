@@ -20,8 +20,6 @@ public enum DefenderUpgrade {
 	THROW("throw"),
 	SPEED("speed"),
 	ARMOR("armor"),
-	MIMIC("mimic"),
-	MOCK("mock"),
 	AQUA("aqua"),
 	DRAG("drag"),
 	THOR("thor"),

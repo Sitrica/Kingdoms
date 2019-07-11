@@ -37,7 +37,7 @@ public class Kingdoms extends JavaPlugin {
 				configFile.delete();
 		}
 		//Create all the default files.
-		for (String name : Arrays.asList("config", "messages", "turrets", "structures", "defender-upgrades", "ranks", "arsenal-items", "inventories", "powerups", "misc-upgrades", "map")) {
+		for (String name : Arrays.asList("config", "messages", "turrets", "structures", "defender-upgrades", "ranks", "arsenal-items", "inventories", "powerups", "misc-upgrades", "map", "sounds")) {
 			File file = new File(getDataFolder(), name + ".yml");
 			if (!file.exists()) {
 				file.getParentFile().mkdirs();

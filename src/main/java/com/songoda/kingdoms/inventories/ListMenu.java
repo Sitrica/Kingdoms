@@ -97,6 +97,11 @@ public class ListMenu extends KingdomInventory {
 			return instance.getManager(KingdomManager.class).getOfflineKingdoms().parallelStream()
 					.sorted(comparator)
 					.filter(kingdom -> {
+						if (configuration.getBoolean("kingdoms.leaderboard-hide-pacifists", false) && kingdom.isNeutral())
+							return false;
+						return true;
+					})
+					.filter(kingdom -> {
 						Kingdom playerKingdom = kingdomPlayer.getKingdom();
 						if (playerKingdom == null || !playerKingdom.equals(kingdom))
 							return true;

@@ -143,13 +143,13 @@ public class StructureManager extends Manager {
 		block.getWorld().dropItemNaturally(location, type.build());
 	}
 
-	public boolean isInvadeable(KingdomPlayer invader, Chunk chunk) {
+	public boolean isInvadeable(KingdomPlayer invader, Land land) {
 		if (!StructureType.POWERCELL.isEnabled())
 			return true;
-		Land land = landManager.getLand(chunk);
 		Structure structure = land.getStructure();
 		if (structure != null && structure.getType() == StructureType.POWERCELL)
 			return true;
+		Chunk chunk = land.getChunk();
 		World world = chunk.getWorld();
 		int originX = chunk.getX();
 		int originZ = chunk.getZ();

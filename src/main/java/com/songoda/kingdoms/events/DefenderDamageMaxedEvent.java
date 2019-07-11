@@ -1,25 +1,24 @@
 package com.songoda.kingdoms.events;
 
-import org.bukkit.entity.Entity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.objects.Defender;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
 
 public class DefenderDamageMaxedEvent extends Event implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
-	private final Entity attacker, defender;
-	private final OfflineKingdom kingdom;
+	private final KingdomPlayer attacker;
+	private final Defender defender;
 	private final double dealt;
 	private boolean cancelled;
 	private final int limit;
 
-	public DefenderDamageMaxedEvent(OfflineKingdom kingdom, Entity defender, Entity attacker, int limit, double dealt) {
+	public DefenderDamageMaxedEvent(Defender defender, KingdomPlayer attacker, int limit, double dealt) {
 		this.defender = defender;
 		this.attacker = attacker;
-		this.kingdom = kingdom;
 		this.limit = limit;
 		this.dealt = dealt;
 	}
@@ -28,20 +27,16 @@ public class DefenderDamageMaxedEvent extends Event implements Cancellable {
 		return limit;
 	}
 
-	public Entity getDefender() {
+	public Defender getDefender() {
 		return defender;
-	}
-	
-	public Entity getAttacker() {
-		return attacker;
 	}
 
 	public double getDamageDealt() {
 		return dealt;
 	}
 
-	public OfflineKingdom getDefenderKingdom() {
-		return kingdom;
+	public KingdomPlayer getAttacker() {
+		return attacker;
 	}
 
 	@Override

@@ -5,22 +5,19 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
-import com.songoda.kingdoms.objects.player.KingdomPlayer;
+import com.songoda.kingdoms.objects.invasions.Invasion;
 
 public class DefenderDragEvent extends Event implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
-	private final OfflineKingdom kingdom;
-	private final KingdomPlayer player;
+	private final Invasion invasion;
 	private final Entity defender;
 	private final double range;
 	private boolean cancelled;
 
-	public DefenderDragEvent(OfflineKingdom kingdom, Entity defender, KingdomPlayer player, double range) {
+	public DefenderDragEvent(Entity defender, Invasion invasion, double range) {
 		this.defender = defender;
-		this.kingdom = kingdom;
-		this.player = player;
+		this.invasion = invasion;
 		this.range = range;
 	}
 
@@ -32,12 +29,8 @@ public class DefenderDragEvent extends Event implements Cancellable {
 		return defender;
 	}
 
-	public KingdomPlayer getPlayer() {
-		return player;
-	}
-
-	public OfflineKingdom getKingdom() {
-		return kingdom;
+	public Invasion getInvasion() {
+		return invasion;
 	}
 
 	@Override

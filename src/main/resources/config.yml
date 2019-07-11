@@ -336,8 +336,6 @@ kingdoms:
     invading:
         # Should players not be allowed to leave a Kingdoms land if they're invading?
         invading-deny-chunk-change: true
-    defenders:
-        thor-delay: 5.0
 
 # Names that aren't allowed.
 # Supports Regex if you want.
@@ -466,15 +464,77 @@ invading:
     # Everytime the nexus is broken, the Kingdom will lose this amount of resource points.
     # If the Kingdom does not have this many resource points, the nexus can be broken by the invader.
     nexus-break-cost: 20
+    # The amount of land required per each member in the Kingdom in order to invade.
+    # Set to -1 to disable.
+    land-per-member: 5
+    # The maximum amount of invasions allowed for a single Kingdom at a time.
+    max-invasions-at-once: 1
     # For every break on the nexus, should the amount broken from the node 'nexus-break-cost' be added to the invaders Kingdom?
     nexus-break-adds: true
+    # Players can only invade others if the server/staff has enabled the masswar feature.
+    can-only-invade-during-masswar: false
+    # The amount of players needed to be online for each Kingdom in the event of an invade attempt.
+    online-players:
+        # Remember that the target Kingdom can purchase AI based defenders to help them if they're offline.
+        target: 0
+        invadee: 1
+    # Defender Zombie configurations.
     defender:
-        void-death-end-invasion: true
+        # If the defender dies, should the invasion end?
+        # Note: This checks that all defenders are dead (Some addon may extend Multiple Defenders)
+        defender-death-ends-invasion: false
+        # If the defenders should only focus on the player that instigated the invasion.
+        # Or if false, the defenders will act like normal monsters towards anyone attacking from the enemy invasion.
+        focus-on-instigator: false
         health: 2048
         # The helmet that the Zombie will wear.
         # 1.13+ Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
         # 1.8 and lower materials: https://github.com/Attano/Spigot-1.8/blob/master/org/bukkit/Material.java
         helmet: "PUMPKIN"
+    invade-cost: 10
+    # Change and control the invasion mechanics.
+    # Some of these settings are for use in the plugin API. (Developers)
+    mechanics:
+        # The heartbeat checks every interval to make sure a mechanic is running properly.
+        # If a mechanic is not responding, or improperly implemented (Via Plugin API) Kingdoms will cancel the mechanic.
+        heartbeat: "1 minute"
+        # Changes the mechanic of the whole invasion, current types is DEFAULT
+        # This can be extended via a plugin API, in which you put your custom name here.
+        type: "default"
+        # Settings for the default invasion.
+        default:
+            # The max amount of time this invasion can last.
+            max-time: "50 minutes"
+    # When a player dies what should happen.
+    player-deaths:
+        # If this node is false, player deaths do nothing.
+        enabled: true
+        # Should defending member deaths within the defending Kingdom land be cancelled?
+        cancel-defending-deaths: false
+        # If the above node is true, should it only happen on player attacks?
+        cancel-only-player-attacks: true
+        # What happens if this member is part of the attacking Kingdom.
+        attacking:
+            # If an attacking player dies during invasion:
+            #   - and this node is true, the player(s) progress in the invasion will be reset.
+            #   - and this node is false, the invasion will be stopped.
+            resets-or-stop: true
+            # If resetting progress should be for all attackers or just the one that died.
+            progress-resets-all: false
+            # If this whole attacking section should apply to all invasions or just the one from the death.
+            applies-to-all-invasions: false
+        # What happens if this member is part of the defending Kingdom.
+        defending:
+            # If a player of the defending Kingdom dies, this should set the invasion as a win.
+            stop: false
+            # Only stop invasion if the defending Kingdom dies the configuration number amount of times.
+            # Node above needs to be enabled for this to work.
+            death-counter: true
+            deaths: 8
+            # The amount of time allowed between each death, set to 0 seconds to disable.
+            death-cooldown: "15 seconds"
+            # If a member of the defending Kingdom dies, and it hasn't been the time above since last death, cancel event from happening?
+            cooldown-cancels-event: false
 
 # All configurations relating to commands.
 commands:
@@ -509,39 +569,8 @@ commands:
         
         
         
-        
-cost:
-    turretupgrades:
-        simplified-model: 1000
-        flurry: 1000
-        concentrated-blast: 1000
-        virulent-plague: 1000
-        improved-healing: 1000
-        voodoo: 3000
-        final-service: 3000
-        hellstorm: 5000
-        unrelenting-gaze: 5000
-    arsenal:
-        turretbreaker: 1000
-        siegerocket: 500        
-Plugin:
-    Debug-Land-Check: false
-    Monitor-mode: false
-    allowSpecialCharactersInNamingKingdoms: false
-    Lang: eng
-    enable-autosave: true
-    serverName: yourServer
+
 minutes-per-backup: 43200
-pacifist-default-on: false
-DO-NOT-TOUCH:
-    grabPlayerFromFileDB: false
-    grabLandFromFileDB: false
-    grabKingdomsFromFileDB: false
-    grabConquestMapsFromFileDB: false
-enabled-worlds:
-- world
-worlds-where-land-is-explosive-vulnerable:
-- VoidWorldd
 no-region-claim: true
 siege:
     fire:
@@ -606,7 +635,6 @@ champion-specs:
     invader-lose-on-champion-void-damage: true
 economy:
     money-needed-for-one-rp: 10
-invade-cost: 10
 hidewarppadlocations: false
 enable-auto-backup: true
 minimum-members-online-to-be-invaded: 0

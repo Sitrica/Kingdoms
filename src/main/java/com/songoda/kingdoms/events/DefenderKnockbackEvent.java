@@ -5,18 +5,17 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.objects.Defender;
 
 public class DefenderKnockbackEvent extends Event implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
-	private final Entity defender, damager;
-	private final OfflineKingdom kingdom;
+	private final Defender defender;
+	private final Entity damager;
 	private boolean cancelled;
 	
-	public DefenderKnockbackEvent(OfflineKingdom kingdom, Entity defender, Entity damager) {
+	public DefenderKnockbackEvent(Defender defender, Entity damager) {
 		this.defender = defender;
-		this.kingdom = kingdom;
 		this.damager = damager;
 	}
 	
@@ -27,12 +26,8 @@ public class DefenderKnockbackEvent extends Event implements Cancellable {
 		return damager;
 	}
 
-	public Entity getDefender() {
+	public Defender getDefender() {
 		return defender;
-	}
-
-	public OfflineKingdom getDefenderKingdom() {
-		return kingdom;
 	}
 
 	@Override

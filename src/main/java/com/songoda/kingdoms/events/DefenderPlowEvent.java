@@ -6,19 +6,19 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.objects.invasions.Invasion;
 
 public class DefenderPlowEvent extends Event implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
-	private final OfflineKingdom kingdom;
+	private final Invasion invasion;
 	private final Entity defender;
 	private final Block block;
 	private boolean cancelled;
 
-	public DefenderPlowEvent(OfflineKingdom kingdom, Entity defender, Block block) {
+	public DefenderPlowEvent(Entity defender, Invasion invasion, Block block) {
 		this.defender = defender;
-		this.kingdom = kingdom;
+		this.invasion = invasion;
 		this.block = block;
 	}
 
@@ -30,8 +30,8 @@ public class DefenderPlowEvent extends Event implements Cancellable {
 		return defender;
 	}
 
-	public OfflineKingdom getKingdom() {
-		return kingdom;
+	public Invasion getInvasion() {
+		return invasion;
 	}
 
 	@Override

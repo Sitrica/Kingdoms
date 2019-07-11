@@ -30,11 +30,11 @@ public class OfflineKingdom {
 	protected final Set<UUID> members = new HashSet<>();
 	protected final Set<Land> claims = new HashSet<>();
 	protected long resourcePoints = 0, invasionCooldown = 0;
+	protected int dynmapColor, max = 0, extraPurchased = 0;
 	protected boolean neutral, first, invaded;
 	protected KingdomCooldown shieldTime;
 	protected KingdomChest kingdomChest;
 	protected DefenderInfo defenderInfo;
-	protected int dynmapColor, max = 0;
 	protected final Kingdoms instance;
 	protected MiscUpgrade miscUpgrade;
 	protected String lore = "Not set";
@@ -72,6 +72,25 @@ public class OfflineKingdom {
 			if (iterator.next().getLand().equals(land))
 				iterator.remove();
 		}
+	}
+
+	public void setExtraPurchased(int purchased) {
+		extraPurchased = purchased;
+	}
+
+	/**
+	 * @return The amount of extra claims added to this Kingdom.
+	 */
+	public int getExtraPurchased() {
+		return extraPurchased;
+	}
+
+	public void addExtraPurchase(int add) {
+		extraPurchased += add;
+	}
+
+	public void subtractExtraPurchase(int subtract) {
+		extraPurchased += subtract;
 	}
 
 	public Set<WarpPad> getWarps() {
@@ -152,6 +171,14 @@ public class OfflineKingdom {
 
 	public void setSpawn(Location spawn) {
 		this.spawn = spawn;
+	}
+
+	public boolean isMember(UUID uuid) {
+		return members.stream().anyMatch(match -> match.equals(uuid));
+	}
+
+	public boolean isMember(OfflineKingdomPlayer kingdomPlayer) {
+		return isMember(kingdomPlayer.getUniqueId());
 	}
 
 	public void removeMember(OfflineKingdomPlayer player) {

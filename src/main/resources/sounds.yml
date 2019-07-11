@@ -1,0 +1,36 @@
+#!
+#!     ▄█   ▄█▄  ▄█  ███▄▄▄▄      ▄██████▄  ████████▄   ▄██████▄    ▄▄▄▄███▄▄▄▄      ▄████████ 
+#!    ███ ▄███▀ ███  ███▀▀▀██▄   ███    ███ ███   ▀███ ███    ███ ▄██▀▀▀███▀▀▀██▄   ███    ███ 
+#!    ███▐██▀   ███▌ ███   ███   ███    █▀  ███    ███ ███    ███ ███   ███   ███   ███    █▀  
+#!   ▄█████▀    ███▌ ███   ███  ▄███        ███    ███ ███    ███ ███   ███   ███   ███        
+#!  ▀▀█████▄    ███▌ ███   ███ ▀▀███ ████▄  ███    ███ ███    ███ ███   ███   ███ ▀███████████ 
+#!    ███▐██▄   ███  ███   ███   ███    ███ ███    ███ ███    ███ ███   ███   ███          ███ 
+#!    ███ ▀███▄ ███  ███   ███   ███    ███ ███   ▄███ ███    ███ ███   ███   ███    ▄█    ███ 
+#!    ███   ▀█▀ █▀    ▀█   █▀    ████████▀  ████████▀   ▀██████▀   ▀█   ███   █▀   ▄████████▀  
+#!    ▀                                                                                        
+#!
+# The version is to help determine which version this config is. Please don't modify this value.
+version: "@version@"
+
+# All sounds relating to invading.
+# Pitches range from 0-15, any number after just recycles back to 0. (Minecraft 16 decimal pitches)
+# Volumes range from 0-1 (The single decimal place is what is considered), this may change in future versions of Spigot so play with this.
+invading:
+    # Configuration node 'invading.player-deaths.cancel-defending-deaths' false by default.
+    # When a defending member's death is cancelled, used to indicate the event was cancelled to the attacker.
+    death-cancelled:
+        enabled: true
+        # The list of sounds.
+        sounds:
+            1:
+                sound: "ENTITY_VILLAGER_NO"
+                volume: 0.6
+                pitch: 3
+                delay: 0
+            # An example of multiple sounds playing.
+            #2:
+            #    sound: "ENTITY_VILLAGER_NO"
+            #    volume: 1
+            #    pitch: 15
+            #    # Will be played 5 ticks after sound 1.)
+            #    delay: 5

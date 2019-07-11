@@ -36,6 +36,11 @@ public class InviteManager extends Manager {
 			this.task = Bukkit.getScheduler().runTaskLater(instance, () -> invites.remove(this), expiration);
 		}
 
+		public void accepted() {
+			invites.remove(this);
+			cancel();
+		}
+
 		public KingdomPlayer getWho() {
 			return player;
 		}
@@ -62,13 +67,12 @@ public class InviteManager extends Manager {
 				.findFirst();
 	}
 
-	public void addInvite(KingdomPlayer player, Kingdom kingdom) {
-		getInvite(player).ifPresent(invite -> {
-			invite.cancel();
-			invites.remove(invite);
-		});
+	public boolean addInvite(KingdomPlayer player, Kingdom kingdom) {
+		if (getInvite(player).isPresent())
+			return true;
 		PlayerInvite invite = new PlayerInvite(player, kingdom);
 		invites.add(invite);
+		return false;
 	}
 
 	@Override

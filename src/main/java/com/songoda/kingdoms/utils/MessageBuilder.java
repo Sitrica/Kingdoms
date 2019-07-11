@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -18,6 +19,7 @@ import org.bukkit.entity.Player;
 import com.google.common.collect.Sets;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.ActionbarManager;
+import com.songoda.kingdoms.objects.StringList;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.placeholders.Placeholder;
@@ -134,6 +136,19 @@ public class MessageBuilder {
 	 */
 	public MessageBuilder fromConfiguration(ConfigurationSection section) {
 		this.section = section;
+		return this;
+	}
+
+	/**
+	 * Created a list replacement and ignores the placeholder object.
+	 * @param <T>
+	 * 
+	 * @param syntax The syntax to check within the messages e.g: %command%
+	 * @param replacement The replacement e.g: the command.
+	 * @return The MessageBuilder for chaining.
+	 */
+	public <T> MessageBuilder replace(String syntax, Collection<T> collection, Function<T, String> mapper) {
+		replace(syntax, new StringList(collection, mapper).toString());
 		return this;
 	}
 

@@ -25,14 +25,16 @@ public class CommandAccept extends AbstractCommand {
 	protected ReturnType runCommand(Kingdoms instance, CommandSender sender, String... arguments) {
 		Player player = (Player) sender;
 		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
-		Optional<PlayerInvite> invite = instance.getManager(InviteManager.class).getInvite(kingdomPlayer);
-		if (!invite.isPresent()) {
+		Optional<PlayerInvite> optional = instance.getManager(InviteManager.class).getInvite(kingdomPlayer);
+		if (!optional.isPresent()) {
 			new MessageBuilder("commands.accept.no-invite")
 					.setPlaceholderObject(kingdomPlayer)
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		Kingdom kingdom = invite.get().getKingdom();
+		PlayerInvite invite = optional.get();
+		invite.accepted();
+		Kingdom kingdom = invite.getKingdom();
 		RankManager rankManager = instance.getManager(RankManager.class);
 		kingdomPlayer.setRank(rankManager.getDefaultRank());
 		kingdomPlayer.setKingdom(kingdom.getName());

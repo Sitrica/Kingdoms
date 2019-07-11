@@ -1,15 +1,11 @@
 package com.songoda.kingdoms.manager.managers;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
@@ -48,10 +44,8 @@ public class KingdomManager extends Manager {
 	private Optional<CitizensManager> citizensManager;
 	private Database<OfflineKingdom> database;
 	private PlayerManager playerManager;
-	private WorldManager worldManager;
 	private BukkitTask autoSaveThread;
 	private LandManager landManager;
-	private RankManager rankManager;
 
 	public KingdomManager() {
 		super(true);
@@ -61,9 +55,7 @@ public class KingdomManager extends Manager {
 	public void initalize() {
 		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
-		this.rankManager = instance.getManager("rank", RankManager.class);
 		String table = configuration.getString("database.kingdom-table", "Kingdoms");
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(table, OfflineKingdom.class);
@@ -262,36 +254,10 @@ public class KingdomManager extends Manager {
 		String interval = configuration.getString("kingdoms.base-shield-time", "5 minutes");
 		kingdom.setShieldTime(IntervalUtils.getInterval(interval));
 		updateUpgrades(kingdom);
-		owner.setRank(rankManager.getOwnerRank());
+		owner.setRank(instance.getManager(RankManager.class).getOwnerRank());
 		owner.setKingdom(name);
 		Bukkit.getPluginManager().callEvent(new KingdomCreateEvent(kingdom));
 		return kingdom;
-	}
-
-	/**
-	 * @return A map of all the online kingdoms sorted by resource points.
-	 */
-	public FutureTask<Map<Kingdom, Long>> getTopResourcePoints() {
-		return new FutureTask<Map<Kingdom, Long>>(new ResourcePointsCallable());
-	}
-
-	private class ResourcePointsCallable implements Callable<Map<Kingdom, Long>> {
-		@Override
-		public Map<Kingdom, Long> call() {
-			Map<Kingdom, Long> points = new HashMap<>();
-			for (String key : database.getKeys()) {
-				Optional<Kingdom> optional = getKingdom(key);
-				if (!optional.isPresent()) {
-					continue;
-				} else {
-					Kingdom kingdom = optional.get();
-					if (configuration.getBoolean("kingdoms.leaderboard-hide-pacifists", false) && kingdom.isNeutral())
-						continue;
-					points.put(kingdom, kingdom.getResourcePoints());
-				}
-			}
-			return points;
-		}
 	}
 
 	public void updateUpgrades(Kingdom kingdom) {
@@ -312,7 +278,7 @@ public class KingdomManager extends Manager {
 		Entity victim = event.getEntity();
 		if (!(victim instanceof Player))
 			return;
-		if (!worldManager.acceptsWorld(victim.getWorld()))
+		if (!instance.getManager(WorldManager.class).acceptsWorld(victim.getWorld()))
 			return;
 		Entity attacker = event.getDamager();
 		if (attacker.equals(victim))
@@ -366,7 +332,7 @@ public class KingdomManager extends Manager {
 		Entity victim = event.getEntity();
 		if (!(victim instanceof Player))
 			return;
-		if (!worldManager.acceptsWorld(victim.getWorld()))
+		if (!instance.getManager(WorldManager.class).acceptsWorld(victim.getWorld()))
 			return;
 		if (configuration.getBoolean("kingdoms.alliance-can-pvp", false))
 			return;
@@ -429,7 +395,7 @@ public class KingdomManager extends Manager {
 	@EventHandler
 	public void onNeutralMemberAttackOrAttacked(EntityDamageByEntityEvent event) {
 		Entity victim = event.getEntity();
-		if (!worldManager.acceptsWorld(victim.getWorld()))
+		if (!instance.getManager(WorldManager.class).acceptsWorld(victim.getWorld()))
 			return;
 		if (!(victim instanceof Player))
 			return;
@@ -505,7 +471,7 @@ public class KingdomManager extends Manager {
 		if (event.isCancelled())
 			return;
 		Player player = event.getPlayer();
-		if (!worldManager.acceptsWorld(player.getWorld()))
+		if (!instance.getManager(WorldManager.class).acceptsWorld(player.getWorld()))
 			return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		Land land = landManager.getLandAt(kingdomPlayer.getLocation());

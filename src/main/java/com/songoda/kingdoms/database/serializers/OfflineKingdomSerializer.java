@@ -46,6 +46,7 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 		json.addProperty("first-claim", kingdom.hasUsedFirstClaim());
 		json.addProperty("owner", kingdom.getOwner().getUniqueId() + "");
 		json.addProperty("resource-points", kingdom.getResourcePoints());
+		json.addProperty("extra-purchased", kingdom.getExtraPurchased());
 		json.addProperty("invasion-cooldown", kingdom.getInvasionCooldown());
 		JsonObject chest = new JsonObject();
 		JsonObject contentsObject = new JsonObject();
@@ -92,6 +93,9 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 		JsonElement neutralElement = object.get("neutral");
 		if (neutralElement != null && !neutralElement.isJsonNull())
 			kingdom.setNeutral(neutralElement.getAsBoolean());
+		JsonElement extraElement = object.get("extra-purchased");
+		if (extraElement != null && !extraElement.isJsonNull())
+			kingdom.setExtraPurchased(extraElement.getAsInt());
 		JsonElement firstElement = object.get("first-claim");
 		if (firstElement != null && !firstElement.isJsonNull())
 			kingdom.setUsedFirstClaim(firstElement.getAsBoolean());

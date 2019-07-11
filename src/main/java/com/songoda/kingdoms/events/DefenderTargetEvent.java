@@ -1,35 +1,34 @@
 package com.songoda.kingdoms.events;
 
-import org.bukkit.entity.Entity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.objects.Defender;
+import com.songoda.kingdoms.objects.player.KingdomPlayer;
 
 public class DefenderTargetEvent extends Event implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
-	private final Entity defender, target;
-	private final OfflineKingdom kingdom;
+	private final Defender defender;
+	private KingdomPlayer target;
 	private boolean cancelled;
 
-	public DefenderTargetEvent(OfflineKingdom kingdom, Entity defender, Entity target) {
+	public DefenderTargetEvent(Defender defender, KingdomPlayer target) {
 		this.defender = defender;
-		this.kingdom = kingdom;
 		this.target = target;
 	}
-	
-	public Entity getTarget() {
-		return target;
-	}
-	
-	public Entity getDefender() {
+
+	public Defender getDefender() {
 		return defender;
 	}
 
-	public OfflineKingdom getKingdom() {
-		return kingdom;
+	public KingdomPlayer getTarget() {
+		return target;
+	}
+
+	public void setTarget(KingdomPlayer target) {
+		this.target = target;
 	}
 
 	@Override

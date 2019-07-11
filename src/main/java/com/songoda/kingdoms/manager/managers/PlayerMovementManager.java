@@ -139,28 +139,13 @@ public class PlayerMovementManager extends Manager {
 		if (chunkTo.equals(chunkFrom))
 			return;
 		Player player = event.getPlayer();
-		if (configuration.getBoolean("invading.invading-deny-chunk-change", true)) {
-			KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-			if (kingdomPlayer.isInvading()) {
-				// Direction from to to.
-				Vector vector = from.toVector().subtract(to.toVector()).normalize().multiply(2);
-				// This used to be teleport to player.getLocation().add(vector)
-				// Changed to velocity because I think pushing them back with an animation looks better.
-				player.setVelocity(vector);
-				player.setFallDistance(0);
-				event.setCancelled(true);
-				new MessageBuilder("invading.invading-deny-chunk-change")
-						.replace("%chunkFrom%", LocationUtils.chunkToString(chunkFrom))
-						.replace("%chunkTo%", LocationUtils.chunkToString(chunkTo))
-						.setKingdom(kingdomPlayer.getKingdom())
-						.setPlaceholderObject(kingdomPlayer)
-						.send(kingdomPlayer);
-				return;
-			}
-		}
 		PlayerChangeChunkEvent change = new PlayerChangeChunkEvent(player, chunkFrom, chunkTo);
 		Bukkit.getServer().getPluginManager().callEvent(change);
 		if (change.isCancelled()) {
+			Vector vector = from.toVector().subtract(to.toVector()).normalize().multiply(2);
+			// This used to be teleport to player.getLocation().add(vector)
+			// Changed to velocity because I think pushing them back with an animation looks better.
+			player.setVelocity(vector);
 			player.setFallDistance(0);
 			event.setCancelled(true);
 		}

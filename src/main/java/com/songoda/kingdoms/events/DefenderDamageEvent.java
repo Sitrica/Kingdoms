@@ -1,18 +1,16 @@
 package com.songoda.kingdoms.events;
 
-import org.bukkit.entity.Entity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.objects.Defender;
 
 public class DefenderDamageEvent extends Event implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
 	private final DefenderDamageCause cause;
-	private final OfflineKingdom kingdom;
-	private final Entity defender;
+	private final Defender defender;
 	private final double damage;
 	private boolean cancelled;
 
@@ -22,9 +20,8 @@ public class DefenderDamageEvent extends Event implements Cancellable {
 		POTION
 	}
 	
-	public DefenderDamageEvent(OfflineKingdom kingdom, Entity defender, double damage, DefenderDamageCause cause) {
+	public DefenderDamageEvent(Defender defender, double damage, DefenderDamageCause cause) {
 		this.defender = defender;
-		this.kingdom = kingdom;
 		this.damage = damage;
 		this.cause = cause;
 	}
@@ -33,12 +30,8 @@ public class DefenderDamageEvent extends Event implements Cancellable {
 		return damage;
 	}
 
-	public Entity getDefender() {
+	public Defender getDefender() {
 		return defender;
-	}
-
-	public OfflineKingdom getKingdom() {
-		return kingdom;
 	}
 
 	public DefenderDamageCause getCause() {

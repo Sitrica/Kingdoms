@@ -12,6 +12,20 @@
 # The version is to help determine which version this config is. Please don't modify this value.
 version: "@version@"
 
+#cost:
+#    turretupgrades:
+#        simplified-model: 1000
+#        flurry: 1000
+#        concentrated-blast: 1000
+#        virulent-plague: 1000
+#        improved-healing: 1000
+#        voodoo: 3000
+#        final-service: 3000
+#        hellstorm: 5000
+#        unrelenting-gaze: 5000
+#    arsenal:
+#        turretbreaker: 1000
+#        siegerocket: 500 
 #turrets:
 #    nexustower: 300
 #    flameturret: 150

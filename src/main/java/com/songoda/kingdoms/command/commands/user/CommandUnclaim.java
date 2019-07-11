@@ -87,7 +87,7 @@ public class CommandUnclaim extends AbstractCommand {
 					if (nexus == null)
 						return ReturnType.FAILURE;
 					Land nexusLand = landManager.getLand(nexus.getChunk());
-					if (instance.getManager(InvadingManager.class).isBeingInvaded(nexusLand))
+					if (instance.getManager(InvadingManager.class).getInvasionAt(nexusLand).isPresent())
 						new MessageBuilder("commands.unclaim.unclaim-all-nexus")
 								.setPlaceholderObject(kingdomPlayer)
 								.setKingdom(kingdom)

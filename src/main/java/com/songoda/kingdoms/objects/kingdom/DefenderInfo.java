@@ -16,7 +16,6 @@ public class DefenderInfo {
 	private int thrown = 0;
 	private int speed = 0;
 	private int armor = 0;
-	private int mimic = 0;
 	private int focus = 0;
 	private int limit = 0;
 	private int tier = 1;
@@ -24,7 +23,6 @@ public class DefenderInfo {
 	private int grab = 0;
 	private int plow = 0;
 	private int drag = 0;
-	private int mock = 0;
 	private int duel = 0;
 	private int aqua = 0;
 
@@ -42,14 +40,6 @@ public class DefenderInfo {
 
 	public void setDrag(int drag) {
 		this.drag = drag;
-	}
-
-	public int getMock() {
-		return mock;
-	}
-
-	public void setMock(int mock) {
-		this.mock = mock;
 	}
 
 	public int getDuel() {
@@ -106,14 +96,6 @@ public class DefenderInfo {
 
 	public void setFocus(int focus) {
 		this.focus = focus;
-	}
-
-	public int getMimic() {
-		return mimic;
-	}
-
-	public void setMimic(int mimic) {
-		this.mimic = mimic;
 	}
 
 	public int getSpeed() {
@@ -246,10 +228,6 @@ public class DefenderInfo {
 				return focus;
 			case HEALTH:
 				return health;
-			case MIMIC:
-				return mimic;
-			case MOCK:
-				return mock;
 			case PLOW:
 				return plow;
 			case REINFORCEMENTS:
@@ -296,12 +274,6 @@ public class DefenderInfo {
 				break;
 			case HEALTH:
 				this.health = level; 
-			case MIMIC:
-				this.mimic = level; 
-				break;
-			case MOCK:
-				this.mock = level; 
-				break;
 			case PLOW:
 				this.plow = level; 
 				break;

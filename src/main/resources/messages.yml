@@ -144,7 +144,7 @@ kingdoms:
     nexus-setting-cancelled-moved: "&cYou moved into another chunk of land!"
     cannot-attack-ally: "&cYou can't attack your own Kingdom allies!"
     # Placeholders: All Kingdom and KingdomPlayer related placeholders.
-    defender-void-death: "&cThe Defender has disappeared into the void! Invasion stopped!"
+    defender-death: "&cAll Defenders have died! The invasion has been won!"
     defender-own: "&cYou can't attack your own Kingdom's Defender!"
     # Placeholders: All Kingdom and KingdomPlayer related placeholders.
     defender-command-blocked: "&cYou can't use this command during an invasion!"
@@ -407,6 +407,7 @@ commands:
         player-in-another-kingdom: "&cThe player &l%input%&c is already in another Kingdom."
         invited-already: "&cThe player &l%input%&c has already been invited to the Kingdom."
         invited: "&cThe member &l%player%&c has invite &e&l%input%&c to the Kingdom."
+        already: "&cYou have already invited user %input%."
         invite:
             - ""
             - "&6Player &l%player%&6 has invited you to join Kingdom &l%kingom%"
@@ -425,6 +426,38 @@ commands:
             - ""
             - "&6You have switched chat channels to &l%channel%"
             - ""
+    invade:
+        description: "Invade the Kingdom at your location."
+        syntax: "/k invade"
+        no-kingdom: "&cYou aren't apart of any Kingdom to begin an invasion."
+        land-has-no-kingdom: "&cThere is no Kingdom at your current location."
+        neutral-own: "&cYour Kingdom is currently neutral, and invading would make you never nautral again. Change value in nexus to do so."
+        neutral-target: "&cThe target Kingdom %kingdom% is neutral, thus you may not invade them."
+        permissions-too-low: "&cYour rank is too low to invade! Only %rank% and up may invade others!"
+        cannot-invade-own: "&cYou may not invade your own Kingdom, silly."
+        mass-war-only: "&cYou may only invade others during a masswar."
+        # Extra placeholder for the three nodes below: %amount%
+        target-none-online: "&cThere is currently no online enemies of the Kingdom %kingdom% to invade them."
+        not-enough-players: "&cYour Kingdom currently does not have atleast %amount% players online."
+        target-not-enough-players: "&cThe target Kingdom %kingdom% does not have atleast %amount% players online."
+        # Extra placeholder: %max%
+        max-claims-reached: "&cYour Kingdom already has the maximum amount of claims available."
+        # Extra placeholder: %needed%
+        max-claims-need-members: "&cYour Kingdom currently needs %needed% members in order to claim new land."
+        powercell-present: "&cThis Kingdom is using a Powercell, you must find, invade and destroy all the lands containing Powercells first."
+        being-invaded: "&cThis Kingdom's Land is already being invaded by %kingdom%."
+        allianced: "&cYou are currently allianced with Kingdom %kingdom%"
+        invading: "&cYou can't invade another Kingdom, your Kingdom is already invading Kingdom %kingdoms%"
+        mass-war-free: "&6Mass war is enabled right now, Invading is free!"
+        cannot-afford: "&cYour Kingdom does not have enough %cost% resource points to invade!"
+        transation-done: "&aYour Kingdom has just been charged %cost% for starting an invasion."
+    surrender:
+        description: "Surrender to the invading opponent."
+        syntax: "/k surrender [<kingdom>]"
+        no-kingdom: "&cYou aren't apart of any Kingdom to surrender."
+        no-invasions: "&cThere currently aren't any invasions you're involved in."
+        surrender:
+            - "&c&lKingdom %kingdom% has just surrendered to your forces!"
 
 # All messages relating to invading.
 invading:

@@ -83,7 +83,14 @@ public class CommandInvite extends AbstractCommand {
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		inviteManager.addInvite(target, kingdom);
+		boolean already = inviteManager.addInvite(target, kingdom);
+		if (already) {
+			new MessageBuilder("commands.invite.already")
+					.setPlaceholderObject(kingdomPlayer)
+					.replace("%input%", name)
+					.send(kingdomPlayer.getKingdom().getOnlinePlayers());
+			return ReturnType.FAILURE;
+		}
 		new MessageBuilder("commands.invite.invited")
 				.setPlaceholderObject(kingdomPlayer)
 				.replace("%input%", name)

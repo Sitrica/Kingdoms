@@ -148,6 +148,8 @@ upgrades:
     # The upgrade settings for the defender's drag feature.
     drag:
         enabled: true
+        # Delay in which the ability runs at in ticks (20 ticks per second)
+        tick: 40
         title: "&bDrag"
         material: "FISHING_ROD"
         material-meta: ""
@@ -157,29 +159,6 @@ upgrades:
         cost: 100
         description:
             - "&7If the invading player is more than 7 blocks away from the defender, the defender will teleport the player to the defender's location"
-    mimic:
-        enabled: true
-        title: "&bMimic"
-        # use THIN_GLASS for 1.8...
-        material: "GLASS_PANE"
-        material-meta: ""
-        glowing: false
-        current: "&aCurrent Mimic Level: %level%"
-        cost: 600
-        description:
-            - "&7The champion gains the invader's helmet, leggings and boots."
-    mock:
-        enabled: true
-        title: "&bMock"
-        material: "STONE"
-        material-meta: ""
-        glowing: false
-        current: "&2Current Mock Range: %level% blocks"
-        max-level: 5
-        cost: 25
-        cost-multiplier: 25
-        description:
-            - "&7Each upgrade increases the radius in which invading players can't build while near the defender."
     death-duel:
         enabled: true
         title: "&bDeath Duel"
@@ -203,6 +182,16 @@ upgrades:
             - "&7Your defender can only receive up to 15 damage at any attack."
     thor:
         enabled: true
+        # Delay in which the ability runs at in ticks (20 ticks per second)
+        tick: 100
+        attack-invasion-instigator: true
+        # Apply multiple damage to the instigator (damage * this value)
+        instigator-damage-bonus: 1.0
+        # Attack all players not allianced with or of the targeted Kingdom.
+        attack-in-radius: true
+        attack-radius: 8
+        # Apply multiple damage to the players in radius (damage * this value)
+        radius-damage-bonus: 1.0
         title: "&bThor"
         material: "DIAMOND_AXE"
         material-meta: ""
@@ -216,6 +205,8 @@ upgrades:
             - "&7Deals damage, and knocks the players back."
     plow:
         enabled: true
+        # Delay in which the ability runs at in ticks (20 ticks per second)
+        tick: 50
         title: "&bPlow"
         # Use WEB for 1.8...
         material: "COBWEB"
@@ -246,5 +237,7 @@ upgrades:
         glowing: false
         current: "&fCurrent Focus Level: %level%"
         cost: 700
+        # The duration in ticks to remove from the player's effects.
+        remove: 2
         description:
             - "&7Players hit by the Defender will have 1 second removed from all their active potion effects."

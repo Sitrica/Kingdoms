@@ -45,10 +45,21 @@ public class IntervalUtils {
 		return time;
 	}
 
+	/**
+	 * Grab the milliseconds from the String input.
+	 * 
+	 * @param interval The formatted English string input.
+	 * @return The time in milliseconds from the String input.
+	 */
+	public static long getMilliseconds(String interval) {
+		long ticks = getInterval(interval);
+		return (ticks / 20) * 1000;
+	}
+
 	public static String getSeconds(long ticks) {
 		double seconds = ticks / 20;
 		if (seconds == 1)
-			return "1 second";
+			return "a second";
 		return seconds + " seconds";
 	}
 

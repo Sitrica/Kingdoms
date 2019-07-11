@@ -6,17 +6,16 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.manager.managers.ChatManager.ChatChannel;
-import com.songoda.kingdoms.manager.managers.LandManager.LandInfo;
+import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 
-public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {
+public class KingdomPlayer extends OfflineKingdomPlayer {
 
 	private boolean autoClaiming, autoMapping, vanished, admin;
 	public ChatChannel channel = ChatChannel.PUBLIC;
 	private transient LivingEntity opponent;
-	private transient LandInfo invading;
 	private final Player player;
 
 	public KingdomPlayer(Player player) {
@@ -82,21 +81,6 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {
 		this.autoClaiming = autoClaiming;
 	}
 
-	@Override
-	public boolean isInvading() {
-		return invading != null;
-	}
-
-	@Override
-	public Land getInvadingLand() {
-		return invading.get();
-	}
-
-	@Override
-	public void setInvadingLand(LandInfo invading) {
-		this.invading = invading;
-	}
-
 	public ChatChannel getChatChannel() {
 		return channel;
 	}
@@ -105,14 +89,16 @@ public class KingdomPlayer extends OfflineKingdomPlayer implements Challenger {
 		this.channel = channel;
 	}
 
-	@Override
 	public LivingEntity getOpponent() {
 		return opponent;
 	}
 
-	@Override
 	public void setOpponent(LivingEntity opponent) {
 		this.opponent = opponent;
+	}
+
+	public Land getLandAt() {
+		return instance.getManager(LandManager.class).getLandAt(player.getLocation());
 	}
 
 }

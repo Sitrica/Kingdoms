@@ -47,7 +47,7 @@ public class GuardsManager extends Manager {
 	private KingdomManager kingdomManager;
 	
 	public GuardsManager() {
-		super("guards", true);
+		super(true);
 		instance.getServer().getScheduler().runTaskTimerAsynchronously(instance, () -> {
 			Iterator<Entry<Monster, Player>> iterator = targets.entrySet().iterator();
 		    while (iterator.hasNext()) {
