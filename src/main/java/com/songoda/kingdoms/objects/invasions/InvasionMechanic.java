@@ -1,5 +1,6 @@
 package com.songoda.kingdoms.objects.invasions;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -35,13 +36,18 @@ import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
 import com.songoda.kingdoms.utils.Utils;
 
-public abstract class InvasionMechanic implements Listener {
+public abstract class InvasionMechanic<M extends InvasionTrigger> implements Listener {
 
 	private final SetMultimap<OfflineKingdom, Defender> defenders = MultimapBuilder.hashKeys().hashSetValues().build();
+	private final Class<M> trigger;
 	private final String[] names;
 
-	protected InvasionMechanic(String... names) {
+	@SuppressWarnings("unchecked")
+	protected InvasionMechanic(boolean listener, String... names) {
+		this.trigger = (Class<M>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
 		this.names = names;
+		if (listener)
+			Bukkit.getPluginManager().registerEvents(this, Kingdoms.getInstance());
 	}
 
 	public enum StopReason {
@@ -91,7 +97,7 @@ public abstract class InvasionMechanic implements Listener {
 	 * @param kingdomPlayer The player interacting within the Land.
 	 * @param land The Land the event was part of.
 	 */
-	public abstract void onInteract(PlayerInteractEvent event, KingdomPlayer kingdomPlayer, Land land);
+	protected abstract void onInteract(PlayerInteractEvent event, KingdomPlayer kingdomPlayer, Land land);
 
 	/**
 	 * Called when a player not apart of the target Kingdom breaks a block in the target Kingdom's lands.
@@ -114,6 +120,15 @@ public abstract class InvasionMechanic implements Listener {
 	 * @param land The Land the block was broken in.
 	 */
 	public abstract void onNexusBreak(BlockBreakEvent event, KingdomPlayer kingdomPlayer, Land land);
+
+	/**
+	 * Called when a player triggers a invade claim on a land.
+	 * @param <A>
+	 * 
+	 * @param trigger The InvasionTrigger event involved in this call.
+	 * @param kingdomPlayer The player calling the invade on the land.
+	 */
+	protected abstract void onInvade(M trigger, KingdomPlayer kingdomPlayer);
 
 	/**
 	 * Called when an entity within the target Kingdom's land is damaged by another entity.
@@ -140,6 +155,14 @@ public abstract class InvasionMechanic implements Listener {
 	 * @param invasion The Invasion that is being stopped.
 	 */
 	public abstract void onInvasionStop(StopReason reason, Invasion invasion);
+
+	@SuppressWarnings("unchecked")
+	public <A extends InvasionTrigger> boolean callInvade(A trigger, KingdomPlayer kingdomPlayer) {
+		if (!this.trigger.equals(trigger.getClass()))
+			return false;
+		onInvade((M) trigger, kingdomPlayer);
+		return true;
+	}
 
 	public String[] getNames() {
 		return names;
@@ -212,7 +235,7 @@ public abstract class InvasionMechanic implements Listener {
 	 * @param location The location to spawn the defender at.
 	 * @param invasion The Invasion this defender is connected to.
 	 */
-	public void spawnDefender(Location location, Invasion invasion) {
+	public Defender spawnDefender(Location location, Invasion invasion) {
 		Kingdoms instance = Kingdoms.getInstance();
 		OfflineKingdom target = invasion.getTarget();
 		KingdomPlayer instigator = invasion.getInstigator();
@@ -286,6 +309,7 @@ public abstract class InvasionMechanic implements Listener {
 				DeprecationUtils.setItemInMainHand(entity, sword);
 				break;
 		}
+		return defender;
 	}
 
 	private void startChampionCountdown(Monster champion) {

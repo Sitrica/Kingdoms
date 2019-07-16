@@ -15,6 +15,7 @@ import com.songoda.kingdoms.manager.managers.MasswarManager;
 import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.manager.managers.StructureManager;
+import com.songoda.kingdoms.objects.invasions.CommandTrigger;
 import com.songoda.kingdoms.objects.invasions.Invasion;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
@@ -140,19 +141,9 @@ public class CommandInvade extends AbstractCommand {
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		if (!instance.getManager(StructureManager.class).isInvadeable(kingdomPlayer, land)) {
+		if (!instance.getManager(StructureManager.class).isInvadeable(kingdomPlayer, land)) { //powercell check
 			new MessageBuilder("commands.invade.powercell-present")
 					.replace("%kingdom%", target.getName())
-					.setPlaceholderObject(kingdomPlayer)
-					.setKingdom(target)
-					.send(player);
-			return ReturnType.FAILURE;
-		}
-		InvadingManager invadingManager = instance.getManager(InvadingManager.class);
-		Optional<Invasion> current = invadingManager.getInvasionAt(land);
-		if (current.isPresent()) {
-			new MessageBuilder("commands.invade.being-invaded")
-					.replace("%kingdom%", current.isPresent() ? current.get() : "")
 					.setPlaceholderObject(kingdomPlayer)
 					.setKingdom(target)
 					.send(player);
@@ -166,16 +157,33 @@ public class CommandInvade extends AbstractCommand {
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		Set<Invasion> invasions = invadingManager.getInvasionsOn(kingdom);
-		if (invasions.size() >= instance.getConfig().getInt("invading.max-invasions-at-once", 1)) {
-			new MessageBuilder("commands.invade.invading")
-					.replace("%kingdoms%", invasions, invasion -> invasion.getTarget().getName())
+		InvadingManager invadingManager = instance.getManager(InvadingManager.class);
+		Optional<Invasion> current = invadingManager.getInvasionAt(land);
+		if (current.isPresent() && !current.get().getAttacking().equals(kingdom)) {
+			new MessageBuilder("commands.invade.being-invaded")
+					.replace("%kingdom%", current.isPresent() ? current.get() : "")
 					.setPlaceholderObject(kingdomPlayer)
 					.setKingdom(target)
 					.send(player);
 			return ReturnType.FAILURE;
 		}
+		Set<Invasion> invasions = invadingManager.getInvasionsOn(kingdom);
+		if (!invasions.contains(current.get()))
+			if (invasions.size() >= instance.getConfig().getInt("invading.max-invasions-at-once", 1)) {
+				new MessageBuilder("commands.invade.invading")
+						.replace("%kingdoms%", invasions, invasion -> invasion.getTarget().getName())
+						.setPlaceholderObject(kingdomPlayer)
+						.setKingdom(target)
+						.send(player);
+				return ReturnType.FAILURE;
+			}
 		int cost = instance.getConfig().getInt("invanding.invade-cost", 10);
+		if (current.get().getAttacking().equals(kingdom)) {
+			// If the current invasion mechanic is the default one, this will be called and if false, the config.yml node is not the default.
+			boolean command = invadingManager.getInvasionMechanic().callInvade(new CommandTrigger(current.get(), land.toInfo(), kingdomPlayer), kingdomPlayer);
+			if (command)
+				return ReturnType.FAILURE;
+		}
 		if (masswar)
 			new MessageBuilder("commands.invade.mass-war-free")
 					.replace("%kingdom%", target.getName())

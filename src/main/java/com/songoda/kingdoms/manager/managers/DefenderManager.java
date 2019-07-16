@@ -113,7 +113,7 @@ public class DefenderManager extends Manager {
 	@Override
 	public void initalize() {
 		InvadingManager invadingManager = instance.getManager(InvadingManager.class);
-		InvasionMechanic mechanic = invadingManager.getInvasionMechanic();
+		InvasionMechanic<?> mechanic = invadingManager.getInvasionMechanic();
 		instance.getServer().getScheduler().runTaskTimerAsynchronously(instance, () -> {
 			Set<UUID> remove = new HashSet<>();
 			for (UUID uuid : tracking.keySet()) {
@@ -204,7 +204,7 @@ public class DefenderManager extends Manager {
 		if (!instance.getManager(WorldManager.class).acceptsWorld(victim.getWorld()))
 			return;
 		InvadingManager invadingManager = instance.getManager(InvadingManager.class);
-		InvasionMechanic mechanic = invadingManager.getInvasionMechanic();
+		InvasionMechanic<?> mechanic = invadingManager.getInvasionMechanic();
 		Optional<Defender> optional = mechanic.getDefender(victim);
 		if (!optional.isPresent())
 			return;
@@ -236,7 +236,7 @@ public class DefenderManager extends Manager {
 			if (citizensManager.get().isCitizen(entity))
 				return;
 		InvadingManager invadingManager = instance.getManager(InvadingManager.class);
-		InvasionMechanic mechanic = invadingManager.getInvasionMechanic();
+		InvasionMechanic<?> mechanic = invadingManager.getInvasionMechanic();
 		Optional<Defender> optional = mechanic.getDefender(entity);
 		if (!optional.isPresent())
 			return;
@@ -265,7 +265,7 @@ public class DefenderManager extends Manager {
 			if (citizensManager.get().isCitizen(entity))
 				return;
 		InvadingManager invadingManager = instance.getManager(InvadingManager.class);
-		InvasionMechanic mechanic = invadingManager.getInvasionMechanic();
+		InvasionMechanic<?> mechanic = invadingManager.getInvasionMechanic();
 		Optional<Defender> optional = mechanic.getDefender(entity);
 		if (!optional.isPresent())
 			return;
@@ -298,7 +298,7 @@ public class DefenderManager extends Manager {
 				return;
 		if (!instance.getManager(WorldManager.class).acceptsWorld(damager.getWorld()))
 			return;
-		InvasionMechanic mechanic = instance.getManager(InvadingManager.class).getInvasionMechanic();
+		InvasionMechanic<?> mechanic = instance.getManager(InvadingManager.class).getInvasionMechanic();
 		Optional<Defender> optional = mechanic.getDefender(damager);
 		if (!optional.isPresent())
 			return;
@@ -336,7 +336,7 @@ public class DefenderManager extends Manager {
 		if (kingdom == null)
 			return;
 		InvadingManager invadingManager = instance.getManager(InvadingManager.class);
-		InvasionMechanic mechanic = invadingManager.getInvasionMechanic();
+		InvasionMechanic<?> mechanic = invadingManager.getInvasionMechanic();
 		Optional<Defender> optional = mechanic.getDefender(entity);
 		if (!optional.isPresent())
 			return;
@@ -364,7 +364,7 @@ public class DefenderManager extends Manager {
 		if (!instance.getManager(WorldManager.class).acceptsWorld(victim.getWorld()))
 			return;
 		Iterator<LivingEntity> iterator = event.getAffectedEntities().iterator();
-		InvasionMechanic mechanic = instance.getManager(InvadingManager.class).getInvasionMechanic();
+		InvasionMechanic<?> mechanic = instance.getManager(InvadingManager.class).getInvasionMechanic();
 		PlayerManager playerManager = instance.getManager(PlayerManager.class);
 		TurretManager turretManager = instance.getManager(TurretManager.class);
 		ProjectileSource thrower = event.getPotion().getShooter();

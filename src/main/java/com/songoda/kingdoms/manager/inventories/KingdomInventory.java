@@ -27,6 +27,7 @@ public abstract class KingdomInventory {
 	protected final Kingdoms instance;
 	private final InventoryType type;
 	protected InventoryRange range;
+	private boolean reopening;
 	protected final int size;
 
 	public KingdomInventory(InventoryType type, String path, int size) {
@@ -102,7 +103,13 @@ public abstract class KingdomInventory {
 	}
 
 	protected void reopen(KingdomPlayer kingdomPlayer) {
+		reopening = true;
 		open(kingdomPlayer);
+		reopening = false;
+	}
+
+	public boolean isReopening() {
+		return reopening;
 	}
 
 	public void close(UUID uuid) {
@@ -127,6 +134,10 @@ public abstract class KingdomInventory {
 			this.consumer = consumer;
 			this.uuid = uuid;
 			this.slot = slot;
+		}
+
+		public void setInventory(Inventory inventory) {
+			this.inventory = inventory;
 		}
 
 		public void accept(InventoryClickEvent event) {

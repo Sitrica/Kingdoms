@@ -2,10 +2,12 @@ package com.songoda.kingdoms.manager.inventories;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -80,8 +82,15 @@ public class InventoryManager extends Manager {
 	@EventHandler
 	public void onInventoryClose(InventoryCloseEvent event) {
 		UUID uuid = event.getPlayer().getUniqueId();
-		opened.values().forEach(inventory -> inventory.close(uuid));
-		opened.remove(uuid);
+		Iterator<Entry<UUID, KingdomInventory>> iterator = opened.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Entry<UUID, KingdomInventory> entry = iterator.next();
+			KingdomInventory inventory = entry.getValue();
+			if (inventory.isReopening())
+				continue;
+			inventory.close(uuid);
+			iterator.remove();
+		}
 	}
 
 	@Override

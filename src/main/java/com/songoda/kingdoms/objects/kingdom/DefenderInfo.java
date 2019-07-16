@@ -2,7 +2,7 @@ package com.songoda.kingdoms.objects.kingdom;
 
 public class DefenderInfo {
 
-	private final OfflineKingdom kingdom;
+	private final String kingdom;
 	private int reinforcements = 0;
 	private int megaHealth = 0;
 	private int absorption = 0;
@@ -27,10 +27,10 @@ public class DefenderInfo {
 	private int aqua = 0;
 
 	public DefenderInfo(OfflineKingdom kingdom) {
-		this.kingdom = kingdom;
+		this.kingdom = kingdom.getName();
 	}
 
-	public OfflineKingdom getKingdom() {
+	public String getKingdomName() {
 		return kingdom;
 	}
 

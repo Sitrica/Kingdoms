@@ -27,10 +27,30 @@ database:
     kingdom-table: "Kingdoms"
     player-table: "Players"
     land-table: "Lands"
-    # Type is only SQLite right now.
-    type: "SQLite"
-    autosave:
+    # Types are H2 and MYSQL.
+    type: "H2"
+    mysql:
+        enabled: false
+        user: "root"
+        password: "password"
+        address: "localhost"
+        name: "kingdoms-example"
+    # Table name configuration for databases.
+    kingdoms-table: "Kingdoms"
+    player-table: "Players"
+    land-table: "Lands"
+    # If Kingdoms should attempt to auto save.
+    auto-save:
+        enabled: true
+        # The interval in seconds of which the auto save should run at.
+        # Auto saving is done asynchronously.
         interval: "5 minutes"
+    # If you want to transfer databases you can use this configuration.
+    # Simple set the database you want to transfer from to true.
+    # Example: If you needed SQLite to MySQL you would enable SQLite.
+    transfer:
+        sqlite: false
+        mysql: false
 
 # All configurations relating to the actual plugin.
 plugin:
@@ -93,31 +113,6 @@ holograms:
         lines:
             - "&c&lTurret disabled!"
             - "&fTime remaining: %time%"
-
-# Configure your database settings.
-database:
-    mysql:
-        enabled: false
-        user: "root"
-        password: "password"
-        address: "localhost"
-        name: "kingdoms-example"
-    # Table name configuration for both SQL databases.
-    kingdoms-table: "Kingdoms"
-    player-table: "Players"
-    land-table: "Lands"
-    # If Kingdoms should attempt to auto save.
-    auto-save:
-        enabled: true
-        # The interval in seconds of which the auto save should run at.
-        # Auto saving is done asynchronously.
-        interval: "5 minutes"
-    # If you want to transfer databases you can use this configuration.
-    # Simple set the database you want to transfer from to true.
-    # Example: If you needed SQLite to MySQL you would enable SQLite.
-    transfer:
-        sqlite: false
-        mysql: false
 
 # All configurations relating to economy (Vault)
 economy:

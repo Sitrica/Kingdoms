@@ -24,9 +24,9 @@ public class DefenderInfoSerializer implements Serializer<DefenderInfo> {
 			upgrades.addProperty(upgradeType.name(), upgrade.getUpgradeLevel(upgradeType));
 		}
 		json.add("upgrades", upgrades);
-		OfflineKingdom kingdom = upgrade.getKingdom();
+		String kingdom = upgrade.getKingdomName();
 		if (kingdom != null)
-			json.addProperty("kingdom", kingdom.getName());
+			json.addProperty("kingdom", kingdom);
 		return json;
 	}
 

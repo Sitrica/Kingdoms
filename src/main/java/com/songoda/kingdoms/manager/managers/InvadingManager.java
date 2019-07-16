@@ -3,6 +3,7 @@ package com.songoda.kingdoms.manager.managers;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
@@ -34,6 +35,7 @@ import com.songoda.kingdoms.objects.Defender;
 import com.songoda.kingdoms.objects.invasions.Invasion;
 import com.songoda.kingdoms.objects.invasions.InvasionMechanic;
 import com.songoda.kingdoms.objects.invasions.InvasionMechanic.StopReason;
+import com.songoda.kingdoms.objects.invasions.InvasionTrigger;
 import com.songoda.kingdoms.objects.invasions.mechanics.DefaultInvasion;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
@@ -47,30 +49,37 @@ import com.songoda.kingdoms.utils.Utils;
 
 public class InvadingManager extends Manager {
 
+	private InvasionMechanic<? extends InvasionTrigger> mechanic;
 	private final Set<Invasion> invasions = new HashSet<>();
 	private Optional<CitizensManager> citizensManager;
 	private final Random random = new Random();
-	private InvasionMechanic mechanic;
 
 	public InvadingManager() {
 		super(true);
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void initalize() {
 		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		String name = instance.getConfig().getString("invasions.mechanics.type", "default");
-		mechanic = Utils.getClassesOf(instance, instance.getPackageName() + ".objects.invasions.mechanics", InvasionMechanic.class).parallelStream().map(clazz -> {
+		List<Class<InvasionMechanic>> classes = Utils.getClassesOf(instance, instance.getPackageName() + ".objects.invasions.mechanics", InvasionMechanic.class);
+		for (Class<InvasionMechanic> clazz : classes) {
+			InvasionMechanic<?> mechanic;
 			try {
-				InvasionMechanic mechanic = clazz.newInstance();
-				return mechanic;
+				mechanic = clazz.newInstance();
 			} catch (InstantiationException | IllegalAccessException e) {
 				e.printStackTrace();
+				continue;
 			}
-			return null;
-		}).filter(mechanic -> mechanic != null && mechanic.initialize(instance))
-		.filter(mechanic -> Arrays.stream(mechanic.getNames()).anyMatch(type -> name.equalsIgnoreCase(type)))
-		.findFirst().orElse(new DefaultInvasion());
+			if (mechanic == null || !mechanic.initialize(instance))
+				continue;
+			if (!Arrays.stream(mechanic.getNames()).anyMatch(type -> name.equalsIgnoreCase(type)))
+				continue;
+			this.mechanic = mechanic;
+		}
+		if (mechanic == null)
+			mechanic = new DefaultInvasion();
 		long interval = IntervalUtils.getInterval(configuration.getString("invading.mechanics.heartbeat", "1 minute"));
 		instance.getServer().getScheduler().runTaskTimerAsynchronously(instance, () -> {
 			invasions.parallelStream()
@@ -89,7 +98,7 @@ public class InvadingManager extends Manager {
 	/**
 	 * @return The current InvasionMechanic that the configuration defines.
 	 */
-	public InvasionMechanic getInvasionMechanic() {
+	public InvasionMechanic<? extends InvasionTrigger> getInvasionMechanic() {
 		return mechanic;
 	}
 
@@ -350,7 +359,7 @@ public class InvadingManager extends Manager {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onProjectileKnockback(EntityDamageByEntityEvent event) {
 		DamageCause cause = event.getCause();
-		if (cause != DamageCause.ENTITY_ATTACK || cause != DamageCause.PROJECTILE)
+		if (cause != DamageCause.ENTITY_ATTACK && cause != DamageCause.PROJECTILE)
 			return;
 		Entity entity = event.getEntity();
 		Optional<Defender> optional = mechanic.getDefender(entity);
