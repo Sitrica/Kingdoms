@@ -469,35 +469,14 @@ invading:
     defenders-name: "&4%kingdom%'s Defender"
     # Placeholders: %player%, %chunkTo%, %chunkFrom%, %land% and %kingdom%
     invading-deny-chunk-change: "&cYou can not leave the Kingdom while invading!"
-    
-    
+    invasion-started-attacker: "&e&lYour Kingdom has started an invasion on %kingdom%! Use &c&l/k invade &e&lon each of their claims to complete the takeover."
+    invasion-started-defenders: "&c&lAn invasion from %kingdom% has started! Defend all your lands by attacking them to stop the invasion!"
 
 
 
-Turrets_AttackSpeed: '&9Attack Speed: '
-Turrets_Target_Random_In_Range: '&9Targets one random non-ally in range'
-Turrets_Target_Random_Player_Range: '&9Targets one random non-ally player in range'
-Turrets_Target_All_Player_Range: '&9All targets in blast range'
-Turrets_Target_Single: '&9Single Target'
-Turrets_Psi_Attack: '&c&lYou were hit by a Psionic Strike!'
-Turrets_Heatbeam_Attack: '&c&lYou were hit by a Heatbeam Attack!'
-# If you're looking for this one, ignore it.
-#Misc_Kingdom_Deleting: Kingdom is disbanding. Please wait a moment...
-Guis_Turret_Hellfire: '&bHellfire Turret'
-Guis_Turret_Hellfire_Desc: '&aPowerful turret which fires quickly and with high damage'
-Guis_Turret_Heatbeam: '&bHeatbeam Turret'
-Guis_Turret_Heatbeam_Desc: '&aPowerful turret which targets singular targets and deals high damage'
-Guis_Turret_Soldier: '&bSoldier Spawner'
-Guis_Turret_Soldier_Desc: '&aSpawns soldier zombies on player targets'
-Guis_Turret_Psionic: '&bPsionic Totem'
-Guis_Turret_Psionic_Desc: '&aTurret which pierces player armor to cause damage and slow the target. Can never deal killing damage.'
-Guis_Turret_ChemicalMine: '&bChemical Mine'
-Guis_Turret_ChemicalMine_Desc: '&aA mine which gives the triggering player potent poison and blindness'
-Guis_Turret_PressureMine: '&bPressure Mine'
-Guis_Turret_PressureMine_Desc: '&aA mine that explodes when stepped on by players, damaging any nearby player'
-Guis_Turret_Title: '&bTurret Shop'
-Plugin_SetEnableToTrue: Please set Enable option to true in your config.yml file.
-Plugin_WillBeDisabled: This plugin will be disabled.
+
+
+
 Plugin_OreRegeneratorNotFound: No OreRegenerator plugin found, disabling kingdom ore regeneration after land expiry
 PlaceHolders_None: none
 Command_Info_PageTextHeader: '&6Page %currpagenum%'
@@ -538,7 +517,6 @@ Command_Help_Next_Page: '&6do /k help &7<page> &6to see the next pages.'
 Command_Info_Page9Title: '&aConquests'
 Command_Info_Page9Content1: Visit this page to learn about Conquests
 Command_Info_Page9Content2: https://goo.gl/BOmwOj
-Command_Help_Help: Shows all commands
 Command_Help_Accept: Accept an invite from a kingdom
 Command_Help_Decline: Decline an invite from a kingdom
 Command_Help_Broadcast: Broadcast a message to kingdom members

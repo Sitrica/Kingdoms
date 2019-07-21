@@ -1,7 +1,9 @@
 package com.songoda.kingdoms.objects.invasions.mechanics;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -10,7 +12,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -36,7 +38,7 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 
-	private final Map<UUID, DoubleObject<LandInfo, Defender>> invading = new HashMap<>();
+	private final Map<UUID, DoubleObject<LandInfo, Defender>> invading = new HashMap<>(); //UUID is a player
 
 	public DefaultInvasion() {
 		super(true, "default");
@@ -53,7 +55,6 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 	public void onMoveIntoLand(PlayerChangeChunkEvent event, KingdomPlayer kingdomPlayer, Land land) {
 		if (!Kingdoms.getInstance().getConfig().getBoolean("invading.invading-deny-chunk-change", true))
 			return;
-		//InvadingManager invadingManager = Kingdoms.getInstance().getManager(InvadingManager.class);
 		Optional<DoubleObject<LandInfo, Defender>> invading = getInvading(kingdomPlayer.getUniqueId());
 		if (!invading.isPresent())
 			return;
@@ -94,33 +95,44 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 		invading.put(uuid, DoubleObject.of(trigger.getLandInfo(), defender));
 	}
 
-	// TODO doesn't work
 	@Override
-	public void onInteract(PlayerInteractEvent event, KingdomPlayer kingdomPlayer, Land land) {
-		// TODO Auto-generated method stub
+	public void onDefenderDeath(EntityDeathEvent event, Defender defender) {
+		Iterator<Entry<UUID, DoubleObject<LandInfo, Defender>>> iterator = invading.entrySet().iterator();
+		Invasion invasion = defender.getInvasion();
+		String attacking = invasion.getAttacking().getName(); //So we don't need to get from the cache every iterate.
+		while (iterator.hasNext()) {
+			Entry<UUID, DoubleObject<LandInfo, Defender>> entry = iterator.next();
+			DoubleObject<LandInfo, Defender> object = entry.getValue();
+			Defender search = object.getSecond();
+			if (!search.getFirst().equals(defender.getFirst())) //Compare UUID's
+				continue;
+			// Set owner of Land
+			object.getFirst().get().setKingdomOwner(attacking);
+			iterator.remove();
+		}
 	}
 
-	// TODO doesn't work
 	@Override
-	public void onBlockBreak(BlockBreakEvent event, KingdomPlayer kingdomPlayer, Land land) {
-		// TODO Auto-generated method stub
-	}
+	public void onBlockBreak(BlockBreakEvent event, KingdomPlayer kingdomPlayer, Land land, Invasion invasion) {}
 
-	// TODO doesn't work
 	@Override
-	public void onNexusBreak(BlockBreakEvent event, KingdomPlayer kingdomPlayer, Land land) {
-		// TODO Auto-generated method stub
-	}
+	public void onDamage(EntityDamageByEntityEvent event, Land land) {}
 
-	// TODO doesn't work
 	@Override
-	public void onDamage(EntityDamageByEntityEvent event, Land land) {
-		// TODO Auto-generated method stub
+	public void onInvasionStop(StopReason reason, Invasion invasion) {
+		// TODO
 	}
 
 	@Override
 	public boolean start(Land starting, Invasion invasion) {
-		//target.sendAnnouncement(null, Kingdoms.getLang().getString("Command_Invade_Warning", kp.getLang()), true);
+		new MessageBuilder("invading.invasion-started-attacker")
+				.setKingdom(invasion.getTarget())
+				.send(invasion.getAttacking().getOnlinePlayers());
+		OfflineKingdom defenders = invasion.getTarget();
+		if (defenders.isOnline())
+			new MessageBuilder("invading.invasion-started-defenders")
+					.setKingdom(invasion.getAttacking())
+					.send(defenders.getKingdom().getOnlinePlayers());
 		return true;
 	}
 
@@ -135,12 +147,6 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 		// Timeout system
 		String setting = Kingdoms.getInstance().getConfig().getString("invading.mechanics.default.max-time", "50 minutes");
 		return System.currentTimeMillis() - invasion.getStartingTime() < IntervalUtils.getMilliseconds(setting);
-	}
-
-	// TODO doesn't work
-	@Override
-	public void onInvasionStop(StopReason reason, Invasion invasion) {
-		// TODO Auto-generated method stub
 	}
 
 }

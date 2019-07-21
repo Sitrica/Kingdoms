@@ -244,6 +244,7 @@ public class DefenderManager extends Manager {
 		Invasion invasion = defender.getInvasion();
 		Bukkit.getPluginManager().callEvent(new DefenderDeathEvent(defender, event));
 		mechanic.death(entity);
+		mechanic.onDefenderDeath(event, defender);
 		if (mechanic.getDefenders(defender.getOwner()).size() > 0)
 			return;
 		Bukkit.getPluginManager().callEvent(new InvadingStopEvent(StopReason.WIN, invasion));

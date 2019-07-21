@@ -17,6 +17,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -108,10 +109,10 @@ public class InvadingManager extends Manager {
 	 * @param land The land to check.
 	 * @return Optional<Invasion> if an invasion is present.
 	 */
-	public Optional<Invasion> getInvasionAt(Land land) {
+	public Set<Invasion> getInvasionAt(Land land) {
 		return invasions.parallelStream()
 				.filter(invasion -> invasion.getInvadingLands().stream().anyMatch(info -> info.equals(land.toInfo())))
-				.findFirst();
+				.collect(Collectors.toSet());
 	}
 
 	/**
@@ -186,6 +187,7 @@ public class InvadingManager extends Manager {
 	}
 
 	public void stopInvasion(StopReason reason, Invasion invasion) {
+		mechanic.stopInvasion(reason, invasion);
 		stopInvasion(reason, invasion.getTarget());
 	}
 
@@ -330,6 +332,24 @@ public class InvadingManager extends Manager {
 	public void onEnterVehicle(VehicleEnterEvent event) {
 		if (isDefender(event.getEntered()))
 			event.setCancelled(true);
+	}
+
+	@EventHandler
+	public void onBreak(BlockBreakEvent event) {
+		Land land = instance.getManager(LandManager.class).getLandAt(event.getBlock().getLocation());
+		if (!land.hasOwner())
+			return;
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(event.getPlayer());
+		getInvasionAt(land).parallelStream().forEach(invasion -> mechanic.onBlockBreak(event, kingdomPlayer, land, invasion));
+	}
+
+	@EventHandler
+	public void onBreak(EntityDamageByEntityEvent event) {
+		Entity victim = event.getEntity();
+		Land land = instance.getManager(LandManager.class).getLandAt(victim.getLocation());
+		if (!land.hasOwner())
+			return;
+		getInvasionAt(land).forEach(invasion -> mechanic.onDamage(event, land));
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)

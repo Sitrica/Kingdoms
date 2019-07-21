@@ -18,7 +18,7 @@ import org.bukkit.entity.Zombie;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -78,6 +78,18 @@ public abstract class InvasionMechanic<M extends InvasionTrigger> implements Lis
 	public abstract boolean start(Land starting, Invasion invasion);
 
 	/**
+	 * Called when a player not apart of the target Kingdom breaks a block in the target Kingdom's lands.
+	 * <p>
+	 * The land is still in possession of the target Kingdom when this is called.
+	 * 
+	 * @param event The BlockBreakEvent event involved in this call.
+	 * @param kingdomPlayer The player breaking the block.
+	 * @param land The Land the block was broken in.
+	 * @param invasion The Invasion at this land.
+	 */
+	public abstract void onBlockBreak(BlockBreakEvent event, KingdomPlayer kingdomPlayer, Land land, Invasion invasion);
+
+	/**
 	 * Called when a player not apart of the target Kingdom enters one of the target Kingdom's lands.
 	 * <p>
 	 * The land is still in possession of the target Kingdom when this is called.
@@ -89,46 +101,12 @@ public abstract class InvasionMechanic<M extends InvasionTrigger> implements Lis
 	public abstract void onMoveIntoLand(PlayerChangeChunkEvent event, KingdomPlayer kingdomPlayer, Land land);
 
 	/**
-	 * Called when a player not apart of the target Kingdom interacts within the target Kingdom's lands.
-	 * <p>
-	 * The land is still in possession of the target Kingdom when this is called.
+	 * Called when a defender dies.
 	 * 
-	 * @param event The PlayerInteractEvent event involved in this call.
-	 * @param kingdomPlayer The player interacting within the Land.
-	 * @param land The Land the event was part of.
+	 * @param event The EntityDeathEvent event involved in this call.
+	 * @param defender Defender that died.
 	 */
-	protected abstract void onInteract(PlayerInteractEvent event, KingdomPlayer kingdomPlayer, Land land);
-
-	/**
-	 * Called when a player not apart of the target Kingdom breaks a block in the target Kingdom's lands.
-	 * <p>
-	 * The land is still in possession of the target Kingdom when this is called.
-	 * 
-	 * @param event The BlockBreakEvent event involved in this call.
-	 * @param kingdomPlayer The player breaking the block.
-	 * @param land The Land the block was broken in.
-	 */
-	public abstract void onBlockBreak(BlockBreakEvent event, KingdomPlayer kingdomPlayer, Land land);
-
-	/**
-	 * Called when a player not apart of the target Kingdom breaks the Nexus in the target Kingdom's lands.
-	 * <p>
-	 * The land is still in possession of the target Kingdom when this is called.
-	 * 
-	 * @param event The BlockBreakEvent event involved in this call.
-	 * @param kingdomPlayer The player breaking the nexus.
-	 * @param land The Land the block was broken in.
-	 */
-	public abstract void onNexusBreak(BlockBreakEvent event, KingdomPlayer kingdomPlayer, Land land);
-
-	/**
-	 * Called when a player triggers a invade claim on a land.
-	 * @param <A>
-	 * 
-	 * @param trigger The InvasionTrigger event involved in this call.
-	 * @param kingdomPlayer The player calling the invade on the land.
-	 */
-	protected abstract void onInvade(M trigger, KingdomPlayer kingdomPlayer);
+	public abstract void onDefenderDeath(EntityDeathEvent event, Defender defender);
 
 	/**
 	 * Called when an entity within the target Kingdom's land is damaged by another entity.
@@ -139,6 +117,15 @@ public abstract class InvasionMechanic<M extends InvasionTrigger> implements Lis
 	 * @param land The Land the event was part of.
 	 */
 	public abstract void onDamage(EntityDamageByEntityEvent event, Land land);
+
+	/**
+	 * Called when a player triggers a invade claim on a land.
+	 * @param <A>
+	 * 
+	 * @param trigger The InvasionTrigger event involved in this call.
+	 * @param kingdomPlayer The player calling the invade on the land.
+	 */
+	protected abstract void onInvade(M trigger, KingdomPlayer kingdomPlayer);
 
 	/**
 	 * Checks that the mechanic is still alive and working.
