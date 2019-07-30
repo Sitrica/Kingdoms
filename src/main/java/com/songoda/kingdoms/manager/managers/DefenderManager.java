@@ -55,8 +55,8 @@ public class DefenderManager extends Manager {
 	public DefenderManager() {
 		super(true);
 		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
-		Set<String> enabled = configuration.getConfigurationSection("invading.defenders.abilities").getKeys(false).parallelStream()
-				.filter(key -> configuration.getBoolean("invading.defenders.abilities." + key + ".enabled", true))
+		Set<String> enabled = instance.getConfiguration("defender-upgrades").get().getConfigurationSection("upgrades").getKeys(false).parallelStream()
+				.filter(key -> configuration.getBoolean("upgrades." + key + ".enabled", true))
 				.map(key -> key)
 				.collect(Collectors.toSet());
 		Utils.getClassesOf(instance, instance.getPackageName() + ".objects.invasions.defenders", DefenderAbility.class).parallelStream().map(clazz -> {

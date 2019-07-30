@@ -16,12 +16,6 @@ import com.songoda.kingdoms.objects.kingdom.PowerupType;
 
 public class PowerupSerializer implements Serializer<Powerup> {
 
-	private final KingdomManager kingdomManager;
-
-	public PowerupSerializer() {
-		this.kingdomManager = Kingdoms.getInstance().getManager("kingdom", KingdomManager.class);
-	}
-
 	@Override
 	public JsonElement serialize(Powerup powerup, Type type, JsonSerializationContext context) {
 		JsonObject json = new JsonObject();
@@ -42,7 +36,7 @@ public class PowerupSerializer implements Serializer<Powerup> {
 		JsonElement kingdomElement = object.get("kingdom");
 		if (kingdomElement == null || kingdomElement.isJsonNull())
 			return null;
-		Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(kingdomElement.getAsString());
+		Optional<OfflineKingdom> kingdom = Kingdoms.getInstance().getManager(KingdomManager.class).getOfflineKingdom(kingdomElement.getAsString());
 		if (!kingdom.isPresent())
 			return null;
 		Powerup powerup = new Powerup(kingdom.get());

@@ -33,6 +33,7 @@ import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
 import com.songoda.kingdoms.objects.Defender;
+import com.songoda.kingdoms.objects.invasions.CommandTrigger;
 import com.songoda.kingdoms.objects.invasions.Invasion;
 import com.songoda.kingdoms.objects.invasions.InvasionMechanic;
 import com.songoda.kingdoms.objects.invasions.InvasionMechanic.StopReason;
@@ -87,6 +88,10 @@ public class InvadingManager extends Manager {
 					.filter(invasion -> !mechanic.update(invasion))
 					.forEach(invasion -> stopInvasion(StopReason.TIMEOUT, invasion));
 		}, 0, interval);
+	}
+
+	public boolean hasInvadedAllLands(Invasion invasion) {
+		return invasion.getTarget().getClaims().isEmpty();
 	}
 
 	/**
@@ -184,6 +189,7 @@ public class InvadingManager extends Manager {
 		Player player = instigator.getPlayer();
 		player.setGameMode(GameMode.SURVIVAL);
 		invasions.add(invasion);
+		mechanic.callInvade(new CommandTrigger(invasion, land.toInfo(), instigator), instigator);
 	}
 
 	public void stopInvasion(StopReason reason, Invasion invasion) {

@@ -12,8 +12,11 @@ import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 
 public class Defender extends DoubleObject<UUID, Invasion> {
 
-	public Defender(UUID uuid, Invasion invasion) {
+	private boolean nexus;
+
+	public Defender(UUID uuid, Invasion invasion, boolean nexus) {
 		super(uuid, invasion);
+		this.nexus = nexus;
 	}
 
 	public Optional<LivingEntity> getDefender() {
@@ -24,8 +27,16 @@ public class Defender extends DoubleObject<UUID, Invasion> {
 		return getInvasion().getTarget().getDefenderInfo();
 	}
 
+	public void setNexus(boolean nexus) {
+		this.nexus = nexus;
+	}
+
 	public OfflineKingdom getOwner() {
 		return getSecond().getTarget();
+	}
+
+	public boolean isNexusDefender() {
+		return nexus;
 	}
 
 	public Invasion getInvasion() {

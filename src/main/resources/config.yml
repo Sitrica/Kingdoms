@@ -477,7 +477,7 @@ invading:
     defender:
         # If the defender dies, should the invasion end?
         # Note: This checks that all defenders are dead (Some addon may extend Multiple Defenders)
-        defender-death-ends-invasion: false
+        defender-death-ends-invasion: true
         # If the defenders should only focus on the player that instigated the invasion.
         # Or if false, the defenders will act like normal monsters towards anyone attacking from the enemy invasion.
         focus-on-instigator: false

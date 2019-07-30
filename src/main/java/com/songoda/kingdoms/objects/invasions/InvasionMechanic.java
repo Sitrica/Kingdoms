@@ -221,13 +221,14 @@ public abstract class InvasionMechanic<M extends InvasionTrigger> implements Lis
 	 * 
 	 * @param location The location to spawn the defender at.
 	 * @param invasion The Invasion this defender is connected to.
+	 * @param nexus If this defender is the nexus defender.
 	 */
-	public Defender spawnDefender(Location location, Invasion invasion) {
+	public Defender spawnDefender(Location location, Invasion invasion, boolean nexus) {
 		Kingdoms instance = Kingdoms.getInstance();
 		OfflineKingdom target = invasion.getTarget();
 		KingdomPlayer instigator = invasion.getInstigator();
 		Zombie entity = (Zombie) location.getWorld().spawnEntity(location, EntityType.ZOMBIE);
-		Defender defender = new Defender(entity.getUniqueId(), invasion);
+		Defender defender = new Defender(entity.getUniqueId(), invasion, nexus);
 		defenders.put(target, defender);
 		startChampionCountdown(entity);
 		FileConfiguration configuration = instance.getConfig();

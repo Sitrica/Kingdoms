@@ -20,12 +20,6 @@ import java.util.Optional;
 
 public class TurretSerializer implements Serializer<Turret> {
 
-	private final TurretManager turretManager;
-
-	public TurretSerializer() {
-		this.turretManager = Kingdoms.getInstance().getManager("turret", TurretManager.class);
-	}
-
 	@Override
 	public JsonElement serialize(Turret turret, Type type, JsonSerializationContext context) {
 		JsonObject json = new JsonObject();
@@ -55,7 +49,7 @@ public class TurretSerializer implements Serializer<Turret> {
 		JsonElement typeElement = object.get("type");
 		if (typeElement == null || typeElement.isJsonNull())
 			return null;
-		Optional<TurretType> turretType = turretManager.getTurretTypeByName(typeElement.getAsString());
+		Optional<TurretType> turretType = Kingdoms.getInstance().getManager(TurretManager.class).getTurretTypeByName(typeElement.getAsString());
 		if (!turretType.isPresent())
 			return null;
 		JsonElement postElement = object.get("post");

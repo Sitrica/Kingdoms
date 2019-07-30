@@ -152,14 +152,6 @@ inventories:
                 - "&7Click to upgrade."
                 - ""
                 - "&cCost: %cost% resource points"
-        # The item that represents the battle log.
-        battle-log:
-            title: "&bBattle Logs"
-            material: "BOOK"
-            material-meta: ""
-            glowing: false
-            lore:
-                - "&7Click to view battle logs"
         # The item that represents the permissions inventory.
         permissions:
             title: "&bPermissions"
@@ -252,12 +244,12 @@ inventories:
         # The item that represents the Nexus chest size upgrade item.
         chest-size:
             title: "&bIncrease Kingdom Chest Size"
-            material: "END_PORTAL"
+            material: "GOLD_INGOT"
             material-meta: ""
             glowing: false
             lore:
                 - "&7Increases the size of Nexus Chest by 1 row per upgrade."
-                - "&6SCurrent nexus chest size: %size%"
+                - "&6Current nexus chest size: %size%"
         # The item that represents the neutral item when it's enabled.
         neutral-on:
             title: "&bClick to toggle pacifism"

@@ -471,6 +471,11 @@ invading:
     invading-deny-chunk-change: "&cYou can not leave the Kingdom while invading!"
     invasion-started-attacker: "&e&lYour Kingdom has started an invasion on %kingdom%! Use &c&l/k invade &e&lon each of their claims to complete the takeover."
     invasion-started-defenders: "&c&lAn invasion from %kingdom% has started! Defend all your lands by attacking them to stop the invasion!"
+    invasion-ended-attacker: "&e&lYour Kingdom has successfully defeated %kingdom%!"
+    invasion-ended-defenders: "&c&lYour Kingdom has failed to defend the invasions from %kingdom%!"
+    invasion-timeout: "&cThe invasion from %attacker% on %target% has expired as it has taken way to long to do."
+    invasion-defended: "&eThe invasion from %attacker% on %target% has successfully been defended!"
+    invasion-stopped: "&eThe invasion from %attacker% on %target% has been stopped."
 
 
 

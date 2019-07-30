@@ -72,51 +72,6 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.build();
 		inventory.setItem(0, converter);
 		setAction(player.getUniqueId(), 0, event -> openDonateInventory(kingdom, kingdomPlayer));
-		int memberCost = configuration.getInt("kingdoms.cost-per-max-member-upgrade", 10);
-		int max = configuration.getInt("kingdoms.max-members-via-upgrade", 30);
-		ItemStack maxMembers = new ItemStackBuilder(section.getConfigurationSection("max-members"))
-				.setPlaceholderObject(kingdomPlayer)
-				.replace("%cost%", memberCost)
-				.replace("%max%", max)
-				.setKingdom(kingdom)
-				.build();
-		inventory.setItem(1, maxMembers);
-		setAction(player.getUniqueId(), 1, event -> {
-			long points = kingdom.getResourcePoints();
-			if (memberCost > points) {
-				new MessageBuilder("structures.nexus-max-member-cant-afford")
-						.setPlaceholderObject(kingdomPlayer)
-						.replace("%cost%", memberCost)
-						.replace("%max%", max)
-						.setKingdom(kingdom)
-						.send(player);
-				return;
-			}
-			if (kingdom.getMaxMembers() + 1 > max) {
-				new MessageBuilder("structures.max-members-reached")
-						.setPlaceholderObject(kingdomPlayer)
-						.replace("%cost%", memberCost)
-						.replace("%max%", max)
-						.setKingdom(kingdom)
-						.send(player);
-				return;
-			}
-			kingdom.subtractResourcePoints(memberCost);
-			kingdom.setMaxMembers(kingdom.getMaxMembers() + 1);
-			new MessageBuilder("structures.max-members-purchase")
-					.setPlaceholderObject(kingdomPlayer)
-					.replace("%cost%", memberCost)
-					.replace("%max%", max)
-					.setKingdom(kingdom)
-					.send(player);
-			reopen(kingdomPlayer);
-		});
-		ItemStack battle = new ItemStackBuilder(section.getConfigurationSection("battle-log"))
-				.setPlaceholderObject(kingdomPlayer)
-				.setKingdom(kingdom)
-				.build();
-		inventory.setItem(7, battle);
-//TODO		setAction(7, event -> GUIManagement.getLogManager().openMenu(kingdomPlayer));
 		ItemStack permissions = new ItemStackBuilder(section.getConfigurationSection("permissions"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
@@ -178,6 +133,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 		int cost = configuration.getInt("kingdoms.chest-size-upgrade-cost", 30);
 		cost += configuration.getInt("kingdoms.chest-size-upgrade-multiplier", 10) * ((size / 9) - 3);
 		int chestCost = cost;
+		int max = configuration.getInt("kingdoms.max-members-via-upgrade", 30);
 		ItemStack chestSize = new ItemStackBuilder(section.getConfigurationSection("chest-size"))
 				.setPlaceholderObject(kingdomPlayer)
 				.replace("%cost%", chestCost)
@@ -241,6 +197,44 @@ public class NexusInventory extends StructureInventory implements Listener {
 				return;
 			});
 		}
+		int memberCost = configuration.getInt("kingdoms.cost-per-max-member-upgrade", 10);
+		ItemStack maxMembers = new ItemStackBuilder(section.getConfigurationSection("max-members"))
+				.setPlaceholderObject(kingdomPlayer)
+				.replace("%cost%", memberCost)
+				.replace("%max%", max)
+				.setKingdom(kingdom)
+				.build();
+		inventory.setItem(26, maxMembers);
+		setAction(player.getUniqueId(), 26, event -> {
+			long p = kingdom.getResourcePoints();
+			if (memberCost > p) {
+				new MessageBuilder("structures.nexus-max-member-cant-afford")
+						.setPlaceholderObject(kingdomPlayer)
+						.replace("%cost%", memberCost)
+						.replace("%max%", max)
+						.setKingdom(kingdom)
+						.send(player);
+				return;
+			}
+			if (kingdom.getMaxMembers() + 1 > max) {
+				new MessageBuilder("structures.max-members-reached")
+						.setPlaceholderObject(kingdomPlayer)
+						.replace("%cost%", memberCost)
+						.replace("%max%", max)
+						.setKingdom(kingdom)
+						.send(player);
+				return;
+			}
+			kingdom.subtractResourcePoints(memberCost);
+			kingdom.setMaxMembers(kingdom.getMaxMembers() + 1);
+			new MessageBuilder("structures.max-members-purchase")
+					.setPlaceholderObject(kingdomPlayer)
+					.replace("%cost%", memberCost)
+					.replace("%max%", max)
+					.setKingdom(kingdom)
+					.send(player);
+			reopen(kingdomPlayer);
+		});
 		Powerup powerup = kingdom.getPowerup();
 		List<Integer> slots = Lists.newArrayList(18, 19, 25, 26);
 		int i = 0;

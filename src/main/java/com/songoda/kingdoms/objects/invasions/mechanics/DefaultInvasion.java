@@ -5,9 +5,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -16,6 +18,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import com.google.common.collect.Sets;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
 import com.songoda.kingdoms.manager.managers.GuardsManager;
@@ -78,11 +81,12 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 		Structure structure = land.getStructure();
 		Player player = kingdomPlayer.getPlayer();
 		Location location = player.getLocation();
-		Defender defender = spawnDefender(location, trigger.getInvasion());
+		Defender defender = spawnDefender(location, trigger.getInvasion(), false);
 		if (structure != null) {
 			Optional<LivingEntity> optional = defender.getDefender();
 			LivingEntity entity = optional.get();
 			if (structure.getType() == StructureType.NEXUS) {
+				defender.setNexus(true);
 				DeprecationUtils.setMaxHealth(entity, entity.getHealth() + 200);
 				if (kingdom.getMiscUpgrades().hasNexusGuard())
 					Kingdoms.getInstance().getManager(GuardsManager.class).spawnNexusGuard(location, kingdom, kingdomPlayer);
@@ -93,6 +97,7 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 		}
 		UUID uuid = player.getUniqueId();
 		invading.put(uuid, DoubleObject.of(trigger.getLandInfo(), defender));
+		check(null);
 	}
 
 	@Override
@@ -110,6 +115,19 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 			object.getFirst().get().setKingdomOwner(attacking);
 			iterator.remove();
 		}
+		check(defender);
+	}
+
+	private void check(Defender defender) {
+		FileConfiguration configuration = Kingdoms.getInstance().getConfig();
+		if (defender != null) {
+			if (defender.isNexusDefender() && configuration.getBoolean("invading.defender.defender-death-ends-invasion")) {
+				stopInvasion(StopReason.WIN, defender.getInvasion());
+				return;
+			}
+		}
+		if (defender.getInvasion().getTarget().getClaims().isEmpty())
+			stopInvasion(StopReason.WIN, defender.getInvasion());
 	}
 
 	@Override
@@ -120,7 +138,47 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 
 	@Override
 	public void onInvasionStop(StopReason reason, Invasion invasion) {
-		// TODO
+		Set<KingdomPlayer> senders = Sets.newHashSet(invasion.getAttacking().getOnlinePlayers());
+		OfflineKingdom defender = invasion.getTarget();
+		switch (reason) {
+			case DEFENDED:
+				if (defender.isOnline())
+					senders.addAll(defender.getKingdom().getOnlinePlayers());
+				new MessageBuilder("invading.invasion-defended")
+						.replace("%attacker%", invasion.getAttacking().getName())
+						.replace("%target%", invasion.getTarget().getName())
+						.setKingdom(invasion.getTarget())
+						.send(senders);
+				break;
+			case STOPPED:
+				if (defender.isOnline())
+					senders.addAll(defender.getKingdom().getOnlinePlayers());
+				new MessageBuilder("invading.invasion-stopped")
+						.replace("%attacker%", invasion.getAttacking().getName())
+						.replace("%target%", invasion.getTarget().getName())
+						.setKingdom(invasion.getTarget())
+						.send(senders);
+				break;
+			case TIMEOUT:
+				if (defender.isOnline())
+					senders.addAll(defender.getKingdom().getOnlinePlayers());
+				new MessageBuilder("invading.invasion-timeout")
+						.replace("%attacker%", invasion.getAttacking().getName())
+						.replace("%target%", invasion.getTarget().getName())
+						.setKingdom(invasion.getTarget())
+						.send(senders);
+				break;
+			case WIN:
+				new MessageBuilder("invading.invasion-ended-attacker")
+						.setKingdom(invasion.getTarget())
+						.send(invasion.getAttacking().getOnlinePlayers());
+				OfflineKingdom defenders3 = invasion.getTarget();
+				if (defenders3.isOnline())
+					new MessageBuilder("invading.invasion-ended-defenders")
+							.setKingdom(invasion.getAttacking())
+							.send(defenders3.getKingdom().getOnlinePlayers());
+				break;
+		}
 	}
 
 	@Override
@@ -145,6 +203,7 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 	@Override
 	public boolean update(Invasion invasion) {
 		// Timeout system
+		check(null);
 		String setting = Kingdoms.getInstance().getConfig().getString("invading.mechanics.default.max-time", "50 minutes");
 		return System.currentTimeMillis() - invasion.getStartingTime() < IntervalUtils.getMilliseconds(setting);
 	}
