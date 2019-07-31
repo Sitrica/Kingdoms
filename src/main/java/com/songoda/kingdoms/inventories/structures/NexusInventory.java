@@ -22,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.google.common.collect.Lists;
+import com.songoda.kingdoms.inventories.DefenderUpgradeMenu;
 import com.songoda.kingdoms.inventories.MembersMenu;
 import com.songoda.kingdoms.inventories.PermissionsMenu;
 import com.songoda.kingdoms.inventories.StructureShopMenu;
@@ -83,7 +84,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(9, defender);
-//TODO		setAction(9, event ->  inventoryManager.getInventory(DefenderInventory.class).openMenu(kingdomPlayer));
+		setAction(player.getUniqueId(), 9, event ->  inventoryManager.getInventory(DefenderUpgradeMenu.class).open(kingdomPlayer));
 		ItemStack misc = new ItemStackBuilder(section.getConfigurationSection("misc-upgrades"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
@@ -116,7 +117,6 @@ public class NexusInventory extends StructureInventory implements Listener {
 		if (masswarManager.isWarOn())
 			masswar.setConfigurationSection(section.getConfigurationSection("masswar-off"));
 		inventory.setItem(14, masswar.build());
-//TODO		setAction(14, event -> masswarMenu.openMenu(kingdomPlayer));
 		ItemStack points = new ItemStackBuilder(section.getConfigurationSection("resource-points"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)

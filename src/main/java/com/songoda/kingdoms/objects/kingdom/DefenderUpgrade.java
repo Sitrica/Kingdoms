@@ -2,12 +2,15 @@ package com.songoda.kingdoms.objects.kingdom;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.utils.ItemStackBuilder;
+import com.songoda.kingdoms.utils.ListMessageBuilder;
 
 public enum DefenderUpgrade {
-	
+
 	REINFORCEMENTS("reinforcements"),
 	MEGA_HEALTH("mega-health"),
 	RESISTANCE("resistance"),
@@ -28,7 +31,7 @@ public enum DefenderUpgrade {
 	private final int max, value, cost, multiplier;
 	private final ConfigurationSection section;
 	private final boolean enabled;
-	
+
 	private DefenderUpgrade(String node) {
 		FileConfiguration configuration = Kingdoms.getInstance().getConfiguration("defender-upgrades").get();
 		this.section = configuration.getConfigurationSection("upgrades." + node);
@@ -38,35 +41,47 @@ public enum DefenderUpgrade {
 		this.value = section.getInt("value", 1);
 		this.cost = section.getInt("cost", 10);
 	}
-	
+
 	public int getCostAt(int level) {
 		return cost + (level * multiplier);
 	}
-	
+
 	public int getCostMultiplier() {
 		return multiplier;
 	}
-	
+
 	public boolean isEnabled() {
 		return enabled;
 	}
-	
+
 	public int getMaxLevel() {
 		return max;
 	}
-	
+
 	public int getValue() {
 		return value;
 	}
-	
+
 	public int getCost() {
 		return cost;
 	}
-	
-	public ItemStackBuilder build(OfflineKingdom kingdom, boolean shop) {
-		return new ItemStackBuilder(section)
+
+	public ItemStack build(OfflineKingdom kingdom, boolean shop) {
+		ItemStack itemstack = new ItemStackBuilder(section)
+				.replace("%enabled%", enabled)
+				.replace("%value%", value)
+				.setKingdom(kingdom)
+				.build();
+		if (shop && section.isConfigurationSection("store-lore")) {
+			ItemMeta meta = itemstack.getItemMeta();
+			meta.setLore(new ListMessageBuilder(false, "store-lore", section)
 					.replace("%enabled%", enabled)
-					.replace("%value%", value);
+					.replace("%value%", value)
+					.setKingdom(kingdom)
+					.get());
+			itemstack.setItemMeta(meta);
+		}
+		return itemstack;
 	}
 
 }

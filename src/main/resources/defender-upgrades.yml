@@ -35,6 +35,10 @@ upgrades:
         cost-multiplier: 10
         description:
             - "&7Provides your Defender with a better weapon each upgrade. Max level is %value%."
+        # Lore lists for shop only items if you want.
+        #store-lore:
+        #    - "insert lores"
+        #    - "&6&lmore lines"
     # The upgrade settings for the defender's health.
     health:
         enabled: true
