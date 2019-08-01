@@ -67,23 +67,20 @@ public class NexusInventory extends StructureInventory implements Listener {
 			for (int i = 0; i < inventory.getType().getDefaultSize(); i++)
 				inventory.setItem(i, filler);
 		}
-		ItemStack converter = new ItemStackBuilder(section.getConfigurationSection("converter"))
+		inventory.setItem(0,  new ItemStackBuilder(section.getConfigurationSection("converter"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
-				.build();
-		inventory.setItem(0, converter);
+				.build());
 		setAction(player.getUniqueId(), 0, event -> openDonateInventory(kingdom, kingdomPlayer));
-		ItemStack permissions = new ItemStackBuilder(section.getConfigurationSection("permissions"))
+		inventory.setItem(8, new ItemStackBuilder(section.getConfigurationSection("permissions"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
-				.build();
-		inventory.setItem(8, permissions);
+				.build());
 		setAction(player.getUniqueId(), 8, event -> inventoryManager.getInventory(PermissionsMenu.class).open(kingdomPlayer));
-		ItemStack defender = new ItemStackBuilder(section.getConfigurationSection("defender-upgrades"))
+		inventory.setItem(9, new ItemStackBuilder(section.getConfigurationSection("defender-upgrades"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
-				.build();
-		inventory.setItem(9, defender);
+				.build());
 		setAction(player.getUniqueId(), 9, event ->  inventoryManager.getInventory(DefenderUpgradeMenu.class).open(kingdomPlayer));
 		ItemStack misc = new ItemStackBuilder(section.getConfigurationSection("misc-upgrades"))
 				.setPlaceholderObject(kingdomPlayer)

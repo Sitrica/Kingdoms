@@ -543,6 +543,8 @@ inventories:
         title: "&8&lStructure Shop"
     turret-shop:
         title: "&8&lTurret Shop"
+    defender-upgrades:
+        title: "&8&lDefender Upgrades"
     list:
         main:
             title: "&8&lList Kingdoms"
