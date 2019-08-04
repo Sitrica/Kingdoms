@@ -82,6 +82,7 @@ inventories:
     nexus-chest:
         title: "&4%kingdom%'s Nexus Chest"
     extractor:
+        title: "&8&l%kingdom%'s Extractor"
         # The item that represents the collection item.
         # Special placeholders: %amount% and %time%
         collect-item:
@@ -111,13 +112,13 @@ inventories:
         use-filler: true
         # The item that represents a filler, it's a blank item used to make things pretty.
         filler-item-collect:
-            title: ""
+            title: "&6"
             material: "LIME_STAINED_GLASS_PANE"
             material-meta: ""
             glowing: true
         # The item that represents a filler, it's a blank item used to make things pretty.
         filler-item-cant-collect:
-            title: ""
+            title: "&6"
             material: "RED_STAINED_GLASS_PANE"
             material-meta: ""
             glowing: false
@@ -249,6 +250,7 @@ inventories:
             glowing: false
             lore:
                 - "&7Increases the size of Nexus Chest by 1 row per upgrade."
+                - "&cCost %cost% to upgrade."
                 - "&6Current nexus chest size: %size%"
         # The item that represents the neutral item when it's enabled.
         neutral-on:
@@ -288,80 +290,12 @@ inventories:
             glowing: false
             lore:
                 - "&7Buy 64 experience bottles for %cost% resource points."
-    regulator:
-        # The item that represents the build permission item.
-        build:
-            title: "&bClick to manage who can build here"
-            # Use WOOL for 1.8... and set the color id in the meta.
-            material: "WHITE_WOOL"
-            material-meta: ""
-            glowing: false
-            lore:
-                - "&7Opens an inventory displaying all the members who can build in this regulator chunk."
-         # The item that represents the build permission item.
-        interact:
-            title: "&bClick to manage who can interact here"
-            # Use WOOL for 1.8... and set the color id in the meta.
-            material: "ORANGE_WOOL"
-            material-meta: ""
-            glowing: false
-            lore:
-                - "&7Opens an inventory displaying all the members who can interact in this regulator chunk."
-        monsters-can-spawn:
-            title: "&bMonster spawning in this land"
-            material: "ROTTEN_FLESH"
-            material-meta: ""
-            glowing: false
-            lore:
-                - "&7Monsters currently &a&lCAN &7spawn in this regulator chunk."
-        monsters-cannot-spawn:
-            title: "&bMonster spawning in this land"
-            material: "ROTTEN_FLESH"
-            material-meta: ""
-            glowing: false
-            lore:
-                - "&7Monsters currently &c&lCANNOT &7spawn in this regulator chunk."
-    # The menu that shows all the players who have permissions in this land with the regulator.
-    regulator-viewer:
-        build-title: "&4Click to manage who can build here"
-        can-build:
-            title: "&b%player%"
-            # Use WOOL for 1.8... and set the color id in the meta.
-            material: "GREEN_WOOL"
-            material-meta: ""
-            glowing: false
-            lore:
-                - "&aCan build in this land."
-        cannot-build:
-            title: "&b%player%"
-            # Use WOOL for 1.8... and set the color id in the meta.
-            material: "RED_WOOL"
-            material-meta: ""
-            glowing: false
-            lore:
-                - "&cCannot build in this land."
-        interact-title: "&4Click to manage who can interact here"
-        can-interact:
-            title: "&b%player%"
-            # Use WOOL for 1.8... and set the color id in the meta.
-            material: "GREEN_WOOL"
-            material-meta: ""
-            glowing: false
-            lore:
-                - "&aCan interact in this land."
-        cannot-interact:
-            title: "&b%player%"
-            # Use WOOL for 1.8... and set the color id in the meta.
-            material: "RED_WOOL"
-            material-meta: ""
-            glowing: false
-            lore:
-                - "&cCannot interact in this land."
     warp-pad:
+        title: "&8&l%kingdom%'s Warp-Pad"
         # Special Placeholders: %location% and %warp%
         warp-item:
             title: "&bWarp: &l%warp%"
-            material: "ENDER_PORTAL_FRAME"
+            material: "ENDER_EYE"
             material-meta: ""
             glowing: false
             lore:
@@ -464,11 +398,6 @@ inventories:
             title: "&6&lInvite Access"
             lore:
                 - "&7Change the access to be able to invite."
-                - "&fCurrently only %color%%rank%&f and above may access."
-        regulator:
-            title: "&6&lOverride Regulator"
-            lore:
-                - "&7Change the access to be able to override the regulator."
                 - "&fCurrently only %color%%rank%&f and above may access."
         set-spawn:
             title: "&6&lSet Spawn"

@@ -30,17 +30,6 @@ structures:
         inventory-material: "MUSIC_DISC_WAIT"
         description:
             - "&7The Nexus executes most Kingdom actions."
-    regulator:
-        enabled: true
-        cost: 50
-        title: "&bRegulator"
-        material: "REDSTONE_BLOCK"
-        inventory-material: "MUSIC_DISC_CHIRP"
-        allow-monster-spawn-disabling: true
-        allow-animal-spawn-disabling: true
-        description:
-            - "&7Regulators can allow ranked players to change who can build, who can interact in each chunk of land,"
-            - "&7if monsters can spawn, if animals can spawn, and other similar functions in each chunk of land."
     radar:
         enabled: true
         cost: 150
@@ -112,11 +101,12 @@ structures:
         # This is an extractor option only this and reward-amount.
         reward-delay: "24 hours"
         # The amount of resource points to give.
-        reward-amount: 50
+        reward-amount: 100
         inventory-material: "MUSIC_DISC_CAT"
         description:
             - "&7Extractors produce resource points every set time."
-            - "&7Resource points must be manually collected from the extractor."
+            - "&7Resource points must be manually"
+            - "&7collected from the extractor."
     warp-pad:
         enabled: true
         cost: 5000

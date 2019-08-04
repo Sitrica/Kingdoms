@@ -696,7 +696,6 @@ enable:
         outpost: true
         extractor: true
         warppad: true
-        regulator: true
         siegeengine: true
         arsenal: true
         shieldbattery: true

@@ -187,27 +187,6 @@ elements:
                 hover-message:
                     - "&eOne of your Kingdom's Extractor"
                     - "&7You can collect resource points here over time"
-    regulator:
-        legend-message: "Regulator"
-        # White star
-        icon: "\u2606"
-        relations:
-            default-hover-message:
-                - "&7A Regulator owned by %relation%%kingdom%"
-            alliance:
-                color: "&a"
-            enemy:
-                color: "&c"
-                hover-message:
-                    - "&cOne of your enemies %kingdom%'s Regulators"
-            other:
-                color: "&7"
-            own:
-                color: "&e"
-                hover-message:
-                    - "&eOne of your Kingdom's Regulator"
-                    - "&7You can change options of the Kingdom claims at it"
-                    - "&7Player permissions, what can spawn and what can happen. etc"
     warp-pad:
         legend-message: "Warp-Pad"
         # Cloud
@@ -232,7 +211,7 @@ elements:
                 color: "&e"
                 action: "teleport"
                 hover-message:
-                    - "&eOne of your Kingdom's Regulator"
+                    - "&eOne of your Kingdom's Warp Pads"
                     - "&7Allows members or alliances to teleport to this warp-pad"
                     - "&7&lClick to teleport to this Warp-Pad"
     arsenal:
