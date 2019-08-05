@@ -33,7 +33,6 @@ public class DynmapManager extends ExternalManager {
 			+ "<span style=\"font-weight:italic;color:red\">%resourcepoints% </span><br>"
 			+ "<span style=\"font-weight:bold;color:black\">Members: </span><br>"
 			+ "</div>";
-	private LandManager landManager;
 	private DynmapAPI dynmap;
 	
 	public DynmapManager() {
@@ -48,7 +47,7 @@ public class DynmapManager extends ExternalManager {
 		MarkerSet set = dynmap.getMarkerAPI().getMarkerSet("com/songoda/kingdoms");
 		if (set != null)
 			set.deleteMarkerSet();
-		this.landManager = instance.getManager("land", LandManager.class);
+		LandManager landManager = instance.getManager(LandManager.class);
 		server.getScheduler().runTaskTimerAsynchronously(instance, () -> landManager.getLoadedLand().forEach(entry -> consumer.accept(entry.getKey())), 0, 20);
 	}
 
@@ -69,7 +68,7 @@ public class DynmapManager extends ExternalManager {
 			if (set == null)
 				set = marker.createMarkerSet("com/songoda/kingdoms", "com/songoda/kingdoms", null, true);
 			AreaMarker amarker;
-			Land land = landManager.getLand(chunk);
+			Land land = instance.getManager(LandManager.class).getLand(chunk);
 			Optional<OfflineKingdom> optional = land.getKingdomOwner();
 			String chunkString = LocationUtils.chunkToString(chunk);
 			if (!optional.isPresent()) {

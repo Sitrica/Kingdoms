@@ -274,6 +274,7 @@ inventories:
                 - "&7Once you invade, your kingdom cannot become pacifist again."
                 - "&6Currently: &c&lDISABLED"
     outpost:
+        title: "&8&l%kingdom%'s Outpost"
         # The item that represents the xp item.
         buy-xp1:
             title: "&bBuy experience bottle"
@@ -303,6 +304,7 @@ inventories:
                 - "&fLeft-click &7to warp to this location."
                 - "&fRight-click &7to rename this warp."
     siege-engine:
+        title: "&8&l%kingdom%'s Siege-Engine"
         # Special Placeholders: %time%, %x%, %y%, and %z%
         unoccupied:
             title: "&b[&e%x%&b, &e%z%&b] %kingdom%"
