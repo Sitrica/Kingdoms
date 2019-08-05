@@ -102,6 +102,7 @@ structures:
     cannot-afford: "&cYour Kingdom does not have %cost% resource points to purchase a %structure%&c."
     inventory-full-purchase: "&cYour inventory is currently full, cancelling purchase of Structure %structure%&c."
     purchase: "&aYou have just purchased %structure%&a the item has been added to your inventory, click a block in a land you own to place."
+    already-structure: "&cThere is already a &l%structure% &cstructure on this land."
 
 # All messages relating to Kingdoms.
 kingdoms:

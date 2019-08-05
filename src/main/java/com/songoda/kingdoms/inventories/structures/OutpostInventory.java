@@ -7,6 +7,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
@@ -33,7 +34,8 @@ public class OutpostInventory extends StructureInventory {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(0, xp1);
-		setAction(player.getUniqueId(), 0, event -> {
+		setAction(inventory, player.getUniqueId(), 0, event -> {
+			Kingdoms.debugMessage("test click outpost");
 			if (!kingdom.getPermissions(kingdomPlayer.getRank()).canGrabExperience()) {
 				new MessageBuilder("kingdoms.rank-too-low-grab-experience")
 						.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canGrabExperience()), new Placeholder<Optional<Rank>>("%rank%") {
@@ -76,7 +78,7 @@ public class OutpostInventory extends StructureInventory {
 				.setKingdom(kingdom)
 				.build();
 		inventory.setItem(1, xp64);
-		setAction(player.getUniqueId(), 1, event -> {
+		setAction(inventory, player.getUniqueId(), 1, event -> {
 			if (!kingdom.getPermissions(kingdomPlayer.getRank()).canGrabExperience()) {
 				new MessageBuilder("kingdoms.rank-too-low-grab-experience")
 						.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canGrabExperience()), new Placeholder<Optional<Rank>>("%rank%") {

@@ -55,6 +55,7 @@ import com.songoda.kingdoms.objects.structures.SiegeEngine;
 import com.songoda.kingdoms.objects.structures.Structure;
 import com.songoda.kingdoms.objects.structures.StructureType;
 import com.songoda.kingdoms.objects.structures.WarpPad;
+import com.songoda.kingdoms.objects.structures.WarpPad.Warp;
 import com.songoda.kingdoms.placeholders.Placeholder;
 import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.Formatting;
@@ -272,15 +273,9 @@ public class StructureManager extends Manager {
 				kingdom.removeWarpAt(land);
 			}
 		}
-		Iterator<WarpPad> iterator = kingdom.getWarps().iterator();
-		while (iterator.hasNext()) {
-			WarpPad warp = iterator.next();
-			if (warp.getLand().getStructure() == null)
-				iterator.remove();
-		}
+		kingdom.getWarps().removeIf(warp -> warp.getLand().getStructure() == null);
 	}
 
-	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onStructurePlace(PlayerInteractEvent event) {
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
@@ -302,12 +297,8 @@ public class StructureManager extends Manager {
 				.filter(type -> !block.hasMetadata(type.getMetaData()))
 				.filter(type -> Formatting.colorAndStrip(type.getTitle()).equals(Formatting.stripColor(name)))
 				.findFirst();
-		if (!optional.isPresent()) {
-			for (String message : instance.getConfiguration("turrets").get().getStringList("structures.additional-lore")) {
-				player.sendMessage(Formatting.color(message));
-			}
+		if (!optional.isPresent())
 			return;
-		}
 		StructureType type = optional.get();
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
@@ -323,14 +314,14 @@ public class StructureManager extends Manager {
 					.send(player);
 			return;
 		}
-		if (!kingdom.equals(optionalLand.get())) {
+		OfflineKingdom landKingdom = optionalLand.get();
+		if (!kingdom.equals(landKingdom)) {
 			new MessageBuilder("kingdoms.not-in-land")
 					.setPlaceholderObject(kingdomPlayer)
-					.setKingdom(optionalLand.get())
+					.setKingdom(landKingdom)
 					.send(player);
 			return;
 		}
-		OfflineKingdom landKingdom = optionalLand.get();
 		if (!kingdomPlayer.hasAdminMode() && configuration.getStringList("unreplaceable-blocks").contains(block.getType().toString())) {
 			new MessageBuilder("kingdoms.nexus-cannot-replace")
 					.setPlaceholderObject(kingdomPlayer)
@@ -356,9 +347,11 @@ public class StructureManager extends Manager {
 				.send(player);
 		}
 		if (land.getStructure() != null) {
-			for (String message : instance.getConfiguration("turrets").get().getStringList("structures.additional-lore")) {
-				player.sendMessage(Formatting.color(message));
-			}
+			new MessageBuilder("structures.already-structure")
+					.replace("%structure%", land.getStructure().getType().name())
+					.setPlaceholderObject(kingdomPlayer)
+					.setKingdom(landKingdom)
+					.send(player);
 			return;
 		}
 		Location location = block.getLocation();
@@ -367,24 +360,21 @@ public class StructureManager extends Manager {
 			structure = new Extractor(kingdom.getName(), location);
 		if (type == StructureType.SIEGE_ENGINE)
 			structure = new SiegeEngine(kingdom.getName(), location);
+		if (type == StructureType.WARPPAD)
+			structure = new WarpPad(kingdom.getName(), location, type.build().getItemMeta().getDisplayName());
 		StructurePlaceEvent placeEvent = new StructurePlaceEvent(land, structure, kingdom, kingdomPlayer);
 		Bukkit.getPluginManager().callEvent(placeEvent);
 		if (placeEvent.isCancelled())
 			return;
 		if (item.getAmount() > 1)
 			item.setAmount(item.getAmount() - 1);
-		else {
-			try {
-				player.setItemInHand(null);
-			} catch (Exception e) {
-				player.getInventory().setItemInMainHand(null);
-			}
-		}
+		else
+			DeprecationUtils.setItemInMainHand(player, null);
 		land.setStructure(structure);
 		block.setType(type.getBlockMaterial());
 		block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
 		if (type == StructureType.WARPPAD || type == StructureType.OUTPOST)
-			kingdom.addWarp(new WarpPad(kingdom.getName(), structure.getLocation(), StructureType.OUTPOST.build().getItemMeta().getDisplayName(), land));
+			kingdom.addWarp(new Warp(type.getTitle(), location));
 	}
 
 	private final Map<KingdomPlayer, Extractor> extractors = new HashMap<>();

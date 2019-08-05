@@ -13,14 +13,14 @@ import com.songoda.kingdoms.database.serializers.LocationSerializer;
 import com.songoda.kingdoms.database.serializers.OfflineKingdomPlayerSerializer;
 import com.songoda.kingdoms.database.serializers.PowerupSerializer;
 import com.songoda.kingdoms.database.serializers.RankPermissionsSerializer;
-import com.songoda.kingdoms.database.serializers.WarpPadSerializer;
+import com.songoda.kingdoms.database.serializers.WarpSerializer;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.kingdom.Powerup;
 import com.songoda.kingdoms.objects.kingdom.RankPermissions;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
-import com.songoda.kingdoms.objects.structures.WarpPad;
+import com.songoda.kingdoms.objects.structures.WarpPad.Warp;
 
 public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 
@@ -29,7 +29,7 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 	private final DefenderInfoSerializer defenderSerializer;
 	private final LocationSerializer locationSerializer;
 	private final PowerupSerializer powerupSerializer;
-	private final WarpPadSerializer warpSerializer;
+	private final WarpSerializer warpSerializers;
 	private final LandSerializer landSerializer;
 
 	public OfflineKingdomHandler() {
@@ -38,7 +38,7 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 		this.defenderSerializer = new DefenderInfoSerializer();
 		this.locationSerializer = new LocationSerializer();
 		this.powerupSerializer = new PowerupSerializer();
-		this.warpSerializer = new WarpPadSerializer();
+		this.warpSerializers = new WarpSerializer();
 		this.landSerializer = new LandSerializer();
 	}
 
@@ -52,7 +52,7 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 		kingdom.getClaims().forEach(land -> claims.add(landSerializer.serialize(land, Land.class, context)));
 		json.add("claims", claims);
 		JsonArray warps = new JsonArray();
-		kingdom.getWarps().forEach(warp -> warps.add(warpSerializer.serialize(warp, WarpPad.class, context)));
+		kingdom.getWarps().forEach(warp -> warps.add(warpSerializers.serialize(warp, Warp.class, context)));
 		json.add("warps", warps);
 		JsonArray allies = new JsonArray();
 		kingdom.getAllies().forEach(ally -> allies.add(ally.getName()));
@@ -90,7 +90,7 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 		if (warpsElement != null && !warpsElement.isJsonNull() && warpsElement.isJsonArray()) {
 			JsonArray array = warpsElement.getAsJsonArray();
 			array.forEach(element -> {
-				WarpPad warp = warpSerializer.deserialize(element, WarpPad.class, context);
+				Warp warp = warpSerializers.deserialize(element, Warp.class, context);
 				if (warp != null)
 					kingdom.addWarp(warp);
 			});

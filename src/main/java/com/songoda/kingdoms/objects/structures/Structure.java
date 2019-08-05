@@ -8,7 +8,9 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.KingdomManager;
+import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
+import com.songoda.kingdoms.objects.land.Land;
 
 public class Structure {
 
@@ -40,6 +42,10 @@ public class Structure {
 
 	public Location getLocation() {
 		return location;
+	}
+
+	public Land getLand() {
+		return instance.getManager(LandManager.class).getLandAt(location);
 	}
 
 }

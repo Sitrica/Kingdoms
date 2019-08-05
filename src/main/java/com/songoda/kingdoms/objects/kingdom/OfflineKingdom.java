@@ -2,7 +2,6 @@ package com.songoda.kingdoms.objects.kingdom;
 
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -13,23 +12,23 @@ import java.util.stream.Collectors;
 import org.bukkit.Location;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.managers.CooldownManager.KingdomCooldown;
 import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.manager.managers.RankManager;
-import com.songoda.kingdoms.manager.managers.CooldownManager.KingdomCooldown;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
-import com.songoda.kingdoms.objects.structures.WarpPad;
+import com.songoda.kingdoms.objects.structures.WarpPad.Warp;
 
 public class OfflineKingdom {
 
 	protected final Set<RankPermissions> permissions = new HashSet<>();
 	protected final Set<String> enemies = new HashSet<>();
 	protected final Set<String> allies = new HashSet<>();
-	protected final Set<WarpPad> warps = new HashSet<>();
 	protected final Set<UUID> members = new HashSet<>();
 	protected final Set<Land> claims = new HashSet<>();
+	protected final Set<Warp> warps = new HashSet<>();
 	protected long resourcePoints = 0, invasionCooldown = 0;
 	protected int dynmapColor, max = 0, extraPurchased = 0;
 	protected boolean neutral, first, invaded;
@@ -59,20 +58,16 @@ public class OfflineKingdom {
 		this.name = name;
 	}
 
-	public void addWarp(WarpPad warp) {
+	public void addWarp(Warp warp) {
 		warps.add(warp);
 	}
 
-	public void removeWarp(WarpPad warp) {
+	public void removeWarp(Warp warp) {
 		warps.remove(warp);
 	}
 
 	public void removeWarpAt(Land land) {
-		Iterator<WarpPad> iterator = warps.iterator();
-		while (iterator.hasNext()) {
-			if (iterator.next().getLand().equals(land))
-				iterator.remove();
-		}
+		warps.removeIf(warp -> warp.getLand().equals(land));
 	}
 
 	public void setExtraPurchased(int purchased) {
@@ -94,7 +89,7 @@ public class OfflineKingdom {
 		extraPurchased += subtract;
 	}
 
-	public Set<WarpPad> getWarps() {
+	public Set<Warp> getWarps() {
 		return warps;
 	}
 

@@ -6,13 +6,14 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
 import com.songoda.kingdoms.manager.managers.RenameManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.structures.Structure;
-import com.songoda.kingdoms.objects.structures.WarpPad;
+import com.songoda.kingdoms.objects.structures.WarpPad.Warp;
 import com.songoda.kingdoms.utils.ItemStackBuilder;
 import com.songoda.kingdoms.utils.LocationUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
@@ -28,7 +29,7 @@ public class WarppadInventory extends StructureInventory {
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		Player player = kingdomPlayer.getPlayer();
 		int slot = 0;
-		for (WarpPad warp : kingdom.getWarps()) {
+		for (Warp warp : kingdom.getWarps()) {
 			if (warp == null)
 				continue;
 			Land land = warp.getLand();
@@ -48,6 +49,7 @@ public class WarppadInventory extends StructureInventory {
 					.build();
 			inventory.setItem(slot, item);
 			setAction(player.getUniqueId(), slot, event -> {
+				Kingdoms.debugMessage("test click warppad");
 				if (event.isLeftClick()) {
 					player.teleport(location.add(0, 0.3, 0));
 					player.closeInventory();

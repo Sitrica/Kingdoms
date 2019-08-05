@@ -19,6 +19,7 @@ import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.structures.Extractor;
 import com.songoda.kingdoms.objects.structures.Structure;
 import com.songoda.kingdoms.objects.structures.StructureType;
+import com.songoda.kingdoms.objects.structures.WarpPad;
 
 public class StructureSerializer implements Serializer<Structure> {
 
@@ -59,6 +60,8 @@ public class StructureSerializer implements Serializer<Structure> {
 			case SIEGE_ENGINE:
 				break;
 			case WARPPAD:
+				WarpPad warppad = (WarpPad) structure;
+				json.addProperty("warp-name", warppad.getName());
 				break;
 		}
 		return json;
@@ -108,6 +111,10 @@ public class StructureSerializer implements Serializer<Structure> {
 			case SIEGE_ENGINE:
 				break;
 			case WARPPAD:
+				JsonElement name = object.get("warp-name");
+				if (name == null || name.isJsonNull())
+					return null;
+				structure = new WarpPad(kingdom, location, name.getAsString());
 				break;
 		}
 		Block structureBlock = location.getBlock();
