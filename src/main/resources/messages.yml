@@ -490,7 +490,10 @@ invading:
     invasion-stopped: "&eThe invasion from %attacker% on %target% has been stopped."
 
 upgrades:
+    misc-cannot-afford: "&cYou can not afford to upgrade %upgrade%. It will cost %cost% resource points."
     cannot-afford: "&cYou can not afford to upgrade %upgrade%. It will cost %cost% resource points."
     purchase: "&aYou have just upgraded defender upgrade %upgrade% to level %newlevel%."
+    purchase-misc: "&aYou have just bought upgrade %upgrade%."
     level-max: "&cThe level %level% of upgrade %upgrade% is already maxed out."
     maxed-out: "&cThe defender upgrade %upgrade% is already maxed out."
+    already-bought: "&cYou have already bought upgrade %upgrade%."

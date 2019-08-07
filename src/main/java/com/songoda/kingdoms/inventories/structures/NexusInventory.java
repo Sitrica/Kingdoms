@@ -24,6 +24,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import com.google.common.collect.Lists;
 import com.songoda.kingdoms.inventories.DefenderUpgradeMenu;
 import com.songoda.kingdoms.inventories.MembersMenu;
+import com.songoda.kingdoms.inventories.MiscUpgradeMenu;
 import com.songoda.kingdoms.inventories.PermissionsMenu;
 import com.songoda.kingdoms.inventories.StructureShopMenu;
 import com.songoda.kingdoms.inventories.TurretShopMenu;
@@ -98,29 +99,25 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.setKingdom(kingdom)
 				.build());
 		setAction(player.getUniqueId(), 9, event ->  inventoryManager.getInventory(DefenderUpgradeMenu.class).open(kingdomPlayer));
-		ItemStack misc = new ItemStackBuilder(section.getConfigurationSection("misc-upgrades"))
+		inventory.setItem(10, new ItemStackBuilder(section.getConfigurationSection("misc-upgrades"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
-				.build();
-		inventory.setItem(10, misc);
-//TODO		setAction(10, event ->  GUIManagement.getMisGUIManager().openMenu(kingdomPlayer));
-		ItemStack structure = new ItemStackBuilder(section.getConfigurationSection("structures"))
+				.build());
+		setAction(player.getUniqueId(), 10, event ->  inventoryManager.getInventory(MiscUpgradeMenu.class).open(kingdomPlayer));
+		inventory.setItem(11, new ItemStackBuilder(section.getConfigurationSection("structures"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
-				.build();
-		inventory.setItem(11, structure);
+				.build());
 		setAction(player.getUniqueId(), 11, event -> inventoryManager.getInventory(StructureShopMenu.class).open(kingdomPlayer));
-		ItemStack turret = new ItemStackBuilder(section.getConfigurationSection("turrets"))
+		inventory.setItem(12, new ItemStackBuilder(section.getConfigurationSection("turrets"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
-				.build();
-		inventory.setItem(12, turret);
+				.build());
 		setAction(player.getUniqueId(), 12, event -> inventoryManager.getInventory(TurretShopMenu.class).open(kingdomPlayer));
-		ItemStack members = new ItemStackBuilder(section.getConfigurationSection("members"))
+		inventory.setItem(13, new ItemStackBuilder(section.getConfigurationSection("members"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
-				.build();
-		inventory.setItem(13, members);
+				.build());
 		setAction(player.getUniqueId(), 13, event -> inventoryManager.getInventory(MembersMenu.class).open(kingdomPlayer));
 		MasswarManager masswarManager = instance.getManager(MasswarManager.class);
 		ItemStackBuilder masswar = new ItemStackBuilder(section.getConfigurationSection("masswar-on"))
@@ -130,16 +127,14 @@ public class NexusInventory extends StructureInventory implements Listener {
 		if (masswarManager.isWarOn())
 			masswar.setConfigurationSection(section.getConfigurationSection("masswar-off"));
 		inventory.setItem(14, masswar.build());
-		ItemStack points = new ItemStackBuilder(section.getConfigurationSection("resource-points"))
+		inventory.setItem(15, new ItemStackBuilder(section.getConfigurationSection("resource-points"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
-				.build();
-		inventory.setItem(15, points);
-		ItemStack chest = new ItemStackBuilder(section.getConfigurationSection("chest"))
+				.build());
+		inventory.setItem(16, new ItemStackBuilder(section.getConfigurationSection("chest"))
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
-				.build();
-		inventory.setItem(16, chest);
+				.build());
 		setAction(player.getUniqueId(), 16, event -> openKingdomChest(kingdomPlayer));
 		KingdomChest kingdomChest = kingdom.getKingdomChest();
 		int size = kingdomChest.getSize();
@@ -147,13 +142,12 @@ public class NexusInventory extends StructureInventory implements Listener {
 		cost += configuration.getInt("kingdoms.chest-size-upgrade-multiplier", 10) * ((size / 9) - 3);
 		int chestCost = cost;
 		int max = configuration.getInt("kingdoms.max-members-via-upgrade", 30);
-		ItemStack chestSize = new ItemStackBuilder(section.getConfigurationSection("chest-size"))
+		inventory.setItem(17, new ItemStackBuilder(section.getConfigurationSection("chest-size"))
 				.setPlaceholderObject(kingdomPlayer)
 				.replace("%cost%", chestCost)
 				.replace("%size%", size)
 				.setKingdom(kingdom)
-				.build();
-		inventory.setItem(17, chestSize);
+				.build());
 		setAction(player.getUniqueId(), 17, event -> {
 			if (chestCost > kingdom.getResourcePoints()) {
 				new MessageBuilder("kingdoms.not-enough-resourcepoints-chest-upgrade")
@@ -211,13 +205,12 @@ public class NexusInventory extends StructureInventory implements Listener {
 			});
 		}
 		int memberCost = configuration.getInt("kingdoms.cost-per-max-member-upgrade", 10);
-		ItemStack maxMembers = new ItemStackBuilder(section.getConfigurationSection("max-members"))
+		inventory.setItem(26, new ItemStackBuilder(section.getConfigurationSection("max-members"))
 				.setPlaceholderObject(kingdomPlayer)
 				.replace("%cost%", memberCost)
 				.replace("%max%", max)
 				.setKingdom(kingdom)
-				.build();
-		inventory.setItem(26, maxMembers);
+				.build());
 		setAction(player.getUniqueId(), 26, event -> {
 			long p = kingdom.getResourcePoints();
 			if (memberCost > p) {

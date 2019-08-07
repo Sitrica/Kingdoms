@@ -51,7 +51,7 @@ public class InventoryManager extends Manager {
 	}
 
 	@EventHandler
-	public void onInventoryClick(InventoryClickEvent event){
+	public void onInventoryClick(InventoryClickEvent event) {
 		Player player = (Player) event.getWhoClicked();
 		if (event.getCurrentItem() == null)
 			return;

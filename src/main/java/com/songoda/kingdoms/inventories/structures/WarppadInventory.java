@@ -4,7 +4,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.inventories.StructureInventory;
@@ -41,14 +40,13 @@ public class WarppadInventory extends StructureInventory {
 			Location location = structure.getLocation();
 			if (location == null)
 				continue;
-			ItemStack item = new ItemStackBuilder(section.getConfigurationSection("warp-item"))
+			inventory.setItem(slot, new ItemStackBuilder(section.getConfigurationSection("warp-item"))
 					.replace("%location%", LocationUtils.locationToString(location))
 					.setPlaceholderObject(kingdomPlayer)
 					.replace("%warp%", warp.getName())
 					.setKingdom(kingdom)
-					.build();
-			inventory.setItem(slot, item);
-			setAction(player.getUniqueId(), slot, event -> {
+					.build());
+			setAction(inventory, player.getUniqueId(), slot, event -> {
 				Kingdoms.debugMessage("test click warppad");
 				if (event.isLeftClick()) {
 					player.teleport(location.add(0, 0.3, 0));

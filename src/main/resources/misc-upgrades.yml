@@ -14,6 +14,12 @@ version: "@version@"
 
 # All configurations relating to misc upgrades.
 misc-upgrades:
+    bought:
+        - ""
+        - "&aYour Kingdom currently already owns this upgrade."
+    shop:
+        - ""
+        - "&cCost %cost% to purchase this upgrade."
     anti-creeper:
         enabled: true
         # If the upgrade should be applied for free by default on newly created Kingdoms.
@@ -26,7 +32,8 @@ misc-upgrades:
         # glowing: false
         cost: 50
         description:
-            - "&7If a creeper explodes in your land, it will do no block damage or damage your members."
+            - "&7If a creeper explodes in your land, it will do"
+            - "&7no block damage or damage your members."
     anti-trample:
         enabled: true
         default: false
@@ -45,7 +52,8 @@ misc-upgrades:
         material-meta: ""
         cost: 150
         description:
-            - "&7When someone mines your nexus, a zombie with light armor and your defender's weapon will spawn."
+            - "&7When someone mines your nexus, a zombie with"
+            - "&7light armor and your defender's weapon will spawn."
     bomb-shards:
         enabled: true
         default: false
@@ -54,7 +62,8 @@ misc-upgrades:
         material-meta: ""
         cost: 1000
         description:
-            - "&7TNT can no longer damage your land, but will cause damage to nearby non-allies and non-members."
+            - "&7TNT can no longer damage your land, but will cause"
+            - "&7damage to nearby non-allies and non-members."
     insanity:
         enabled: true
         default: false
@@ -63,7 +72,8 @@ misc-upgrades:
         material-meta: ""
         cost: 500
         description:
-            - "&7Defenders and Nexus guards spawned on powercell land will have Strength I for 10 seconds"
+            - "&7Defenders and Nexus guards spawned on powercell"
+            - "&7land will have Strength I for 10 seconds"
     glory:
         enabled: true
         default: false
