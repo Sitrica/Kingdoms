@@ -39,13 +39,13 @@ public class CommandUnclaim extends AbstractCommand {
 		Player player = (Player) sender;
 		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		LandManager landManager = instance.getManager(LandManager.class);
-		if (!kingdomPlayer.hasKingdom()) {
+		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null) {
 			new MessageBuilder("claiming.no-kingdom")
 					.setPlaceholderObject(kingdomPlayer)
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (!kingdom.getPermissions(kingdomPlayer.getRank()).canUnclaim()) {
 			new MessageBuilder("kingdoms.rank-too-low-unclaim-override")
 					.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canUnclaim()), new Placeholder<Optional<Rank>>("%rank%") {

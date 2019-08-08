@@ -299,7 +299,7 @@ kingdoms:
         # Titles may have blank strings.
         title:
             enabled: true
-            title: "&e&l%kingdom%'s Kingdom"
+            title: "&a&l%kingdom%'s Kingdom"
             subtitle: "&7%lore%"
             fadeOut: 20
             fadeIn: 20

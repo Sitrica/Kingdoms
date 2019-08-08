@@ -124,7 +124,7 @@ public class NexusInventory extends StructureInventory implements Listener {
 				.replace("%time%", masswarManager.getTimeLeftInString())
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom);
-		if (masswarManager.isWarOn())
+		if (!masswarManager.isWarOn())
 			masswar.setConfigurationSection(section.getConfigurationSection("masswar-off"));
 		inventory.setItem(14, masswar.build());
 		inventory.setItem(15, new ItemStackBuilder(section.getConfigurationSection("resource-points"))
