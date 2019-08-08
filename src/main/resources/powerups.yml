@@ -26,6 +26,7 @@ powerups:
         description:
             - "&7Each upgrade reduces damage taken by 1%."
             - "&6Current Damage Reduction: %amount%"
+            - "&cCosts %cost% resource points"
     regeneration:
         enabled: true
         title: "&bRegeneration Boost"
@@ -36,6 +37,7 @@ powerups:
         description:
             - "&7While in your own land, your health has regeneration by 1% per each upgrade."
             - "&6Current Regeneration Boost: %amount%"
+            - "&cCosts %cost% resource points"
     arrow-damage:
         enabled: true
         title: "&bArrow Damage"
@@ -46,6 +48,7 @@ powerups:
         description:
             - "&7Each upgrade increases your bow damage by 1%."
             - "&6Current Arrow Damage: %amount%"
+            - "&cCosts %cost% resource points"
     damage-boost:
         enabled: true
         title: "&bDamage Boost"
@@ -56,3 +59,4 @@ powerups:
         description:
             - "&7Each upgrade increases your bow damage by 1%."
             - "&6Current Damage Boost: %amount%"
+            - "&cCosts %cost% resource points"
