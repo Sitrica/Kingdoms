@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.command.AbstractCommand;
-import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.manager.managers.MapManager;
 import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
@@ -27,7 +26,7 @@ public class CommandMap extends AbstractCommand {
 	protected ReturnType runCommand(Kingdoms instance, CommandSender sender, String... arguments) {
 		Player player = (Player) sender;
 		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
-		Land land = instance.getManager(LandManager.class).getLandAt(player.getLocation());
+		Land land = kingdomPlayer.getLandAt();
 		Optional<OfflineKingdom> landOwner = land.getKingdomOwner();
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		MapManager mapManager = instance.getManager(MapManager.class);

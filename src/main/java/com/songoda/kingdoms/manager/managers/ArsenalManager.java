@@ -34,7 +34,6 @@ public class ArsenalManager extends Manager {
 
 	private final String ROCKET_META = "kingdoms-siege-rocket";
 	private final FileConfiguration arsenal;
-	private TurretManager turretManager;
 	private PlayerManager playerManager;
 	private WorldManager worldManager;
 	private LandManager landManager;
@@ -46,7 +45,6 @@ public class ArsenalManager extends Manager {
 
 	@Override
 	public void initalize() {
-		this.turretManager = instance.getManager("turret", TurretManager.class);
 		this.playerManager = instance.getManager("player", PlayerManager.class);
 		this.worldManager = instance.getManager("world", WorldManager.class);
 		this.landManager = instance.getManager("land", LandManager.class);
@@ -150,7 +148,7 @@ public class ArsenalManager extends Manager {
 					.send(player);
 			return;
 		}
-		Optional<Turret> optional = turretManager.getTurret(block);
+		Optional<Turret> optional = instance.getManager(TurretManager.class).getTurret(block);
 		if (!optional.isPresent()) {
 			new MessageBuilder("messages.turret-breaker-wrong-usage")
 					.setPlaceholderObject(block)

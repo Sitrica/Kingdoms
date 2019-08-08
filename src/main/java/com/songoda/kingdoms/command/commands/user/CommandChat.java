@@ -40,7 +40,7 @@ public class CommandChat extends AbstractCommand {
 			String input = arguments[0];
 			if (input.equalsIgnoreCase("alliance"))
 				input = "ally";
-			ChatChannel channel = ChatChannel.valueOf(input.toUpperCase());
+			ChatChannel channel = ChatChannel.get(input);
 			if (channel == null) {
 				new MessageBuilder("commands.chat.invalid")
 						.setPlaceholderObject(kingdomPlayer)

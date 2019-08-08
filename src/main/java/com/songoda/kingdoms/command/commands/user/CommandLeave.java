@@ -40,6 +40,9 @@ public class CommandLeave extends AbstractCommand {
 						.send(kingdomPlayer);
 				return;
 			}
+			new MessageBuilder("commands.leave.leave-broadcast")
+					.setPlaceholderObject(kingdomPlayer)
+					.send(kingdom.getOnlinePlayers());
 			kingdomPlayer.onKingdomLeave();
 			kingdomPlayer.setKingdom(null);
 			kingdomPlayer.setRank(null);
@@ -51,9 +54,6 @@ public class CommandLeave extends AbstractCommand {
 				return;
 			}
 			Bukkit.getPluginManager().callEvent(new MemberLeaveEvent(kingdomPlayer, kingdom));
-			new MessageBuilder("commands.leave.leave-broadcast")
-					.setPlaceholderObject(kingdomPlayer)
-					.send(kingdom.getOnlinePlayers());
 		});
 		return ReturnType.SUCCESS;
 	}

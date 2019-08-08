@@ -16,6 +16,7 @@ import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.manager.managers.LandManager.LandInfo;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.structures.Structure;
+import com.songoda.kingdoms.objects.structures.StructureType;
 import com.songoda.kingdoms.objects.turrets.Turret;
 
 public class Land {
@@ -47,7 +48,7 @@ public class Land {
 	}
 
 	public LandInfo toInfo() {
-		return Kingdoms.getInstance().getManager("land", LandManager.class).getInfo(this);
+		return Kingdoms.getInstance().getManager(LandManager.class).getInfo(this);
 	}
 
 	public Chunk getChunk() {
@@ -77,6 +78,10 @@ public class Land {
 		this.structure = structure;
 	}
 
+	public boolean isNexus() {
+		return structure != null ? structure.getType() == StructureType.NEXUS : false;
+	}
+
 	public boolean hasOwner() {
 		return getKingdomOwner().isPresent();
 	}
@@ -84,7 +89,7 @@ public class Land {
 	public Optional<OfflineKingdom> getKingdomOwner() {
 		if (kingdom == null)
 			return Optional.empty();
-		return Kingdoms.getInstance().getManager("kingdom", KingdomManager.class).getOfflineKingdom(kingdom);
+		return Kingdoms.getInstance().getManager(KingdomManager.class).getOfflineKingdom(kingdom);
 	}
 
 	public void setKingdomOwner(String kingdom) {
@@ -142,7 +147,7 @@ public class Land {
 		World world = getWorld();
 		if (world == null)
 			return lands;
-		LandManager landManager = Kingdoms.getInstance().getManager("land", LandManager.class);
+		LandManager landManager = Kingdoms.getInstance().getManager(LandManager.class);
 		// North
 		Chunk north = world.getChunkAt(x, z - 9);
 		lands.add(landManager.getLand(north));

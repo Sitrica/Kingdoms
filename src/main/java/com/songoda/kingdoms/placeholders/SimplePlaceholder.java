@@ -8,7 +8,10 @@ public abstract class SimplePlaceholder extends Placeholder<String> {
 
 	@Override
 	public final String replace(String object) {
-		return get();
+		for (String syntax : syntaxes)
+			if (object.contains(syntax))
+				return get();
+		return null;
 	}
 	
 	public abstract String get();

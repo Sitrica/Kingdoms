@@ -36,6 +36,16 @@ public class ChatManager extends Manager {
 			return new MessageBuilder(false, "commands.chat." + name().toLowerCase()).get();
 		}
 
+		public static ChatChannel get(String string) {
+			if (string.equalsIgnoreCase("kingdom") || string.equalsIgnoreCase("k"))
+				return KINGDOM;
+			if (string.equalsIgnoreCase("public") || string.equalsIgnoreCase("p"))
+				return PUBLIC;
+			if (string.equalsIgnoreCase("ally") || string.equalsIgnoreCase("a"))
+				return ALLY;
+			return PUBLIC;
+		}
+
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

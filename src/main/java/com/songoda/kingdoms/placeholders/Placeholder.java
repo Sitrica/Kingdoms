@@ -7,7 +7,7 @@ import com.songoda.kingdoms.Kingdoms;
 
 public abstract class Placeholder<T> {
 	
-	private String[] syntaxes;
+	protected String[] syntaxes;
 	
 	public Placeholder(String... syntaxes) {
 		this.syntaxes = syntaxes;

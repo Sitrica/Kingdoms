@@ -69,6 +69,8 @@ public class Kingdom extends OfflineKingdom {
 	}
 
 	public void addUndoClaim(Land land) {
+		if (land.isNexus())
+			return;
 		LandInfo info = land.toInfo();
 		if (lastClaims.size() == lastSize) {
 			lastClaims.removeFirst();

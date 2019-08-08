@@ -367,6 +367,7 @@ commands:
         no-kingdom: "&cYou are not in any Kingdom."
         no-kingdom-found: "&cThe Kingdom &l%kingdom%&c does not exist."
         rank-too-low-alliance: "&cYour rank is too low to create alliances, only rank &l%rank%&c and higher may alliance Kingdoms."
+        rank-too-low-enemy: "&cYour rank is too low to create enemys, only rank &l%rank%&c and higher may enemy other Kingdoms."
         cant-ally-self: "&cYou can't alliance your own Kingdom."
         already-allianced: "&cYou are already allianced with the Kingdom &l%kingdom%&c."
         is-enemy: "&cThe Kingdom &l%kingdom%&c is an enemy of your Kingdom, and you cannot alliance them."
