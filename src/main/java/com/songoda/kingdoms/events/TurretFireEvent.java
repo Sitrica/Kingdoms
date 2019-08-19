@@ -1,6 +1,6 @@
 package com.songoda.kingdoms.events;
 
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -12,11 +12,11 @@ public class TurretFireEvent extends Event implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
 	private final OfflineKingdom owner;
+	private final LivingEntity target;
 	private final Turret turret;
-	private final Player target;
 	private boolean cancelled;
 
-	public TurretFireEvent(Turret turret, Player target, OfflineKingdom landKingdom) {
+	public TurretFireEvent(Turret turret, LivingEntity target, OfflineKingdom landKingdom) {
 		this.turret = turret;
 		this.target = target;
 		this.owner = landKingdom;
@@ -26,7 +26,7 @@ public class TurretFireEvent extends Event implements Cancellable {
 		return turret;
 	}
 	
-	public Player getTarget() {
+	public LivingEntity getTarget() {
 		return target;
 	}
 	

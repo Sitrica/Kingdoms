@@ -169,7 +169,7 @@ public class ArsenalManager extends Manager {
 				.setPlaceholderObject(block)
 				.fromConfiguration(arsenal)
 				.send(player);
-		new HologramBuilder(turret.getLocation().add(0, 1, 0), "holograms.turret-disabled")
+		new HologramBuilder(turret.getHeadLocation().add(0, 1, 0), "holograms.turret-disabled")
 				.withDefaultExpiration(arsenal.getString("arsenal-items.turret-breaker.time", "2 minutes"))
 				.updatableReplace("%time%", timeLeft -> IntervalUtils.getSeconds(timeLeft))
 				.toPlayers(instance.getServer().getOnlinePlayers())

@@ -23,8 +23,7 @@ public class TurretSerializer implements Serializer<Turret> {
 	@Override
 	public JsonElement serialize(Turret turret, Type type, JsonSerializationContext context) {
 		JsonObject json = new JsonObject();
-		Location location = turret.getLocation();
-		json.addProperty("post", turret.hasCreatedPost());
+		Location location = turret.getHeadLocation();
 		json.addProperty("type", turret.getType().getName());
 		json.addProperty("world", location.getWorld().getName());
 		json.addProperty("x", location.getX());
@@ -52,10 +51,7 @@ public class TurretSerializer implements Serializer<Turret> {
 		Optional<TurretType> turretType = Kingdoms.getInstance().getManager(TurretManager.class).getTurretTypeByName(typeElement.getAsString());
 		if (!turretType.isPresent())
 			return null;
-		JsonElement postElement = object.get("post");
-		if (postElement == null || postElement.isJsonNull())
-			return null;
-		return new Turret(location, turretType.get(), postElement.getAsBoolean());
+		return new Turret(location, turretType.get());
 	}
 
 }

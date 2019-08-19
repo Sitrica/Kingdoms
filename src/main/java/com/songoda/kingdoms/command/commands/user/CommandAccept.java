@@ -2,15 +2,17 @@ package com.songoda.kingdoms.command.commands.user;
 
 import java.util.Optional;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.command.AbstractCommand;
+import com.songoda.kingdoms.events.MemberJoinEvent;
 import com.songoda.kingdoms.manager.managers.InviteManager;
+import com.songoda.kingdoms.manager.managers.InviteManager.PlayerInvite;
 import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.manager.managers.RankManager;
-import com.songoda.kingdoms.manager.managers.InviteManager.PlayerInvite;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.MessageBuilder;
@@ -39,6 +41,8 @@ public class CommandAccept extends AbstractCommand {
 		kingdomPlayer.setRank(rankManager.getDefaultRank());
 		kingdomPlayer.setKingdom(kingdom.getName());
 		kingdom.addMember(kingdomPlayer);
+		MemberJoinEvent event = new MemberJoinEvent(kingdomPlayer, kingdom);
+		Bukkit.getPluginManager().callEvent(event);
 		return ReturnType.SUCCESS;
 	}
 

@@ -25,6 +25,7 @@ import com.songoda.kingdoms.database.Database;
 import com.songoda.kingdoms.events.KingdomCreateEvent;
 import com.songoda.kingdoms.events.KingdomDeleteEvent;
 import com.songoda.kingdoms.events.KingdomLoadEvent;
+import com.songoda.kingdoms.events.MemberLeaveEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.CooldownManager.KingdomCooldown;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
@@ -182,6 +183,8 @@ public class KingdomManager extends Manager {
 	 */
 	public void onPlayerLeave(KingdomPlayer player, Kingdom kingdom) {
 		database.put(kingdom.getName(), kingdom);
+		MemberLeaveEvent event = new MemberLeaveEvent(player, kingdom);
+		Bukkit.getPluginManager().callEvent(event);
 		instance.getServer().getScheduler().scheduleSyncDelayedTask(instance, () -> {
 			if (kingdom.getOnlinePlayers().isEmpty())
 				kingdoms.remove(kingdom);

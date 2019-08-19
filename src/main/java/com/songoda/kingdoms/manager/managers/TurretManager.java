@@ -10,6 +10,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Dispenser;
 import org.bukkit.block.Skull;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
@@ -51,6 +52,7 @@ import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.objects.turrets.HealthInfo;
 import com.songoda.kingdoms.objects.turrets.Potions;
 import com.songoda.kingdoms.objects.turrets.Turret;
+import com.songoda.kingdoms.objects.turrets.TurretTask;
 import com.songoda.kingdoms.objects.turrets.TurretType;
 import com.songoda.kingdoms.objects.turrets.TurretType.TargetType;
 import com.songoda.kingdoms.placeholders.Placeholder;
@@ -82,6 +84,7 @@ public class TurretManager extends Manager {
 
 	public TurretManager() {
 		super(true);
+		Bukkit.getScheduler().runTaskTimer(instance, new TurretTask(instance), 0, 1);
 		for (String turret : instance.getConfiguration("turrets").get().getConfigurationSection("turrets.turrets").getKeys(false)) {
 			types.add(new TurretType(turret));
 		}
@@ -191,14 +194,16 @@ public class TurretManager extends Manager {
 	}
 
 	public void breakTurret(Turret turret) {
-		Location location = turret.getLocation();
+		Location location = turret.getHeadLocation();
 		Land land = landManager.getLand(location.getChunk());
 		World world = location.getWorld();
 		TurretType type = turret.getType();
 		Optional<OfflineKingdom> optional = land.getKingdomOwner();
 		if (optional.isPresent())
 			world.dropItem(location, type.build(optional.get(), false));
-		location.getBlock().setType(Material.AIR);
+		Block block = location.getBlock();
+		block.setType(Material.AIR);
+		block.getRelative(BlockFace.DOWN).setType(Material.AIR);
 		land.removeTurret(turret);
 	}
 
@@ -219,48 +224,6 @@ public class TurretManager extends Manager {
 			}
 		}
 		return null;
-	}
-
-	public boolean canBeTargeted(Turret turret, Player target) {
-		if (target.isDead() || !target.isValid())
-			return false;
-		if (invadingManager.isDefender(target))
-			return false;
-		Location location = turret.getLocation();
-		if (!location.getWorld().equals(target.getWorld()))
-			return false;
-		if (target.getLocation().distanceSquared(location) > Math.pow(turret.getType().getRange(), 2))
-			return false;
-		TurretType type = turret.getType();
-		KingdomPlayer kingdomPLayer = playerManager.getKingdomPlayer(target);
-		if (kingdomPLayer.hasAdminMode() || kingdomPLayer.isVanished())
-			return false;
-		Land land = landManager.getLand(location.getChunk());
-		Optional<OfflineKingdom> optional = land.getKingdomOwner();
-		if (!optional.isPresent())
-			return false;
-		OfflineKingdom landKingdom = optional.get();
-		Kingdom kingdom = kingdomPLayer.getKingdom();
-		GameMode gamemode = target.getGameMode();
-		if (gamemode != GameMode.SURVIVAL && gamemode != GameMode.ADVENTURE)
-			return false;
-		if (type.getTargets().contains(TargetType.KINGDOM)) {
-			if (landKingdom.equals(kingdom))
-				return true;
-		} else if (type.getTargets().contains(TargetType.ALLIANCE)) {
-			if (kingdom == null)
-				return false;
-			if (landKingdom.equals(kingdom))
-				return true;
-			return landKingdom.isAllianceWith(kingdom);
-		} else if (type.getTargets().contains(TargetType.ENEMIES)) {
-			if (kingdom == null)
-				return true;
-			if (landKingdom.equals(kingdom))
-				return false;
-			return !landKingdom.isAllianceWith(kingdom);
-		}
-		return false;
 	}
 
 	public boolean canBeTargeted(OfflineKingdom kingdom, Entity target) {
@@ -299,12 +262,73 @@ public class TurretManager extends Manager {
 		return !kingdom.isAllianceWith(playerKingdom);
 	}
 
-	public void fire(Turret turret, Player target) {
+
+	public boolean canBeTargeted(Turret turret, LivingEntity target) {
+		// If this entity is alive
+		if (target.isDead() || !target.isValid())
+			return false;
+		if (invadingManager.isDefender(target))
+			return false;
+		Location location = turret.getHeadLocation();
+		if (!location.getWorld().equals(target.getWorld()))
+			return false;
+		// Turret shot is in range.
+		if (target.getLocation().distanceSquared(location) > Math.pow(turret.getType().getRange(), 2))
+			return false;
+		TurretType type = turret.getType();
+		if (target instanceof Player) {
+			Player player = (Player) target;
+			KingdomPlayer kingdomPLayer = playerManager.getKingdomPlayer(player);
+			if (kingdomPLayer.hasAdminMode() || kingdomPLayer.isVanished())
+				return false;
+			Kingdom kingdom = kingdomPLayer.getKingdom();
+			GameMode gamemode = player.getGameMode();
+			if (gamemode != GameMode.SURVIVAL && gamemode != GameMode.ADVENTURE)
+				return false;
+			Land land = landManager.getLand(location.getChunk());
+			Optional<OfflineKingdom> optional = land.getKingdomOwner();
+			// This turret has no Kingdom owner??
+			if (!optional.isPresent())
+				return false;
+			OfflineKingdom landKingdom = optional.get();
+			if (type.getTargets().contains(TargetType.KINGDOM)) {
+				if (landKingdom.equals(kingdom))
+					return true;
+			} else if (type.getTargets().contains(TargetType.ALLIANCE)) {
+				if (kingdom == null)
+					return false;
+				if (landKingdom.equals(kingdom))
+					return true;
+				return landKingdom.isAllianceWith(kingdom);
+			} else if (type.getTargets().contains(TargetType.ENEMIES)) {
+				if (kingdom == null)
+					return true;
+				if (landKingdom.equals(kingdom))
+					return false;
+				return !landKingdom.isAllianceWith(kingdom);
+			}
+		} else if (target instanceof Wolf) {
+			Wolf wolf = (Wolf) target;
+			AnimalTamer owner = wolf.getOwner();
+			if (owner != null) {
+				Optional<OfflineKingdomPlayer> kingdomPlayer = playerManager.getOfflineKingdomPlayer(owner.getUniqueId());
+				if (kingdomPlayer.isPresent()) {
+					Optional<KingdomPlayer> player = kingdomPlayer.get().getKingdomPlayer();
+					if (player.isPresent())
+						return canBeTargeted(turret, player.get().getPlayer());
+				}
+			}
+		}
+		// If this turret targets entities, fire at them, else don't.
+		return type.getTargets().contains(TargetType.MONSTERS);
+	}
+
+	public void fire(Turret turret, LivingEntity target) {
 		if (target == null)
 			return;
 		if (!canBeTargeted(turret, target))
 			return;
-		Location location = turret.getLocation();
+		Location location = turret.getHeadLocation();
 		TurretType type = turret.getType();
 		Land land = landManager.getLand(location.getChunk());
 		Optional<OfflineKingdom> landOptional = land.getKingdomOwner();
@@ -534,39 +558,8 @@ public class TurretManager extends Manager {
 		}
 		Block block = event.getClickedBlock();
 		Material material = block.getType();
-		Block turretBlock = block.getRelative(0, 1, 0);
-		boolean postCreated = false;
-		if (!material.name().contains("FENCE") && !material.name().contains("COBBLESTONE_WALL")) {
-			if (!material.isSolid())
-				return;
-			if (!material.isOccluding())
-				return;
-			if (configuration.getStringList("turrets.illegal-placements").contains(material.name())) {
-				new MessageBuilder("turrets.illegal-placement")
-						.replace("%material%", material.name().toLowerCase())
-						.setPlaceholderObject(kingdomPlayer)
-						.send(player);
-				event.setCancelled(true);
-				return;
-			}
-			if (turretBlock.getType() != Material.AIR || turretBlock.getRelative(0, 1, 0).getType() != Material.AIR) {
-				new MessageBuilder("turrets.already-occupied")
-						.setKingdom(kingdom)
-						.send(player);
-				return;
-			}
-			Material post = Utils.materialAttempt(configuration.getString("turrets.default-post", "FENCE"), "FENCE");
-			turretBlock.setType(post);
-			turretBlock = turretBlock.getRelative(0, 1, 0);
-			postCreated = true;
-		} else if (turretBlock.getType() != Material.AIR) {
-			new MessageBuilder("turrets.already-occupied")
-					.setPlaceholderObject(kingdomPlayer)
-					.setKingdom(kingdom)
-					.send(player);
-			return;
-		}	
-		Land land = landManager.getLand(turretBlock.getChunk());
+		Block post = block.getRelative(0, 1, 0);
+		Land land = landManager.getLand(post.getChunk());
 		Optional<OfflineKingdom> optional = land.getKingdomOwner();
 		if (!kingdomPlayer.hasAdminMode() && !optional.isPresent()) {
 			new MessageBuilder("kingdoms.not-in-land")
@@ -591,23 +584,40 @@ public class TurretManager extends Manager {
 					.send(player);
 			return;
 		}
-		Turret turret = new Turret(turretBlock.getLocation(), type, postCreated);
+		FileConfiguration turrets = instance.getConfiguration("turrets").get();
+		if (!material.isOccluding() || !material.isSolid() || turrets.getStringList("turrets.illegal-placements").contains(material.name())) {
+			new MessageBuilder("turrets.illegal-placement")
+					.replace("%material%", material.name().toLowerCase())
+					.setPlaceholderObject(kingdomPlayer)
+					.send(player);
+			event.setCancelled(true);
+			return;
+		}
+		Block head = post.getRelative(0, 1, 0);
+		if (post.getType() != Material.AIR || head.getType() != Material.AIR) {
+			new MessageBuilder("turrets.already-occupied")
+					.setKingdom(kingdom)
+					.send(player);
+			return;
+		}
+		Turret turret = new Turret(head.getLocation(), type);
 		TurretPlaceEvent placeEvent = new TurretPlaceEvent(land, turret, kingdomPlayer, kingdom);
 		Bukkit.getPluginManager().callEvent(placeEvent);
 		if (placeEvent.isCancelled())
 			return;
+		Material headMaterial = Utils.materialAttempt(turrets.getString("turrets.default-post", "FENCE"), "FENCE");
+		post.setType(headMaterial);
+		land.addTurret(turret);
 		ItemStack item = DeprecationUtils.getItemInMainHand(player);
 		int amount = item.getAmount();
 		if (amount > 1)
 			item.setAmount(amount - 1);
 		else
 			DeprecationUtils.setItemInMainHand(player, null);
-		land.addTurret(turret);
-		Material head = Utils.materialAttempt("SKELETON_SKULL", "SKULL");
-		turretBlock.setType(head);
-		BlockState state = turretBlock.getState();
+		head.setType(Utils.materialAttempt("PLAYER_HEAD", "SKULL"));
+		BlockState state = head.getState();
 		// 1.8 users...
-		if (head.name().equalsIgnoreCase("SKULL"))
+		if (headMaterial.name().equalsIgnoreCase("SKULL"))
 			DeprecationUtils.setupOldSkull(state);
 		if (state instanceof Skull) {
 			Skull skull = (Skull) state;
@@ -681,7 +691,7 @@ public class TurretManager extends Manager {
 		Optional<OfflineKingdom> kingdom = getProjectileKingdom(attacker);
 		Optional<Double> value = getProjectileDamage(attacker);
 		if (value.isPresent() && kingdom.isPresent()) {
-			if (canBeTargeted(kingdom.get(), event.getEntity())) {
+			if (canBeTargeted(kingdom.get(), entity)) {
 				if (isHealthProjectile(attacker)) {
 					double health = victim.getHealth();
 					health += value.get();
@@ -725,7 +735,7 @@ public class TurretManager extends Manager {
 	@EventHandler
 	public void onLandLoad(LandLoadEvent event) {
 		for (Turret turret : event.getLand().getTurrets()) {
-			Block block = turret.getLocation().getBlock();
+			Block block = turret.getHeadLocation().getBlock();
 			if (block.getType() != Utils.materialAttempt("SKELETON_SKULL", "SKULL")) {
 				breakTurret(turret);				
 			}

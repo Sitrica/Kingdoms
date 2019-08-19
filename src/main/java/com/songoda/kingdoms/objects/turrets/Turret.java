@@ -7,7 +7,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.TurretManager;
@@ -19,32 +18,16 @@ public class Turret {
 	private long fire, reload, currentAmmo, disabledCooldown;
 	private final Location location;
 	private final TurretType type;
-	private final boolean post;
 	private boolean disabled;
 	private final long ammo;
-
-	public Turret(Location location, TurretType type) {
-		this(location, type, false);
-	}
 	
-	public Turret(Location location, TurretType type, boolean post) {
+	public Turret(Location location, TurretType type) {
 		this.disabledCooldown = System.currentTimeMillis();
 		this.reload = System.currentTimeMillis();
 		this.fire = System.currentTimeMillis();
 		this.ammo = type.getAmmo();
 		this.location = location;
 		this.type = type;
-		this.post = post;
-	}
-	
-	/**
-	 * If this is set to true, then a fence or cobblestone wall by default was generated
-	 * It's generated when the user clicks the ground and there was no fence post to begin with.
-	 * 
-	 * @return
-	 */
-	public boolean hasCreatedPost() {
-		return post;
 	}
 	
 	public Set<LivingEntity> getFollowing() {
@@ -63,8 +46,12 @@ public class Turret {
 		return following.contains(entity);
 	}
 	
-	public Location getLocation() {
+	public Location getHeadLocation() {
 		return location;
+	}
+
+	public Location getPostLocation() {
+		return location.clone().subtract(0, 1, 0);
 	}
 	
 	public TurretType getType() {
@@ -123,7 +110,7 @@ public class Turret {
 		return block.getType() == check;
 	}
 	
-	public void fireAt(Player target) {
+	public void fireAt(LivingEntity target) {
 		if (!disabled)
 			Kingdoms.getInstance().getManager(TurretManager.class).fire(this, target);
 	}

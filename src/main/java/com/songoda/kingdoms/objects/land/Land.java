@@ -197,10 +197,15 @@ public class Land {
 		if (turrets.isEmpty())
 			return null;
 		for (Turret turret : turrets) {
-			Location turretLocation = turret.getLocation();
+			Location turretLocation = turret.getHeadLocation();
 			if (turretLocation.equals(location))
 				return turret;
 			if (turretLocation.distance(location) <= 0.9)
+				return turret;
+			Location postLocation = turret.getPostLocation();
+			if (postLocation.equals(location))
+				return turret;
+			if (postLocation.distance(location) <= 0.9)
 				return turret;
 		}
 		return null;
