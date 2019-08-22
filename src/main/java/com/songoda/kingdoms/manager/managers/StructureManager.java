@@ -56,6 +56,7 @@ import com.songoda.kingdoms.objects.structures.Structure;
 import com.songoda.kingdoms.objects.structures.StructureType;
 import com.songoda.kingdoms.objects.structures.WarpPad;
 import com.songoda.kingdoms.objects.structures.WarpPad.Warp;
+import com.songoda.kingdoms.objects.turrets.Turret;
 import com.songoda.kingdoms.placeholders.Placeholder;
 import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.Formatting;
@@ -130,6 +131,14 @@ public class StructureManager extends Manager {
 		Bukkit.getPluginManager().callEvent(event);
 		if (event.isCancelled())
 			return;
+
+		//Delete turrets as they're special structures.
+		Iterator<Turret> iterator = land.getTurrets().iterator();
+		while (iterator.hasNext()) {
+			Turret turret = iterator.next();
+			instance.getManager(TurretManager.class).breakTurret(turret);
+		}
+
 		Location location = structure.getLocation();
 		land.setStructure(null);
 		Block block = location.getBlock();

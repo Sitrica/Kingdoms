@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -96,13 +97,17 @@ public class TurretType {
 		this.heal = section.getBoolean("health-gain.enabled", false);
 		if (heal)
 			health = new HealthInfo(section.getConfigurationSection("health-gain"));
+		targets.addAll(section.getStringList("targets").stream()
+				.map(string -> TargetType.valueOf(string))
+				.filter(type -> type != null)
+				.collect(Collectors.toSet()));
 		this.usePotions = section.getBoolean("potions.enabled", false);
 		if (usePotions && section.isConfigurationSection("potions.list"))
 			potions = new Potions(section.getConfigurationSection("potions.list"));
 		this.material = Utils.materialAttempt(item.getString("material", "MUSIC_DISC_STAL"), "GOLD_RECORD");
 		this.projectile = Utils.entityAttempt(section.getString("projectile", "ARROW"), "ARROW");
-		this.firerate = IntervalUtils.getInterval(section.getString("fire-rate", "1 second"));
-		this.cooldown = IntervalUtils.getInterval(section.getString("cooldown", "5 seconds"));
+		this.firerate = IntervalUtils.getMilliseconds(section.getString("fire-rate", "1 second"));
+		this.cooldown = IntervalUtils.getMilliseconds(section.getString("cooldown", "5 seconds"));
 		this.reload = section.getString("reloading-skull-skin", "Redstone");
 		this.skin = section.getString("skull-skin", "MHF_Skeleton");
 		this.description.addAll(item.getStringList("description"));
@@ -162,7 +167,7 @@ public class TurretType {
 	 * Cooldown is in milliseconds.
 	 */
 	public long getReloadCooldown() {
-		return cooldown * 1000;
+		return cooldown;
 	}
 
 	public Material getMaterial() {
@@ -201,7 +206,7 @@ public class TurretType {
 	 * Firerate is in milliseconds.
 	 */
 	public long getFirerate() {
-		return firerate * 1000;
+		return firerate;
 	}
 
 	public String getTitle() {

@@ -43,11 +43,6 @@ repositories {
 		url 'http://maven.elmakers.com/repository/'
 	}
 
-	// Citizens
-	maven {
-		url "http://repo.citizensnpcs.co/"
-	}
-
 	maven {
 		url 'https://jitpack.io'
 	}
@@ -62,7 +57,7 @@ dependencies {
 	}
 
 	// Citizens
-	implementation (group: 'net.citizensnpcs', name: 'citizensapi', version: '2.0.24-SNAPSHOT')
+	implementation (group: 'net.citizensnpcs', name: 'citizensapi', version: '2.0.25')
 
 	// Spigot
 	implementation (group: 'org.spigotmc', name: 'spigot-api', version: '1.14-R0.1-SNAPSHOT')

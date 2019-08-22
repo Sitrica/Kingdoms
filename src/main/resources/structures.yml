@@ -73,26 +73,6 @@ structures:
         inventory-material: "MUSIC_DISC_STAL"
         description:
             - "&7Purchase special consumable items."
-    siege-engine:
-        enabled: true
-        cost: 1000
-        # The cooldown it takes per fire shot.
-        cooldown: "60 seconds"
-        title: "&bSiege Engine"
-        material: "DISPENSER"
-        cost-per-shot: 10
-        explosion-radius: 7.0
-        inventory-material: "MUSIC_DISC_11"
-        description:
-            - "&7Siege structure. Place next to target land, and fire from the GUI. Siege Engines have."
-    shield-battery:
-        enabled: true
-        cost: 1000
-        title: "&bShield Battery"
-        material: "PRISMARINE"
-        inventory-material: "MUSIC_DISC_MALL"
-        description:
-            - "&7When placed in land connected to your nexus land, your nexus' shield limit and recharge will increase."
     extractor:
         enabled: true
         cost: 1000

@@ -44,7 +44,7 @@ public class TurretTask implements Runnable {
 								return Double.compare(entityLocation.distance(otherLocation), otherLocation.distance(entityLocation));
 							}
 					    })
-						.findFirst()
+						.findAny()
 						.ifPresent(target -> turret.fireAt(target));
 			}
 		}

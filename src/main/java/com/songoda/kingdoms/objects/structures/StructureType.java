@@ -18,8 +18,6 @@ import com.songoda.kingdoms.utils.Utils;
 
 public enum StructureType {
 
-	//SHIELD_BATTERY("shield-battery", "shieldbattery"), // Second string is for old metadata on strucutres.
-	SIEGE_ENGINE("siege-engine", "siegeengine"), // Second string is for old metadata on strucutres.
 	POWERCELL("powercell"),
 	EXTRACTOR("extractor"),
 	WARPPAD("warp-pad"),

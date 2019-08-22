@@ -15,12 +15,11 @@ import com.songoda.kingdoms.utils.Utils;
 public class Turret {
 
 	private final Set<LivingEntity> following = new HashSet<>();
-	private long fire, reload, currentAmmo, disabledCooldown;
+	private long fire, reload, ammo, disabledCooldown;
 	private final Location location;
 	private final TurretType type;
 	private boolean disabled;
-	private final long ammo;
-	
+
 	public Turret(Location location, TurretType type) {
 		this.disabledCooldown = System.currentTimeMillis();
 		this.reload = System.currentTimeMillis();
@@ -29,23 +28,23 @@ public class Turret {
 		this.location = location;
 		this.type = type;
 	}
-	
+
 	public Set<LivingEntity> getFollowing() {
 		return following;
 	}
-	
+
 	public void addFollowing(LivingEntity entity) {
 		following.add(entity);
 	}
-	
+
 	public void removeFollowing(LivingEntity entity) {
 		following.remove(entity);
 	}
-	
+
 	public boolean isFollowing(LivingEntity entity) {
 		return following.contains(entity);
 	}
-	
+
 	public Location getHeadLocation() {
 		return location;
 	}
@@ -53,7 +52,7 @@ public class Turret {
 	public Location getPostLocation() {
 		return location.clone().subtract(0, 1, 0);
 	}
-	
+
 	public TurretType getType() {
 		return type;
 	}
@@ -65,7 +64,7 @@ public class Turret {
 	public void setFireCooldown() {
 		this.fire = System.currentTimeMillis();
 	}
-	
+
 	public long getReloadCooldown() {
 		return reload;
 	}
@@ -73,7 +72,7 @@ public class Turret {
 	public void setReloadCooldown() {
 		this.reload = System.currentTimeMillis();
 	}
-	
+
 	public long getDisabledCooldown() {
 		return disabledCooldown;
 	}
@@ -81,21 +80,21 @@ public class Turret {
 	public void setDisabledCooldown() {
 		this.disabledCooldown = System.currentTimeMillis();
 	}
-	
+
 	public boolean isDisabled() {
 		return disabled;
 	}
-	
+
 	public void resetAmmo() {
-		this.currentAmmo = ammo;
+		ammo = type.getAmmo();
 	}
-	
+
 	public long getAmmo() {
-		return currentAmmo;
+		return ammo;
 	}
-	
+
 	public void useAmmo() {
-		this.currentAmmo += 1;
+		ammo = ammo - 1;
 	}
 
 	public boolean isValid() {
@@ -106,13 +105,14 @@ public class Turret {
 		Block block = location.getBlock();
 		if (!block.getRelative(0, -1, 0).getType().toString().endsWith("FENCE"))
 			return false;
-		Material check = Utils.materialAttempt("SKELETON_SKULL", "SKULL");
+		Material check = Utils.materialAttempt("PLAYER_HEAD", "SKULL");
 		return block.getType() == check;
 	}
-	
+
 	public void fireAt(LivingEntity target) {
-		if (!disabled)
-			Kingdoms.getInstance().getManager(TurretManager.class).fire(this, target);
+		if (disabled)
+			return;
+		Kingdoms.getInstance().getManager(TurretManager.class).fire(this, target);
 	}
 
 }

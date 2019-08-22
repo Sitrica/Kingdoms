@@ -36,6 +36,7 @@ import org.bukkit.metadata.Metadatable;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.Vector;
 
+import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.LandLoadEvent;
 import com.songoda.kingdoms.events.TurretBreakEvent;
 import com.songoda.kingdoms.events.TurretFireEvent;
@@ -194,17 +195,19 @@ public class TurretManager extends Manager {
 	}
 
 	public void breakTurret(Turret turret) {
-		Location location = turret.getHeadLocation();
-		Land land = landManager.getLand(location.getChunk());
-		World world = location.getWorld();
-		TurretType type = turret.getType();
-		Optional<OfflineKingdom> optional = land.getKingdomOwner();
-		if (optional.isPresent())
-			world.dropItem(location, type.build(optional.get(), false));
-		Block block = location.getBlock();
-		block.setType(Material.AIR);
-		block.getRelative(BlockFace.DOWN).setType(Material.AIR);
-		land.removeTurret(turret);
+		Bukkit.getScheduler().runTask(instance, () -> {
+			Location location = turret.getHeadLocation();
+			Land land = landManager.getLand(location.getChunk());
+			World world = location.getWorld();
+			TurretType type = turret.getType();
+			Optional<OfflineKingdom> optional = land.getKingdomOwner();
+			if (optional.isPresent())
+				world.dropItem(location, type.build(optional.get(), false));
+			Block block = location.getBlock();
+			block.setType(Material.AIR);
+			block.getRelative(BlockFace.DOWN).setType(Material.AIR);
+			land.removeTurret(turret);
+		});
 	}
 
 	public TurretType getTurretTypeFrom(ItemStack item) {
@@ -336,16 +339,14 @@ public class TurretManager extends Manager {
 		Bukkit.getPluginManager().callEvent(event);
 		if (event.isCancelled())
 			return;
-		
+
 		// Handle the fire rate
-		long fireCooldown = turret.getFireCooldown();
-		if (System.currentTimeMillis() - fireCooldown < type.getFirerate())
+		if (System.currentTimeMillis() - turret.getFireCooldown() < type.getFirerate())
 			return;
 		turret.setFireCooldown();
-		
+
 		// Handle ammo reloading. There is another code block below that handles reloading.
-		long reloadCooldown = turret.getReloadCooldown();
-		if (System.currentTimeMillis() - reloadCooldown < type.getReloadCooldown())
+		if (System.currentTimeMillis() - turret.getReloadCooldown() < type.getReloadCooldown())
 			return;
 
 		// Setup vectors
@@ -354,7 +355,7 @@ public class TurretManager extends Manager {
 		Vector from = fromLocation.toVector();
 		Vector direction = to.subtract(from);
 		direction.normalize();
-		
+
 		// Execute
 		if (turret.getAmmo() > 0) {
 			turret.useAmmo();
@@ -420,7 +421,7 @@ public class TurretManager extends Manager {
 			if (turret.getAmmo() <= 0) {
 				turret.setReloadCooldown();
 				Block block = location.getBlock();
-				Material head = Utils.materialAttempt("SKELETON_SKULL", "SKULL");
+				Material head = Utils.materialAttempt("PLAYER_HEAD", "SKULL");
 				block.setType(head);
 				BlockState state = block.getState();
 				// 1.8 users...
@@ -436,7 +437,7 @@ public class TurretManager extends Manager {
 					@Override
 					public void run() {
 						// Check that the block wasn't removed.
-						if (!block.getType().name().contains("SKULL"))
+						if (!block.getType().name().contains("SKULL") && !block.getType().name().contains("HEAD"))
 							return;
 						BlockState state = block.getState();
 						if (state instanceof Skull) {
@@ -444,6 +445,7 @@ public class TurretManager extends Manager {
 							skull.setOwningPlayer(type.getSkullOwner());
 							state.update(true);
 						}
+						turret.resetAmmo();
 					}
 				}, (type.getReloadCooldown() / 1000) * 20);
 			}
@@ -736,8 +738,8 @@ public class TurretManager extends Manager {
 	public void onLandLoad(LandLoadEvent event) {
 		for (Turret turret : event.getLand().getTurrets()) {
 			Block block = turret.getHeadLocation().getBlock();
-			if (block.getType() != Utils.materialAttempt("SKELETON_SKULL", "SKULL")) {
-				breakTurret(turret);				
+			if (block.getType() != Utils.materialAttempt("PLAYER_HEAD", "SKULL")) {
+				breakTurret(turret);
 			}
 		}
 	}
