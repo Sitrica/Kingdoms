@@ -22,7 +22,10 @@ powerups:
         # All other powerups support this too, not adding the node defaults to false.
         glowing: false
         cost: 70
+        # The max this powerup level can go.
         max: 40
+        # The slot in the nexus GUI
+        slot: 18
         description:
             - "&7Each upgrade reduces damage taken by 1%."
             - "&6Current Damage Reduction: %amount%"
@@ -34,6 +37,7 @@ powerups:
         material-meta: ""
         cost: 70
         max: 200
+        slot: 19
         description:
             - "&7While in your own land, your health has regeneration by 1% per each upgrade."
             - "&6Current Regeneration Boost: %amount%"
@@ -45,6 +49,7 @@ powerups:
         material-meta: ""
         cost: 125
         max: 60
+        slot: 25
         description:
             - "&7Each upgrade increases your bow damage by 1%."
             - "&6Current Arrow Damage: %amount%"
@@ -56,6 +61,7 @@ powerups:
         material-meta: ""
         cost: 85
         max: 60
+        slot: 26
         description:
             - "&7Each upgrade increases your bow damage by 1%."
             - "&6Current Damage Boost: %amount%"

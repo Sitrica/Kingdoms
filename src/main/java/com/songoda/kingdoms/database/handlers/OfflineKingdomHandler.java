@@ -11,12 +11,10 @@ import com.songoda.kingdoms.database.serializers.DefenderInfoSerializer;
 import com.songoda.kingdoms.database.serializers.LandSerializer;
 import com.songoda.kingdoms.database.serializers.LocationSerializer;
 import com.songoda.kingdoms.database.serializers.OfflineKingdomPlayerSerializer;
-import com.songoda.kingdoms.database.serializers.PowerupSerializer;
 import com.songoda.kingdoms.database.serializers.RankPermissionsSerializer;
 import com.songoda.kingdoms.database.serializers.WarpSerializer;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
-import com.songoda.kingdoms.objects.kingdom.Powerup;
 import com.songoda.kingdoms.objects.kingdom.RankPermissions;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
@@ -28,7 +26,6 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 	private final RankPermissionsSerializer permissionsSerializer;
 	private final DefenderInfoSerializer defenderSerializer;
 	private final LocationSerializer locationSerializer;
-	private final PowerupSerializer powerupSerializer;
 	private final WarpSerializer warpSerializers;
 	private final LandSerializer landSerializer;
 
@@ -37,7 +34,6 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 		this.permissionsSerializer = new RankPermissionsSerializer();
 		this.defenderSerializer = new DefenderInfoSerializer();
 		this.locationSerializer = new LocationSerializer();
-		this.powerupSerializer = new PowerupSerializer();
 		this.warpSerializers = new WarpSerializer();
 		this.landSerializer = new LandSerializer();
 	}
@@ -45,7 +41,6 @@ public class OfflineKingdomHandler implements Handler<OfflineKingdom> {
 	@Override
 	public JsonObject serialize(OfflineKingdom kingdom, JsonObject json, JsonSerializationContext context) {
 		json.add("spawn", locationSerializer.serialize(kingdom.getSpawn(), Location.class, context));
-		json.add("powerup", powerupSerializer.serialize(kingdom.getPowerup(), Powerup.class, context));
 		json.add("nexus", locationSerializer.serialize(kingdom.getNexusLocation(), Location.class, context));
 		json.add("defender-info", defenderSerializer.serialize(kingdom.getDefenderInfo(), DefenderInfo.class, context));
 		JsonArray claims = new JsonArray();

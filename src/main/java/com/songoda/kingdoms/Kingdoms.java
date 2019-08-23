@@ -6,6 +6,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.songoda.kingdoms.api.KingdomsAPI;
 import com.songoda.kingdoms.command.ActionCommand;
 import com.songoda.kingdoms.command.CommandHandler;
 import com.songoda.kingdoms.manager.ExternalManager;
@@ -58,6 +59,7 @@ public class Kingdoms extends JavaPlugin {
 		commandHandler = new CommandHandler(this);
 		actions = new ActionCommand();
 		getCommand("kingdomsaction").setExecutor(actions);
+		KingdomsAPI.setInstance(this);
 		consoleMessage("Kingdoms has been enabled");
 	}
 

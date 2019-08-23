@@ -57,8 +57,6 @@ public class StructureSerializer implements Serializer<Structure> {
 				break;
 			case RADAR:
 				break;
-			case SIEGE_ENGINE:
-				break;
 			case WARPPAD:
 				WarpPad warppad = (WarpPad) structure;
 				json.addProperty("warp-name", warppad.getName());
@@ -107,8 +105,6 @@ public class StructureSerializer implements Serializer<Structure> {
 			case POWERCELL:
 				break;
 			case RADAR:
-				break;
-			case SIEGE_ENGINE:
 				break;
 			case WARPPAD:
 				JsonElement name = object.get("warp-name");

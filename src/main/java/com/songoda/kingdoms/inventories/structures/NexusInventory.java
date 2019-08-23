@@ -21,7 +21,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.google.common.collect.Lists;
 import com.songoda.kingdoms.inventories.DefenderUpgradeMenu;
 import com.songoda.kingdoms.inventories.MembersMenu;
 import com.songoda.kingdoms.inventories.MiscUpgradeMenu;
@@ -184,8 +183,8 @@ public class NexusInventory extends StructureInventory implements Listener {
 						.setPlaceholderObject(kingdomPlayer)
 						.setKingdom(kingdom);
 			}
-			inventory.setItem(22, builder.build());
-			setAction(player.getUniqueId(), 22, event -> {
+			inventory.setItem(4, builder.build());
+			setAction(player.getUniqueId(), 4, event -> {
 				if (kingdom.hasInvaded()) {
 					new MessageBuilder("kingdoms.cannot-be-neutral")
 							.replace("%status%", kingdom.isNeutral())
@@ -205,13 +204,13 @@ public class NexusInventory extends StructureInventory implements Listener {
 			});
 		}
 		int memberCost = configuration.getInt("kingdoms.cost-per-max-member-upgrade", 10);
-		inventory.setItem(26, new ItemStackBuilder(section.getConfigurationSection("max-members"))
+		inventory.setItem(22, new ItemStackBuilder(section.getConfigurationSection("max-members"))
 				.setPlaceholderObject(kingdomPlayer)
 				.replace("%cost%", memberCost)
 				.replace("%max%", max)
 				.setKingdom(kingdom)
 				.build());
-		setAction(player.getUniqueId(), 26, event -> {
+		setAction(player.getUniqueId(), 22, event -> {
 			long p = kingdom.getResourcePoints();
 			if (memberCost > p) {
 				new MessageBuilder("structures.nexus-max-member-cant-afford")
@@ -242,20 +241,17 @@ public class NexusInventory extends StructureInventory implements Listener {
 			reopen(kingdomPlayer);
 		});
 		Powerup powerup = kingdom.getPowerup();
-		List<Integer> slots = Lists.newArrayList(18, 19, 25, 26);
-		int i = 0;
 		for (PowerupType type: PowerupType.values()) {
 			if (!type.isEnabled())
 				continue;
-			int slot = Optional.ofNullable(slots.get(i)).orElse(18 + i);
-			inventory.setItem(slot, type.getItemStackBuilder()
-					.withPlaceholder(powerup, new Placeholder<Powerup>("%amount%", "%level%") {
-						@Override
-						public Integer replace(Powerup powerup) {
-							return powerup.getLevel(type);
-						}
-					}).build());
-			setAction(player.getUniqueId(), slot, event -> {
+			int level = powerup.getLevel(type);
+			inventory.setItem(type.getSlot(), type.getItemStackBuilder()
+					.setPlaceholderObject(kingdomPlayer)
+					.replace("%amount%", level)
+					.replace("%level%", level)
+					.setKingdom(kingdom)
+					.build());
+			setAction(inventory, player.getUniqueId(), type.getSlot(), event -> {
 				if (type.getCost() > kingdom.getResourcePoints()) {
 					new MessageBuilder("kingdoms.not-enough-resourcepoints-powerup")
 							.replace("%powerup%", type.name().toLowerCase().replaceAll("_", "-"))
@@ -265,7 +261,6 @@ public class NexusInventory extends StructureInventory implements Listener {
 							.send(player);
 					return;
 				}
-				int level = powerup.getLevel(type);
 				if (level + 1 > type.getMax()) {
 					new MessageBuilder("kingdoms.powerup-maxed")
 							.replace("%powerup%", type.name().toLowerCase().replaceAll("_", "-"))

@@ -256,6 +256,7 @@ public class TurretType {
 	public enum TargetType {
 		ALLIANCE,
 		MONSTERS,
+		ENTITIES,
 		KINGDOM,
 		ENEMIES;
 	}

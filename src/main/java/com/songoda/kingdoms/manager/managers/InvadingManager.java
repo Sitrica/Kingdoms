@@ -108,13 +108,17 @@ public class InvadingManager extends Manager {
 		return mechanic;
 	}
 
+	public void setInvasionMechanic (InvasionMechanic<? extends InvasionTrigger> mechanic) {
+		this.mechanic = mechanic;
+	}
+
 	/**
 	 * Checks if there is an invasion at a land, and then return the invasion at it.
 	 * 
 	 * @param land The land to check.
 	 * @return Optional<Invasion> if an invasion is present.
 	 */
-	public Set<Invasion> getInvasionAt(Land land) {
+	public Set<Invasion> getInvasionsAt(Land land) {
 		return invasions.parallelStream()
 				.filter(invasion -> invasion.getInvadingLands().stream().anyMatch(info -> info.equals(land.toInfo())))
 				.collect(Collectors.toSet());
@@ -346,7 +350,7 @@ public class InvadingManager extends Manager {
 		if (!land.hasOwner())
 			return;
 		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(event.getPlayer());
-		getInvasionAt(land).parallelStream().forEach(invasion -> mechanic.onBlockBreak(event, kingdomPlayer, land, invasion));
+		getInvasionsAt(land).parallelStream().forEach(invasion -> mechanic.onBlockBreak(event, kingdomPlayer, land, invasion));
 	}
 
 	@EventHandler
@@ -355,7 +359,7 @@ public class InvadingManager extends Manager {
 		Land land = instance.getManager(LandManager.class).getLandAt(victim.getLocation());
 		if (!land.hasOwner())
 			return;
-		getInvasionAt(land).forEach(invasion -> mechanic.onDamage(event, land));
+		getInvasionsAt(land).forEach(invasion -> mechanic.onDamage(event, land));
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)

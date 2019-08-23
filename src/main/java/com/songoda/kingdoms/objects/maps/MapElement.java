@@ -15,7 +15,6 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public enum MapElement {
 
-	SIEGE_ENGINE("siege-engine"),
 	POWERCELL("powercell"),
 	EXTRACTOR("extractor"),
 	WARPPAD("warp-pad"),
@@ -61,8 +60,6 @@ public enum MapElement {
 				return POWERCELL;
 			case RADAR:
 				return RADAR;
-			case SIEGE_ENGINE:
-				return SIEGE_ENGINE;
 			case WARPPAD:
 				return WARPPAD;
 		}

@@ -32,6 +32,7 @@ public class OfflineKingdom {
 	protected long resourcePoints = 0, invasionCooldown = 0;
 	protected int dynmapColor, max = 0, extraPurchased = 0;
 	protected boolean neutral, first, invaded;
+	protected Powerup powerup = new Powerup();
 	protected KingdomCooldown shieldTime;
 	protected KingdomChest kingdomChest;
 	protected DefenderInfo defenderInfo;
@@ -40,7 +41,6 @@ public class OfflineKingdom {
 	protected String lore = "Not set";
 	protected Location nexus, spawn;
 	protected final String name;
-	protected Powerup powerup;
 	protected UUID owner;
 
 	/**
@@ -196,8 +196,6 @@ public class OfflineKingdom {
 	}
 
 	public Powerup getPowerup() {
-		if (powerup == null)
-			powerup = new Powerup(this);
 		return powerup;
 	}
 

@@ -170,7 +170,7 @@ public class CommandInvade extends AbstractCommand {
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		for (Invasion invasion : invadingManager.getInvasionAt(land)) {
+		for (Invasion invasion : invadingManager.getInvasionsAt(land)) {
 			if (invasion.getAttacking().equals(kingdom)) {
 				// If the current invasion mechanic is the default one, this will be called and if false, the config.yml node is not the default.
 				boolean command = invadingManager.getInvasionMechanic().callInvade(new CommandTrigger(invasion, land.toInfo(), kingdomPlayer), kingdomPlayer);

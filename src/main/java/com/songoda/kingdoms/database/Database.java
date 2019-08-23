@@ -15,13 +15,11 @@ import com.songoda.kingdoms.database.serializers.LandSerializer;
 import com.songoda.kingdoms.database.serializers.LocationSerializer;
 import com.songoda.kingdoms.database.serializers.OfflineKingdomPlayerSerializer;
 import com.songoda.kingdoms.database.serializers.OfflineKingdomSerializer;
-import com.songoda.kingdoms.database.serializers.PowerupSerializer;
 import com.songoda.kingdoms.database.serializers.RankPermissionsSerializer;
 import com.songoda.kingdoms.database.serializers.StructureSerializer;
 import com.songoda.kingdoms.database.serializers.TurretSerializer;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
-import com.songoda.kingdoms.objects.kingdom.Powerup;
 import com.songoda.kingdoms.objects.kingdom.RankPermissions;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
@@ -41,7 +39,6 @@ public abstract class Database<T> {
 				.registerTypeAdapter(Structure.class, new StructureSerializer())
 				.registerTypeAdapter(ItemStack.class, new ItemStackSerializer())
 				.registerTypeAdapter(Location.class, new LocationSerializer())
-				.registerTypeAdapter(Powerup.class, new PowerupSerializer())
 				.registerTypeAdapter(Turret.class, new TurretSerializer())
 				.registerTypeAdapter(Land.class, new LandSerializer())
 				.excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC)

@@ -16,6 +16,7 @@ import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 import org.bukkit.event.EventHandler;
@@ -322,8 +323,10 @@ public class TurretManager extends Manager {
 				}
 			}
 		}
+		if (type.getTargets().contains(TargetType.MONSTERS))
+			return target instanceof Monster;
 		// If this turret targets entities, fire at them, else don't.
-		return type.getTargets().contains(TargetType.MONSTERS);
+		return type.getTargets().contains(TargetType.ENTITIES);
 	}
 
 	public void fire(Turret turret, LivingEntity target) {

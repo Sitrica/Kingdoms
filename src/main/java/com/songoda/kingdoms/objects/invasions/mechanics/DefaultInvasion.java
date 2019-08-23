@@ -97,7 +97,6 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 		}
 		UUID uuid = player.getUniqueId();
 		invading.put(uuid, DoubleObject.of(trigger.getLandInfo(), defender));
-		check(null);
 	}
 
 	@Override
@@ -119,15 +118,16 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 	}
 
 	private void check(Defender defender) {
+		if (defender == null)
+			return;
+		Invasion invasion = defender.getInvasion();
 		FileConfiguration configuration = Kingdoms.getInstance().getConfig();
-		if (defender != null) {
-			if (defender.isNexusDefender() && configuration.getBoolean("invading.defender.defender-death-ends-invasion")) {
-				stopInvasion(StopReason.WIN, defender.getInvasion());
-				return;
-			}
+		if (defender.isNexusDefender() && configuration.getBoolean("invading.defender.defender-death-ends-invasion")) {
+			stopInvasion(StopReason.WIN, invasion);
+			return;
 		}
-		if (defender.getInvasion().getTarget().getClaims().isEmpty())
-			stopInvasion(StopReason.WIN, defender.getInvasion());
+		if (invasion.getTarget().getClaims().isEmpty())
+			stopInvasion(StopReason.WIN, invasion);
 	}
 
 	@Override
@@ -203,7 +203,8 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 	@Override
 	public boolean update(Invasion invasion) {
 		// Timeout system
-		check(null);
+		if (invasion.getTarget().getClaims().isEmpty())
+			stopInvasion(StopReason.WIN, invasion);
 		String setting = Kingdoms.getInstance().getConfig().getString("invading.mechanics.default.max-time", "50 minutes");
 		return System.currentTimeMillis() - invasion.getStartingTime() < IntervalUtils.getMilliseconds(setting);
 	}

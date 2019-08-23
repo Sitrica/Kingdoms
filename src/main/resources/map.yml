@@ -144,28 +144,6 @@ elements:
                 hover-message:
                     - "&eOne of your Kingdom's Outposts"
                     - "&7Outposts give remote access to your Nexus"
-    siege-engine:
-        legend-message: "Siege-Engine"
-        # A small X
-        icon: "\u0078"
-        relations:
-            default-hover-message:
-                - "&7A Siege-Engine owned by %relation%%kingdom%"
-            alliance:
-                color: "&a"
-            enemy:
-                color: "&c"
-                hover-message:
-                    - "&cOne of your enemies %kingdom%'s Siege-Engine"
-                    - "&7Watch out, it can fire at you"
-                    - "&7if an enemy is using it."
-            other:
-                color: "&7"
-            own:
-                color: "&e"
-                hover-message:
-                    - "&eOne of your Kingdom's Siege-Engine"
-                    - "&7You can use this to fire at enemies"
     extractor:
         legend-message: "Extractor"
         # Black star, looks like a StarWars logo.

@@ -1,14 +1,9 @@
 package com.songoda.kingdoms.objects.kingdom;
 
 public class Powerup {
-	
-	private int reduction, regeneration, damageBoost, arrowBoost;
-	private final OfflineKingdom kingdom;
 
-	public Powerup(OfflineKingdom kingdom) {
-		this.kingdom = kingdom;
-	}
-	
+	private int reduction, regeneration, damageBoost, arrowBoost;
+
 	public int getLevel(PowerupType type) {
 		switch (type) {
 			case DAMAGE_REDUCTION:
@@ -22,24 +17,22 @@ public class Powerup {
 		}
 		return 0;
 	}
-	
-	public void setLevel(int level, PowerupType... types) {
-		for (PowerupType type : types) {
-			switch (type) {
-				case DAMAGE_REDUCTION:
-					this.reduction = level;
-				case REGENERATION_BOOST:
-					this.regeneration = level;
-				case DAMAGE_BOOST:
-					this.damageBoost = level;
-				case ARROW_BOOST:
-					this.arrowBoost = level;
-			}
+
+	public void setLevel(int level, PowerupType type) {
+		switch (type) {
+			case DAMAGE_REDUCTION:
+				reduction = level;
+				break;
+			case REGENERATION_BOOST:
+				regeneration = level;
+				break;
+			case DAMAGE_BOOST:
+				damageBoost = level;
+				break;
+			case ARROW_BOOST:
+				arrowBoost = level;
+				break;
 		}
-	}
-	
-	public OfflineKingdom getKingdom() {
-		return kingdom;
 	}
 
 	public int getDamageReduction() {

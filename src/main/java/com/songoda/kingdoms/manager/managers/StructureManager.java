@@ -40,7 +40,6 @@ import com.songoda.kingdoms.inventories.structures.ArsenalInventory;
 import com.songoda.kingdoms.inventories.structures.ExtractorInventory;
 import com.songoda.kingdoms.inventories.structures.NexusInventory;
 import com.songoda.kingdoms.inventories.structures.OutpostInventory;
-import com.songoda.kingdoms.inventories.structures.SiegeEngineInventory;
 import com.songoda.kingdoms.inventories.structures.WarppadInventory;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.inventories.InventoryManager;
@@ -51,7 +50,6 @@ import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.structures.Extractor;
-import com.songoda.kingdoms.objects.structures.SiegeEngine;
 import com.songoda.kingdoms.objects.structures.Structure;
 import com.songoda.kingdoms.objects.structures.StructureType;
 import com.songoda.kingdoms.objects.structures.WarpPad;
@@ -367,8 +365,6 @@ public class StructureManager extends Manager {
 		Structure structure = new Structure(kingdom.getName(), location, type);
 		if (type == StructureType.EXTRACTOR)
 			structure = new Extractor(kingdom.getName(), location);
-		if (type == StructureType.SIEGE_ENGINE)
-			structure = new SiegeEngine(kingdom.getName(), location);
 		if (type == StructureType.WARPPAD)
 			structure = new WarpPad(kingdom.getName(), location, type.build().getItemMeta().getDisplayName());
 		StructurePlaceEvent placeEvent = new StructurePlaceEvent(land, structure, kingdom, kingdomPlayer);
@@ -467,14 +463,6 @@ public class StructureManager extends Manager {
 			case OUTPOST:
 				selected.put(kingdomPlayer, land);
 				inventoryManager.getInventory(OutpostInventory.class).open(kingdomPlayer);
-				break;
-			case SIEGE_ENGINE:
-				if (!(structure instanceof SiegeEngine)) {
-					land.setStructure(new SiegeEngine(kingdom.getName(), structure.getLocation()));
-					block.setType(type.getBlockMaterial());
-					block.setMetadata(type.getMetaData(), new FixedMetadataValue(instance, kingdom.getName()));
-				}
-				inventoryManager.getInventory(SiegeEngineInventory.class).openSiegeMenu(land, kingdomPlayer);
 				break;
 			case WARPPAD:
 				selected.put(kingdomPlayer, land);

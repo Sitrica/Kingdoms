@@ -109,7 +109,7 @@ public class PlayerManager extends Manager {
 					.toKingdomPlayers(kingdom.getOnlineAllies())
 					.setPlaceholderObject(kingdomPlayer)
 					.setKingdom(kingdom);
-			if (!configuration.getBoolean("see-self-join-message", true))
+			if (!configuration.getBoolean("see-self-join-message", false))
 				builder.ignoreSelf(kingdomPlayer);
 			builder.send();
 		}

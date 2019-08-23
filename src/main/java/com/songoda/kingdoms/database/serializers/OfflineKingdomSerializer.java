@@ -61,16 +61,19 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 		JsonObject miscUpgrade = new JsonObject();
 		JsonObject bought = new JsonObject();
 		MiscUpgrade upgrade = kingdom.getMiscUpgrades();
-		for (MiscUpgradeType upgradeType : MiscUpgradeType.values()) {
+		for (MiscUpgradeType upgradeType : MiscUpgradeType.values())
 			bought.addProperty(upgradeType.name(), upgrade.hasBought(upgradeType));
-		}
 		miscUpgrade.add("bought", bought);
 		JsonObject enabled = new JsonObject();
-		for (MiscUpgradeType upgradeType : MiscUpgradeType.values()) {
+		for (MiscUpgradeType upgradeType : MiscUpgradeType.values())
 			enabled.addProperty(upgradeType.name(), upgrade.isEnabled(upgradeType));
-		}
 		miscUpgrade.add("enabled", enabled);
 		json.add("misc-upgrades", miscUpgrade);
+		Powerup powerup = kingdom.getPowerup();
+		JsonObject powerups = new JsonObject();
+		for (PowerupType powerupType : PowerupType.values())
+			powerups.addProperty(powerupType.name(), powerup.getLevel(powerupType));
+		json.add("powerups", powerups);
 		return handler.serialize(kingdom, json, context);
 	}
 
@@ -111,7 +114,7 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 		JsonElement maxElement = object.get("max-members");
 		if (maxElement != null && !maxElement.isJsonNull())
 			kingdom.setMaxMembers(maxElement.getAsInt());
-		Powerup powerup = new Powerup(kingdom);
+		Powerup powerup = kingdom.getPowerup();
 		JsonElement powerupsElement = object.get("powerups");
 		if (powerupsElement != null && !powerupsElement.isJsonNull() && powerupsElement.isJsonObject()) {
 			JsonObject powerupsObject = powerupsElement.getAsJsonObject();
@@ -122,7 +125,6 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 				powerup.setLevel(element.getAsInt(), powerupType);
 			}
 		}
-		kingdom.setPowerup(powerup);
 		JsonElement miscUpgradesElement = object.get("misc-upgrades");
 		if (miscUpgradesElement != null && !miscUpgradesElement.isJsonNull() && miscUpgradesElement.isJsonObject()) {
 			JsonObject miscUpgradesObject = miscUpgradesElement.getAsJsonObject();
