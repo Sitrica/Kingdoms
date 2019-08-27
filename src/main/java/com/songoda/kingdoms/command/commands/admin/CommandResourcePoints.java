@@ -1,7 +1,9 @@
 package com.songoda.kingdoms.command.commands.admin;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -36,40 +38,49 @@ public class CommandResourcePoints extends AdminCommand {
 		}
 		String name = String.join(" ", Arrays.copyOfRange(arguments, 2, arguments.length));
 		KingdomManager kingdomManager = instance.getManager(KingdomManager.class);
-		Optional<OfflineKingdom> optional = kingdomManager.getOfflineKingdom(name);
-		if (!optional.isPresent()) {
-			new MessageBuilder("commands.resource-points.no-kingdom-found")
-					.setPlaceholderObject(kingdomPlayer)
-					.replace("%kingdom%", name)
-					.send(player);
-			return ReturnType.FAILURE;
+		Set<OfflineKingdom> kingdoms = new HashSet<>();
+		if (name.equalsIgnoreCase("all")) {
+			Optional<OfflineKingdom> optional = kingdomManager.getOfflineKingdom(name);
+			if (!optional.isPresent()) {
+				new MessageBuilder("commands.resource-points.no-kingdom-found")
+						.setPlaceholderObject(kingdomPlayer)
+						.replace("%kingdom%", name)
+						.send(player);
+				return ReturnType.FAILURE;
+			}
+			kingdoms.add(optional.get());
+		} else {
+			// Online Kingdoms Only
+			kingdoms = kingdomManager.getKingdoms();
 		}
-		OfflineKingdom kingdom = optional.get();
 		switch (function) {
 			case "subtract":
 			case "remove":
-				kingdom.subtractResourcePoints(amount);
+				kingdoms.forEach(kingdom -> kingdom.subtractResourcePoints(amount));
 				new MessageBuilder("commands.resource-points.removed")
+						.replace("%kingdoms%", kingdoms, kingdom -> kingdom.getName())
+						.replace("%kingdom%", kingdoms, kingdom -> kingdom.getName())
 						.setPlaceholderObject(kingdomPlayer)
 						.replace("%amount%", amount)
-						.setKingdom(kingdom)
 						.send(kingdomPlayer);
 				break;
 			case "give":
 			case "add":
-				kingdom.addResourcePoints(amount);
+				kingdoms.forEach(kingdom -> kingdom.addResourcePoints(amount));
 				new MessageBuilder("commands.resource-points.added")
+						.replace("%kingdoms%", kingdoms, kingdom -> kingdom.getName())
+						.replace("%kingdom%", kingdoms, kingdom -> kingdom.getName())
 						.setPlaceholderObject(kingdomPlayer)
 						.replace("%amount%", amount)
-						.setKingdom(kingdom)
 						.send(kingdomPlayer);
 				break;
 			case "set":
-				kingdom.setResourcePoints(amount);
+				kingdoms.forEach(kingdom -> kingdom.setResourcePoints(amount));
 				new MessageBuilder("commands.resource-points.set")
+						.replace("%kingdoms%", kingdoms, kingdom -> kingdom.getName())
+						.replace("%kingdom%", kingdoms, kingdom -> kingdom.getName())
 						.setPlaceholderObject(kingdomPlayer)
 						.replace("%amount%", amount)
-						.setKingdom(kingdom)
 						.send(kingdomPlayer);
 				break;
 		}

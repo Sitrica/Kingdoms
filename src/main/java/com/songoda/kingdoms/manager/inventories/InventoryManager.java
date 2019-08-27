@@ -4,10 +4,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -46,7 +46,7 @@ public class InventoryManager extends Manager {
 				});
 	}
 
-	public void opening(UUID uuid, KingdomInventory inventory) {
+	public <T extends KingdomInventory> void opening(UUID uuid, T inventory) {
 		opened.put(uuid, inventory);
 	}
 

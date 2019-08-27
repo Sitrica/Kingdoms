@@ -1,11 +1,13 @@
 package com.songoda.kingdoms.manager.managers;
 
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
@@ -20,6 +22,10 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitTask;
 
+import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.Database;
 import com.songoda.kingdoms.events.KingdomCreateEvent;
@@ -41,7 +47,37 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class KingdomManager extends Manager {
 
-	public static Set<OfflineKingdom> kingdoms = new HashSet<>();
+	private final AsyncLoadingCache<String, Optional<OfflineKingdom>> cache = Caffeine.newBuilder()
+			.expireAfterAccess(50, TimeUnit.MINUTES)
+			.removalListener((String name, Optional<OfflineKingdom> kingdom, RemovalCause cause) -> {
+				if (kingdom != null && kingdom.isPresent())
+					save(kingdom.get());
+			})
+			.maximumSize(1000)
+			.buildAsync(new CacheLoader<String, Optional<OfflineKingdom>>() {
+					public Optional<OfflineKingdom> load(String name) {
+						if (name == null)
+							return Optional.empty();
+						Kingdoms.debugMessage("Loading offline kingdom: " + name);
+						OfflineKingdom databaseKingdom = database.get(name);
+						if (databaseKingdom == null) {
+							Kingdoms.debugMessage("No data found for kingdom: " + name);
+							return Optional.empty();
+						}
+						Kingdom kingdom = new Kingdom(databaseKingdom);
+						if (kingdom != null) {
+							long invasionCooldown = kingdom.getInvasionCooldown();
+							if (invasionCooldown > 0) {
+								KingdomCooldown cooldown = new KingdomCooldown(kingdom, "attackcd", invasionCooldown);
+								cooldown.start();
+								kingdom.setInvasionCooldown(0);
+							}
+							updateUpgrades(kingdom);
+							instance.getServer().getScheduler().runTask(instance, () -> Bukkit.getPluginManager().callEvent(new KingdomLoadEvent(kingdom)));
+						}
+						return Optional.ofNullable(kingdom);
+					}
+			});
 	private Optional<CitizensManager> citizensManager;
 	private Database<OfflineKingdom> database;
 	private PlayerManager playerManager;
@@ -55,8 +91,8 @@ public class KingdomManager extends Manager {
 	@Override
 	public void initalize() {
 		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.landManager = instance.getManager("land", LandManager.class);
+		this.playerManager = instance.getManager( PlayerManager.class);
+		this.landManager = instance.getManager(LandManager.class);
 		String table = configuration.getString("database.kingdom-table", "Kingdoms");
 		if (configuration.getBoolean("database.mysql.enabled", false))
 			database = getMySQLDatabase(table, OfflineKingdom.class);
@@ -64,31 +100,48 @@ public class KingdomManager extends Manager {
 			database = getFileDatabase(table, OfflineKingdom.class);
 		if (configuration.getBoolean("database.auto-save.enabled")) {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
-			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, saveTask, 0, IntervalUtils.getInterval(interval) * 20);
+			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, () -> saveAll(), 0, IntervalUtils.getInterval(interval) * 20);
 		}
 	}
 
-	private final Runnable saveTask = new Runnable() {
-		@Override 
-		public void run() {
-			CooldownManager cooldowns = instance.getManager(CooldownManager.class);
-			Iterator<OfflineKingdom> iterator = kingdoms.iterator();
-			while (iterator.hasNext()) {
-				OfflineKingdom kingdom = iterator.next();
-				String name = kingdom.getName();
-				Kingdoms.debugMessage("Saving Kingdom: " + name);
-				if (cooldowns.isInCooldown(kingdom, "attackcd"))
-					kingdom.setInvasionCooldown(cooldowns.getTimeLeft(kingdom, "attackcd"));
-				database.put(name, kingdom);
-			}
-		}
-	};
+	private void save(OfflineKingdom kingdom) {
+		CooldownManager cooldowns = instance.getManager(CooldownManager.class);
+		String name = kingdom.getName();
+		Kingdoms.debugMessage("Saving Kingdom: " + name);
+		if (cooldowns.isInCooldown(kingdom, "attackcd"))
+			kingdom.setInvasionCooldown(cooldowns.getTimeLeft(kingdom, "attackcd"));
+		database.put(name, kingdom);
+	}
+
+	private void saveAll() {
+		cache.asMap().entrySet().parallelStream()
+				.map(future -> {
+					try {
+						return future.getValue().get(5, TimeUnit.SECONDS);
+					} catch (InterruptedException | ExecutionException | TimeoutException e) {
+						return null;
+					}
+				})
+				.filter(optional -> optional.isPresent())
+				.map(optional -> optional.get())
+				.forEach(kingdom -> save(kingdom));
+	}
 
 	/**
 	 * @return All cached Kingdoms.
 	 */
 	public Set<OfflineKingdom> getKingdoms() {
-		return kingdoms;
+		return cache.asMap().values().parallelStream()
+				.map(future -> {
+					try {
+						return future.get(5, TimeUnit.SECONDS);
+					} catch (InterruptedException | ExecutionException | TimeoutException e) {
+						return null;
+					}
+				})
+				.filter(optional -> optional.isPresent())
+				.map(optional -> optional.get())
+				.collect(Collectors.toSet());
 	}
 
 	public Set<OfflineKingdom> getOfflineKingdoms() {
@@ -106,15 +159,14 @@ public class KingdomManager extends Manager {
 	 * @return true if exist; false if not exist
 	 */
 	public boolean hasKingdom(OfflineKingdom kingdom) {
-		return kingdoms.contains(kingdom);
+		return cache.getIfPresent(kingdom) != null;
 	}
 
 	public Kingdom convert(OfflineKingdom other) {
 		Kingdom kingdom = new Kingdom(other);
 		String name = other.getName();
 		Kingdoms.debugMessage("Converting offline kingdom to online kingdom: " + name);
-		kingdoms.removeIf(k -> k.getName().equalsIgnoreCase(name));
-		kingdoms.add(kingdom);
+		cache.put(name, CompletableFuture.completedFuture(Optional.of(kingdom)));
 		return kingdom;
 	}
 
@@ -129,13 +181,19 @@ public class KingdomManager extends Manager {
 	}
 
 	public Optional<Kingdom> getKingdom(String name) {
-		if (name == null)
+		if (name == null || !hasKingdom(name))
 			return Optional.empty();
 		Kingdoms.debugMessage("Fetching info for online kingdom: " + name);
-		return kingdoms.parallelStream()
-				.filter(kingdom -> kingdom.getName().equalsIgnoreCase(name))
-				.map(kingdom -> kingdom instanceof Kingdom ? (Kingdom) kingdom : convert(kingdom))
-				.findAny();
+		Optional<OfflineKingdom> optional;
+		try {
+			optional = cache.get(name).get(5, TimeUnit.SECONDS);
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			return Optional.empty();
+		}
+		if (!optional.isPresent())
+			return Optional.empty();
+		OfflineKingdom kingdom = optional.get();
+		return Optional.of(kingdom instanceof Kingdom ? (Kingdom) kingdom : convert(kingdom));
 	}
 
 	/**
@@ -145,37 +203,11 @@ public class KingdomManager extends Manager {
 	 * @return Optional if the OfflineKingdom was found.
 	 */
 	public Optional<OfflineKingdom> getOfflineKingdom(String name) {
-		if (name == null)
+		try {
+			return cache.get(name).get(5, TimeUnit.SECONDS);
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			return Optional.empty();
-		return Optional.ofNullable(kingdoms.parallelStream()
-				.filter(kingdom -> kingdom.getName().equalsIgnoreCase(name))
-				.findFirst()
-				.orElseGet(() -> {
-					Kingdoms.debugMessage("Fetching info for offline kingdom: " + name);
-					return loadKingdom(name);
-				}));
-	}
-
-	private Kingdom loadKingdom(String name) {
-		Kingdoms.debugMessage("Attemping loading for kingdom: " + name);
-		OfflineKingdom databaseKingdom = database.get(name);
-		if (databaseKingdom == null) {
-			Kingdoms.debugMessage("No data found for kingdom: " + name);
-			return null;
 		}
-		Kingdom kingdom = new Kingdom(databaseKingdom);
-		if (kingdom != null) {
-			long invasionCooldown = kingdom.getInvasionCooldown();
-			if (invasionCooldown > 0) {
-				KingdomCooldown cooldown = new KingdomCooldown(kingdom, "attackcd", invasionCooldown);
-				cooldown.start();
-				kingdom.setInvasionCooldown(0);
-			}
-			updateUpgrades(kingdom);
-			kingdoms.add(kingdom);
-			instance.getServer().getScheduler().runTask(instance, () -> Bukkit.getPluginManager().callEvent(new KingdomLoadEvent(kingdom)));
-		}
-		return kingdom;
 	}
 
 	/*
@@ -187,7 +219,7 @@ public class KingdomManager extends Manager {
 		Bukkit.getPluginManager().callEvent(event);
 		instance.getServer().getScheduler().scheduleSyncDelayedTask(instance, () -> {
 			if (kingdom.getOnlinePlayers().isEmpty())
-				kingdoms.remove(kingdom);
+				cache.synchronous().invalidate(kingdom.getName());
 		}, 1);
 	}
 
@@ -198,7 +230,16 @@ public class KingdomManager extends Manager {
 	 * @return true if online/loaded; false if not.
 	 */
 	public boolean isOnline(OfflineKingdom kingdom) {
-		return kingdoms.contains(kingdom);
+		return Optional.ofNullable(cache.getIfPresent(kingdom.getName()))
+				.map(future -> {
+					try {
+						return future.get(5, TimeUnit.SECONDS);
+					} catch (InterruptedException | ExecutionException | TimeoutException e) {
+						return null;
+					}
+				})
+				.filter(optional -> optional.get() instanceof Kingdom)
+				.isPresent();
 	}
 
 	public int getRandomColor() {
@@ -219,26 +260,32 @@ public class KingdomManager extends Manager {
 	public boolean deleteKingdom(String name) {
 		if (name == null)
 			return false;
-		kingdoms.stream().filter(kingdom -> kingdom.getName().equalsIgnoreCase(name))
-				.forEach(kingdom -> {
-					database.delete(kingdom.getName());
-					OfflineKingdomPlayer owner = kingdom.getOwner();
-					Optional<KingdomPlayer> kingPlayer = owner.getKingdomPlayer();
-					if (kingPlayer.isPresent())
-						new MessageBuilder("kingdoms.deleted")
-								.setPlaceholderObject(owner)
-								.setKingdom(kingdom)
-								.send(kingPlayer.get());
-					kingdom.setOwner(null);
-					for (OfflineKingdomPlayer player : kingdom.getMembers()) {
-						player.onKingdomLeave();
-						player.setKingdom(null);
-						player.setRank(null);
-					}
-					Bukkit.getPluginManager().callEvent(new KingdomDeleteEvent(kingdom));
-					landManager.unclaimAllLand(kingdom);
-				});
-		kingdoms.removeIf(k -> k.getName().equalsIgnoreCase(name));
+		Optional<OfflineKingdom> optional;
+		try {
+			optional = cache.get(name).get(5, TimeUnit.SECONDS);
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			optional = Optional.empty();
+		}
+		if (!optional.isPresent()) // Kingdom never existed.
+			return false;
+		OfflineKingdom kingdom = optional.get();
+		database.delete(name);
+		OfflineKingdomPlayer owner = kingdom.getOwner();
+		Optional<KingdomPlayer> ownerPlayer = owner.getKingdomPlayer();
+		if (ownerPlayer.isPresent())
+			new MessageBuilder("kingdoms.deleted")
+					.setPlaceholderObject(owner)
+					.setKingdom(kingdom)
+					.send(ownerPlayer.get());
+		kingdom.setOwner(null);
+		for (OfflineKingdomPlayer player : kingdom.getMembers()) {
+			player.onKingdomLeave();
+			player.setKingdom(null);
+			player.setRank(null);
+		}
+		Bukkit.getPluginManager().callEvent(new KingdomDeleteEvent(kingdom));
+		landManager.unclaimAllLand(kingdom);
+		cache.synchronous().invalidate(name);
 		return true;
 	}
 
@@ -253,7 +300,7 @@ public class KingdomManager extends Manager {
 	public Kingdom createNewKingdom(String name, KingdomPlayer owner) {
 		Kingdom kingdom = new Kingdom(owner, name);
 		database.put(kingdom.getName(), kingdom);
-		kingdoms.add(kingdom);
+		cache.put(name, CompletableFuture.completedFuture(Optional.of(kingdom)));
 		String interval = configuration.getString("kingdoms.base-shield-time", "5 minutes");
 		kingdom.setShieldTime(IntervalUtils.getInterval(interval));
 		updateUpgrades(kingdom);
@@ -387,7 +434,7 @@ public class KingdomManager extends Manager {
 
 	@EventHandler
 	public void onKingdomDelete(KingdomDeleteEvent event) {
-		for (OfflineKingdom offlineKingdom : kingdoms) {
+		for (OfflineKingdom offlineKingdom : getKingdoms()) {
 			if (!(offlineKingdom instanceof Kingdom))
 				offlineKingdom = offlineKingdom.getKingdom();
 			Kingdom kingdom = (Kingdom) offlineKingdom;
@@ -523,7 +570,7 @@ public class KingdomManager extends Manager {
 	public synchronized void onDisable() {
 		if (autoSaveThread != null)
 			autoSaveThread.cancel();
-		saveTask.run();
+		saveAll();
 	}
 
 }

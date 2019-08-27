@@ -471,6 +471,18 @@ commands:
         syntax: "/k extractor"
         no-structure-found: "&cThere was no Extractor found at your current location."
         ready: "&aYou just made the extractor at your location ready for collection."
+    clear:
+        description: "Clear the owner of the land you're at."
+        syntax: "/k clear"
+        no-kingdom-found: "&cThere was no Kingdom found at your current location, move to a location with a Kingdom to unclaim it."
+        cleared: "&eYou have just cleared the land owner %kingdom%, from the land you're at."
+    join:
+        description: "Force a player to join a Kingdom."
+        syntax: "/k join <player> <kingdom>"
+        no-player-found: "&cThere was no player found under the name &l%input%&c."
+        never-played: "&cThe player &l%input%&c has never played on this server before."
+        no-kingdom-found: "&cThe Kingdom &l%kingdom%&c could not be found."
+        joined: "&eThe server or an admin has changed your Kingdom to &l%kingdom%&e!"
 
 # All messages relating to invading.
 invading:

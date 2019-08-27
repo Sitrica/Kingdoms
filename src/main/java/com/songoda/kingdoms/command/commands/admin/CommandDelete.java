@@ -17,7 +17,7 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 public class CommandDelete extends AdminCommand {
 
 	public CommandDelete() {
-		super(false, "delete", "remove", "r", "d");
+		super(false, "delete", "disband", "remove", "r", "d");
 	}
 
 	@Override

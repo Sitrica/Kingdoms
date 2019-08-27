@@ -35,7 +35,6 @@ public class OutpostInventory extends StructureInventory {
 				.build();
 		inventory.setItem(0, xp1);
 		setAction(inventory, player.getUniqueId(), 0, event -> {
-			Kingdoms.debugMessage("test click outpost");
 			if (!kingdom.getPermissions(kingdomPlayer.getRank()).canGrabExperience()) {
 				new MessageBuilder("kingdoms.rank-too-low-grab-experience")
 						.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canGrabExperience()), new Placeholder<Optional<Rank>>("%rank%") {

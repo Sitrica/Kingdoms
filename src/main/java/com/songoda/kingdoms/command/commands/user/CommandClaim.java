@@ -17,7 +17,7 @@ public class CommandClaim extends AbstractCommand {
 	private final PlayerManager playerManager;
 
 	public CommandClaim() {
-		super(false, "claim", "c");
+		super(false, "claim");
 		playerManager = instance.getManager(PlayerManager.class);
 	}
 
@@ -35,11 +35,11 @@ public class CommandClaim extends AbstractCommand {
 				if (kingdomPlayer.isAutoClaiming()) {
 					new MessageBuilder("commands.claim.auto-claim-on")
 							.setPlaceholderObject(kingdomPlayer)
-							.send();
+							.send(kingdomPlayer);
 				} else {
 					new MessageBuilder("commands.claim.auto-claim-off")
 							.setPlaceholderObject(kingdomPlayer)
-							.send();
+							.send(kingdomPlayer);
 				}
 			}
 		} else {

@@ -26,11 +26,16 @@ public class TurretTask implements Runnable {
 	public void run() {
 		WorldManager worldManager = instance.getManager(WorldManager.class);
 		for (Entry<Chunk, Land> entry : instance.getManager(LandManager.class).getLoadedLand()) {
-			for (Turret turret : entry.getValue().getTurrets()) {
+			Land land = entry.getValue();
+			for (Turret turret : land.getTurrets()) {
 				Location head = turret.getHeadLocation();
 				World world = head.getWorld();
 				if (!worldManager.acceptsWorld(world))
-					return;
+					continue;
+				if (!turret.isValid()) {
+					land.removeTurret(turret);
+					continue;
+				}
 				int range = turret.getType().getRange();
 			    // Find the closest living entity and fire at them.
 				Lists.newArrayList(world.getNearbyEntities(head, range, range, range)).parallelStream()

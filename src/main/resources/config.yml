@@ -218,6 +218,8 @@ kingdoms:
     markers-on-by-default: true
     # Allow memebers to attack eachother
     friendly-fire: false
+    # If an admin uses the `/k join` command, should the online player be notified that their Kingdom changed?
+    admin-forcejoin-message: true
     # If the player keeps going in and out of lands, what should the cooldown time be.
     # Actionbars get excluded from this, so the player will always know where they are.
     # Example:

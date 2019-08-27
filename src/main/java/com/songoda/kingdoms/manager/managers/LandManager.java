@@ -103,7 +103,29 @@ public class LandManager extends Manager {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
 			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, saveTask, 0, IntervalUtils.getInterval(interval) * 20);
 		}
-		initLands();
+		// TODO remove and make async cache.
+		Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
+			long total = database.getKeys().parallelStream().map(name -> {
+				try {
+					Chunk chunk = LocationUtils.stringToChunk(name);
+					if (chunk == null)
+						return null;
+					Land land = database.get(name);
+					if (!land.hasOwner())
+						Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
+					LandLoadEvent event = new LandLoadEvent(land);
+					Bukkit.getPluginManager().callEvent(new LandLoadEvent(land));
+					if (!event.isCancelled() && !lands.containsKey(chunk))
+						lands.put(chunk, land);
+				} catch (Exception e) {
+					Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
+					if (instance.getConfig().getBoolean("debug", true))
+						e.printStackTrace();
+				}
+				return name;
+			}).count();
+			Kingdoms.consoleMessage("&eTotal of [" + total + "] lands were loaded.");
+		});
 		if (configuration.getBoolean("taxes.enabled", false)) {
 			String timeString = configuration.getString("taxes.interval", "2 hours");
 			long time = IntervalUtils.getInterval(timeString) * 20;
@@ -178,32 +200,6 @@ public class LandManager extends Manager {
 				Kingdoms.debugMessage("Saved [" + i + "] lands");
 		}
 	};
-
-	private void initLands() {
-		instance.getServer().getScheduler().runTaskAsynchronously(instance, () -> {
-			long total = database.getKeys().parallelStream().map(name -> {
-				Kingdoms.debugMessage("Loading land: " + name);
-				try {
-					Land land = database.get(name);
-					Chunk chunk = LocationUtils.stringToChunk(name);
-					if (chunk == null)
-						return null;
-					if (!land.hasOwner())
-						Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
-					LandLoadEvent event = new LandLoadEvent(land);
-					Bukkit.getPluginManager().callEvent(new LandLoadEvent(land));
-					if (!!event.isCancelled() && !lands.containsKey(chunk))
-						lands.put(chunk, land);
-				} catch (Exception e) {
-					Kingdoms.consoleMessage("Land data [" + name + "] is corrupted! ignoring...");
-					if (instance.getConfig().getBoolean("debug", true))
-						e.printStackTrace();
-				}
-				return name;
-			}).count();
-			Kingdoms.consoleMessage("Total of [" + total + "] lands were loaded.");
-		});
-	}
 
 	public class LandInfo {
 
@@ -514,6 +510,29 @@ public class LandManager extends Manager {
 			if (dynmapManager.isPresent())
 				dynmapManager.get().update(land.getChunk());
 		}
+	}
+
+	/**
+	 * Unclaim land and checks if there is a kingdom at the land.
+	 * 
+	 * @param lands The Lands to unclaim
+	 */
+	public void unclaimLands(Land... lands) {
+		for (Land land : lands) {
+			Optional<OfflineKingdom> kingdom = land.getKingdomOwner();
+			if (!kingdom.isPresent())
+				continue;
+			unclaimLand(kingdom.get(), land);
+		}
+	}
+
+	/**
+	 * Same as unclaimLands but single land.
+	 * 
+	 * @param land The Land to unclaim
+	 */
+	public void unclaimLand(Land land) {
+		unclaimLands(land);
 	}
 
 	/**

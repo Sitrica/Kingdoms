@@ -428,6 +428,8 @@ public class StructureManager extends Manager {
 			return;
 		}
 		Structure structure = land.getStructure();
+		if (structure == null)
+			return;
 		if (structure.getType() != type)
 			return;
 		switch (type) {
