@@ -53,6 +53,7 @@ public abstract class KingdomInventory {
 
 	protected void openInventory(Inventory inventory, Player player) {
 		player.openInventory(inventory);
+		Kingdoms.debugMessage("Opening inventory " + getClass().getName() + " to " + player.getName());
 		instance.getManager(InventoryManager.class).opening(player.getUniqueId(), this);
 	}
 

@@ -35,7 +35,7 @@ public class CommandInvite extends AbstractCommand {
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		if (arguments.length == 0)
+		if (arguments.length <= 0)
 			return ReturnType.SYNTAX_ERROR;
 		if (kingdom.getMemberSize() >= kingdom.getMaxMembers()) {
 			new MessageBuilder("commands.invite.member-squad-full")
@@ -67,7 +67,14 @@ public class CommandInvite extends AbstractCommand {
 			return ReturnType.FAILURE;
 		}
 		KingdomPlayer target = instance.getManager(PlayerManager.class).getKingdomPlayer(find);
-		if (target.getKingdom() != null) {
+		Kingdom targetKingdom = target.getKingdom();
+		if (targetKingdom != null && targetKingdom.equals(kingdom)) {
+			new MessageBuilder("commands.invite.already-in-kingdom")
+					.setPlaceholderObject(kingdomPlayer)
+					.replace("%input%", name)
+					.send(player);
+			return ReturnType.FAILURE;
+		} else if (targetKingdom != null) {
 			new MessageBuilder("commands.invite.player-in-another-kingdom")
 					.setPlaceholderObject(kingdomPlayer)
 					.replace("%input%", name)
@@ -95,11 +102,11 @@ public class CommandInvite extends AbstractCommand {
 				.setPlaceholderObject(kingdomPlayer)
 				.replace("%input%", name)
 				.send(kingdomPlayer.getKingdom().getOnlinePlayers());
-		new ListMessageBuilder("commands.invite.invite")
+		new ListMessageBuilder(false, "commands.invite.invite")
 				.setPlaceholderObject(kingdomPlayer)
 				.replace("%input%", name)
 				.send(target);
-		return ReturnType.SYNTAX_ERROR;
+		return ReturnType.SUCCESS;
 	}
 
 	@Override

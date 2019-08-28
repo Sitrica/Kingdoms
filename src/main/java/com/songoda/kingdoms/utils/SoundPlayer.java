@@ -19,31 +19,31 @@ public class SoundPlayer {
 
 	private final Set<KingdomSound> sounds = new HashSet<>();
 	private final Kingdoms instance;
-	
+
 	public SoundPlayer(ConfigurationSection section) {
 		for (String node : section.getKeys(false)) {
 			this.sounds.add(new KingdomSound(section.getConfigurationSection(node), "CLICK"));
 		}
 		this.instance = Kingdoms.getInstance();
 	}
-	
+
 	public SoundPlayer(Collection<KingdomSound> sounds) {
 		this.instance = Kingdoms.getInstance();
 		this.sounds.addAll(sounds);
 	}
-	
+
 	private List<KingdomSound> getSorted() {
 		return sounds.parallelStream()
 				.sorted(Comparator.comparing(KingdomSound::getDelay))
 				.collect(Collectors.toList());
 	}
-	
+
 	public void play(Collection<KingdomPlayer> players) {
 		players.parallelStream()
 				.map(player -> player.getPlayer())
 				.forEach(player -> playTo(player));
 	}
-	
+
 	public void playAt(Location... locations) {
 		if (sounds.isEmpty())
 			return;
@@ -56,7 +56,7 @@ public class SoundPlayer {
 			}, sound.getDelay());
 		}
 	}
-	
+
 	public void playTo(Player... player) {
 		if (sounds.isEmpty())
 			return;
@@ -69,5 +69,5 @@ public class SoundPlayer {
 			}, sound.getDelay());
 		}
 	}
-	
+
 }

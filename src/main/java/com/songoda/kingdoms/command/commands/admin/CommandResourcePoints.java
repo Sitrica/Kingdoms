@@ -39,7 +39,7 @@ public class CommandResourcePoints extends AdminCommand {
 		String name = String.join(" ", Arrays.copyOfRange(arguments, 2, arguments.length));
 		KingdomManager kingdomManager = instance.getManager(KingdomManager.class);
 		Set<OfflineKingdom> kingdoms = new HashSet<>();
-		if (name.equalsIgnoreCase("all")) {
+		if (!name.equalsIgnoreCase("all")) {
 			Optional<OfflineKingdom> optional = kingdomManager.getOfflineKingdom(name);
 			if (!optional.isPresent()) {
 				new MessageBuilder("commands.resource-points.no-kingdom-found")

@@ -13,6 +13,7 @@ import com.songoda.kingdoms.manager.ExternalManager;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.ManagerHandler;
 import com.songoda.kingdoms.objects.ManagerOptional;
+import com.songoda.kingdoms.utils.ConfigurationSaver;
 import com.songoda.kingdoms.utils.Formatting;
 
 import java.io.File;
@@ -32,12 +33,6 @@ public class Kingdoms extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		instance = this;
-		File configFile = new File(getDataFolder(), "config.yml");
-		//If newer version was found, update configuration.
-		if (!getDescription().getVersion().equals(getConfig().getString("version"))) {
-			if (configFile.exists())
-				configFile.delete();
-		}
 		//Create all the default files.
 		for (String name : Arrays.asList("config", "messages", "turrets", "structures", "defender-upgrades", "ranks", "arsenal-items", "inventories", "powerups", "misc-upgrades", "map", "sounds")) {
 			File file = new File(getDataFolder(), name + ".yml");
@@ -49,6 +44,14 @@ public class Kingdoms extends JavaPlugin {
 			FileConfiguration configuration = new YamlConfiguration();
 			try {
 				configuration.load(file);
+				String version = configuration.getString("version", "old");
+				if (!version.equalsIgnoreCase(getDescription().getVersion()) && !getConfig().getBoolean("disable-configurations-reset", false)) {
+					new ConfigurationSaver(version, name, this).execute();
+					file = new File(getDataFolder(), name + ".yml");
+					saveResource(file.getName(), false);
+					configuration = new YamlConfiguration();
+					configuration.load(file);
+				}
 				configurations.put(name, configuration);
 			} catch (IOException | InvalidConfigurationException e) {
 				e.printStackTrace();

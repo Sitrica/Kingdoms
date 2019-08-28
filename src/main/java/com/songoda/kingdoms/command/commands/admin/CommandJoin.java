@@ -47,7 +47,7 @@ public class CommandJoin extends AdminCommand {
 		String name = String.join(" ", Arrays.copyOfRange(arguments, 1, arguments.length));
 		KingdomManager kingdomManager = instance.getManager(KingdomManager.class);
 		Optional<OfflineKingdom> kingdom = kingdomManager.getOfflineKingdom(name);
-		if (!optional.isPresent()) {
+		if (!kingdom.isPresent()) {
 			new MessageBuilder("commands.join.no-kingdom-found")
 					.setPlaceholderObject(offlineKingdomPlayer)
 					.replace("%kingdom%", name)

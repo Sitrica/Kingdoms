@@ -405,8 +405,9 @@ commands:
         rank-too-low-invite: "&cYour rank is too low to invite members to the Kingdom. Only &l%rank%&c and higher may invite members."
         player-not-online: "&cThe player &l%input%&c is not online. The invitee must be online the server."
         player-in-another-kingdom: "&cThe player &l%input%&c is already in another Kingdom."
+        already-in-kingdom: "&cThe player &l%input%&c is already in your Kingdom."
         invited-already: "&cThe player &l%input%&c has already been invited to the Kingdom."
-        invited: "&cThe member &l%player%&c has invite &e&l%input%&c to the Kingdom."
+        invited: "&eThe member &l%player%&e has invited &l%input%&c to the Kingdom."
         already: "&cYou have already invited user %input%."
         invite:
             - ""
@@ -415,6 +416,7 @@ commands:
             - ""
     accept:
         no-invite: "&cYou currently have no pending invite."
+        joined: "&aThe user %player% has successfully joined the Kingdom!"
     chat:
         description: "Change your chat channel."
         syntax: "/k chat [<channel>]"
@@ -465,7 +467,7 @@ commands:
         no-kingdom-found: "&cThe Kingdom &l%kingdom%&c could not be found."
         removed: "&eYou removed %amount% resource points from Kingdom %kingdom%."
         added: "&eYou added %amount% resource points to Kingdom %kingdom%."
-        set: "&eYou set resource poitns for Kingdom %kingdom% to %amount%."
+        set: "&eYou set resource points of Kingdom(s) %kingdom% to %amount%."
     extractor:
         description: "Ready an extractor at your location for collection."
         syntax: "/k extractor"

@@ -43,6 +43,10 @@ public class CommandAccept extends AbstractCommand {
 		kingdom.addMember(kingdomPlayer);
 		MemberJoinEvent event = new MemberJoinEvent(kingdomPlayer, kingdom);
 		Bukkit.getPluginManager().callEvent(event);
+		new MessageBuilder("commands.accept.joined")
+				.setPlaceholderObject(kingdomPlayer)
+				.setKingdom(kingdom)
+				.send(kingdom.getOnlinePlayers());
 		return ReturnType.SUCCESS;
 	}
 

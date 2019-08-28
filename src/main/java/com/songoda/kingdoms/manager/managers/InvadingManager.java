@@ -277,8 +277,7 @@ public class InvadingManager extends Manager {
 		if (kingdom == null)
 			return;
 		ConfigurationSection sounds = instance.getConfiguration("sounds").get();
-		sounds.getConfigurationSection("invading.death-cancelled");
-		SoundPlayer sound = new SoundPlayer(sounds);
+		SoundPlayer sound = new SoundPlayer(sounds.getConfigurationSection("invading.death-cancelled"));
 		avoid : if (!section.getBoolean("cancel-defending-deaths", false)) {
 			if (section.getBoolean("cancel-only-player-attacks", true)) {
 				if (!(event instanceof EntityDamageByEntityEvent))
