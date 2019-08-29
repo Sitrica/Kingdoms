@@ -185,7 +185,7 @@ public class CommandInvade extends AbstractCommand {
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		int cost = instance.getConfig().getInt("invanding.invade-cost", 10);
+		int cost = instance.getConfig().getInt("invading.invade-cost", 10);
 		if (masswar)
 			new MessageBuilder("commands.invade.mass-war-free")
 					.replace("%kingdom%", target.getName())

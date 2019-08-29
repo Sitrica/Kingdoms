@@ -23,6 +23,7 @@ import com.songoda.kingdoms.objects.kingdom.MiscUpgradeType;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.kingdom.Powerup;
 import com.songoda.kingdoms.objects.kingdom.PowerupType;
+import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.utils.Utils;
 
 public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
@@ -38,13 +39,16 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 	@Override
 	public JsonElement serialize(OfflineKingdom kingdom, Type type, JsonSerializationContext context) {
 		JsonObject json = new JsonObject();
+		OfflineKingdomPlayer owner = kingdom.getOwner();
+		if (owner == null) // Most likely deleted as it saved.
+			return null;
 		json.addProperty("lore", kingdom.getLore());
 		json.addProperty("name", kingdom.getName());
 		json.addProperty("neutral", kingdom.isNeutral());
 		json.addProperty("invaded", kingdom.hasInvaded());
 		json.addProperty("max-members", kingdom.getMaxMembers());
 		json.addProperty("first-claim", kingdom.hasUsedFirstClaim());
-		json.addProperty("owner", kingdom.getOwner().getUniqueId() + "");
+		json.addProperty("owner", owner.getUniqueId() + "");
 		json.addProperty("resource-points", kingdom.getResourcePoints());
 		json.addProperty("extra-purchased", kingdom.getExtraPurchased());
 		json.addProperty("invasion-cooldown", kingdom.getInvasionCooldown());

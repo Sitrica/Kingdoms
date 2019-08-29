@@ -119,6 +119,9 @@ economy:
     enabled: false
     kingdom-create-cost: 0
     kingdom-create-item-cost: false
+    # How much should one resource point cost per X amount of money/economy.
+    # Default would be 35$ for one resource point.
+    resource-point-cost: 35
     # https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
     items:
         5: "DIAMOND"
@@ -193,12 +196,13 @@ kingdoms:
     respawn-at-kingdom: false
     # If players are allowed to open chests in other Kingdoms.
     open-other-kingdom-inventories: false
+    # If the member joining should see their own kingdom join message.
+    see-self-join-message: false
     # If a clicked material contains a name within it's name of the following list.
     # Example: CYAN_SHULKER_BOX and GRAY_SHULKER_BOX will be caught if this is true and list contains SHULKER_BOX
     forbidden-contains: true
-    # If the member joining should see their own kingdom join message.
-    see-self-join-message: false
     # If forbidden-contains is false 
+    # list of containers that members outside of the kingdom cannot open.
     forbidden-inventories:
         - "ENCHANTING_TABLE"
         - "CRAFTING_TABLE"
@@ -339,6 +343,7 @@ kingdoms:
 # By default any words that contain anything in this list are blocked.
 disallowed-kingdom-names:
 - 2 ?g(irls)? ?1 ?c(up)?
+- all #Used internally.
 - autoerotic
 - anal
 - anilingus

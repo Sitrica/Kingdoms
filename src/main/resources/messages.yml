@@ -282,6 +282,7 @@ commands:
         syntax: "/k unclaim [all]"
         # Placeholders: All Kingdom and KingdomPlayer placeholders.
         not-your-kingdom: "&cYour kingdom does not own this land."
+        no-kingdom: "&cYou currently have no Kingdom."
         # Placeholders: All Kingdom and KingdomPlayer placeholders.
         cannot-unclaim-nexus: "&cYou cannot unclaim your Kingdom's Nexus land. If you want to remove nexus land, use /k unclaim all"
         # Placeholders: All Kingdom and KingdomPlayer placeholders.
@@ -361,6 +362,7 @@ commands:
         syntax: "/k leave"
         cancelled: "&cCancelled."
         leave-broadcast: "&6%player% has left the Kingdom!"
+        no-kingdom: "&cYou aren't even apart of any Kingdom. Type /k create <name> to start one."
     alliance:
         description: "Alliance other Kingdoms."
         syntax: "/k alliance (add/remove) <kingdom>"
@@ -451,7 +453,7 @@ commands:
         allianced: "&cYou are currently allianced with Kingdom %kingdom%"
         invading: "&cYou can't invade another Kingdom, your Kingdom is already invading Kingdom %kingdoms%"
         mass-war-free: "&6Mass war is enabled right now, Invading is free!"
-        cannot-afford: "&cYour Kingdom does not have enough %cost% resource points to invade!"
+        cannot-afford: "&cYour Kingdom does not have %cost% resource points to invade!"
         transation-done: "&aYour Kingdom has just been charged %cost% for starting an invasion."
     surrender:
         description: "Surrender to the invading opponent."
@@ -468,6 +470,7 @@ commands:
         removed: "&eYou removed %amount% resource points from Kingdom %kingdom%."
         added: "&eYou added %amount% resource points to Kingdom %kingdom%."
         set: "&eYou set resource points of Kingdom(s) %kingdom% to %amount%."
+        no-kingdoms: "&cNo Kingdoms could be found."
     extractor:
         description: "Ready an extractor at your location for collection."
         syntax: "/k extractor"
@@ -485,6 +488,14 @@ commands:
         never-played: "&cThe player &l%input%&c has never played on this server before."
         no-kingdom-found: "&cThe Kingdom &l%kingdom%&c could not be found."
         joined: "&eThe server or an admin has changed your Kingdom to &l%kingdom%&e!"
+    deposit:
+        description: "Deposit economy into resource points."
+        syntax: "/k deposit <amount>"
+        no-economy: "&cThe server has no economy plugin installed and enabled."
+        no-kingdom: "&cYou aren't apart of any Kingdom."
+        insufficient-balance: "&cYou don't have %amount% resource points to despoit to your Kingdom."
+        insufficient-amount-trade: "&cYou currently don't have enough balance to deposit. One resource point cost %cost%$."
+        trade-successful: "&eYou have just exchanged %amount%$ for %points% resource points."
 
 # All messages relating to invading.
 invading:

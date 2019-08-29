@@ -168,7 +168,8 @@ inventories:
             material-meta: ""
             glowing: false
             lore:
-                - "&7Improve your defences by upgrading your Kingdom's defender!"
+                - "&7Improve your defences by upgrading your Defender!"
+                - "&7Defenders help fight in invasions."
                 - "&7Click to open the defender upgrades menu."
         # The item that represents the misc upgrades.
         misc-upgrades:
@@ -185,7 +186,8 @@ inventories:
             material-meta: ""
             glowing: false
             lore:
-                - "&7Click to open Structures shop. Structures have different functions."
+                - "&7Click to open Structures shop."
+                - "&7Structures have different functions."
         # The item that represents the turret shop.
         turrets:
             title: "&bTurret Shop"
@@ -193,7 +195,8 @@ inventories:
             material-meta: ""
             glowing: false
             lore:
-                - "&7Click to open the turret shop. Build turrets with resource points."
+                - "&7Click to open the turret shop."
+                - "&7Build turrets with resource points."
         # The item that represents the memebrs item.
         members:
             title: "&bMembers"
@@ -241,7 +244,8 @@ inventories:
             glowing: false
             lore:
                 - "&7Click to open Nexus chest."
-                - "&7Stored items can only be lost if enemies invade your nexus land."
+                - "&7Stored items can only be lost if"
+                - "&7enemies invade your nexus land."
         # The item that represents the Nexus chest size upgrade item.
         chest-size:
             title: "&bIncrease Kingdom Chest Size"
@@ -249,7 +253,8 @@ inventories:
             material-meta: ""
             glowing: false
             lore:
-                - "&7Increases the size of Nexus Chest by 1 row per upgrade."
+                - "&7Increases the size of Nexus"
+                - "&7Chest by 1 row per upgrade."
                 - "&cCost %cost% to upgrade."
                 - "&6Current nexus chest size: %size%"
         # The item that represents the neutral item when it's enabled.
@@ -259,9 +264,10 @@ inventories:
             material-meta: ""
             glowing: true
             lore:
-                - "&7You can't invade other kingdoms, and yours can't be invaded"
-                - "&7while this pacifist option is enabled."
-                - "&7Once you invade, your kingdom cannot become pacifist again."
+                - "&7You can't invade other kingdoms, and yours can't"
+                - "&7be invaded while this pacifist option is"
+                - "&7enabled. Once you invade, your kingdom"
+                - "&7cannot become pacifist again."
                 - "&6Currently: &a&lENABLED"
         # The item that represents the neutral item when it's disabled.
         neutral-off:
@@ -457,8 +463,8 @@ inventories:
                 title: "&6&lPowerful Kingdoms"
                 material: "DIAMOND_BLOCK"
                 lore:
-                    - "&7View all Kingdoms in a %radius% block radius around you."
-                    - "&7Sorted by closest Kingdom to you."
+                    - "&7View the most powerful Kingdoms based."
+                    - "&7on their resource points."
             # All Kingdoms sorted by the most powerful Kingdom.
             alphabetical:
                 title: "&6&lAlphabetical Kingdoms"

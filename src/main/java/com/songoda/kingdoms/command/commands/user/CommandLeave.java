@@ -26,7 +26,7 @@ public class CommandLeave extends AbstractCommand {
 		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null) {
-			new MessageBuilder("claiming.no-kingdom")
+			new MessageBuilder("commands.leave.no-kingdom")
 					.setPlaceholderObject(kingdomPlayer)
 					.send(player);
 			return ReturnType.FAILURE;

@@ -39,7 +39,9 @@ public class CommandResourcePoints extends AdminCommand {
 		String name = String.join(" ", Arrays.copyOfRange(arguments, 2, arguments.length));
 		KingdomManager kingdomManager = instance.getManager(KingdomManager.class);
 		Set<OfflineKingdom> kingdoms = new HashSet<>();
-		if (!name.equalsIgnoreCase("all")) {
+		if (name.equalsIgnoreCase("all")) {
+			kingdoms = kingdomManager.getKingdoms();
+		} else {
 			Optional<OfflineKingdom> optional = kingdomManager.getOfflineKingdom(name);
 			if (!optional.isPresent()) {
 				new MessageBuilder("commands.resource-points.no-kingdom-found")
@@ -49,9 +51,12 @@ public class CommandResourcePoints extends AdminCommand {
 				return ReturnType.FAILURE;
 			}
 			kingdoms.add(optional.get());
-		} else {
-			// Online Kingdoms Only
-			kingdoms = kingdomManager.getKingdoms();
+		}
+		if (kingdoms.isEmpty()) {
+			new MessageBuilder("commands.resource-points.no-kingdoms")
+					.setPlaceholderObject(kingdomPlayer)
+					.send(player);
+			return ReturnType.FAILURE;
 		}
 		switch (function) {
 			case "subtract":

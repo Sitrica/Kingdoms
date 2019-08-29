@@ -165,8 +165,9 @@ upgrades:
         cost: 200
         cost-multiplier: 150
         description:
-            - "&7Every attack, there will be a chance to knock the player"
-            - "&7into the sky. Each upgrade increases this chance by &b10%"
+            - "&7Every attack, there will be a chance"
+            - "&7to knock the player into the sky."
+            - "&7Each upgrade increases this chance by &b10%"
         store-lore:
             - ""
             - "&aCost %cost% resource points."
@@ -197,8 +198,9 @@ upgrades:
         range: 7
         cost: 100
         description:
-            - "&7If the invading player is more than 7 blocks away from the"
-            - "&7defender, the defender will teleport the player"
+            - "&7If the invading player is more than"
+            - "&77 blocks away from the defender, the"
+            - "&7defender will teleport the player"
             - "&7to the defender's location."
         store-lore:
             - ""
@@ -214,9 +216,9 @@ upgrades:
         cost: 100
         description:
             - "&7All players except the invader will deal"
-            - "&b50% &7less damage to the defender."
-            - "&7The defender will also deal double damage to"
-            - "&7all players except the invaders."
+            - "&b50% &7less damage to the defender. The"
+            - "&7defender will also deal double damage"
+            - "&7to all players except the invaders."
         store-lore:
             - ""
             - "&aCost %cost% resource points."
@@ -255,9 +257,10 @@ upgrades:
         cost: 300
         cost-multiplier: 150
         description:
-            - "&7Every 3 seconds, lightning strikes the invading"
-            - "&7player and all nearby non-allied players."
-            - "&7Deals damage, and knocks the players back also."
+            - "&7Every 3 seconds, lightning"
+            - "&7strikes the invading player and all"
+            - "&7nearby non-allied players. 7Deals"
+            - "&7damage, and knocks the players back also."
         store-lore:
             - ""
             - "&aCost %cost% resource points."
@@ -290,8 +293,9 @@ upgrades:
         cost: 800
         cost-multiplier: 200
         description:
-            - "&7Each upgrade allows only the &c&lNexus Defender"
-            - "&7to spawn an additonal nexus guard."
+            - "&7Each upgrade allows only the"
+            - "&c&lNexus Defender &7to spawn an"
+            - "&7additonal nexus guard."
         store-lore:
             - ""
             - "&aCost %cost% resource points."
@@ -307,8 +311,9 @@ upgrades:
         # The duration in ticks to remove from the player's effects.
         remove: 20
         description:
-            - "&7Players hit by the Defender will have 1 second"
-            - "&7removed from all their active potion effects."
+            - "&7Players hit by the Defender will"
+            - "&7have 1 second removed from all"
+            - "&7their active potion effects."
         store-lore:
             - ""
             - "&aCost %cost% resource points."

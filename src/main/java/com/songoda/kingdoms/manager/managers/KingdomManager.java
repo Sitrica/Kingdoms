@@ -177,7 +177,7 @@ public class KingdomManager extends Manager {
 	 * @return Optional if the Kingdom was found.
 	 */
 	public boolean hasKingdom(String name) {
-		return getOfflineKingdom(name).isPresent();
+		return getOfflineKingdoms().parallelStream().anyMatch(kingdom -> kingdom.getName().equalsIgnoreCase(name));
 	}
 
 	public Optional<Kingdom> getKingdom(String name) {

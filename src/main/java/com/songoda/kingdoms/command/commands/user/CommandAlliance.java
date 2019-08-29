@@ -157,12 +157,12 @@ public class CommandAlliance extends AbstractCommand {
 				}.runTaskLaterAsynchronously(instance, IntervalUtils.getInterval(configuration.getString("plugin.alliance-expiration", "10 seconds"))));
 				new MessageBuilder("commands.alliance.alliance-request-recieve")
 						.replace("%player%", player.getName())
-						.setKingdom(target)
-						.send(kingdom.getOnlinePlayers());
-				new MessageBuilder("commands.alliance.alliance-request-sent")
-						.replace("%player%", player.getName())
 						.setKingdom(kingdom)
 						.send(target.getKingdom().getOnlinePlayers());
+				new MessageBuilder("commands.alliance.alliance-request-sent")
+						.replace("%player%", player.getName())
+						.setKingdom(target)
+						.send(kingdom.getOnlinePlayers());
 				return ReturnType.SUCCESS;
 			}
 			requests.remove(target.getName());
