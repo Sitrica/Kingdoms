@@ -269,7 +269,11 @@ public class KingdomManager extends Manager {
 		if (!optional.isPresent()) // Kingdom never existed.
 			return false;
 		OfflineKingdom kingdom = optional.get();
-		database.delete(name);
+		for (OfflineKingdomPlayer player : kingdom.getMembers()) {
+			player.onKingdomLeave();
+			player.setKingdom(null);
+			player.setRank(null);
+		}
 		OfflineKingdomPlayer owner = kingdom.getOwner();
 		Optional<KingdomPlayer> ownerPlayer = owner.getKingdomPlayer();
 		if (ownerPlayer.isPresent())
@@ -277,12 +281,8 @@ public class KingdomManager extends Manager {
 					.setPlaceholderObject(owner)
 					.setKingdom(kingdom)
 					.send(ownerPlayer.get());
+		database.delete(name);
 		kingdom.setOwner(null);
-		for (OfflineKingdomPlayer player : kingdom.getMembers()) {
-			player.onKingdomLeave();
-			player.setKingdom(null);
-			player.setRank(null);
-		}
 		Bukkit.getPluginManager().callEvent(new KingdomDeleteEvent(kingdom));
 		landManager.unclaimAllLand(kingdom);
 		cache.synchronous().invalidate(name);

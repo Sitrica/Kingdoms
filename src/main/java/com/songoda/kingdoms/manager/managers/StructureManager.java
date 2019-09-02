@@ -20,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
@@ -34,6 +35,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitTask;
 
 import com.songoda.kingdoms.events.LandLoadEvent;
+import com.songoda.kingdoms.events.PlayerWaterlogEvent;
 import com.songoda.kingdoms.events.StructureBreakEvent;
 import com.songoda.kingdoms.events.StructurePlaceEvent;
 import com.songoda.kingdoms.inventories.structures.ArsenalInventory;
@@ -513,6 +515,18 @@ public class StructureManager extends Manager {
 				continue;
 			iter.remove();
 		}
+	}
+
+	@EventHandler
+	public void onBucketPlace(PlayerWaterlogEvent event) {
+		if (isStructure(event.getBlockClicked()))
+			event.setCancelled(true);
+	}
+
+	@EventHandler
+	public void onWaterPassThrough(BlockFromToEvent event) {
+		if (isStructure(event.getToBlock()))
+			event.setCancelled(true);
 	}
 
 	public boolean isStructure(Block block) {

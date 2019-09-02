@@ -14,12 +14,12 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 public class ArsenalInventory extends StructureInventory {
 
 	private final FileConfiguration arsenal;
-	
+
 	public ArsenalInventory() {
 		super(InventoryType.CHEST, "arsenal", 9);
 		this.arsenal = instance.getConfiguration("arsenal-items").get();
 	}
-	
+
 	@Override
 	public Inventory build(Inventory inventory, KingdomPlayer kingdomPlayer) {
 		Player player = kingdomPlayer.getPlayer();
@@ -53,12 +53,20 @@ public class ArsenalInventory extends StructureInventory {
 					}
 					kingdom.subtractResourcePoints(cost);
 					player.getInventory().addItem(item.build(false));
-					new MessageBuilder("messages.bought-turret-breaker")
-							.setPlaceholderObject(kingdomPlayer)
-							.fromConfiguration(arsenal)
-							.replace("%cost%", cost)
-							.setKingdom(kingdom)
-							.send(player);
+					if (item == ArsenalItem.TURRET_BREAKER)
+						new MessageBuilder("messages.bought-turret-breaker")
+								.setPlaceholderObject(kingdomPlayer)
+								.fromConfiguration(arsenal)
+								.replace("%cost%", cost)
+								.setKingdom(kingdom)
+								.send(player);
+					else
+						new MessageBuilder("messages.bought-rocket")
+								.setPlaceholderObject(kingdomPlayer)
+								.fromConfiguration(arsenal)
+								.replace("%cost%", cost)
+								.setKingdom(kingdom)
+								.send(player);
 					reopen(kingdomPlayer);
 				}
 			);

@@ -71,7 +71,7 @@ public class ArsenalManager extends Manager {
 		for (ArsenalItem item : ArsenalItem.values()) {
 			if (item.getMaterial() != itemstack.getType())
 				continue;
-			for (String lore : item.getDescription()) {
+			for (String lore : item.getDescription().get()) {
 				if (lores.contains(lore)) {
 					type = item;
 					break;

@@ -142,7 +142,7 @@ public class DeprecationUtils {
 			SkullMeta skullMeta = (SkullMeta) itemMeta;
 			skullMeta.setOwningPlayer(getSkullOwner(meta));
 		}
-		if (itemMeta instanceof TropicalFishBucketMeta) {
+		if (Utils.classExists("org.bukkit.inventory.meta.TropicalFishBucketMeta") && itemMeta instanceof TropicalFishBucketMeta) {
 			TropicalFishBucketMeta fishMeta = (TropicalFishBucketMeta) itemMeta;
 			String[] metas = meta.split(":");
 			if (metas.length < 2)

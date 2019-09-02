@@ -24,6 +24,7 @@ arsenal-items:
         material-meta: ""
         title: "&cTurret Disruptor"
         time: "2 minutes"
+        cost: 500
         description:
             - "&7Right click a turret to disable it for %time%."
             - "&cTurrets without a base will not fire. Does not affect mines."
@@ -50,3 +51,4 @@ messages:
     not-enough-points: "&cYour Kingdom does not have %cost% resource points to buy this Arsenal."
     inventory-full: "&cYour inventory is too full to buy this Arsenal upgrade. Make some room before buying."
     bought-turret-breaker: "&aYou have successfully bought a turret breaker for %cost% resource points!"
+    bought-rocket: "&aYou have successfully bought a siege rocket for %cost% resource points!"

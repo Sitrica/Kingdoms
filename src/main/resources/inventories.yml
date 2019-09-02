@@ -441,6 +441,8 @@ inventories:
         title: "&8&lTurret Shop"
     defender-upgrades:
         title: "&8&lDefender Upgrades"
+    arsenal:
+        title: "&8&l%kingdom%'s Arsenal"
     list:
         main:
             title: "&8&lList Kingdoms"
