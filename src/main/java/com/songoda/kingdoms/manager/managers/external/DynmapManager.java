@@ -22,6 +22,7 @@ import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
+import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.utils.LocationUtils;
 
 public class DynmapManager extends ExternalManager {
@@ -118,7 +119,8 @@ public class DynmapManager extends ExternalManager {
 	private String getKingdomDescription(OfflineKingdom offlineKingdom) {
 		String description = base;
 		description = description.replace("%kingdomName%", offlineKingdom.getName());
-		description = description.replace("%king%", "King: " + offlineKingdom.getOwner().getName());
+		Optional<OfflineKingdomPlayer> owner = offlineKingdom.getOwner();
+		description = description.replace("%king%", owner.isPresent() ? "King: " + owner.get().getName() : "");
 		description = description.replace("%membercount%", "Number of Members: " + offlineKingdom.getMembers().size());
 		description = description.replace("%resourcepoints%", "ResourcePoints: " + offlineKingdom.getResourcePoints());
 		if (offlineKingdom.isOnline()) {

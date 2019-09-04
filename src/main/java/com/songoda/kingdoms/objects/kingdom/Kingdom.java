@@ -1,6 +1,7 @@
 package com.songoda.kingdoms.objects.kingdom;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
@@ -14,6 +15,7 @@ import com.songoda.kingdoms.manager.managers.WorldManager;
 import com.songoda.kingdoms.manager.managers.LandManager.LandInfo;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
+import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 
 public class Kingdom extends OfflineKingdom {
 
@@ -28,7 +30,10 @@ public class Kingdom extends OfflineKingdom {
 
 	// Renaming.
 	public Kingdom(OfflineKingdom other, String name) {
-		super(other.getOwner().getUniqueId(), name);
+		super(name);
+		Optional<OfflineKingdomPlayer> owner = other.getOwner();
+		if (owner.isPresent())
+			this.owner = owner.get().getUniqueId();
 		lastSize = instance.getConfig().getInt("claiming.max-undo-claims", 20);
 		this.lastClaims = new LinkedBlockingDeque<>(lastSize);
 		this.invasionCooldown = other.invasionCooldown;

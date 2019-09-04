@@ -34,6 +34,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitTask;
 
+import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.LandLoadEvent;
 import com.songoda.kingdoms.events.PlayerWaterlogEvent;
 import com.songoda.kingdoms.events.StructureBreakEvent;
@@ -285,7 +286,7 @@ public class StructureManager extends Manager {
 		kingdom.getWarps().removeIf(warp -> warp.getLand().getStructure() == null);
 	}
 
-	@EventHandler(priority = EventPriority.HIGH)
+	@EventHandler(ignoreCancelled = true)
 	public void onStructurePlace(PlayerInteractEvent event) {
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
 			return;

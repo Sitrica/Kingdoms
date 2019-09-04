@@ -172,6 +172,7 @@ kingdoms:
     rank-too-low-edit-permissions: "&cYour rank is too low to edit permissions, only rank %rank% and higher can edit permissions."
     owner-transfer-command-only: "&cYou may only transfer the ownership through the /k owner command."
     owner-may-not-be-modified: "&cThe owner rank may not be modified."
+    cant-promote-self: "&cYou cannot promote yourself higher than your current rank!"
 
 # These messages are for chunk changing when a player moves into a new chunk for action bars and titles.
 chunk-changing:
@@ -296,6 +297,7 @@ commands:
          # Placeholders: All Kingdom and KingdomPlayer placeholders.
         processing: "&cLand is still unclaiming. Please wait."
         unclaim-all-nexus: "&c&o&l[WARNING] UNCLAIMING NEXUS LAND WHILE IT IS BEING INVADED WILL RESULT IN AN INSTANT DEFEAT"
+        no-kingdom-at-location: "&cThere is no Kingdom at your current location."
     info:
         # Placeholders: All KingdomPlayer placeholders.
         description: "Find information about Kingdoms."
@@ -391,6 +393,7 @@ commands:
         enemy: "&cMember %player% initiated an enemy. Your Kingdom is now an enemy with Kingdom &l%kingdom%&c."
         not-enemy: "&cYour Kingdom is not an enemy with Kingdom &l%kingdom%&c."
         enemy-removed: "&cThe enemy between your Kingdom and &l%kingdom%&c has been broken."
+        rank-too-low-enemy: "&cYour rank is too low to create enemies, only rank &l%rank%&c and higher may set enemies."
     lore:
         description: "Set the lore/description of the Kingdom."
         syntax: "/k lore <string>"
@@ -496,6 +499,10 @@ commands:
         insufficient-balance: "&cYou don't have %amount% resource points to despoit to your Kingdom."
         insufficient-amount-trade: "&cYou currently don't have enough balance to deposit. One resource point cost %cost%$."
         trade-successful: "&eYou have just exchanged %amount%$ for %points% resource points."
+    sound:
+        description: "Test sounds from sounds.yml eg: /k sound invading.win"
+        syntax: "/k sound <section>"
+        no-configuration-section: "&cCould not find configuration section &l%input%&c in sounds.yml"
 
 # All messages relating to invading.
 invading:
@@ -521,5 +528,4 @@ upgrades:
     purchase: "&aYou have just upgraded defender upgrade %upgrade% to level %newlevel%."
     purchase-misc: "&aYou have just bought upgrade %upgrade%."
     level-max: "&cThe level %level% of upgrade %upgrade% is already maxed out."
-    maxed-out: "&cThe defender upgrade %upgrade% is already maxed out."
     already-bought: "&cYou have already bought upgrade %upgrade%."

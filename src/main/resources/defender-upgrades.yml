@@ -13,6 +13,12 @@
 version: "@version@"
 
 # All configurations relating to upgrades on the defenders.
+# Placeholders are %current% for level * value.
+# %max% - the max level it can be.
+# %level% - current level.
+# %value% - the value of the upgrade, different for each upgrade.
+# %enabled% - true or false if the upgrade is enabled.
+# %cost% the cost of the upgrade at the current level of it.
 upgrades:
     # The upgrade settings for the defender's weapon.
     weapon:
@@ -54,9 +60,10 @@ upgrades:
         # If the max-level node isn't present, it will be infinite.
         # max-level: 10
         cost: 10
-        cost-multiplier: 5
+        cost-multiplier: 15
         description:
             - "&7Increases Defender's Health by &d%value%hp&7."
+            - "&7This upgrade is adding &d%current%hp&7 to the Defenders."
         store-lore:
             - ""
             - "&aCost %cost% resource points."
@@ -73,6 +80,7 @@ upgrades:
         cost-multiplier: 200
         description:
             - "&7Increases Defender's Health by &d%value%hp&7."
+            - "&7This upgrade is adding &d%current%hp&7 to the Defenders."
         store-lore:
             - ""
             - "&aCost %cost% resource points."

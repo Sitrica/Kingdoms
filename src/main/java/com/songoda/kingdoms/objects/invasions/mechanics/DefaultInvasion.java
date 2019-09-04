@@ -22,6 +22,8 @@ import com.google.common.collect.Sets;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
 import com.songoda.kingdoms.manager.managers.GuardsManager;
+import com.songoda.kingdoms.manager.managers.KingdomManager;
+import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.manager.managers.LandManager.LandInfo;
 import com.songoda.kingdoms.objects.Defender;
 import com.songoda.kingdoms.objects.DoubleObject;
@@ -38,6 +40,7 @@ import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.utils.LocationUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
+import com.songoda.kingdoms.utils.SoundPlayer;
 
 public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 
@@ -104,6 +107,7 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 		Iterator<Entry<UUID, DoubleObject<LandInfo, Defender>>> iterator = invading.entrySet().iterator();
 		Invasion invasion = defender.getInvasion();
 		String attacking = invasion.getAttacking().getName(); //So we don't need to get from the cache every iterate.
+		LandManager landManager = Kingdoms.getInstance().getManager(LandManager.class);
 		while (iterator.hasNext()) {
 			Entry<UUID, DoubleObject<LandInfo, Defender>> entry = iterator.next();
 			DoubleObject<LandInfo, Defender> object = entry.getValue();
@@ -111,7 +115,9 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 			if (!search.getFirst().equals(defender.getFirst())) //Compare UUID's
 				continue;
 			// Set owner of Land
-			object.getFirst().get().setKingdomOwner(attacking);
+			Land land = object.getFirst().get();
+			landManager.unclaimLand(land);
+			landManager.getLand(object.getFirst()).setKingdomOwner(attacking);
 			iterator.remove();
 		}
 		check(defender);
@@ -172,11 +178,16 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 				new MessageBuilder("invading.invasion-ended-attacker")
 						.setKingdom(invasion.getTarget())
 						.send(invasion.getAttacking().getOnlinePlayers());
-				OfflineKingdom defenders3 = invasion.getTarget();
-				if (defenders3.isOnline())
+				new SoundPlayer("invading.win").playAt(invasion.getTarget().getNexusLocation());
+				OfflineKingdom defenders = invasion.getTarget();
+				if (defenders.isOnline())
 					new MessageBuilder("invading.invasion-ended-defenders")
 							.setKingdom(invasion.getAttacking())
-							.send(defenders3.getKingdom().getOnlinePlayers());
+							.send(defenders.getKingdom().getOnlinePlayers());
+				defender.setSpawn(null);
+				defender.setNexusLocation(null);
+				if (Kingdoms.getInstance().getConfig().getBoolean("invading.mechanics.default.disband-on-loss", false))
+					Kingdoms.getInstance().getManager(KingdomManager.class).deleteKingdom(defender.getName());
 				break;
 		}
 	}

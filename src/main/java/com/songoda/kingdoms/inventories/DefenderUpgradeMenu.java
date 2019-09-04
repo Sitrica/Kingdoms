@@ -50,16 +50,7 @@ public class DefenderUpgradeMenu extends KingdomInventory {
 					return;
 				}
 				int max = upgrade.getMaxLevel();
-				if (max == -1) {
-					new MessageBuilder("upgrades.maxed-out")
-							.replace("%upgrade%", upgrade.name())
-							.setPlaceholderObject(kingdomPlayer)
-							.replace("%level%", level)
-							.replace("%cost%", cost)
-							.setKingdom(kingdom)
-							.send(player);
-					return;
-				} else if (level >= max) {
+				if (max > 0 && level >= max) {
 					new MessageBuilder("upgrades.level-max")
 							.replace("%upgrade%", upgrade.name())
 							.setPlaceholderObject(kingdomPlayer)

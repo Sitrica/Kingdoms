@@ -43,6 +43,14 @@ public class OfflineKingdom {
 	protected final String name;
 	protected UUID owner;
 
+	public OfflineKingdom(String name) {
+		this.instance = Kingdoms.getInstance();
+		this.dynmapColor = instance.getManager(KingdomManager.class).getRandomColor();
+		this.max = instance.getConfig().getInt("base-max-members", 10);
+		this.members.add(owner);
+		this.name = name;
+	}
+
 	/**
 	 * Creates an OfflineKingdom instance.
 	 * 
@@ -101,8 +109,8 @@ public class OfflineKingdom {
 		this.max = max;
 	}
 
-	public OfflineKingdomPlayer getOwner() {
-		return instance.getManager(PlayerManager.class).getOfflineKingdomPlayer(owner).get();
+	public Optional<OfflineKingdomPlayer> getOwner() {
+		return instance.getManager(PlayerManager.class).getOfflineKingdomPlayer(owner);
 	}
 
 	public void setOwner(OfflineKingdomPlayer owner) {

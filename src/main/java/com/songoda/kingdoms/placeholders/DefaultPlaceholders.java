@@ -105,7 +105,10 @@ public class DefaultPlaceholders {
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%owner%", "%king%") {
 			@Override
 			public String replace(OfflineKingdom kingdom) {
-				return kingdom.getOwner().getName();
+				Optional<OfflineKingdomPlayer> owner = kingdom.getOwner();
+				if (!owner.isPresent())
+					return "";
+				return owner.get().getName();
 			}
 		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdomPlayer>("%player%") {

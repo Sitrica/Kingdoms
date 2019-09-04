@@ -12,9 +12,10 @@
 # The version is to help determine which version this config is. Please don't modify this value.
 version: "@version@"
 
-# All sounds relating to invading.
-# Pitches range from 0-15, any number after just recycles back to 0. (Minecraft 16 decimal pitches)
+# Pitches range from 0-15, any number after just recycles back to 0. (Minecraft 16 bit pitches)
 # Volumes range from 0-1 (The single decimal place is what is considered), this may change in future versions of Spigot so play with this.
+
+# All sounds relating to invading.
 invading:
     # Configuration node 'invading.player-deaths.cancel-defending-deaths' false by default.
     # When a defending member's death is cancelled, used to indicate the event was cancelled to the attacker.
@@ -34,3 +35,38 @@ invading:
             #    pitch: 15
             #    # Will be played 5 ticks after sound 1.)
             #    delay: 5
+    # Sound played to the Kingdom fighting winning an invasion.
+    win:
+        enabled: true
+        # The list of sounds.
+        sounds:
+            1:
+                sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+                volume: 0.6
+                pitch: 2
+                delay: 0
+            2:
+                sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+                volume: 0.7
+                pitch: 4
+                delay: 4
+            3:
+                sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+                volume: 0.8
+                pitch: 6
+                delay: 8
+            4:
+                sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+                volume: 0.9
+                pitch: 8
+                delay: 12
+            5:
+                sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+                volume: 1.0
+                pitch: 10
+                delay: 16
+            6:
+                sound: "ENTITY_PLAYER_LEVELUP"
+                volume: 1.0
+                pitch: 4
+                delay: 20

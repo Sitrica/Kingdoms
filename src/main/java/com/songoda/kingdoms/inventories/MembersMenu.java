@@ -41,7 +41,7 @@ public class MembersMenu extends PagesInventory {
 					.setKingdom(kingdom)
 					.build();
 			items.add(new PageItem(item, event -> {
-				if (player.equals(kingdom.getOwner())) {
+				if (kingdom.getOwner().isPresent() && player.equals(kingdom.getOwner().get())) {
 					new MessageBuilder("kingdoms.owner-may-not-be-modified")
 							.setPlaceholderObject(player)
 							.setKingdom(kingdom)
@@ -53,6 +53,13 @@ public class MembersMenu extends PagesInventory {
 					Rank next = kingdom.getNextRank(rank);
 					if (next.isEqualTo(rankManager.getOwnerRank())) {
 						new MessageBuilder("kingdoms.owner-transfer-command-only")
+								.setPlaceholderObject(player)
+								.setKingdom(kingdom)
+								.send(kingdomPlayer);
+						return;
+					}
+					if (!rank.isEqualTo(rankManager.getOwnerRank()) && next.isHigherThan(rank)) {
+						new MessageBuilder("kingdoms.cant-promote-self")
 								.setPlaceholderObject(player)
 								.setKingdom(kingdom)
 								.send(kingdomPlayer);

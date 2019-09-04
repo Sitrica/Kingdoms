@@ -48,10 +48,8 @@ public class ChatManager extends Manager {
 
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onChat(AsyncPlayerChatEvent event) {
-		if (event.isCancelled())
-			return;
 		Player player = event.getPlayer();
 		if (!instance.getManager(WorldManager.class).acceptsWorld(player.getWorld()))
 			return;

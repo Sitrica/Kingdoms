@@ -58,7 +58,7 @@ ranks:
 #        priority: 1
 #        color: "LIGHT_PURPLE"
 #        # Queen symbol
-#        unicode-icon: "\265B"
+#        unicode-icon: "\u265B"
 #        name: "Queen"
 #        # Placeholders: %player%, %kingdom%, %priority%, %name% (rank name), %unicode%/%icon%, %player% and all Kingdom related placeholders.
 #        prefix: "&8[&d%unicode%&8][&7%kingdom%&8]"

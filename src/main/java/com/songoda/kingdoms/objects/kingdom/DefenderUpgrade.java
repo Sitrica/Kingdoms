@@ -41,7 +41,7 @@ public enum DefenderUpgrade {
 		this.section = configuration.getConfigurationSection("upgrades." + node);
 		this.multiplier = section.getInt("cost-multiplier", 0);
 		this.enabled = section.getBoolean("enabled", false);
-		this.max = section.getInt("max-level", 1);
+		this.max = section.getInt("max-level", -1);
 		this.value = section.getInt("value", 1);
 		this.cost = section.getInt("cost", 10);
 	}
@@ -75,6 +75,7 @@ public enum DefenderUpgrade {
 	public ItemStack build(OfflineKingdom kingdom) {
 		int level = kingdom.getDefenderInfo().getUpgradeLevel(this);
 		ItemStack itemstack = new ItemStackBuilder(section)
+				.replace("%current%", level * value)
 				.replace("%cost%", getCostAt(level))
 				.replace("%enabled%", enabled)
 				.replace("%value%", value)
@@ -86,6 +87,7 @@ public enum DefenderUpgrade {
 			ItemMeta meta = itemstack.getItemMeta();
 			List<String> lores = meta.getLore();
 			lores.addAll(new ListMessageBuilder(false, "store-lore", section)
+					.replace("%current%", level * value)
 					.replace("%cost%", getCostAt(level))
 					.replace("%enabled%", enabled)
 					.replace("%value%", value)
@@ -95,6 +97,7 @@ public enum DefenderUpgrade {
 					.get());
 			if (level > 0)
 				lores.add(new MessageBuilder(false, "current", section)
+						.replace("%current%", level * value)
 						.replace("%cost%", getCostAt(level))
 						.replace("%enabled%", enabled)
 						.replace("%value%", value)

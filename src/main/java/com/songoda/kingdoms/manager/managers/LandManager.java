@@ -54,6 +54,7 @@ import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.structures.Structure;
 import com.songoda.kingdoms.objects.structures.StructureType;
 import com.songoda.kingdoms.placeholders.Placeholder;
+import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.utils.LocationUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
@@ -692,11 +693,8 @@ public class LandManager extends Manager {
 		return false;
 	}
 
-	@SuppressWarnings("deprecation")
-	@EventHandler(priority = EventPriority.HIGH)
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onKingdomInteract(PlayerInteractEvent event) {
-		if (event.isCancelled())
-			return;
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
 			return;
 		Block block = event.getClickedBlock();
@@ -707,14 +705,7 @@ public class LandManager extends Manager {
 		Player player = event.getPlayer();
 		// Testing if the player is eating at a block.
 		if (player.isSneaking() && !isForbidden(block.getType())) {
-			ItemStack item;
-			try {
-				item = player.getItemInHand();
-			} catch (Exception e) {
-				item = player.getInventory().getItemInMainHand();
-			}
-			// When the deprecated getItemInHand() method gets removed use this instead of this try and catch.
-			//ItemStack item = player.getInventory().getItemInMainHand();
+			ItemStack item = DeprecationUtils.getItemInMainHand(player);
 			if (item == null)
 				return;
 			if (item.getType() != Material.ARMOR_STAND && item.getType() != Material.ITEM_FRAME) {

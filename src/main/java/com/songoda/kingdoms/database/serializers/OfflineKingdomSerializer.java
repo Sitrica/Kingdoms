@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.bukkit.inventory.ItemStack;
@@ -39,8 +40,8 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 	@Override
 	public JsonElement serialize(OfflineKingdom kingdom, Type type, JsonSerializationContext context) {
 		JsonObject json = new JsonObject();
-		OfflineKingdomPlayer owner = kingdom.getOwner();
-		if (owner == null) // Most likely deleted as it saved.
+		Optional<OfflineKingdomPlayer> owner = kingdom.getOwner();
+		if (!owner.isPresent()) // Most likely deleted as it saved.
 			return null;
 		json.addProperty("lore", kingdom.getLore());
 		json.addProperty("name", kingdom.getName());
@@ -48,7 +49,7 @@ public class OfflineKingdomSerializer implements Serializer<OfflineKingdom> {
 		json.addProperty("invaded", kingdom.hasInvaded());
 		json.addProperty("max-members", kingdom.getMaxMembers());
 		json.addProperty("first-claim", kingdom.hasUsedFirstClaim());
-		json.addProperty("owner", owner.getUniqueId() + "");
+		json.addProperty("owner", owner.get().getUniqueId() + "");
 		json.addProperty("resource-points", kingdom.getResourcePoints());
 		json.addProperty("extra-purchased", kingdom.getExtraPurchased());
 		json.addProperty("invasion-cooldown", kingdom.getInvasionCooldown());

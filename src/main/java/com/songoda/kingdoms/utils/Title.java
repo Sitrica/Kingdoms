@@ -1,11 +1,11 @@
 package com.songoda.kingdoms.utils;
 
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 public class Title {
 	
@@ -125,11 +125,7 @@ public class Title {
 		private String title, subtitle;
 
 		public Builder() {
-			this.fadeOut = DEFAULT_FADE_OUT;
-			this.fadeIn = DEFAULT_FADE_IN;
-			this.stay = DEFAULT_STAY;
-			this.subtitle = "";
-			this.title = "";
+			this("", "");
 		}
 
 		public Builder(String title, String subtitle) {
@@ -217,7 +213,7 @@ public class Title {
 		 * @param player the player to send the title to
 		 */
 		public void send(Player player) {
-			if (!title.equals("") && !subtitle.equals(""))
+			if (title.equals("") && subtitle.equals(""))
 				return;
 			if (player == null)
 				return;

@@ -1,5 +1,7 @@
 package com.songoda.kingdoms.command.commands.user;
 
+import java.util.Optional;
+
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -10,6 +12,7 @@ import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.manager.managers.PlayerManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
+import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
 import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class CommandDisband extends AbstractCommand {
@@ -29,9 +32,12 @@ public class CommandDisband extends AbstractCommand {
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		if (!kingdom.getOwner().equals(kingdomPlayer)) {
+		Optional<OfflineKingdomPlayer> owner = kingdom.getOwner();
+		if (!owner.isPresent())
+			return ReturnType.FAILURE;
+		if (!owner.get().equals(kingdomPlayer)) {
 			new MessageBuilder("commands.disband.only-owner")
-					.replace("%owner%", kingdom.getOwner().getName())
+					.replace("%owner%", owner.get().getName())
 					.setPlaceholderObject(kingdomPlayer)
 					.send(kingdomPlayer);
 			return ReturnType.FAILURE;
@@ -39,7 +45,7 @@ public class CommandDisband extends AbstractCommand {
 		instance.getManager(ConfirmationManager.class).openConfirmation(kingdomPlayer, result -> {
 			if (!result) {
 				new MessageBuilder("commands.disband.cancelled")
-						.replace("%owner%", kingdom.getOwner().getName())
+						.replace("%owner%", owner.get().getName())
 						.setPlaceholderObject(kingdomPlayer)
 						.send(kingdomPlayer);
 				return;

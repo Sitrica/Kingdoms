@@ -20,6 +20,10 @@ public class SoundPlayer {
 	private final Set<KingdomSound> sounds = new HashSet<>();
 	private final Kingdoms instance;
 
+	public SoundPlayer(String path) {
+		this(Kingdoms.getInstance().getConfiguration("sounds").get().getConfigurationSection(path));
+	}
+
 	public SoundPlayer(ConfigurationSection section) {
 		for (String node : section.getKeys(false)) {
 			this.sounds.add(new KingdomSound(section.getConfigurationSection(node), "CLICK"));

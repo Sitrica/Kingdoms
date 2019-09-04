@@ -1,13 +1,14 @@
 package com.songoda.kingdoms.manager.managers;
 
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
-
 import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.Utils;
+
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class ActionbarManager extends Manager {
 
@@ -21,7 +22,7 @@ public class ActionbarManager extends Manager {
 			method = false;
 			return;
 		}
-		this.method = Utils.methodExists(Player.Spigot.class, "sendMessage", ChatMessageType.class, TextComponent.class);
+		this.method = Utils.methodExists(Player.Spigot.class, "sendMessage", ChatMessageType.class, BaseComponent.class);
 	}
 
 	public void sendActionBar(Player player, String... messages) {
