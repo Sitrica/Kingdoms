@@ -1,15 +1,24 @@
 package com.songoda.kingdoms.manager.managers;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
+import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.songoda.kingdoms.manager.Manager;
+import com.songoda.kingdoms.manager.managers.LandManager.ChunkDaddy;
+import com.songoda.kingdoms.objects.Pair;
 import com.songoda.kingdoms.objects.Relation;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
@@ -28,6 +37,15 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 public class MapManager extends Manager {
 
+	private final AsyncLoadingCache<ChunkDaddy, Optional<Land>> cache = Caffeine.newBuilder()
+			.expireAfterAccess(1, TimeUnit.HOURS)
+			.buildAsync(new CacheLoader<ChunkDaddy, Optional<Land>>() {
+					public Optional<Land> load(ChunkDaddy daddy) {
+						if (daddy == null)
+							return null;
+						return instance.getManager(LandManager.class).getLand(daddy);
+					}
+			});
 	private final FileConfiguration map;
 
 	public MapManager() {
@@ -36,70 +54,83 @@ public class MapManager extends Manager {
 	}
 
 	public void displayMap(KingdomPlayer kingdomPlayer, boolean structures) {
-//		Map<Integer, Integer> calculate = new HashMap<>();
-//		for (int vertical = 0; vertical < map.getInt("configure.height", 8); vertical++) {
-//			int x = vertical - 4;
-//			for (int horizontal = 0; horizontal <= map.getInt("configure.width", 24); horizontal++) {
-//				int z = horizontal - 12;
-//				Chunk entry = chunk.getWorld().getChunkAt(originX + x, originZ + z);
-//				Land land = landManager.getLand(entry);
-//			}
-//		}
-		Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
-			List<TextComponent> rows = new ArrayList<>();
-			Player player = kingdomPlayer.getPlayer();
-			Chunk chunk = kingdomPlayer.getChunkAt();
-			int originX = chunk.getX();
-			int originZ = chunk.getZ();
-			LandManager landManager = instance.getManager(LandManager.class);
-			player.sendMessage("");
-			for (int vertical = 0; vertical < map.getInt("configure.height", 8); vertical++) {
-				int x = vertical - 4;
-				TextComponent row = new TextComponent();
-				for (int horizontal = 0; horizontal <= map.getInt("configure.width", 24); horizontal++) {
-					int z = horizontal - 12;
-					// Get land.
-					Chunk entry = chunk.getWorld().getChunkAt(originX + x, originZ + z);
-					Land land = landManager.getLand(entry);
-					// Get MapElement.
-					MapElement element = getElement(kingdomPlayer, land, structures);
-					if (x == 0 && z == 0)
-						element = MapElement.YOU;
-					Relation relation = Relation.getRelation(land, kingdomPlayer.getKingdom());
-					Optional<OfflineKingdom> landKingdom = land.getKingdomOwner();
-					// Get Icon.
-					MessageBuilder builder = element.getIcon(relation)
+		int height = map.getInt("configure.height", 8);
+		int width = map.getInt("configure.width", 24);
+		Player player = kingdomPlayer.getPlayer();
+		Chunk start = player.getLocation().getChunk();
+		String world = start.getWorld().getName();
+		int x = start.getX() - height;
+		int z = start.getZ() - width;
+		Set<ChunkDaddy> daddies = new HashSet<>();
+		for (int vertical = 0; vertical < height; vertical++)
+			for (int horizontal = 0; horizontal < width; horizontal++)
+				daddies.add(new ChunkDaddy(x + vertical, x + horizontal, world));
+		List<Pair<ChunkDaddy, Optional<Land>>> lands = daddies.parallelStream()
+				.map(daddy -> {
+					kingdomPlayer.getPlayer().sendMessage(daddy.getX() + " and " + daddy.getZ());
+					try {
+						return Pair.of(daddy, cache.get(daddy).get());
+					} catch (InterruptedException | ExecutionException e) {
+						return null;
+					}
+				})
+				.filter(pair -> pair != null)
+				.collect(Collectors.toList());
+		List<TextComponent> rows = new ArrayList<>();
+		player.sendMessage("");
+		int spot = 0;
+		for (int vertical = 0; vertical < height; vertical++) {
+			TextComponent row = new TextComponent();
+			for (int horizontal = 0; horizontal <= width; horizontal++) {
+				if (lands.size() - 1 < spot)
+					continue;
+				Pair<ChunkDaddy, Optional<Land>> pair = lands.get(spot);
+				spot++;
+				Optional<Land> landOptional = pair.getSecond();
+				MapElement element = MapElement.LAND;
+				ChunkDaddy daddy = pair.getFirst();
+				if (daddy.getX() == x && daddy.getZ() == z)
+					element = MapElement.YOU;
+				if (!landOptional.isPresent()) {
+					MessageBuilder builder = element.getIcon()
+							.setKingdom(kingdomPlayer.getKingdom() != null ? kingdomPlayer.getKingdom() : null)
+							.setPlaceholderObject(kingdomPlayer)
+							.replace("%player%", player.getName());
+					row.addExtra(new TextComponent(builder.get()));
+					continue;
+				}
+				Land land = landOptional.get();
+				element = getElement(kingdomPlayer, land, structures);
+				Relation relation = Relation.getRelation(land, kingdomPlayer.getKingdom());
+				Optional<OfflineKingdom> landKingdom = land.getKingdomOwner();
+				MessageBuilder builder = element.getIcon(relation)
+						.replace("%chunk%", LocationUtils.chunkToString(land.getChunk()))
+						.setKingdom(landKingdom.isPresent() ? landKingdom.get(): null)
+						.replace("%player%", player.getName());
+				TextComponent component = new TextComponent(builder.get());
+				Optional<ListMessageBuilder> hover = element.getHover(relation);
+				if (hover.isPresent())
+					component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover.get()
 							.replace("%chunk%", LocationUtils.chunkToString(land.getChunk()))
 							.setKingdom(landKingdom.isPresent() ? landKingdom.get(): null)
-							.replace("%player%", player.getName());
-					TextComponent component = new TextComponent(builder.get());
-					// Get hover.
-					Optional<ListMessageBuilder> hover = element.getHover(relation);
-					if (hover.isPresent())
-						component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover.get()
-								.replace("%chunk%", LocationUtils.chunkToString(land.getChunk()))
-								.setKingdom(landKingdom.isPresent() ? landKingdom.get(): null)
-								.replace("%player%", player.getName())
-								.get()
-								.stream()
-								.map(text -> new TextComponent(text))
-								.toArray(TextComponent[]::new)));
-					// Get ClickEvent
-					Optional<RelationAction> action = element.getRelationAction(relation);
-					if (action.isPresent()) {
-						instance.getActions().add(kingdomPlayer, new ActionInfo(land.toInfo(), player.getUniqueId(), action.get()));
-						ClickEvent clickEvent = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/kingdomsaction");
-						component.setClickEvent(clickEvent);
-					}
-					// Add as a row.
-					row.addExtra(component);
+							.replace("%player%", player.getName())
+							.get()
+							.stream()
+							.map(text -> new TextComponent(text))
+							.toArray(TextComponent[]::new)));
+				Optional<RelationAction> action = element.getRelationAction(relation);
+				if (action.isPresent()) {
+					instance.getActions().add(kingdomPlayer, new ActionInfo(land.toInfo(), player.getUniqueId(), action.get()));
+					ClickEvent clickEvent = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/kingdomsaction");
+					component.setClickEvent(clickEvent);
 				}
-				rows.add(row);
+				row.addExtra(component);
 			}
-			rows.forEach(component -> player.spigot().sendMessage(component));
-			player.sendMessage("");
-			//TODO legend.
-		});
+			rows.add(row);
+		}
+		rows.forEach(component -> player.spigot().sendMessage(component));
+		player.sendMessage("");
+		//TODO legend.
 	}
 
 	private MapElement getElement(KingdomPlayer kingdomPlayer, Land land, boolean structures) {

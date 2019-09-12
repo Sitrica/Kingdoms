@@ -57,6 +57,7 @@ public class CommandJoin extends AdminCommand {
 		MemberLeaveEvent leaveEvent = new MemberLeaveEvent(offlineKingdomPlayer, offlineKingdomPlayer.getKingdom());
 		Bukkit.getPluginManager().callEvent(leaveEvent);
 		kingdom.get().addMember(offlineKingdomPlayer);
+		offlineKingdomPlayer.setKingdom(kingdom.get().getName());
 		MemberJoinEvent joinEvent = new MemberJoinEvent(offlineKingdomPlayer, offlineKingdomPlayer.getKingdom());
 		Bukkit.getPluginManager().callEvent(joinEvent);
 		Optional<KingdomPlayer> kingdomPlayer = offlineKingdomPlayer.getKingdomPlayer();

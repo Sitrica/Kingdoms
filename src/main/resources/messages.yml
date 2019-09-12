@@ -364,6 +364,7 @@ commands:
         syntax: "/k leave"
         cancelled: "&cCancelled."
         leave-broadcast: "&6%player% has left the Kingdom!"
+        left: "&eYou have left Kingdom &l%kingdom%&e."
         no-kingdom: "&cYou aren't even apart of any Kingdom. Type /k create <name> to start one."
     alliance:
         description: "Alliance other Kingdoms."

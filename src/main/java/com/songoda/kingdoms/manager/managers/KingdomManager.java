@@ -273,6 +273,7 @@ public class KingdomManager extends Manager {
 			player.onKingdomLeave();
 			player.setKingdom(null);
 			player.setRank(null);
+			instance.getManager(PlayerManager.class).save(player);
 		}
 		Optional<OfflineKingdomPlayer> owner = kingdom.getOwner();
 		if (owner.isPresent()) {

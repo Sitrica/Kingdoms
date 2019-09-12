@@ -5,7 +5,7 @@ main: com.songoda.kingdoms.Kingdoms
 version: @version@
 api-version: 1.13
 load: POSTWORLD
-softdepend: [WorldGuard, WorldEdit, ScoreboardStats, Dynmap, PlaceholderAPI, MVdWPlaceholderAPI, GriefPrevention, Citizens, Citizens2, Multiworld, Multiverse-Core, Vault, ItemBox, HolographicDisplays]
+softdepend: [WorldGuard, WorldEdit, ScoreboardStats, Dynmap, PlaceholderAPI, MVdWPlaceholderAPI, GriefPrevention, Citizens, Citizens2, Multiworld, Multiverse-Core, Vault, HolographicDisplays]
 commands:
   kingdoms:
     description: View information on the Kingdoms plugin.

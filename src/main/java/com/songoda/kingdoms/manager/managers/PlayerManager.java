@@ -86,6 +86,11 @@ public class PlayerManager extends Manager {
 				.orElseGet(() -> {
 					OfflineKingdomPlayer player = database.get(uuid + "");
 					if (player != null) {
+						// The player's Kingdom was deleted but the data still existed.
+						// 2.0.0-BETA-6 and lower didn't handle deleting it when actually happening.
+						// This is probably safe to remove in future.
+						if (player.hasKingdom() && player.getKingdom() == null)
+							player.setKingdom(null);
 						Kingdoms.debugMessage("Successfuly fetched data for kingdom player: " + uuid);
 						users.add(player);
 					}

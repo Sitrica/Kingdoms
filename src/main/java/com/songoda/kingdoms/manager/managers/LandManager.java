@@ -202,6 +202,37 @@ public class LandManager extends Manager {
 		}
 	};
 
+	public static final class ChunkDaddy {
+
+		private final String world;
+		private final int x, z;
+
+		public ChunkDaddy(Chunk chunk) {
+			this.world = chunk.getWorld().getName();
+			this.x = chunk.getX();
+			this.z = chunk.getZ();
+		}
+
+		public ChunkDaddy(int x, int z, String world) {
+			this.world = world;
+			this.x = x;
+			this.z = z;
+		}
+
+		public String getWorldName() {
+			return world;
+		}
+
+		public int getX() {
+			return x;
+		}
+
+		public int getZ() {
+			return z;
+		}
+
+	}
+
 	public class LandInfo {
 
 		private final boolean hasKingdom;
@@ -211,6 +242,10 @@ public class LandManager extends Manager {
 
 		public LandInfo(Land land) {
 			this(land.getChunk(), land.getKingdomName());
+		}
+
+		public LandInfo(ChunkDaddy daddy) {
+			this(daddy.getX(), daddy.getZ(), daddy.getWorldName(), null);
 		}
 
 		public LandInfo(Chunk chunk, String kingdom) {
@@ -268,6 +303,20 @@ public class LandManager extends Manager {
 	}
 
 	/**
+	 * If found through means of checking the database.
+	 * This way could be used to get the land, but it may not be certain of the Kingdom until getting the Land.
+	 * 
+	 * @param snapshot The ChunkSnapshot to use.
+	 * @return The LandInfo created from the ChunkSnapshot.
+	 */
+	public LandInfo getInfo(ChunkDaddy daddy) {
+		Optional<Land> optional = getLand(daddy);
+		if (optional.isPresent())
+			return optional.get().toInfo();
+		return new LandInfo(daddy);
+	}
+
+	/**
 	 * @return Set<Chunk> of all loaded land locations.
 	 */
 	public Set<Entry<Chunk, Land>> getLoadedLand() {
@@ -320,6 +369,19 @@ public class LandManager extends Manager {
 		return land;
 	}
 
+	/**
+	 * This is only used for async grabbing, it contains no reference of the Kingdom nor Chunk.
+	 * 
+	 * @param daddy The ChunkDaddy to use for this async get.
+	 * @return The Land if found.
+	 */
+	public Optional<Land> getLand(ChunkDaddy daddy) {
+		if (daddy == null)
+			return null;
+		String location = LocationUtils.daddyToString(daddy);
+		return Optional.ofNullable(database.get(location));
+	}
+
 	public void playerClaimLand(KingdomPlayer kingdomPlayer, Land land) {
 		Player player = kingdomPlayer.getPlayer();
 		if (!worldManager.acceptsWorld(player.getWorld())) {
@@ -335,9 +397,14 @@ public class LandManager extends Manager {
 					.send(player);
 			return;
 		}
-		if (!kingdom.getPermissions(kingdomPlayer.getRank()).canClaim()) {
+		Rank rank = kingdomPlayer.getRank();
+		if (rank == null) {
+			rank = instance.getManager(RankManager.class).getDefaultRank();
+			kingdomPlayer.setRank(rank);
+		}
+		if (!kingdom.getPermissions(rank).canClaim()) {
 			new MessageBuilder("kingdoms.permissions-too-low")
-					.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canClaim()), new Placeholder<Optional<Rank>>("%rank%") {
+					.withPlaceholder(kingdom.getLowestRankFor(r -> r.canClaim()), new Placeholder<Optional<Rank>>("%rank%") {
 						@Override
 						public String replace(Optional<Rank> rank) {
 							if (rank.isPresent())

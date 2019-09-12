@@ -10,7 +10,7 @@ import com.songoda.kingdoms.objects.invasions.Invasion;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 
-public class Defender extends DoubleObject<UUID, Invasion> {
+public class Defender extends Pair<UUID, Invasion> {
 
 	private boolean nexus;
 

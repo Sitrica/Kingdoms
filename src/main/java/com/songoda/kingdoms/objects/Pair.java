@@ -1,6 +1,6 @@
 package com.songoda.kingdoms.objects;
 
-public class DoubleObject<O1, O2> {
+public class Pair<O1, O2> {
 
 	private final O1 object1;
 	private final O2 object2;
@@ -10,7 +10,7 @@ public class DoubleObject<O1, O2> {
 	 *
 	 * @throws IllegalArgumentException if either value is null.
 	 */
-	protected DoubleObject(O1 object1, O2 object2) {
+	protected Pair(O1 object1, O2 object2) {
 		if (object1 == null || object2 == null)
 			throw new IllegalArgumentException();
 		this.object1 = object1;
@@ -24,8 +24,8 @@ public class DoubleObject<O1, O2> {
 	 * @param <O@> The class of object value 2.
 	 * @return a {@code DoubleObject} with the values.
 	 */
-	public static <O1, O2> DoubleObject<O1, O2> of(O1 object1, O2 object2) {
-		return new DoubleObject<O1, O2>(object1, object2);
+	public static <O1, O2> Pair<O1, O2> of(O1 object1, O2 object2) {
+		return new Pair<O1, O2>(object1, object2);
 	}
 
 	/**
@@ -59,10 +59,10 @@ public class DoubleObject<O1, O2> {
 		if (this == object)
 			return true;
 
-		if (!(object instanceof DoubleObject))
+		if (!(object instanceof Pair))
 			return false;
 
-		final DoubleObject<?,?> other = (DoubleObject<?,?>) object;
+		final Pair<?,?> other = (Pair<?,?>) object;
 		if ((object1 == null) ? (other.object1 == null) : object1.equals(other.object1))
 			return ((object2 == null) ? (other.object2 == null) : object2.equals(other.object2));
 		return false;

@@ -63,6 +63,6 @@ powerups:
         max: 60
         slot: 26
         description:
-            - "&7Each upgrade increases your bow damage by 1%."
+            - "&7Each upgrade increases damage on others by 1%."
             - "&6Current Damage Boost: %amount%"
             - "&cCosts %cost% resource points"

@@ -2,8 +2,11 @@ package com.songoda.kingdoms.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
 import org.bukkit.World;
+
+import com.songoda.kingdoms.manager.managers.LandManager.ChunkDaddy;
 
 public class LocationUtils {
 
@@ -72,6 +75,20 @@ public class LocationUtils {
 			return null;
 		String world = chunk.getWorld().getName();
 		return world + ", " + chunk.getX() + ", " + chunk.getZ();
+	}
+
+	public static String snapshotToString(ChunkSnapshot snapshot) {
+		if (snapshot == null)
+			return null;
+		String world = snapshot.getWorldName();
+		return world + ", " + snapshot.getX() + ", " + snapshot.getZ();
+	}
+
+	public static String daddyToString(ChunkDaddy daddy) {
+		if (daddy == null)
+			return null;
+		String world = daddy.getWorldName();
+		return world + ", " + daddy.getX() + ", " + daddy.getZ();
 	}
 
 	public static Location getLowestBlockIn(Chunk chunk) {

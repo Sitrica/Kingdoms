@@ -43,9 +43,13 @@ public class CommandLeave extends AbstractCommand {
 			new MessageBuilder("commands.leave.leave-broadcast")
 					.setPlaceholderObject(kingdomPlayer)
 					.send(kingdom.getOnlinePlayers());
+			new MessageBuilder("commands.leave.left")
+					.setPlaceholderObject(kingdomPlayer)
+					.send(kingdomPlayer);
 			kingdomPlayer.onKingdomLeave();
 			kingdomPlayer.setKingdom(null);
 			kingdomPlayer.setRank(null);
+			instance.getManager(PlayerManager.class).save(kingdomPlayer);
 			KingdomManager kingdomManager = instance.getManager(KingdomManager.class);
 			kingdomManager.onPlayerLeave(kingdomPlayer, kingdom);
 			kingdom.removeMember(kingdomPlayer);

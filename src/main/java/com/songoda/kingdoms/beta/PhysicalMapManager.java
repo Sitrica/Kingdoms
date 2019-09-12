@@ -12,10 +12,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
-import org.bukkit.map.MapCanvas;
-import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
-import org.bukkit.map.MinecraftFont;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.Manager;
@@ -37,7 +34,8 @@ public class PhysicalMapManager extends Manager {
 		ItemStack map = new ItemStack(Material.FILLED_MAP);
 		MapView view = Bukkit.createMap(player.getWorld());
 		view.getRenderers().clear();
-		view.addRenderer(new KingdomMapRenderer());
+		// TODO make scale a valid number and check
+		view.addRenderer(new KingdomMapRenderer(128));
 		Kingdoms.debugMessage(view.getCenterX() + "");
 		ItemMeta meta = map.getItemMeta();
 		if (meta instanceof MapMeta) {
@@ -48,15 +46,6 @@ public class PhysicalMapManager extends Manager {
 		player.getInventory().addItem(map);
 		player.sendMap(view);
 		views.put(player.getUniqueId(), view);
-	}
-
-	private class KingdomMapRenderer extends MapRenderer {
-
-		@Override
-		public void render(MapView map, MapCanvas canvas, Player player) {
-			canvas.drawText(0, 0, MinecraftFont.Font, "TESTING");
-		}
-
 	}
 
 	@EventHandler

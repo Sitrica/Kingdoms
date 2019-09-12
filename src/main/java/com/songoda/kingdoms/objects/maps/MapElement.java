@@ -66,6 +66,10 @@ public enum MapElement {
 		return YOU;
 	}
 
+	public MessageBuilder getIcon() {
+		return icon;
+	}
+
 	public MessageBuilder getIcon(Relation relation) {
 		if (relation == null)
 			return icon;

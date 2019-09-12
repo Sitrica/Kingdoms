@@ -26,7 +26,7 @@ import com.songoda.kingdoms.manager.managers.KingdomManager;
 import com.songoda.kingdoms.manager.managers.LandManager;
 import com.songoda.kingdoms.manager.managers.LandManager.LandInfo;
 import com.songoda.kingdoms.objects.Defender;
-import com.songoda.kingdoms.objects.DoubleObject;
+import com.songoda.kingdoms.objects.Pair;
 import com.songoda.kingdoms.objects.invasions.CommandTrigger;
 import com.songoda.kingdoms.objects.invasions.Invasion;
 import com.songoda.kingdoms.objects.invasions.InvasionMechanic;
@@ -44,13 +44,13 @@ import com.songoda.kingdoms.utils.SoundPlayer;
 
 public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 
-	private final Map<UUID, DoubleObject<LandInfo, Defender>> invading = new HashMap<>(); //UUID is a player
+	private final Map<UUID, Pair<LandInfo, Defender>> invading = new HashMap<>(); //UUID is a player
 
 	public DefaultInvasion() {
 		super(true, "default");
 	}
 
-	public Optional<DoubleObject<LandInfo, Defender>> getInvading(UUID uuid) {
+	public Optional<Pair<LandInfo, Defender>> getInvading(UUID uuid) {
 		return invading.entrySet().parallelStream()
 				.filter(entry -> entry.getKey().equals(uuid))
 				.map(entry -> entry.getValue())
@@ -61,7 +61,7 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 	public void onMoveIntoLand(PlayerChangeChunkEvent event, KingdomPlayer kingdomPlayer, Land land) {
 		if (!Kingdoms.getInstance().getConfig().getBoolean("invading.invading-deny-chunk-change", true))
 			return;
-		Optional<DoubleObject<LandInfo, Defender>> invading = getInvading(kingdomPlayer.getUniqueId());
+		Optional<Pair<LandInfo, Defender>> invading = getInvading(kingdomPlayer.getUniqueId());
 		if (!invading.isPresent())
 			return;
 		LandInfo info = invading.get().getFirst();
@@ -99,18 +99,18 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 			}
 		}
 		UUID uuid = player.getUniqueId();
-		invading.put(uuid, DoubleObject.of(trigger.getLandInfo(), defender));
+		invading.put(uuid, Pair.of(trigger.getLandInfo(), defender));
 	}
 
 	@Override
 	public void onDefenderDeath(EntityDeathEvent event, Defender defender) {
-		Iterator<Entry<UUID, DoubleObject<LandInfo, Defender>>> iterator = invading.entrySet().iterator();
+		Iterator<Entry<UUID, Pair<LandInfo, Defender>>> iterator = invading.entrySet().iterator();
 		Invasion invasion = defender.getInvasion();
 		String attacking = invasion.getAttacking().getName(); //So we don't need to get from the cache every iterate.
 		LandManager landManager = Kingdoms.getInstance().getManager(LandManager.class);
 		while (iterator.hasNext()) {
-			Entry<UUID, DoubleObject<LandInfo, Defender>> entry = iterator.next();
-			DoubleObject<LandInfo, Defender> object = entry.getValue();
+			Entry<UUID, Pair<LandInfo, Defender>> entry = iterator.next();
+			Pair<LandInfo, Defender> object = entry.getValue();
 			Defender search = object.getSecond();
 			if (!search.getFirst().equals(defender.getFirst())) //Compare UUID's
 				continue;

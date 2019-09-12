@@ -63,6 +63,7 @@ public class Kingdoms extends JavaPlugin {
 		actions = new ActionCommand();
 		getCommand("kingdomsaction").setExecutor(actions);
 		KingdomsAPI.setInstance(this);
+		new Metrics(this);
 		consoleMessage("Kingdoms has been enabled");
 	}
 
