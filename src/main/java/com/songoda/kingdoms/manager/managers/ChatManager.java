@@ -54,9 +54,9 @@ public class ChatManager extends Manager {
 		if (!instance.getManager(WorldManager.class).acceptsWorld(player.getWorld()))
 			return;
 		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
-		if (!kingdomPlayer.hasKingdom())
-			return;
 		Kingdom kingdom = kingdomPlayer.getKingdom();
+		if (kingdom == null)
+			return;
 		Set<KingdomPlayer> senders = new HashSet<>();
 		String message = event.getMessage();
 		switch (kingdomPlayer.getChatChannel()) {

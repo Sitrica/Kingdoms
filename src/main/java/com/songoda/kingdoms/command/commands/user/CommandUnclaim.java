@@ -41,7 +41,7 @@ public class CommandUnclaim extends AbstractCommand {
 		LandManager landManager = instance.getManager(LandManager.class);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null) {
-			new MessageBuilder("claiming.no-kingdom")
+			new MessageBuilder("commands.unclaim.no-kingdom")
 					.setPlaceholderObject(kingdomPlayer)
 					.send(player);
 			return ReturnType.FAILURE;

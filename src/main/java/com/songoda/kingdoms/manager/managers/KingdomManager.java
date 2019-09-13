@@ -519,15 +519,13 @@ public class KingdomManager extends Manager {
 		}
 	}
 
-	@EventHandler(priority = EventPriority.LOWEST)
+	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onCommand(PlayerCommandPreprocessEvent event) {
-		if (event.isCancelled())
-			return;
 		Player player = event.getPlayer();
 		if (!instance.getManager(WorldManager.class).acceptsWorld(player.getWorld()))
 			return;
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
-		Land land = landManager.getLandAt(kingdomPlayer.getLocation());
+		Land land = kingdomPlayer.getLandAt();
 		Optional<OfflineKingdom> optional = land.getKingdomOwner();
 		if (!optional.isPresent())
 			return;
@@ -543,7 +541,7 @@ public class KingdomManager extends Manager {
 			}
 			return;
 		}
-		if (kingdom.getOnlineEnemies().contains(kingdomPlayer) || kingdom.isEnemyWith(landKingdom)) {
+		if (kingdom.getOnlineEnemies().stream().anyMatch(p -> p.equals(kingdomPlayer)) || kingdom.isEnemyWith(landKingdom)) {
 			if (isCommandDisabled(event.getMessage(), "commands.denied-in-enemy")) {
 				new MessageBuilder("commands.kingdom-denied-enemy")
 						.setPlaceholderObject(kingdomPlayer)
@@ -551,7 +549,7 @@ public class KingdomManager extends Manager {
 						.send(player);
 				event.setCancelled(true);
 			}
-		} else if (!kingdom.getMembers().contains(kingdomPlayer) && !kingdom.getOnlineAllies().contains(kingdomPlayer)) {
+		} else if (!kingdom.getMembers().stream().anyMatch(p -> p.equals(kingdomPlayer)) && !kingdom.getOnlineAllies().stream().anyMatch(p -> p.equals(kingdomPlayer))) {
 			if (isCommandDisabled(event.getMessage(), "commands.denied-in-neutral")) {
 				new MessageBuilder("commands.kingdom-denied-other")
 						.setPlaceholderObject(kingdomPlayer)

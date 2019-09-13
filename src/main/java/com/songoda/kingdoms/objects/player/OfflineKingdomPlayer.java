@@ -46,7 +46,7 @@ public class OfflineKingdomPlayer {
 	}
 
 	public boolean hasKingdom() {
-		return kingdom == null;
+		return kingdom != null;
 	}
 
 	public UUID getUniqueId() {

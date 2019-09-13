@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.RankManager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
+import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.objects.player.OfflineKingdomPlayer;
@@ -21,7 +22,16 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class DefaultPlaceholders {
 
+	private static boolean initalized;
+
+	public static boolean hasInitalized() {
+		return initalized;
+	}
+
 	public static void initalize() {
+		if (initalized)
+			return;
+		initalized = true;
 		Kingdoms instance = Kingdoms.getInstance();
 		FileConfiguration configuration = instance.getConfig();
 		RankManager rankManager = instance.getManager(RankManager.class);
@@ -135,7 +145,16 @@ public class DefaultPlaceholders {
 				Set<OfflineKingdomPlayer> members = kingdom.getMembers();
 				if (members.isEmpty())
 					return "";
-				return rankManager.list(kingdom.getMembers());
+				return rankManager.list(members);
+			}
+		});
+		Placeholders.registerPlaceholder(new Placeholder<Kingdom>("%onlinemembers%") {
+			@Override
+			public String replace(Kingdom kingdom) {
+				Set<KingdomPlayer> members = kingdom.getOnlinePlayers();
+				if (members.isEmpty())
+					return "";
+				return rankManager.listOnline(members);
 			}
 		});
 		Placeholders.registerPlaceholder(new Placeholder<OfflineKingdom>("%claims%") {

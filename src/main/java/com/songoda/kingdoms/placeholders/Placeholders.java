@@ -22,9 +22,8 @@ public class Placeholders {
 	public static Optional<Placeholder<?>> getPlaceholder(String syntax) {
 		for (Placeholder<?> placeholder : placeholders) {
 			for (String s : placeholder.getSyntaxes()) {
-				if (s.equals(syntax)) {
+				if (s.equalsIgnoreCase(syntax))
 					return Optional.of(placeholder);
-				}
 			}
 		}
 		return Optional.empty();

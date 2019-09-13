@@ -13,6 +13,11 @@ repositories {
 	mavenCentral()
 	jcenter()
 
+	// PlaceholderAPI
+	maven {
+		url 'http://repo.extendedclip.com/content/repositories/placeholderapi/'
+	}
+
 	// Spigot
 	maven {
 		url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
@@ -59,11 +64,14 @@ dependencies {
 	// Spigot
 	implementation (group: 'org.spigotmc', name: 'spigot', version: '1.14-R0.1-SNAPSHOT')
 
+	// Dynmap
+	implementation (group: 'com.github.webbukkit', name: 'dynmap-api', version: 'v2.5')
+
 	// Citizens
 	implementation (group: 'net.citizensnpcs', name: 'citizensapi', version: '2.0.25')
 
-	// Dynmap
-	implementation (group: 'com.github.webbukkit', name: 'dynmap-api', version: 'v2.5')
+	// PlaceholderAPI
+	implementation (group: 'me.clip', name: 'placeholderapi', version: '2.10.3')
 
 	// WorldGuard
 	implementation (group: 'com.sk89q', name: "worldguard", version: '7.0.0')

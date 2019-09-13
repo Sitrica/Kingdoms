@@ -504,6 +504,17 @@ commands:
         description: "Test sounds from sounds.yml eg: /k sound invading.win"
         syntax: "/k sound <section>"
         no-configuration-section: "&cCould not find configuration section &l%input%&c in sounds.yml"
+    owner:
+        description: "Set the owner of the Kingdom."
+        syntax: "/k owner <player>"
+        no-kingdom: "&cYou currently have no Kingdom."
+        not-owner: "&cYou are currently not the owner of this Kingdom."
+        owner: "&eThe current owner of kingdom &l%kingdom%&e is &l%owner%&e."
+        not-a-valid-player: "&cPlayer %input% is not a valid player."
+        never-played: "&cPlayer %input% has never played on this server before."
+        not-in-a-kingdom: "&cPlayer %input% is not in a Kingdom."
+        not-in-a-kingdom: "&cPlayer %input% is not in your Kingdom."
+        new-owner: "&aThe Kingdom's owner is now &l%owner%&a!"
 
 # All messages relating to invading.
 invading:

@@ -82,7 +82,6 @@ public class LandManager extends Manager {
 		this.forbidden.addAll(configuration.getStringList("kingdoms.forbidden-inventories"));
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public void initalize() {
 		this.worldGuardManager = instance.getExternalManager("worldguard", WorldGuardManager.class);
@@ -131,7 +130,7 @@ public class LandManager extends Manager {
 			String timeString = configuration.getString("taxes.interval", "2 hours");
 			long time = IntervalUtils.getInterval(timeString) * 20;
 			int amount = configuration.getInt("taxes.amount", 10);
-			Bukkit.getScheduler().scheduleAsyncRepeatingTask(instance, new Runnable() {
+			Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 				@Override
 				public void run() {
 					Kingdoms.debugMessage("Land taxes executing...");
@@ -143,22 +142,22 @@ public class LandManager extends Manager {
 					boolean disband = configuration.getBoolean("taxes.disband-cant-afford", false);
 					for (Land land : Collections.unmodifiableMap(lands).values()) {
 						Optional<OfflineKingdom> optional = land.getKingdomOwner();
-						if (!optional.isPresent()) {
-							OfflineKingdom kingdom = optional.get();
-							long resourcePoints = kingdom.getResourcePoints();
-							if (resourcePoints < amount && disband) {
-								new MessageBuilder("taxes.disband")
-										.toPlayers(Bukkit.getOnlinePlayers())
-										.replace("%amount%", amount)
-										.setKingdom(kingdom)
-										.send();
-								kingdomManager.deleteKingdom(kingdom.getName());
-								return;
-							}
-							kingdom.setResourcePoints(resourcePoints - amount);
-							if (configuration.getBoolean("taxes.reverse", false))
-								kingdom.setResourcePoints(resourcePoints + (amount * 2));
+						if (!optional.isPresent())
+							continue;
+						OfflineKingdom kingdom = optional.get();
+						long resourcePoints = kingdom.getResourcePoints();
+						if (resourcePoints < amount && disband) {
+							new MessageBuilder("taxes.disband")
+									.toPlayers(Bukkit.getOnlinePlayers())
+									.replace("%amount%", amount)
+									.setKingdom(kingdom)
+									.send();
+							kingdomManager.deleteKingdom(kingdom.getName());
+							return;
 						}
+						kingdom.subtractResourcePoints(amount);
+						if (configuration.getBoolean("taxes.reverse", false))
+							kingdom.addResourcePoints(amount * 2);
 					}
 				}
 			}, time, time);

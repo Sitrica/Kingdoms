@@ -63,6 +63,25 @@ plugin:
     # The max length in characters the lore can be.
     # Set to -1 to have no limit.
     max-lore-length: 64
+    # Configure PlaceholderAPI returns.
+    # You can use all of Kingdoms configuration placeholders here, KingdomPlayer, Kingdom if found etc.
+    placeholder-api:
+        # If Kingdoms should register all possible placeholders to PlaceholderAPI.
+        # These are internal Placeholders used by Kingdoms in configurations.
+        kingdom-placeholders: true
+        # When the player returns null and the Kingdom placeholder requires it.
+        player-null: ""
+        # When the player has no Kingdom.
+        no-kingdom: "<none>"
+        kingdom: "%kingdom%"
+        resource-points: "%points%"
+        land-at: "%land%
+        offline-members: "%members%"
+        online-members: "%onlinemembers%"
+        online-count: "%onlinecount%"
+        offline-count: "%offlinecount%"
+        owner: "%king%"
+        rank: "%rank%"
 
 # All configurations relating to HolographicDisplays.
 # In order for holograms to be active, you need to install ProtocolLib and HolographicDisplays.

@@ -14,6 +14,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import com.google.common.collect.Sets;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.kingdom.RankPermissions;
@@ -190,6 +191,10 @@ public class RankManager extends Manager {
 		return players.parallelStream()
 				.sorted(Comparator.comparing(OfflineKingdomPlayer::getRank))
 				.collect(Collectors.toList());
+	}
+
+	public String listOnline(Collection<KingdomPlayer> players) {
+		return list(Sets.newHashSet(players));
 	}
 
 	/**
