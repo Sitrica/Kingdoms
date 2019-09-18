@@ -56,6 +56,8 @@ public class InventoryManager extends Manager {
 		UUID uuid = player.getUniqueId();
 		if (!opened.containsKey(uuid))
 			return;
+		if (event.isShiftClick())
+			event.setCancelled(true);
 		Inventory clicked = event.getClickedInventory();
 		if (clicked == null)
 			return;

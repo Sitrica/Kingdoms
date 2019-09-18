@@ -279,6 +279,7 @@ public class MessageBuilder {
 			for (String syntax : placeholder.getSyntaxes()) {
 				if (!input.toLowerCase().contains(syntax.toLowerCase()))
 					continue;
+				syntax = syntax.replace(Pattern.quote("\\"), "");
 				if (placeholder instanceof SimplePlaceholder) {
 					SimplePlaceholder simple = (SimplePlaceholder) placeholder;
 					input = input.replaceAll(Pattern.quote(syntax), simple.get());

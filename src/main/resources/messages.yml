@@ -528,6 +528,13 @@ commands:
         not-in-a-kingdom: "&cPlayer %input% is not in a Kingdom."
         not-in-a-kingdom: "&cPlayer %input% is not in your Kingdom."
         new-owner: "&aThe Kingdom's owner is now &l%owner%&a!"
+    nexus:
+        description: "Owners can move the Nexus's location."
+        syntax: "/k nexus"
+        no-kingdom: "&cYou are not apart of any Kingdom."
+        move: "&eYou have entered nexus moving mode, to cancel left click, to confirm nexus place right click the ground. Leaving the chunk will cancel. (can only move chunk lengths at a time)"
+        actionbar: "&cCurrently in Nexus placing mode"
+        not-nexus: "&cThe land you're at is not the nexus land."
 
 # All messages relating to invading.
 invading:

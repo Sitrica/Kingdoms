@@ -17,7 +17,7 @@ public class ActionbarManager extends Manager {
 
 	public ActionbarManager() {
 		super(false);
-		this.classes = Utils.classExists("net.md_5.bungee.api.ChatMessageType") && Utils.classExists("net.md_5.bungee.api.chat.TextComponent");
+		this.classes = Utils.classExists("net.md_5.bungee.api.ChatMessageType") && Utils.classExists("net.md_5.bungee.api.chat.BaseComponent");
 		if (!classes) {
 			method = false;
 			return;

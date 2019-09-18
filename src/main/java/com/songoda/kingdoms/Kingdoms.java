@@ -13,6 +13,7 @@ import com.songoda.kingdoms.manager.ExternalManager;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.ManagerHandler;
 import com.songoda.kingdoms.objects.ManagerOptional;
+import com.songoda.kingdoms.placeholders.PlaceholderAPI;
 import com.songoda.kingdoms.utils.ConfigurationSaver;
 import com.songoda.kingdoms.utils.Formatting;
 
@@ -64,6 +65,8 @@ public class Kingdoms extends JavaPlugin {
 		getCommand("kingdomsaction").setExecutor(actions);
 		KingdomsAPI.setInstance(this);
 		new Metrics(this);
+		if	(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null)
+			new PlaceholderAPI(this).register();
 		consoleMessage("Kingdoms has been enabled");
 	}
 

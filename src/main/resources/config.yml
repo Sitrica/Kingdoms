@@ -352,6 +352,10 @@ kingdoms:
     # Users can use %newline% or %nl% to make line breaks in their Kingdom lores.
     # This limits how many new lines they're allowed. The more lines the longer the chat message can be.
     new-lines: 4
+    # If players should have the nexus move action bar message.
+    nexus-move-actionbar: true
+    # If there should be a ghost block displaying where the nexus will be placed.
+    nexus-move-ghost-block: true
     # Configurations about invading.
     invading:
         # Should players not be allowed to leave a Kingdoms land if they're invading?

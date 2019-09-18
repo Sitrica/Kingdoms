@@ -10,6 +10,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -50,6 +52,38 @@ public class NexusManager extends Manager {
 	@Override
 	public void initalize() {
 		this.worldGuardManager = instance.getExternalManager("worldguard", WorldGuardManager.class);
+		if (!instance.getConfig().getBoolean("kingdoms.nexus-move-actionbar", true))
+			return;
+		Bukkit.getScheduler().runTaskTimer(instance, () -> {
+			placing.parallelStream()
+					.map(uuid -> instance.getManager(PlayerManager.class).getKingdomPlayer(uuid))
+					.filter(optional -> optional.isPresent())
+					.map(optional -> optional.get())
+					.filter(kingdomPlayer -> kingdomPlayer.hasKingdom())
+					.forEach(kingdomPlayer -> {
+							Player player = kingdomPlayer.getPlayer();
+							if (instance.getConfig().getBoolean("kingdoms.nexus-move-ghost-block", true))
+								new MessageBuilder(false, "commands.nexus.actionbar")
+										.setPlaceholderObject(kingdomPlayer)
+										.sendActionbar(player);
+							Block block = player.getTargetBlockExact(5);
+							if (block == null)
+								return;
+							Block ghostBlock = block.getRelative(BlockFace.UP);
+							Location location = ghostBlock.getLocation();
+							if (location.getBlockY() > player.getLocation().getY() + 1)
+								return;
+							Land land = instance.getManager(LandManager.class).getLandAt(block.getLocation());
+							BlockData error = Bukkit.createBlockData(Material.REDSTONE_BLOCK);
+							if (!land.hasOwner())
+								Bukkit.getScheduler().runTaskAsynchronously(instance, () -> player.sendBlockChange(location, error));
+							else if (!land.getKingdomName().equalsIgnoreCase(kingdomPlayer.getKingdom().getName()))
+								Bukkit.getScheduler().runTaskAsynchronously(instance, () -> player.sendBlockChange(location, error));
+							else
+								Bukkit.getScheduler().runTaskAsynchronously(instance, () -> player.sendBlockChange(location, Bukkit.createBlockData(StructureType.NEXUS.getBlockMaterial())));
+							Bukkit.getScheduler().runTaskLaterAsynchronously(instance, () -> player.sendBlockChange(location, ghostBlock.getBlockData()), 5);
+						});
+		}, 0, 10);
 	}
 
 	public void startNexusSet(UUID uuid) {
@@ -77,11 +111,11 @@ public class NexusManager extends Manager {
 		placing.remove(uuid);
 	}
 
-	// Part of this is handled in the StructureManager
+	// Used for moving
 	public void onNexusPlace(PlayerInteractEvent event, Block block, Player player, Kingdom kingdom, Land land) {
 		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		UUID uuid = player.getUniqueId();
-		if (!placing.contains(uuid))
+		if (!placing.contains(uuid) || kingdom == null)
 			return;
 		if (worldGuardManager.isPresent())
 			if (!worldGuardManager.get().canBuild(player, block.getLocation())) {
@@ -104,7 +138,8 @@ public class NexusManager extends Manager {
 			return;
 		Location nexus = kingdom.getNexusLocation();
 		if (nexus != null) {
-			Land previousNexus = instance.getManager(LandManager.class).getLand(nexus.getChunk());
+			LandManager landManager = instance.getManager(LandManager.class);
+			Land previousNexus = landManager.getLand(nexus.getChunk());
 			NexusMoveEvent move = new NexusMoveEvent(kingdomPlayer, kingdom, block.getLocation(), nexus, land, previousNexus);
 			Bukkit.getPluginManager().callEvent(move);
 			if (move.isCancelled()) {
@@ -245,14 +280,31 @@ public class NexusManager extends Manager {
 		event.setCancelled(true);
 	}
 
+	@EventHandler
 	public void onNexusClick(PlayerInteractEvent event) {
+		Player player = event.getPlayer();
 		Block block = event.getClickedBlock();
-		if (block.getType() != StructureType.NEXUS.getBlockMaterial())
+		// Was a client side block.
+		if (block == null)
 			return;
+		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
+		if (block.getType() != StructureType.NEXUS.getBlockMaterial()) {
+			// Handle nexus moving.
+			if (event.getAction() == Action.RIGHT_CLICK_BLOCK && placing.contains(player.getUniqueId())) {
+				if (!block.hasMetadata(StructureType.NEXUS.getMetaData())) {
+					Land land = instance.getManager(LandManager.class).getLandAt(block.getLocation());
+					Kingdom kingdom = kingdomPlayer.getKingdom();
+					if (kingdom != null && land.hasOwner() && land.getKingdomName().equalsIgnoreCase(kingdom.getName())) {
+						Block above = block.getRelative(BlockFace.UP);
+						if (above.getType() == Material.AIR)
+							onNexusPlace(event, block.getRelative(BlockFace.UP), player, kingdom, land);
+					}
+				}
+			}
+			return;
+		}
 		if (!block.hasMetadata(StructureType.NEXUS.getMetaData()))
 			return;
-		Player player = event.getPlayer();
-		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		event.setCancelled(true);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null) {
@@ -264,16 +316,14 @@ public class NexusManager extends Manager {
 		Land land = instance.getManager(LandManager.class).getLand(block.getChunk());
 		Optional<OfflineKingdom> optional = land.getKingdomOwner();
 		if (!optional.isPresent()) {
-			block.setType(Material.AIR);
+			breakNexus(land);
 			return;
 		}
 		OfflineKingdom landKingdom = optional.get();
 		NexusInventory inventory = instance.getManager(InventoryManager.class).getInventory(NexusInventory.class);
 		if (landKingdom.isAllianceWith(kingdom)) {
 			inventory.openDonateInventory(landKingdom, kingdomPlayer);
-		} else if (landKingdom.equals(kingdom)) {
-			inventory.open(kingdomPlayer);
-		} else {
+		} else if (!landKingdom.equals(kingdom)) {
 			new MessageBuilder("kingdoms.cannot-use-others-nexus")
 					.setPlaceholderObject(kingdomPlayer)
 					.setKingdom(landKingdom)

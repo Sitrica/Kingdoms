@@ -17,9 +17,8 @@ public class VaultManager extends ExternalManager {
 		if (!instance.getServer().getPluginManager().isPluginEnabled("Vault"))
 			return;
 		RegisteredServiceProvider<Economy> rsp = Bukkit.getServicesManager().getRegistration(Economy.class);
-		if (rsp != null) {
+		if (rsp != null)
 			economy = rsp.getProvider();
-		}
 	}
 
 	public void withdraw(OfflinePlayer player, double amount) {

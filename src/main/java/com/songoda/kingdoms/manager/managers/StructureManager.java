@@ -339,10 +339,6 @@ public class StructureManager extends Manager {
 					.send(player);
 			return;
 		}
-		if (type == StructureType.NEXUS) { // This is handled in the NexusManager since it signifies the start of a Kingdom.
-			nexusManager.onNexusPlace(event, block, player, kingdom, land);
-			return;
-		}
 		if (!kingdomPlayer.hasAdminMode() && !kingdom.getPermissions(kingdomPlayer.getRank()).canBuildStructures()) {
 			new MessageBuilder("kingdoms.rank-too-low-structure-build")
 				.withPlaceholder(kingdom.getLowestRankFor(rank -> rank.canBuildStructures()), new Placeholder<Optional<Rank>>("%rank%") {

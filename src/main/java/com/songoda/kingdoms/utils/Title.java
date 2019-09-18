@@ -8,11 +8,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class Title {
-	
+
+	private static final boolean spigot = Utils.methodExists(Player.class, "sendTitle", String.class, String.class, int.class, int.class, int.class);
 	private static Class<?> chatComponentDeclared = getNMSClass("IChatBaseComponent").getDeclaredClasses()[0];
 	private static Class<?> packetPlayOutTitle = getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0];
 	private static Class<?> chatComponent = getNMSClass("IChatBaseComponent");
-	
+
 	private static Class<?> getNMSClass(String name) {
 		String version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
 		try {
@@ -34,6 +35,10 @@ public class Title {
 	}
 
 	public static void sendTitle(Player player, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+		if (spigot) {
+			player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
+			return;
+		}
 		try {
 			Object chatTitle, chatSubtitle, titlePacket, subtitlePacket;
 			Constructor<?> subtitleConstructor;
