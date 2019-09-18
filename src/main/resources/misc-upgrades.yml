@@ -82,4 +82,4 @@ misc-upgrades:
         material-meta: ""
         cost: 250
         description:
-            - "&7Killing non-players on your land yields x3 experience."
+            - "&7Killing anything on your land yields x3 experience."

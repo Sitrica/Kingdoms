@@ -101,10 +101,12 @@ public class CommandInvite extends AbstractCommand {
 		new MessageBuilder("commands.invite.invited")
 				.setPlaceholderObject(kingdomPlayer)
 				.replace("%input%", name)
+				.setKingdom(kingdom)
 				.send(kingdomPlayer.getKingdom().getOnlinePlayers());
 		new ListMessageBuilder(false, "commands.invite.invite")
 				.setPlaceholderObject(kingdomPlayer)
 				.replace("%input%", name)
+				.setKingdom(kingdom)
 				.send(target);
 		return ReturnType.SUCCESS;
 	}

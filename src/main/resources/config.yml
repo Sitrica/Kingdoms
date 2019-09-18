@@ -75,7 +75,7 @@ plugin:
         no-kingdom: "<none>"
         kingdom: "%kingdom%"
         resource-points: "%points%"
-        land-at: "%land%
+        land-at: "%land%"
         offline-members: "%members%"
         online-members: "%onlinemembers%"
         online-count: "%onlinecount%"

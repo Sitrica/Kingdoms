@@ -413,7 +413,7 @@ commands:
         player-in-another-kingdom: "&cThe player &l%input%&c is already in another Kingdom."
         already-in-kingdom: "&cThe player &l%input%&c is already in your Kingdom."
         invited-already: "&cThe player &l%input%&c has already been invited to the Kingdom."
-        invited: "&eThe member &l%player%&e has invited &l%input%&c to the Kingdom."
+        invited: "&eThe member &l%player%&e has invited &l%input%&e to the Kingdom."
         already: "&cYou have already invited user %input%."
         invite:
             - ""
@@ -423,6 +423,19 @@ commands:
     accept:
         no-invite: "&cYou currently have no pending invite."
         joined: "&aThe user %player% has successfully joined the Kingdom!"
+        # Popups are 1.12+ toasts, the icon that shows where you made an advancement.
+        popup:
+            enabled: true
+            # If the player's version is below 1.12 it will send a title instead.
+            # Should titles only display to 1.12+ players and up.
+            no-title: true
+            # The message that will display.
+            message: "&e%player% has joined the Kingdom"
+            # The icon material. https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+            material: "CAKE"
+            # The background type of the toast popup. Types are ADVENTURE, END, HUSBANDRY, NETHER, and STONE.
+            # ADVENTURE will default if this is not set.
+            background: "ADVENTURE"
     chat:
         description: "Change your chat channel."
         syntax: "/k chat [<channel>]"

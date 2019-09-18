@@ -29,10 +29,20 @@ public class CommandResourcePoints extends AdminCommand {
 			return ReturnType.SYNTAX_ERROR;
 		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		String function = arguments[0];
-		int amount = Integer.parseInt(arguments[1]);
+		int amount;
+		try {
+			amount = Integer.parseInt(arguments[1]);
+		} catch (NumberFormatException e) {
+			new MessageBuilder("commands.resource-points.not-valid-amount")
+					.setPlaceholderObject(kingdomPlayer)
+					.replace("%number%", arguments[1])
+					.send(kingdomPlayer);
+			return ReturnType.FAILURE;
+		}
 		if (amount < 0 || !function.equals("set") && amount == 0) {
 			new MessageBuilder("commands.resource-points.not-valid-amount")
 					.setPlaceholderObject(kingdomPlayer)
+					.replace("%number%", arguments[1])
 					.send(kingdomPlayer);
 			return ReturnType.FAILURE;
 		}

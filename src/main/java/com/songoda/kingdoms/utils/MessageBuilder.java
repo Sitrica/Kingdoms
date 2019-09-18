@@ -71,6 +71,11 @@ public class MessageBuilder {
 		this.nodes = nodes;
 	}
 
+	public MessageBuilder addPlaceholders(Map<Placeholder<?>, Object> existing) {
+		placeholders.putAll(existing);
+		return this;
+	}
+
 	/**
 	 * Set the players to send this message to.
 	 *

@@ -53,12 +53,12 @@ public class InventoryManager extends Manager {
 	@EventHandler
 	public void onInventoryClick(InventoryClickEvent event) {
 		Player player = (Player) event.getWhoClicked();
-		if (event.getCurrentItem() == null)
-			return;
 		UUID uuid = player.getUniqueId();
 		if (!opened.containsKey(uuid))
 			return;
 		Inventory clicked = event.getClickedInventory();
+		if (clicked == null)
+			return;
 		event.setCancelled(true);
 		if (event.getRawSlot() >= clicked.getSize())
 			return;

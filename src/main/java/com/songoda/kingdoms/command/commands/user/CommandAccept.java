@@ -16,6 +16,7 @@ import com.songoda.kingdoms.manager.managers.RankManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.utils.MessageBuilder;
+import com.songoda.kingdoms.utils.PopupBuilder;
 
 public class CommandAccept extends AbstractCommand {
 
@@ -44,6 +45,10 @@ public class CommandAccept extends AbstractCommand {
 		MemberJoinEvent event = new MemberJoinEvent(kingdomPlayer, kingdom);
 		Bukkit.getPluginManager().callEvent(event);
 		new MessageBuilder("commands.accept.joined")
+				.setPlaceholderObject(kingdomPlayer)
+				.setKingdom(kingdom)
+				.send(kingdom.getOnlinePlayers());
+		new PopupBuilder("commands.accept.popup")
 				.setPlaceholderObject(kingdomPlayer)
 				.setKingdom(kingdom)
 				.send(kingdom.getOnlinePlayers());
