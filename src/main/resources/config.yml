@@ -315,9 +315,9 @@ kingdoms:
             fadeOut: 20
             fadeIn: 20
             stay: 50
-    # Messages that happen when a player walks into an allience's kingdom.
+    # Messages that happen when a player walks into an alliance's kingdom.
     # Placeholders: %world%, %chunk%, %player%, %kingdom%, %color% and %lore% - Lore is the Kingdoms description and color is the relation.
-    land-enter-allience:
+    land-enter-alliance:
         actionbar: true
         # Chat messages for this one will display the lore of the Kingdom.
         message: true
@@ -374,7 +374,6 @@ disallowed-kingdom-names:
 - arse
 - asian
 - ass
-- ball
 - bang
 - barely ?legal
 - bastard

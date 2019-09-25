@@ -52,8 +52,6 @@ public class NexusManager extends Manager {
 	@Override
 	public void initalize() {
 		this.worldGuardManager = instance.getExternalManager("worldguard", WorldGuardManager.class);
-		if (!instance.getConfig().getBoolean("kingdoms.nexus-move-actionbar", true))
-			return;
 		Bukkit.getScheduler().runTaskTimer(instance, () -> {
 			placing.parallelStream()
 					.map(uuid -> instance.getManager(PlayerManager.class).getKingdomPlayer(uuid))
@@ -62,10 +60,12 @@ public class NexusManager extends Manager {
 					.filter(kingdomPlayer -> kingdomPlayer.hasKingdom())
 					.forEach(kingdomPlayer -> {
 							Player player = kingdomPlayer.getPlayer();
-							if (instance.getConfig().getBoolean("kingdoms.nexus-move-ghost-block", true))
+							if (instance.getConfig().getBoolean("kingdoms.nexus-move-actionbar", true))
 								new MessageBuilder(false, "commands.nexus.actionbar")
 										.setPlaceholderObject(kingdomPlayer)
 										.sendActionbar(player);
+							if (!instance.getConfig().getBoolean("kingdoms.nexus-move-ghost-block", true))
+								return;
 							Block block = player.getTargetBlockExact(5);
 							if (block == null)
 								return;

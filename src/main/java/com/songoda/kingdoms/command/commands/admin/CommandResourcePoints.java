@@ -2,6 +2,7 @@ package com.songoda.kingdoms.command.commands.admin;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -68,7 +69,7 @@ public class CommandResourcePoints extends AdminCommand {
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		switch (function) {
+		switch (function.toLowerCase(Locale.US)) {
 			case "subtract":
 			case "remove":
 				kingdoms.forEach(kingdom -> kingdom.subtractResourcePoints(amount));
@@ -99,7 +100,7 @@ public class CommandResourcePoints extends AdminCommand {
 						.send(kingdomPlayer);
 				break;
 		}
-		return ReturnType.SUCCESS;
+		return ReturnType.FAILURE;
 	}
 
 	@Override

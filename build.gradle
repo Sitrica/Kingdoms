@@ -25,7 +25,7 @@ repositories {
 
 	// Bungeecord
 	maven {
-		url "https://oss.sonatype.org/content/repositories/snapshots/"
+		url 'https://oss.sonatype.org/content/repositories/snapshots/'
 	}
 
 	// HolographicDisplays
@@ -35,12 +35,12 @@ repositories {
 
 	// AnvilGUI
 	maven {
-		url "https://nexus.wesjd.net/repository/thirdparty/"
+		url 'https://nexus.wesjd.net/repository/thirdparty/'
 	}
 
 	// Songoda
 	maven {
-		url "http://repo.songoda.com/artifactory/private/"
+		url 'http://repo.songoda.com/artifactory/private/'
 	}
 
 	// EffectLib

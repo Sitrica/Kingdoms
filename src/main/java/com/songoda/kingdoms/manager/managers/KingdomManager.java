@@ -1,6 +1,7 @@
 package com.songoda.kingdoms.manager.managers;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
@@ -26,6 +27,7 @@ import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
+import com.google.common.collect.Sets;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.Database;
 import com.songoda.kingdoms.events.KingdomCreateEvent;
@@ -58,6 +60,7 @@ public class KingdomManager extends Manager {
 					public Optional<OfflineKingdom> load(String name) {
 						if (name == null)
 							return Optional.empty();
+						name = name.toLowerCase(Locale.US);
 						Kingdoms.debugMessage("Loading offline kingdom: " + name);
 						OfflineKingdom databaseKingdom = database.get(name);
 						if (databaseKingdom == null) {
@@ -98,6 +101,7 @@ public class KingdomManager extends Manager {
 			database = getMySQLDatabase(table, OfflineKingdom.class);
 		else
 			database = getFileDatabase(table, OfflineKingdom.class);
+		Sets.newConcurrentHashSet(database.getKeys()).forEach(key -> database.put(key.toLowerCase(Locale.US), database.get(key)));
 		if (configuration.getBoolean("database.auto-save.enabled")) {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
 			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, () -> saveAll(), 0, IntervalUtils.getInterval(interval) * 20);
@@ -110,7 +114,7 @@ public class KingdomManager extends Manager {
 		Kingdoms.debugMessage("Saving Kingdom: " + name);
 		if (cooldowns.isInCooldown(kingdom, "attackcd"))
 			kingdom.setInvasionCooldown(cooldowns.getTimeLeft(kingdom, "attackcd"));
-		database.put(name, kingdom);
+		database.put(name.toLowerCase(Locale.US), kingdom);
 	}
 
 	private void saveAll() {
@@ -166,7 +170,7 @@ public class KingdomManager extends Manager {
 		Kingdom kingdom = new Kingdom(other);
 		String name = other.getName();
 		Kingdoms.debugMessage("Converting offline kingdom to online kingdom: " + name);
-		cache.put(name, CompletableFuture.completedFuture(Optional.of(kingdom)));
+		cache.put(name.toLowerCase(Locale.US), CompletableFuture.completedFuture(Optional.of(kingdom)));
 		return kingdom;
 	}
 
@@ -186,7 +190,7 @@ public class KingdomManager extends Manager {
 		Kingdoms.debugMessage("Fetching info for online kingdom: " + name);
 		Optional<OfflineKingdom> optional;
 		try {
-			optional = cache.get(name).get(5, TimeUnit.SECONDS);
+			optional = cache.get(name.toLowerCase(Locale.US)).get(5, TimeUnit.SECONDS);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			return Optional.empty();
 		}
@@ -204,7 +208,7 @@ public class KingdomManager extends Manager {
 	 */
 	public Optional<OfflineKingdom> getOfflineKingdom(String name) {
 		try {
-			return cache.get(name).get(5, TimeUnit.SECONDS);
+			return cache.get(name.toLowerCase(Locale.US)).get(5, TimeUnit.SECONDS);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			return Optional.empty();
 		}
@@ -219,7 +223,7 @@ public class KingdomManager extends Manager {
 		Bukkit.getPluginManager().callEvent(event);
 		instance.getServer().getScheduler().scheduleSyncDelayedTask(instance, () -> {
 			if (kingdom.getOnlinePlayers().isEmpty())
-				cache.synchronous().invalidate(kingdom.getName());
+				cache.synchronous().invalidate(kingdom.getName().toLowerCase(Locale.US));
 		}, 1);
 	}
 
@@ -230,7 +234,7 @@ public class KingdomManager extends Manager {
 	 * @return true if online/loaded; false if not.
 	 */
 	public boolean isOnline(OfflineKingdom kingdom) {
-		return Optional.ofNullable(cache.getIfPresent(kingdom.getName()))
+		return Optional.ofNullable(cache.getIfPresent(kingdom.getName().toLowerCase(Locale.US)))
 				.map(future -> {
 					try {
 						return future.get(5, TimeUnit.SECONDS);
@@ -262,7 +266,7 @@ public class KingdomManager extends Manager {
 			return false;
 		Optional<OfflineKingdom> optional;
 		try {
-			optional = cache.get(name).get(5, TimeUnit.SECONDS);
+			optional = cache.get(name.toLowerCase(Locale.US)).get(5, TimeUnit.SECONDS);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			optional = Optional.empty();
 		}
@@ -303,7 +307,7 @@ public class KingdomManager extends Manager {
 	public Kingdom createNewKingdom(String name, KingdomPlayer owner) {
 		Kingdom kingdom = new Kingdom(owner, name);
 		database.put(kingdom.getName(), kingdom);
-		cache.put(name, CompletableFuture.completedFuture(Optional.of(kingdom)));
+		cache.put(name.toLowerCase(Locale.US), CompletableFuture.completedFuture(Optional.of(kingdom)));
 		String interval = configuration.getString("kingdoms.base-shield-time", "5 minutes");
 		kingdom.setShieldTime(IntervalUtils.getInterval(interval));
 		updateUpgrades(kingdom);

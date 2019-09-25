@@ -27,6 +27,7 @@ import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.PlayerChangeChunkEvent;
+import com.songoda.kingdoms.manager.managers.InvadingManager;
 import com.songoda.kingdoms.objects.Defender;
 import com.songoda.kingdoms.objects.kingdom.DefenderInfo;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
@@ -214,6 +215,7 @@ public abstract class InvasionMechanic<M extends InvasionTrigger> implements Lis
 				.filter(optional -> optional.isPresent())
 				.forEach(optional -> optional.get().remove());
 		defenders.removeAll(target);
+		Kingdoms.getInstance().getManager(InvadingManager.class).stopInvasion(reason, invasion);;
 	}
 
 	/**

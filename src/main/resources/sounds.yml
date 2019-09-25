@@ -70,3 +70,13 @@ invading:
                 volume: 1.0
                 pitch: 4
                 delay: 20
+
+# Error sound effect
+error:
+    enabled: true
+    sounds:
+        1:
+            sound: "ENTITY_VILLAGER_NO"
+            volume: 1
+            pitch: 2
+            delay: 0

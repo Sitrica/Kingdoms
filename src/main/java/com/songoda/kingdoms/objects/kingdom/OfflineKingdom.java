@@ -348,6 +348,10 @@ public class OfflineKingdom {
 				.collect(Collectors.toSet());
 	}
 
+	public Rank getHighestRank() {
+		return getSortedRanks().get(0);
+	}
+
 	public void addAlliance(OfflineKingdom kingdom) {
 		addAlliance(kingdom.getName());
 	}

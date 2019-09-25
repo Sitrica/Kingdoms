@@ -13,26 +13,29 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 import com.songoda.kingdoms.Kingdoms;
-import com.songoda.kingdoms.objects.player.KingdomPlayer;
 
 public class SoundPlayer {
 
 	private final Set<KingdomSound> sounds = new HashSet<>();
-	private final Kingdoms instance;
 
-	public SoundPlayer(String path) {
-		this(Kingdoms.getInstance().getConfiguration("sounds").get().getConfigurationSection(path));
+	public SoundPlayer(String node) {
+		this(Kingdoms.getInstance().getConfiguration("sounds").get().getConfigurationSection(node));
 	}
 
 	public SoundPlayer(ConfigurationSection section) {
+		if (!section.getBoolean("enabled", true))
+			return;
+		if (!section.isConfigurationSection("sounds")) {
+			Kingdoms.debugMessage("There was no 'sounds' configuration section at " + section.getCurrentPath() + ".sounds");
+			return;
+		}
+		section = section.getConfigurationSection("sounds");
 		for (String node : section.getKeys(false)) {
 			this.sounds.add(new KingdomSound(section.getConfigurationSection(node), "CLICK"));
 		}
-		this.instance = Kingdoms.getInstance();
 	}
 
 	public SoundPlayer(Collection<KingdomSound> sounds) {
-		this.instance = Kingdoms.getInstance();
 		this.sounds.addAll(sounds);
 	}
 
@@ -42,15 +45,10 @@ public class SoundPlayer {
 				.collect(Collectors.toList());
 	}
 
-	public void play(Collection<KingdomPlayer> players) {
-		players.parallelStream()
-				.map(player -> player.getPlayer())
-				.forEach(player -> playTo(player));
-	}
-
 	public void playAt(Location... locations) {
 		if (sounds.isEmpty())
 			return;
+		Kingdoms instance = Kingdoms.getInstance();
 		for (KingdomSound sound : getSorted()) {
 			Bukkit.getScheduler().scheduleSyncDelayedTask(instance, new Runnable() {
 				@Override
@@ -61,9 +59,14 @@ public class SoundPlayer {
 		}
 	}
 
+	public void playTo(Collection<Player> players) {
+		playTo(players.stream().toArray(size -> new Player[size]));
+	}
+
 	public void playTo(Player... player) {
 		if (sounds.isEmpty())
 			return;
+		Kingdoms instance = Kingdoms.getInstance();
 		for (KingdomSound sound : getSorted()) {
 			Bukkit.getScheduler().scheduleSyncDelayedTask(instance, new Runnable() {
 				@Override

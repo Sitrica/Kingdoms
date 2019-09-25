@@ -32,7 +32,6 @@ public class MembersMenu extends PagesInventory {
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null)
 			return items;
-		RankManager rankManager = instance.getManager(RankManager.class);
 		for (OfflineKingdomPlayer player : instance.getManager(RankManager.class).sortByRanks(kingdom.getMembers())) {
 			ItemStack item = new ItemStackBuilder("inventories.members.player-item")
 					.replace("%gui-format%", getPrefix(kingdomPlayer))
@@ -51,14 +50,14 @@ public class MembersMenu extends PagesInventory {
 				Rank rank = player.getRank();
 				if (event.isLeftClick()) {
 					Rank next = kingdom.getNextRank(rank);
-					if (next.isEqualTo(rankManager.getOwnerRank())) {
+					if (next.isEqualTo(kingdom.getHighestRank())) {
 						new MessageBuilder("kingdoms.owner-transfer-command-only")
 								.setPlaceholderObject(player)
 								.setKingdom(kingdom)
 								.send(kingdomPlayer);
 						return;
 					}
-					if (!rank.isEqualTo(rankManager.getOwnerRank()) && next.isHigherThan(rank)) {
+					if (next.isHigherThan(rank) && player.equals(kingdomPlayer)) {
 						new MessageBuilder("kingdoms.cant-promote-self")
 								.setPlaceholderObject(player)
 								.setKingdom(kingdom)

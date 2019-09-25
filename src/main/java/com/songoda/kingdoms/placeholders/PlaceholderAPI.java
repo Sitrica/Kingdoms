@@ -105,42 +105,42 @@ public class PlaceholderAPI extends PlaceholderExpansion {
 	public String onPlaceholderRequest(Player player, String identifier) {
 		PlayerManager playerManager = instance.getManager(PlayerManager.class);
 		if (player == null)
-			return new MessageBuilder("plugin.placeholder-api.player-null")
+			return new MessageBuilder(false, "plugin.placeholder-api.player-null")
 					.fromConfiguration(instance.getConfig())
 					.get();
 		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
-		switch (identifier) {
+		switch (identifier.toLowerCase()) {
 			case "kingdom":
 				if (kingdom == null)
-					return new MessageBuilder("plugin.placeholder-api.no-kingdom")
+					return new MessageBuilder(false, "plugin.placeholder-api.no-kingdom")
 							.fromConfiguration(instance.getConfig())
 							.setPlaceholderObject(kingdomPlayer)
 							.get();
-				return new MessageBuilder("plugin.placeholder-api.kingdom")
+				return new MessageBuilder(false, "plugin.placeholder-api.kingdom")
 						.fromConfiguration(instance.getConfig())
 						.setPlaceholderObject(kingdomPlayer)
 						.setKingdom(kingdom)
 						.get();
-			case "hasKingdom":
+			case "haskingdom":
 				return (kingdom != null) + "";
 			case "rp":
 			case "points":
-			case "resourcePoints":
+			case "resourcepoints":
 				if (kingdom == null)
-					return new MessageBuilder("plugin.placeholder-api.no-kingdom")
+					return new MessageBuilder(false, "plugin.placeholder-api.no-kingdom")
 							.fromConfiguration(instance.getConfig())
 							.setPlaceholderObject(kingdomPlayer)
 							.get();
-				return new MessageBuilder("plugin.placeholder-api.resource-points")
+				return new MessageBuilder(false, "plugin.placeholder-api.resource-points")
 						.fromConfiguration(instance.getConfig())
 						.setPlaceholderObject(kingdomPlayer)
 						.setKingdom(kingdom)
 						.get();
 			case "land":
-			case "landAt":
+			case "landat":
 				Land land = kingdomPlayer.getLandAt();
-				return new MessageBuilder("plugin.placeholder-api.land-at")
+				return new MessageBuilder(false, "plugin.placeholder-api.land-at")
 						.replace("%land%", LocationUtils.chunkToString(land.getChunk()))
 						.fromConfiguration(instance.getConfig())
 						.setPlaceholderObject(kingdomPlayer)
@@ -148,49 +148,45 @@ public class PlaceholderAPI extends PlaceholderExpansion {
 						.get();
 			case "members":
 			case "offlinemembers":
-			case "offlineMembers":
 				if (kingdom == null)
-					return new MessageBuilder("plugin.placeholder-api.no-kingdom")
+					return new MessageBuilder(false, "plugin.placeholder-api.no-kingdom")
 							.fromConfiguration(instance.getConfig())
 							.setPlaceholderObject(kingdomPlayer)
 							.get();
-				return new MessageBuilder("plugin.placeholder-api.offline-members")
+				return new MessageBuilder(false, "plugin.placeholder-api.offline-members")
 						.fromConfiguration(instance.getConfig())
 						.setPlaceholderObject(kingdomPlayer)
 						.setKingdom(kingdom)
 						.get();
 			case "onlinemembers":
-			case "onlineMembers":
 				if (kingdom == null)
-					return new MessageBuilder("plugin.placeholder-api.no-kingdom")
+					return new MessageBuilder(false, "plugin.placeholder-api.no-kingdom")
 							.fromConfiguration(instance.getConfig())
 							.setPlaceholderObject(kingdomPlayer)
 							.get();
-				return new MessageBuilder("plugin.placeholder-api.online-members")
+				return new MessageBuilder(false, "plugin.placeholder-api.online-members")
 						.fromConfiguration(instance.getConfig())
 						.setPlaceholderObject(kingdomPlayer)
 						.setKingdom(kingdom)
 						.get();
 			case "onlinecount":
-			case "onlineCount":
 				if (kingdom == null)
-					return new MessageBuilder("plugin.placeholder-api.no-kingdom")
+					return new MessageBuilder(false, "plugin.placeholder-api.no-kingdom")
 							.fromConfiguration(instance.getConfig())
 							.setPlaceholderObject(kingdomPlayer)
 							.get();
-				return new MessageBuilder("plugin.placeholder-api.online-count")
+				return new MessageBuilder(false, "plugin.placeholder-api.online-count")
 						.fromConfiguration(instance.getConfig())
 						.setPlaceholderObject(kingdomPlayer)
 						.setKingdom(kingdom)
 						.get();
 			case "offlinecount":
-			case "offlineCount":
 				if (kingdom == null)
-					return new MessageBuilder("plugin.placeholder-api.no-kingdom")
+					return new MessageBuilder(false, "plugin.placeholder-api.no-kingdom")
 							.fromConfiguration(instance.getConfig())
 							.setPlaceholderObject(kingdomPlayer)
 							.get();
-				return new MessageBuilder("plugin.placeholder-api.offline-count")
+				return new MessageBuilder(false, "plugin.placeholder-api.offline-count")
 						.fromConfiguration(instance.getConfig())
 						.setPlaceholderObject(kingdomPlayer)
 						.setKingdom(kingdom)
@@ -198,22 +194,22 @@ public class PlaceholderAPI extends PlaceholderExpansion {
 			case "king":
 			case "owner":
 				if (kingdom == null)
-					return new MessageBuilder("plugin.placeholder-api.no-kingdom")
+					return new MessageBuilder(false, "plugin.placeholder-api.no-kingdom")
 							.fromConfiguration(instance.getConfig())
 							.setPlaceholderObject(kingdomPlayer)
 							.get();
-				return new MessageBuilder("plugin.placeholder-api.owner")
+				return new MessageBuilder(false, "plugin.placeholder-api.owner")
 						.fromConfiguration(instance.getConfig())
 						.setPlaceholderObject(kingdomPlayer)
 						.setKingdom(kingdom)
 						.get();
 			case "rank":
 				if (kingdom == null)
-					return new MessageBuilder("plugin.placeholder-api.no-kingdom")
+					return new MessageBuilder(false, "plugin.placeholder-api.no-kingdom")
 							.fromConfiguration(instance.getConfig())
 							.setPlaceholderObject(kingdomPlayer)
 							.get();
-				return new MessageBuilder("plugin.placeholder-api.rank")
+				return new MessageBuilder(false, "plugin.placeholder-api.rank")
 						.fromConfiguration(instance.getConfig())
 						.setPlaceholderObject(kingdomPlayer)
 						.setKingdom(kingdom)

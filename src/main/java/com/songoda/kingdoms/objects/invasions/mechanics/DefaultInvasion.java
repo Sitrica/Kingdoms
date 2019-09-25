@@ -217,7 +217,7 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 		if (invasion.getTarget().getClaims().isEmpty())
 			stopInvasion(StopReason.WIN, invasion);
 		String setting = Kingdoms.getInstance().getConfig().getString("invading.mechanics.default.max-time", "50 minutes");
-		return System.currentTimeMillis() - invasion.getStartingTime() < IntervalUtils.getMilliseconds(setting);
+		return System.currentTimeMillis() - invasion.getStartingTime() > IntervalUtils.getMilliseconds(setting);
 	}
 
 }

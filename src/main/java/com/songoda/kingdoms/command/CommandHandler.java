@@ -14,6 +14,7 @@ import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.command.AbstractCommand.ReturnType;
 import com.songoda.kingdoms.command.commands.KingdomsCommand;
 import com.songoda.kingdoms.utils.MessageBuilder;
+import com.songoda.kingdoms.utils.SoundPlayer;
 import com.songoda.kingdoms.utils.Utils;
 
 public class CommandHandler implements CommandExecutor {
@@ -75,6 +76,8 @@ public class CommandHandler implements CommandExecutor {
 				 		.setPlaceholderObject(sender)
 				 		.send(sender);
 			}
+			if (returnType != ReturnType.SUCCESS && sender instanceof Player)
+				new SoundPlayer("error").playTo((Player) sender);
 			return;
 		}
 		new MessageBuilder("messages.no-permission").send(sender);

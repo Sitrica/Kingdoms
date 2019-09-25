@@ -217,23 +217,23 @@ public class PlayerMovementManager extends Manager {
 		ChatColor color = relation.getColor();
 		switch (relation) {
 			case ALLIANCE:
-				if (configuration.getBoolean("kingdoms.land-enter-allience.actionbar", true))
-					new MessageBuilder(false, "chunk-changing.allience-land.actionbar")
+				if (configuration.getBoolean("kingdoms.land-enter-alliance.actionbar", true))
+					new MessageBuilder(false, "chunk-changing.alliance-land.actionbar")
 							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
 							.replace("%player%", player.getName())
 							.replace("%world%", world.getName())
 							.setPlaceholderObject(kingdom)
 							.replace("%color%", color)
 							.sendActionbar(player);
-				if (configuration.getBoolean("kingdoms.land-enter-allience.message", false))
-					new MessageBuilder(false, "chunk-changing.allience-land.message")
+				if (configuration.getBoolean("kingdoms.land-enter-alliance.message", false))
+					new MessageBuilder(false, "chunk-changing.alliance-land.message")
 							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
 							.replace("%player%", player.getName())
 							.replace("%world%", world.getName())
 							.setPlaceholderObject(kingdom)
 							.send(player);
-				if (configuration.getBoolean("kingdoms.land-enter-allience.title.enabled", true))
-					new MessageBuilder(false, "kingdoms.land-enter-allience.title")
+				if (configuration.getBoolean("kingdoms.land-enter-alliance.title.enabled", true))
+					new MessageBuilder(false, "kingdoms.land-enter-alliance.title")
 							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
 							.replace("%player%", player.getName())
 							.replace("%world%", world.getName())

@@ -196,8 +196,10 @@ public class InvadingManager extends Manager {
 		mechanic.callInvade(new CommandTrigger(invasion, land.toInfo(), instigator), instigator);
 	}
 
+	/**
+	 * Should only be called from the DefenderManager and the invasion mechanic.
+	 */
 	public void stopInvasion(StopReason reason, Invasion invasion) {
-		mechanic.stopInvasion(reason, invasion);
 		stopInvasion(reason, invasion.getTarget());
 	}
 
@@ -212,6 +214,7 @@ public class InvadingManager extends Manager {
 			Invasion invasion = iterator.next();
 			if (!invasion.getTarget().equals(target))
 				continue;
+			mechanic.onInvasionStop(reason, invasion);
 			Bukkit.getPluginManager().callEvent(new InvadingStopEvent(reason, invasion));
 			invasion.finish(true);
 			iterator.remove();

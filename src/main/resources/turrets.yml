@@ -141,60 +141,63 @@ turrets:
             # Latest sounds: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html
             use-place-sound: true
             place-sounds:
-                # You can add more by copying this section and changing the 1 to anything. They will be sorted by their delay, and the node name is irrelevent to the sound.
-                1:
-                    sound: "BLOCK_IRON_DOOR_OPEN"
-                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
-                    volume: 1
-                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
-                    pitch: 1
-                    # Delay is in ticks, 20 ticks per second.
-                    delay: 0
+                sounds:
+                    # You can add more by copying this section and changing the 1 to anything. They will be sorted by their delay, and the node name is irrelevent to the sound.
+                    1:
+                        sound: "BLOCK_IRON_DOOR_OPEN"
+                        # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                        volume: 1
+                        # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                        pitch: 1
+                        # Delay is in ticks, 20 ticks per second.
+                        delay: 0
             use-shoot-sound: true
             shoot-sounds:
-                fire:
-                    sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR"
-                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
-                    volume: 0.6
-                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
-                    pitch: 0
-                    # Delay is in ticks, 20 ticks per second.
-                    delay: 0
+                sounds:
+                    fire:
+                        sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR"
+                        # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                        volume: 0.6
+                        # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                        pitch: 0
+                        # Delay is in ticks, 20 ticks per second.
+                        delay: 0
             # The reload sound will be played when the 
             use-reload-sound: true
             reload-sounds:
-                reload-1:
-                    sound: "BLOCK_IRON_DOOR_OPEN"
-                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
-                    volume: 1
-                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
-                    pitch: 1
-                    # Delay is in ticks, 20 ticks per second.
-                    delay: 0
-                reload-2:
-                    sound: "BLOCK_IRON_DOOR_OPEN"
-                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
-                    volume: 1
-                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
-                    pitch: 1
-                    # Delay is in ticks, 20 ticks per second.
-                    delay: 5
-                reload-3:
-                    sound: "BLOCK_IRON_DOOR_CLOSE"
-                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
-                    volume: 1
-                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
-                    pitch: 1
-                    # Delay is in ticks, 20 ticks per second.
-                    delay: 10
-                reload-4:
-                    sound: "BLOCK_IRON_DOOR_CLOSE"
-                    # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
-                    volume: 1
-                    # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
-                    pitch: 1
-                    # Delay is in ticks, 20 ticks per second.
-                    delay: 15
+                sounds:
+                    reload-1:
+                        sound: "BLOCK_IRON_DOOR_OPEN"
+                        # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                        volume: 1
+                        # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                        pitch: 1
+                        # Delay is in ticks, 20 ticks per second.
+                        delay: 0
+                    reload-2:
+                        sound: "BLOCK_IRON_DOOR_OPEN"
+                        # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                        volume: 1
+                        # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                        pitch: 1
+                        # Delay is in ticks, 20 ticks per second.
+                        delay: 5
+                    reload-3:
+                        sound: "BLOCK_IRON_DOOR_CLOSE"
+                        # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                        volume: 1
+                        # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                        pitch: 1
+                        # Delay is in ticks, 20 ticks per second.
+                        delay: 10
+                    reload-4:
+                        sound: "BLOCK_IRON_DOOR_CLOSE"
+                        # Volume goes best up to like 3, use decimals for exact volumes between 0 and 3
+                        volume: 1
+                        # Pitch ranges from 0 to like 16 then it repeats itself infinitly.
+                        pitch: 1
+                        # Delay is in ticks, 20 ticks per second.
+                        delay: 15
             # The item that will represent this turret in inventories.
             item:
                 title: "&bArrow Turret"
@@ -245,50 +248,53 @@ turrets:
             ammo: 4
             use-place-sound: true
             place-sounds:
-                1:
-                    sound: "BLOCK_IRON_DOOR_OPEN"
-                    volume: 1
-                    pitch: 1
-                    delay: 0
+                sounds:
+                    1:
+                        sound: "BLOCK_IRON_DOOR_OPEN"
+                        volume: 1
+                        pitch: 1
+                        delay: 0
             use-shoot-sound: true
             shoot-sounds:
-                fire:
-                    sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR"
-                    volume: 0.6
-                    pitch: 0
-                    delay: 0
-                fire-2:
-                    sound: "BLOCK_FIRE_EXTINGUISH"
-                    volume: 1
-                    pitch: 1
-                    delay: 5
+                sounds:
+                    fire:
+                        sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR"
+                        volume: 0.6
+                        pitch: 0
+                        delay: 0
+                    fire-2:
+                        sound: "BLOCK_FIRE_EXTINGUISH"
+                        volume: 1
+                        pitch: 1
+                        delay: 5
             use-reload-sound: true
             reload-sounds:
-                reload-1:
-                    sound: "BLOCK_FIRE_EXTINGUISH"
-                    volume: 1
-                    pitch: 1
-                    delay: 0
-                reload-2:
-                    sound: "BLOCK_IRON_DOOR_OPEN"
-                    volume: 1
-                    pitch: 1
-                    delay: 5
-                reload-3:
-                    sound: "BLOCK_IRON_DOOR_OPEN"
-                    volume: 1
-                    pitch: 1
-                    delay: 10
-                reload-4:
-                    sound: "BLOCK_IRON_DOOR_CLOSE"
-                    volume: 1
-                    pitch: 1
-                    delay: 15
-                reload-5:
-                    sound: "BLOCK_IRON_DOOR_CLOSE"
-                    volume: 1
-                    pitch: 1
-                    delay: 20
+                sounds:
+                    reload-1:
+                        sound: "BLOCK_FIRE_EXTINGUISH"
+                        volume: 1
+                        pitch: 1
+                        delay: 0
+                    reload-2:
+                        sound: "BLOCK_IRON_DOOR_OPEN"
+                        volume: 1
+                        pitch: 1
+                        delay: 5
+                    reload-3:
+                        sound: "BLOCK_IRON_DOOR_OPEN"
+                        volume: 1
+                        pitch: 1
+                        delay: 10
+                    reload-4:
+                        sound: "BLOCK_IRON_DOOR_CLOSE"
+                        volume: 1
+                        pitch: 1
+                        delay: 15
+                    reload-5:
+                        sound: "BLOCK_IRON_DOOR_CLOSE"
+                        volume: 1
+                        pitch: 1
+                        delay: 20
             item:
                 title: "&6Flame Turret"
                 material: "TIPPED_ARROW"
@@ -349,45 +355,48 @@ turrets:
             ammo: 1
             use-place-sound: true
             place-sounds:
-                1:
-                    sound: "BLOCK_FENCE_GATE_OPEN"
-                    volume: 1
-                    pitch: 5
-                    delay: 0
-                2:
-                    sound: "ENCHANT_THORNS_HIT"
-                    volume: 1
-                    pitch: 0
-                    delay: 5
+                sounds:
+                    1:
+                        sound: "BLOCK_FENCE_GATE_OPEN"
+                        volume: 1
+                        pitch: 5
+                        delay: 0
+                    2:
+                        sound: "ENCHANT_THORNS_HIT"
+                        volume: 1
+                        pitch: 0
+                        delay: 5
             use-shoot-sound: true
             shoot-sounds:
-                fire:
-                    sound: "BLOCK_FENCE_GATE_OPEN"
-                    volume: 0.6
-                    pitch: 15
-                    delay: 0
+                sounds:
+                    fire:
+                        sound: "BLOCK_FENCE_GATE_OPEN"
+                        volume: 0.6
+                        pitch: 15
+                        delay: 0
             use-reload-sound: true
             reload-sounds:
-                reload-1:
-                    sound: "BLOCK_ANVIL_USE"
-                    volume: 0.3
-                    pitch: 0
-                    delay: 0
-                reload-2:
-                    sound: "BLOCK_FENCE_GATE_CLOSE"
-                    volume: 1
-                    pitch: 0
-                    delay: 20
-                reload-3:
-                    sound: "BLOCK_FENCE_GATE_CLOSE"
-                    volume: 1
-                    pitch: 0
-                    delay: 40
-                reload-4:
-                    sound: "BLOCK_FENCE_GATE_CLOSE"
-                    volume: 1
-                    pitch: 0
-                    delay: 60
+                sounds:
+                    reload-1:
+                        sound: "BLOCK_ANVIL_USE"
+                        volume: 0.3
+                        pitch: 0
+                        delay: 0
+                    reload-2:
+                        sound: "BLOCK_FENCE_GATE_CLOSE"
+                        volume: 1
+                        pitch: 0
+                        delay: 20
+                    reload-3:
+                        sound: "BLOCK_FENCE_GATE_CLOSE"
+                        volume: 1
+                        pitch: 0
+                        delay: 40
+                    reload-4:
+                        sound: "BLOCK_FENCE_GATE_CLOSE"
+                        volume: 1
+                        pitch: 0
+                        delay: 60
             item:
                 title: "&dHealing Station"
                 material: "TIPPED_ARROW"
