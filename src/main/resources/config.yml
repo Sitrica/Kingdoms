@@ -297,9 +297,9 @@ kingdoms:
             enabled: false
             title: "&2&lUnoccupied Land"
             subtitle: "&7You have just entered unoccupied land"
-            fadeOut: 20
-            fadeIn: 20
-            stay: 50
+            fadeOut: 10
+            fadeIn: 10
+            stay: 30
     # Messages that happen when walking into a neutral kingdom towards the player or their kingdom.
     # can be called when the player doesn't have a kingdom and they walk into a kingdoms land to.
     # Placeholders: %world%, %chunk%, %player%, %kingdom%, %color% and %lore% - Lore is the Kingdoms description and color is the relation.
@@ -312,9 +312,9 @@ kingdoms:
             enabled: true
             title: "&f&l%kingdom%'s Kingdom"
             subtitle: "&7%lore%"
-            fadeOut: 20
-            fadeIn: 20
-            stay: 50
+            fadeOut: 10
+            fadeIn: 10
+            stay: 30
     # Messages that happen when a player walks into an alliance's kingdom.
     # Placeholders: %world%, %chunk%, %player%, %kingdom%, %color% and %lore% - Lore is the Kingdoms description and color is the relation.
     land-enter-alliance:
@@ -326,9 +326,9 @@ kingdoms:
             enabled: true
             title: "&a&l%kingdom%'s Kingdom"
             subtitle: "&7%lore%"
-            fadeOut: 20
-            fadeIn: 20
-            stay: 50
+            fadeOut: 10
+            fadeIn: 10
+            stay: 30
     # Messages that happen when a player walks into an enemy's kingdom.
     # Placeholders: %world%, %chunk%, %player%, %kingdom%, %color% and %lore% - Lore is the Kingdoms description and color is the relation.
     land-enter-enemy:
@@ -340,9 +340,9 @@ kingdoms:
             enabled: true
             title: "&c&l%kingdom%'s Kingdom"
             subtitle: "&7%lore%"
-            fadeOut: 20
-            fadeIn: 20
-            stay: 50
+            fadeOut: 10
+            fadeIn: 10
+            stay: 30
     relations:
         colors:
             alliance: "GREEN"

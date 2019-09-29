@@ -3,10 +3,6 @@ package com.songoda.kingdoms.database.serializers;
 import java.lang.reflect.Type;
 import java.util.Optional;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.World;
-
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -44,13 +40,9 @@ public class LandSerializer implements Serializer<Land> {
 		JsonElement worldElement = object.get("world");
 		if (worldElement == null || worldElement.isJsonNull())
 			return null;
-		World world = Bukkit.getWorld(worldElement.getAsString());
-		if (world == null)
-			return null;
 		int x = object.get("x").getAsInt();
 		int z = object.get("z").getAsInt();
-		Chunk chunk = world.getChunkAt(x, z);
-		Land land = new Land(chunk);
+		Land land = new Land(x, z, worldElement.getAsString());
 		JsonElement claimElement = object.get("claim-time");
 		if (claimElement != null && !claimElement.isJsonNull())
 			land.setClaimTime(claimElement.getAsLong());

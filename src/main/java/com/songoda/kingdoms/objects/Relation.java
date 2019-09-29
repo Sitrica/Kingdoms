@@ -8,7 +8,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
-import com.songoda.kingdoms.objects.maps.MapElement;
 
 public enum Relation {
 
@@ -74,10 +73,6 @@ public enum Relation {
 				return ALLIANCE;
 		}
 		return NEUTRAL;
-	}
-
-	public String getColorFor(MapElement element) {
-		return element.getRelationColor(this);
 	}
 
 }

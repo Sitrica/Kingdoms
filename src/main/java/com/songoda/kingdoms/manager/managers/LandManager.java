@@ -230,6 +230,18 @@ public class LandManager extends Manager {
 			return z;
 		}
 
+		@Override
+		public boolean equals(Object object) {
+			if (!(object instanceof ChunkDaddy))
+				return false;
+			ChunkDaddy other = (ChunkDaddy) object;
+			if (!other.world.equalsIgnoreCase(world))
+				return false;
+			if (other.x != x || other.z != z)
+				return false;
+			return true;
+		}
+
 	}
 
 	public class LandInfo {

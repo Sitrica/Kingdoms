@@ -196,14 +196,13 @@ public class PlayerMovementManager extends Manager {
 						.replace("%player%", player.getName())
 						.replace("%world%", world.getName())
 						.send(player);
-			if (configuration.getBoolean("kingdoms.land-enter-unoccupied.title.enabled", true))
-				new MessageBuilder(false, "kingdoms.land-enter-unoccupied.title")
-						.setPlaceholderObject(LocationUtils.chunkToString(chunkFrom))
-						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
-						.replace("%player%", player.getName())
-						.replace("%world%", world.getName())
-						.fromConfiguration(configuration)
-						.sendTitle(player);
+			new MessageBuilder(false, "kingdoms.land-enter-unoccupied.title")
+					.setPlaceholderObject(LocationUtils.chunkToString(chunkFrom))
+					.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
+					.replace("%player%", player.getName())
+					.replace("%world%", world.getName())
+					.fromConfiguration(configuration)
+					.sendTitle(player);
 			spam.put(player.getUniqueId(), System.currentTimeMillis());
 			return;
 		}
@@ -232,15 +231,14 @@ public class PlayerMovementManager extends Manager {
 							.replace("%world%", world.getName())
 							.setPlaceholderObject(kingdom)
 							.send(player);
-				if (configuration.getBoolean("kingdoms.land-enter-alliance.title.enabled", true))
-					new MessageBuilder(false, "kingdoms.land-enter-alliance.title")
-							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
-							.replace("%player%", player.getName())
-							.replace("%world%", world.getName())
-							.fromConfiguration(configuration)
-							.setPlaceholderObject(kingdom)
-							.replace("%color%", color)
-							.sendTitle(player);
+				new MessageBuilder(false, "kingdoms.land-enter-alliance.title")
+						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
+						.replace("%player%", player.getName())
+						.replace("%world%", world.getName())
+						.fromConfiguration(configuration)
+						.setPlaceholderObject(kingdom)
+						.replace("%color%", color)
+						.sendTitle(player);
 				break;
 			case ENEMY:
 				if (configuration.getBoolean("kingdoms.land-enter-enemy.actionbar", true))
@@ -258,15 +256,14 @@ public class PlayerMovementManager extends Manager {
 							.replace("%world%", world.getName())
 							.setPlaceholderObject(kingdom)
 							.send(player);
-				if (configuration.getBoolean("kingdoms.land-enter-enemy.title.enabled", true))
-					new MessageBuilder(false, "kingdoms.land-enter-enemy.title")
-							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
-							.replace("%player%", player.getName())
-							.replace("%world%", world.getName())
-							.fromConfiguration(configuration)
-							.setPlaceholderObject(kingdom)
-							.replace("%color%", color)
-							.sendTitle(player);
+				new MessageBuilder(false, "kingdoms.land-enter-enemy.title")
+						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
+						.replace("%player%", player.getName())
+						.replace("%world%", world.getName())
+						.fromConfiguration(configuration)
+						.setPlaceholderObject(kingdom)
+						.replace("%color%", color)
+						.sendTitle(player);
 				break;
 			case NEUTRAL:
 				if (configuration.getBoolean("kingdoms.land-enter-neutral.actionbar", true))
@@ -285,15 +282,14 @@ public class PlayerMovementManager extends Manager {
 							.setPlaceholderObject(kingdom)
 							.replace("%color%", color)
 							.send(player);
-				if (configuration.getBoolean("kingdoms.land-enter-neutral.title.enabled", true))
-					new MessageBuilder(false, "kingdoms.land-enter-neutral.title")
-							.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
-							.replace("%player%", player.getName())
-							.replace("%world%", world.getName())
-							.fromConfiguration(configuration)
-							.setPlaceholderObject(kingdom)
-							.replace("%color%", color)
-							.sendTitle(player);
+				new MessageBuilder(false, "kingdoms.land-enter-neutral.title")
+						.replace("%chunk%", LocationUtils.chunkToString(chunkTo))
+						.replace("%player%", player.getName())
+						.replace("%world%", world.getName())
+						.fromConfiguration(configuration)
+						.setPlaceholderObject(kingdom)
+						.replace("%color%", color)
+						.sendTitle(player);
 				break;
 			case OWN:
 				return;

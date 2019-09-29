@@ -401,7 +401,6 @@ public class DefenderManager extends Manager {
 				OfflineKingdom defenderKingdom = defender.getOwner();
 				if (defenderKingdom.equals(throwerKingdom) || defenderKingdom.isAllianceWith(throwerKingdom))
 					iterator.remove();
-				continue;
 			}
 		}
 	}

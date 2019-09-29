@@ -8,6 +8,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.objects.Relation;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
 import com.songoda.kingdoms.objects.player.KingdomPlayer;
@@ -16,11 +17,20 @@ import com.songoda.kingdoms.utils.ListMessageBuilder;
 
 public class RelationOptions {
 
+	private final String color, name;
 	private ListMessageBuilder hover;
 	private RelationAction action;
-	private final String color;
 
-	public RelationOptions(ConfigurationSection section) {
+	public RelationOptions(String name, Relation relation) {
+		this.name = name;
+		FileConfiguration configuration = Kingdoms.getInstance().getConfiguration("map").get();
+		ConfigurationSection section = null;
+		String node = "elements." + name;
+		if (relation != null) {
+			section = configuration.getConfigurationSection(node + ".relations." + relation.name().toLowerCase(Locale.US));
+		} else {
+			section = configuration.getConfigurationSection(node);
+		}
 		color = section.getString("color", "&f");
 		if (section.isSet("action")) {
 			String[] split = section.getString("action", "").split(":");
@@ -39,17 +49,23 @@ public class RelationOptions {
 			}
 			this.action = action;
 		}
-		if (section.isConfigurationSection("hover-message")) {
+		if (section.isList("hover-message")) {
 			hover = new ListMessageBuilder(false, "hover-message", section);
-		} else if (section.isConfigurationSection("default-hover-message")) {
-			hover = new ListMessageBuilder(false, "default-hover-message", section);
 		} else {
-			FileConfiguration configuration = Kingdoms.getInstance().getConfiguration("map").get();
-			if (configuration.isConfigurationSection("elements." + section.getName() + ".hover-message")) {
-				hover = new ListMessageBuilder(false, "elements." + section.getName() + ".hover-message")
-						.fromConfiguration(configuration);
+			if (configuration.isList(node + ".hover-message")) {
+				hover = new ListMessageBuilder(false, node + ".hover-message").fromConfiguration(configuration);
+			} else if (configuration.isList(node + ".default-hover-message")) {
+				hover = new ListMessageBuilder(false, node + ".default-hover-message").fromConfiguration(configuration);
 			}
 		}
+	}
+
+	public RelationOptions(String name) {
+		this(name, null);
+	}
+
+	public String getElementName() {
+		return name;
 	}
 
 	public Optional<ListMessageBuilder> getHover() {

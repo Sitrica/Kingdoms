@@ -27,7 +27,6 @@ import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
-import com.google.common.collect.Sets;
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.database.Database;
 import com.songoda.kingdoms.events.KingdomCreateEvent;
@@ -60,12 +59,14 @@ public class KingdomManager extends Manager {
 					public Optional<OfflineKingdom> load(String name) {
 						if (name == null)
 							return Optional.empty();
-						name = name.toLowerCase(Locale.US);
 						Kingdoms.debugMessage("Loading offline kingdom: " + name);
 						OfflineKingdom databaseKingdom = database.get(name);
 						if (databaseKingdom == null) {
-							Kingdoms.debugMessage("No data found for kingdom: " + name);
-							return Optional.empty();
+							databaseKingdom = database.get(name.toLowerCase(Locale.US));
+							if (databaseKingdom == null) {
+								Kingdoms.debugMessage("No data found for kingdom: " + name);
+								return Optional.empty();
+							}
 						}
 						Kingdom kingdom = new Kingdom(databaseKingdom);
 						if (kingdom != null) {
@@ -101,7 +102,6 @@ public class KingdomManager extends Manager {
 			database = getMySQLDatabase(table, OfflineKingdom.class);
 		else
 			database = getFileDatabase(table, OfflineKingdom.class);
-		Sets.newConcurrentHashSet(database.getKeys()).forEach(key -> database.put(key.toLowerCase(Locale.US), database.get(key)));
 		if (configuration.getBoolean("database.auto-save.enabled")) {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
 			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, () -> saveAll(), 0, IntervalUtils.getInterval(interval) * 20);
@@ -121,11 +121,12 @@ public class KingdomManager extends Manager {
 		cache.asMap().entrySet().parallelStream()
 				.map(future -> {
 					try {
-						return future.getValue().get(5, TimeUnit.SECONDS);
-					} catch (InterruptedException | ExecutionException | TimeoutException e) {
+						return future.getValue().get();
+					} catch (InterruptedException | ExecutionException e) {
 						return null;
 					}
 				})
+				.filter(optional -> optional != null)
 				.filter(optional -> optional.isPresent())
 				.map(optional -> optional.get())
 				.forEach(kingdom -> save(kingdom));
@@ -166,14 +167,6 @@ public class KingdomManager extends Manager {
 		return cache.getIfPresent(kingdom) != null;
 	}
 
-	public Kingdom convert(OfflineKingdom other) {
-		Kingdom kingdom = new Kingdom(other);
-		String name = other.getName();
-		Kingdoms.debugMessage("Converting offline kingdom to online kingdom: " + name);
-		cache.put(name.toLowerCase(Locale.US), CompletableFuture.completedFuture(Optional.of(kingdom)));
-		return kingdom;
-	}
-
 	/**
 	 * Check if the kingdom name exists in the loaded Kingdoms;
 	 *
@@ -182,6 +175,14 @@ public class KingdomManager extends Manager {
 	 */
 	public boolean hasKingdom(String name) {
 		return getOfflineKingdoms().parallelStream().anyMatch(kingdom -> kingdom.getName().equalsIgnoreCase(name));
+	}
+
+	public Kingdom convert(OfflineKingdom other) {
+		Kingdom kingdom = new Kingdom(other);
+		String name = other.getName();
+		Kingdoms.debugMessage("Converting offline kingdom to online kingdom: " + name);
+		cache.put(name.toLowerCase(Locale.US), CompletableFuture.completedFuture(Optional.of(kingdom)));
+		return kingdom;
 	}
 
 	public Optional<Kingdom> getKingdom(String name) {
@@ -217,7 +218,7 @@ public class KingdomManager extends Manager {
 	/*
 	 * When a player leaves the server NOT the Kingdom.
 	 */
-	public void onPlayerLeave(KingdomPlayer player, Kingdom kingdom) {
+	public void onPlayerLeave(OfflineKingdomPlayer player, Kingdom kingdom) {
 		database.put(kingdom.getName(), kingdom);
 		MemberLeaveEvent event = new MemberLeaveEvent(player, kingdom);
 		Bukkit.getPluginManager().callEvent(event);

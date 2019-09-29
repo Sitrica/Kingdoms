@@ -30,9 +30,13 @@ public class Land {
 	private long claimTime;
 
 	public Land(Chunk chunk) {
-		this.x = chunk.getX();
-		this.z = chunk.getZ();
-		this.world = chunk.getWorld().getName();
+		this(chunk.getX(), chunk.getZ(), chunk.getWorld().getName());
+	}
+
+	public Land(int x, int z, String world) {
+		this.world = world;
+		this.x = x;
+		this.z = z;
 	}
 
 	public int getX() {

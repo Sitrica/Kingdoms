@@ -14,8 +14,8 @@ version: "@version@"
 # Configurations for the /k map command.
 configure:
     requires-permission: true
-    height: 10
-    width: 35
+    height: 8
+    width: 24
     key-header: "   &7&m&l-&f&l&m[&b&l&m--&r &f&lKey&r &b&l&m--&f&l&m]&7&l&m-&r"
 
 messages:
@@ -33,8 +33,7 @@ elements:
         hover-message:
             - "&fThis is where you are &a(&2%chunk%&a)"
         legend-message: "You"
-        # Open Square
-        icon: "\u20DE"
+        icon: "&fx"
     # The element that marks a Nexus location.
     nexus:
         # Legend message is used to define what this element means.
@@ -69,7 +68,7 @@ elements:
                     - "&4Enemy %kingdom%'s Nexus &7(&c%chunk%&7)"
                     - "&cClick to attempt invade this Kingdom"
             # A Kingdom's Nexus that has no relevance to the viewer.
-            other:
+            neutral:
                 color: "&7"
                 action: "command:/k invade %kingdom%"
                 hover-message:
@@ -97,7 +96,7 @@ elements:
                 color: "&a"
             enemy:
                 color: "&c"
-            other:
+            neutral:
                 color: "&7"
                 action: "command:/k claim %x% %z%"
                 hover-message:
@@ -118,7 +117,7 @@ elements:
                 color: "&a"
             enemy:
                 color: "&c"
-            other:
+            neutral:
                 color: "&7"
             own:
                 color: "&e"
@@ -137,7 +136,7 @@ elements:
                 color: "&a"
             enemy:
                 color: "&c"
-            other:
+            neutral:
                 color: "&7"
             own:
                 color: "&e"
@@ -158,7 +157,7 @@ elements:
                 hover-message:
                     - "&cOne of your enemies %kingdom%'s Extractor"
                     - "&7Extrators allow Enemies to gain Resource Points"
-            other:
+            neutral:
                 color: "&7"
             own:
                 color: "&e"
@@ -183,7 +182,7 @@ elements:
                 hover-message:
                     - "&cOne of your enemies %kingdom%'s Warp-Pad"
                     - "&7Destory it to avoid enemies teleporting to it"
-            other:
+            neutral:
                 color: "&7"
             own:
                 color: "&e"
@@ -208,7 +207,7 @@ elements:
                 hover-message:
                     - "&cOne of your enemies %kingdom%'s Arsenal"
                     - "&7Destory it to avoid enemies getting special weapons."
-            other:
+            neutral:
                 color: "&7"
             own:
                 color: "&e"
@@ -231,7 +230,7 @@ elements:
                 hover-message:
                     - "&cOne of your enemies %kingdom%'s Radar"
                     - "&7Destory it to avoid enemies knowing nearby structures."
-            other:
+            neutral:
                 color: "&7"
             own:
                 color: "&e"

@@ -344,9 +344,9 @@ public class MessageBuilder {
 			return;
 		String subtitle = section.getString(nodes[0] + ".subtitle", "");
 		String title = section.getString(nodes[0] + ".title", "");
-		int fadeOut = section.getInt(nodes[0] + ".fadeOut", 20);
-		int fadeIn = section.getInt(nodes[0] + ".fadeIn", 20);
-		int stay = section.getInt(nodes[0] + ".stay", 200);
+		int fadeOut = section.getInt(nodes[0] + ".fadeOut", 10);
+		int fadeIn = section.getInt(nodes[0] + ".fadeIn", 10);
+		int stay = section.getInt(nodes[0] + ".stay", 20);
 		title = applyPlaceholders(title).replaceAll("\n", "");
 		subtitle = applyPlaceholders(subtitle).replaceAll("\n", "");
 		Player[] players = senders.parallelStream()

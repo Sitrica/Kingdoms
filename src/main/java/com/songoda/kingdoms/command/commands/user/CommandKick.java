@@ -30,7 +30,7 @@ public class CommandKick extends AbstractCommand {
 		KingdomPlayer kingdomPlayer = instance.getManager(PlayerManager.class).getKingdomPlayer(player);
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null) {
-			new MessageBuilder("claiming.no-kingdom")
+			new MessageBuilder("commands.kick.no-kingdom")
 					.setPlaceholderObject(kingdomPlayer)
 					.send(player);
 			return ReturnType.FAILURE;
@@ -68,6 +68,20 @@ public class CommandKick extends AbstractCommand {
 			return ReturnType.FAILURE;
 		}
 		OfflineKingdomPlayer target = optional.get();
+		if (!target.hasKingdom()) {
+			new MessageBuilder("commands.kick.target-no-kingdom")
+					.setPlaceholderObject(kingdomPlayer)
+					.replace("%input%", arguments[0])
+					.send(player);
+			return ReturnType.FAILURE;
+		}
+		if (!target.getKingdom().equals(kingdom)) {
+			new MessageBuilder("commands.kick.targetg-not-in-kingdom")
+					.setPlaceholderObject(kingdomPlayer)
+					.replace("%input%", arguments[0])
+					.send(player);
+			return ReturnType.FAILURE;
+		}
 		if (target.getRank().isHigherThan(kingdomPlayer.getRank())) {
 			new MessageBuilder("commands.kick.user-more-superior")
 					.setPlaceholderObject(kingdomPlayer)
@@ -75,15 +89,14 @@ public class CommandKick extends AbstractCommand {
 					.send(player);
 			return ReturnType.FAILURE;
 		}
-		kingdomPlayer.onKingdomLeave();
-		kingdomPlayer.setKingdom(null);
-		kingdomPlayer.setRank(null);
-		instance.getManager(KingdomManager.class).onPlayerLeave(kingdomPlayer, kingdom);
+		target.onKingdomLeave();
+		target.setKingdom(null);
+		target.setRank(null);
+		instance.getManager(KingdomManager.class).onPlayerLeave(target, kingdom);
 		new MessageBuilder("commands.kick.kick-broadcast")
 				.setPlaceholderObject(kingdomPlayer)
 				.replace("%kicked%", arguments[0])
 				.send(kingdom.getOnlinePlayers());
-		
 		Bukkit.getPluginManager().callEvent(new MemberLeaveEvent(target, kingdom));
 		return ReturnType.SUCCESS;
 	}

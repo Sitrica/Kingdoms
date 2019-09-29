@@ -25,25 +25,31 @@ public enum MapElement {
 	LAND("land"),
 	YOU("you");
 
-	private final RelationOptions alliance, enemy, own, none;
+	private final RelationOptions alliance, enemy, own, neutral;
 	private final MessageBuilder legend, icon;
+	private final String node;
 
 	MapElement(String node) {
 		FileConfiguration configuration = Kingdoms.getInstance().getConfiguration("map").get();
 		ConfigurationSection section = configuration.getConfigurationSection("elements." + node);
 		if (section.isConfigurationSection("relations")) {
-			alliance = new RelationOptions(section.getConfigurationSection("relations.alliance"));
-			enemy = new RelationOptions(section.getConfigurationSection("relations.enemy"));
-			none = new RelationOptions(section.getConfigurationSection("relations.other"));
-			own = new RelationOptions(section.getConfigurationSection("relations.own"));
+			alliance = new RelationOptions(node, Relation.ALLIANCE);
+			neutral = new RelationOptions(node, Relation.NEUTRAL);
+			enemy = new RelationOptions(node, Relation.ENEMY);
+			own = new RelationOptions(node, Relation.OWN);
 		} else {
-			alliance = new RelationOptions(section);
-			enemy = new RelationOptions(section);
-			none = new RelationOptions(section);
-			own = new RelationOptions(section);
+			alliance = new RelationOptions(node);
+			neutral = new RelationOptions(node);
+			enemy = new RelationOptions(node);
+			own = new RelationOptions(node);
 		}
 		legend = new MessageBuilder(false, "legend-message", section);
 		icon = new MessageBuilder(false, "icon", section);
+		this.node = node;
+	}
+
+	public String getNode() {
+		return node;
 	}
 
 	public static MapElement fromStructure(StructureType structure) {
@@ -71,27 +77,11 @@ public enum MapElement {
 	}
 
 	public MessageBuilder getIcon(Relation relation) {
-		if (relation == null)
-			return icon;
-		return icon.replace("%relation%", relation.getColorFor(this));
+		return icon.replace("%relation%", relation == null ? getRelationColor(relation) : neutral.getColor());
 	}
 
-	public Optional<ListMessageBuilder> getHover(Relation relation) {
-		switch (relation) {
-			case ALLIANCE:
-				return alliance.getHover();
-			case ENEMY:
-				return enemy.getHover();
-			case OWN:
-				return own.getHover();
-			case NEUTRAL:
-			default:
-				return none.getHover();
-		}
-	}
-
-	public MessageBuilder getLegend() {
-		return legend;
+	public String getNoRelationColor() {
+		return neutral.getColor();
 	}
 
 	public String getRelationColor(Relation relation) {
@@ -104,29 +94,39 @@ public enum MapElement {
 				return own.getColor();
 			case NEUTRAL:
 			default:
-				return none.getColor();
+				return neutral.getColor();
 		}
+	}
+
+	public Optional<ListMessageBuilder> getHover(Relation relation) {
+		switch (relation) {
+			case ALLIANCE:
+				return alliance.getHover();
+			case ENEMY:
+				return enemy.getHover();
+			case OWN:
+				return own.getHover();
+			case NEUTRAL:
+			default:
+				return neutral.getHover();
+		}
+	}
+
+	public MessageBuilder getLegend() {
+		return legend;
 	}
 
 	public Optional<RelationAction> getRelationAction(Relation relation) {
 		switch (relation) {
 			case ALLIANCE:
-				if (alliance.getAction() == null)
-					return Optional.empty();
-				return Optional.of(alliance.getAction());
+				return Optional.ofNullable(alliance.getAction());
 			case ENEMY:
-				if (enemy.getAction() == null)
-					return Optional.empty();
-				return Optional.of(enemy.getAction());
+				return Optional.ofNullable(enemy.getAction());
 			case OWN:
-				if (own.getAction() == null)
-					return Optional.empty();
-				return Optional.of(own.getAction());
+				return Optional.ofNullable(own.getAction());
 			case NEUTRAL:
 			default:
-				if (none.getAction() == null)
-					return Optional.empty();
-				return Optional.of(none.getAction());
+				return Optional.ofNullable(neutral.getAction());
 		}
 	}
 

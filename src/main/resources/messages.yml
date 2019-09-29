@@ -354,6 +354,9 @@ commands:
     kick:
         description: "Kicks a player from your Kingdom."
         syntax: "/k kick <player>"
+        no-kingdom: "&cYou are not in any Kingdom."
+        target-no-kingdom: "&cThe target player %input% has no Kingdom."
+        target-not-in-kingdom: "&cThe player %input% is not apart of your Kingdom."
         rank-too-low-kick: "&cYour rank is too low to kick members, only rank %rank% and higher can kick members."
         cant-kick-self: "&cYou can't kick yourself, you need to execute /k leave or /k disband if owner."
         player-not-found: "&cPlayer %input% was not found."

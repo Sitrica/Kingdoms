@@ -38,7 +38,7 @@ public class OfflineKingdom {
 	protected DefenderInfo defenderInfo;
 	protected final Kingdoms instance;
 	protected MiscUpgrade miscUpgrade;
-	protected String lore = "Not set";
+	protected String lore = "";
 	protected Location nexus, spawn;
 	protected final String name;
 	protected UUID owner;
@@ -46,7 +46,7 @@ public class OfflineKingdom {
 	public OfflineKingdom(String name) {
 		this.instance = Kingdoms.getInstance();
 		this.dynmapColor = instance.getManager(KingdomManager.class).getRandomColor();
-		this.max = instance.getConfig().getInt("base-max-members", 10);
+		this.max = instance.getConfig().getInt("kingdoms.base-max-members", 10);
 		this.members.add(owner);
 		this.name = name;
 	}
@@ -60,7 +60,7 @@ public class OfflineKingdom {
 	public OfflineKingdom(UUID owner, String name) {
 		this.instance = Kingdoms.getInstance();
 		this.dynmapColor = instance.getManager(KingdomManager.class).getRandomColor();
-		this.max = instance.getConfig().getInt("base-max-members", 10);
+		this.max = instance.getConfig().getInt("kingdoms.base-max-members", 10);
 		this.members.add(owner);
 		this.owner = owner;
 		this.name = name;
