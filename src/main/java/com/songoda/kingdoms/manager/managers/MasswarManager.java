@@ -12,12 +12,10 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 public class MasswarManager extends Manager {
 
 	private final SimpleDateFormat format = new SimpleDateFormat("HH'h' mm'm' ss's'");
-	private WorldManager worldManager;
-	private long start;
-	private int time; //in seconds
+	private long start, time; //in seconds
 
 	public MasswarManager() {
-		super("masswar", true);
+		super(true);
 		format.setTimeZone(TimeZone.getTimeZone("GMT+0"));
 		instance.getServer().getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
 			@Override
@@ -31,9 +29,7 @@ public class MasswarManager extends Manager {
 	}
 
 	@Override
-	public void initalize() {
-		this.worldManager = instance.getManager("world", WorldManager.class);
-	}
+	public void initalize() {}
 
 	@Override
 	public void onDisable() {
@@ -57,7 +53,8 @@ public class MasswarManager extends Manager {
 		return format.format(date)+" left.";
 	}
 
-	public void startWar(int time) {
+	public void startWar(long time) {
+		WorldManager worldManager = instance.getManager(WorldManager.class);
 		this.time = time;
 		new ListMessageBuilder("masswar.start")
 				.replace("%time%", time / 60)
@@ -69,6 +66,7 @@ public class MasswarManager extends Manager {
 	}
 
 	public void stopMassWar() {
+		WorldManager worldManager = instance.getManager(WorldManager.class);
 		if (time >= 0) {
 			new ListMessageBuilder("masswar.end")
 			.replace("%time%", time / 60)

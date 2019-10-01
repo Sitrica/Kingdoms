@@ -54,8 +54,8 @@ public class PlayerMovementManager extends Manager {
 	public void initalize() {
 		this.worldGuardManager = instance.getExternalManager("worldguard", WorldGuardManager.class);
 		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.landManager = instance.getManager("land", LandManager.class);
+		this.playerManager = instance.getManager(PlayerManager.class);
+		this.landManager = instance.getManager(LandManager.class);
 		final long time = IntervalUtils.getInterval(configuration.getString("kingdoms.message-spam-cooldown", "5 seconds"));
 		instance.getServer().getScheduler().runTaskTimerAsynchronously(instance, () -> {
 			spam.entrySet().removeIf(entry -> (System.currentTimeMillis() - entry.getValue()) * 1000 > time);

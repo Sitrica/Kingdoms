@@ -772,6 +772,34 @@ public class LandManager extends Manager {
 	}
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void onPressurePlate(PlayerInteractEvent event) {
+		if (event.getAction() != Action.PHYSICAL)
+			return;
+		if (!configuration.getBoolean("kingdoms.other-kingdoms-cannot-pressure-plate", true))
+			return;
+		Location location = event.getClickedBlock().getLocation();
+		World world = location.getWorld();
+		if (!worldManager.acceptsWorld(world))
+			return;
+		Player player = event.getPlayer();
+		KingdomPlayer kingdomPlayer = playerManager.getKingdomPlayer(player);
+		if (kingdomPlayer.hasAdminMode())
+			return;
+		if (!kingdomPlayer.hasKingdom()) {
+			event.setCancelled(true);
+			return;
+		}
+		Land land = getLand(location.getChunk());
+		if (!land.hasOwner())
+			return;
+		OfflineKingdom landKingdom = land.getKingdomOwner().get();
+		if (!landKingdom.equals(kingdomPlayer.getKingdom())) {
+			event.setCancelled(true);
+			return;
+		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onKingdomInteract(PlayerInteractEvent event) {
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
 			return;

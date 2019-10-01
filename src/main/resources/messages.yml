@@ -538,6 +538,11 @@ commands:
         move: "&eYou have entered nexus moving mode, to cancel left click, to confirm nexus place right click the ground. Leaving the chunk will cancel. (can only move chunk lengths at a time)"
         actionbar: "&cCurrently in Nexus placing mode"
         not-nexus: "&cThe land you're at is not the nexus land."
+    masswar:
+        description: "Start or Stop the masswar. e.g: /k war 10 seconds /k war stop to stop"
+        syntax: "/k masswar <seconds>"
+        enabled: "&eYou have enabled masswar's seconds in time for %input%."
+        stopped: "&eMasswar has been stopped."
 
 # All messages relating to invading.
 invading:
@@ -556,6 +561,8 @@ invading:
     invasion-timeout: "&cThe invasion from %attacker% on %target% has expired as it has taken way to long to do."
     invasion-defended: "&eThe invasion from %attacker% on %target% has successfully been defended!"
     invasion-stopped: "&eThe invasion from %attacker% on %target% has been stopped."
+    combat-logged: "&cYou have entered combat log with Kingdom %kingdom%'s Defender. Disconnecting will cancel the invasion!"
+    combat-log-over: "&aYou are now out of combat with any Defender."
 
 upgrades:
     misc-cannot-afford: "&cYou can not afford to upgrade %upgrade%. It will cost %cost% resource points."

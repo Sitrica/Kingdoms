@@ -247,6 +247,7 @@ public class InvadingManager extends Manager {
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null)
 			return;
+		mechanic.onPlayerQuit(event, kingdomPlayer);
 		if (!kingdom.isOnline()) //TODO might not actual stop the invasion due to async catch up.
 			stopInvasion(StopReason.DEFENDED, kingdom);
 		// Stop invasions where this player was appart of.
