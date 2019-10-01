@@ -35,7 +35,7 @@ public class PhysicalMapManager extends Manager {
 		MapView view = Bukkit.createMap(player.getWorld());
 		view.getRenderers().clear();
 		// TODO make scale a valid number and check
-		view.addRenderer(new KingdomMapRenderer(128));
+		//view.addRenderer(new KingdomMapRenderer(128));
 		Kingdoms.debugMessage(view.getCenterX() + "");
 		ItemMeta meta = map.getItemMeta();
 		if (meta instanceof MapMeta) {

@@ -58,9 +58,10 @@ public class OfflineKingdomPlayer {
 	}
 
 	public Rank getRank() {
+		RankManager rankManager = instance.getManager(RankManager.class);
 		Optional<Rank> optional = instance.getManager(RankManager.class).getRank(rank);
 		if (!optional.isPresent())
-			return null;
+			return rankManager.getDefaultRank();
 		return optional.get();
 	}
 

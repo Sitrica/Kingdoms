@@ -34,7 +34,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitTask;
 
-import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.LandLoadEvent;
 import com.songoda.kingdoms.events.PlayerWaterlogEvent;
 import com.songoda.kingdoms.events.StructureBreakEvent;
@@ -117,11 +116,11 @@ public class StructureManager extends Manager {
 
 	@Override
 	public void initalize() {
-		this.inventoryManager = instance.getManager("inventory", InventoryManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.nexusManager = instance.getManager("nexus", NexusManager.class);
-		this.worldManager = instance.getManager("world", WorldManager.class);
-		this.landManager = instance.getManager("land", LandManager.class);
+		this.inventoryManager = instance.getManager(InventoryManager.class);
+		this.playerManager = instance.getManager(PlayerManager.class);
+		this.nexusManager = instance.getManager(NexusManager.class);
+		this.worldManager = instance.getManager(WorldManager.class);
+		this.landManager = instance.getManager(LandManager.class);
 	}
 
 	public void breakStructureAt(Land land) {

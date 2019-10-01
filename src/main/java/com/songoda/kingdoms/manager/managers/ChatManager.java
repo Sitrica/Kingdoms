@@ -89,9 +89,9 @@ public class ChatManager extends Manager {
 		}
 		Rank rank = kingdomPlayer.getRank();
 		MessageBuilder builder = new MessageBuilder(false, "prefix-format")
-				.replace("%chatcolor%", rank.getChatColor().toString())
-				.replace("%prefix%", rank.getPrefix(kingdomPlayer))
-				.replace("%color%", rank.getColor().toString())
+				.replace("%chatcolor%", rank == null ? "&7" : rank.getChatColor().toString())
+				.replace("%prefix%", rank == null ? "" : rank.getPrefix(kingdomPlayer))
+				.replace("%color%", rank == null ? "" : rank.getColor().toString())
 				.replace("%message%", message)
 				.withPlaceholder(kingdomPlayer, new SimplePlaceholder("%player%") {
 					@Override

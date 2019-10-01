@@ -215,6 +215,8 @@ kingdoms:
     respawn-at-kingdom: false
     # If players are allowed to open chests in other Kingdoms.
     open-other-kingdom-inventories: false
+    # Other kingdoms cannot use pressure plates.
+    other-kingdoms-cannot-pressure-plate: false
     # If the member joining should see their own kingdom join message.
     see-self-join-message: false
     # If a clicked material contains a name within it's name of the following list.
@@ -531,6 +533,13 @@ invading:
             max-time: "50 minutes"
             # If the Kingdom that lost, should be disbanded. I mean they got nothing anymore. FeelsBadMan.
             disband-on-loss: false
+            # Combat log. If a player logs out before the time is up, the invasion will be cancelled.
+            # Combat log is triggered when a player attacks a Kingdom's defender.
+            combat-log:
+                enabled: false
+                time: "60 seconds"
+                # If the player should be killed also.
+                kill-player: false
     # When a player dies what should happen.
     player-deaths:
         # If this node is false, player deaths do nothing.

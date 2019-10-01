@@ -524,7 +524,7 @@ public class KingdomManager extends Manager {
 		}
 	}
 
-	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+	@EventHandler(ignoreCancelled = true)
 	public void onCommand(PlayerCommandPreprocessEvent event) {
 		Player player = event.getPlayer();
 		if (!instance.getManager(WorldManager.class).acceptsWorld(player.getWorld()))

@@ -19,7 +19,7 @@ public class InviteManager extends Manager {
 
 	public InviteManager() {
 		super(false);
-		expiration = IntervalUtils.getInterval(configuration.getString("plugin.invite-expiration", "%10 minutes%"));
+		expiration = IntervalUtils.getInterval(configuration.getString("plugin.invite-expiration", "10 minutes"));
 	}
 
 	private interface Invite {}

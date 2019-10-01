@@ -74,8 +74,8 @@ public class GuardsManager extends Manager {
 	
 	@Override
 	public void initalize() {
-		this.soldierTurretManager = instance.getManager("soldier-turret", SoldierTurretManager.class);
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
+		this.soldierTurretManager = instance.getManager(SoldierTurretManager.class);
+		this.kingdomManager = instance.getManager(KingdomManager.class);
 	}
 	
 	public Map<Monster, Player> getTargets() {

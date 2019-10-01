@@ -19,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -108,6 +109,14 @@ public abstract class InvasionMechanic<M extends InvasionTrigger> implements Lis
 	 * @param defender Defender that died.
 	 */
 	public abstract void onDefenderDeath(EntityDeathEvent event, Defender defender);
+
+	/**
+	 * Called when a player disconnects.
+	 * 
+	 * @param event The PlayerQuitEvent event involved in this call.
+	 * @param defender Defender that died.
+	 */
+	public abstract void onPlayerQuit(PlayerQuitEvent event, KingdomPlayer player);
 
 	/**
 	 * Called when an entity within the target Kingdom's land is damaged by another entity.

@@ -269,6 +269,7 @@ public class MessageBuilder {
 		else
 			complete = Formatting.messages(section, nodes);
 		complete = applyPlaceholders(complete);
+		complete = complete.trim();
 		return complete;
 	}
 

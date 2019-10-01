@@ -37,7 +37,6 @@ import org.bukkit.metadata.Metadatable;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.Vector;
 
-import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.events.LandLoadEvent;
 import com.songoda.kingdoms.events.TurretBreakEvent;
 import com.songoda.kingdoms.events.TurretFireEvent;
@@ -96,10 +95,10 @@ public class TurretManager extends Manager {
 	public void initalize() {
 		this.effectLibManager = instance.getExternalManager("effectlib", EffectLibManager.class);
 		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
-		this.invadingManager = instance.getManager("invading", InvadingManager.class);
-		this.kingdomManager = instance.getManager("kingdom", KingdomManager.class);
-		this.playerManager = instance.getManager("player", PlayerManager.class);
-		this.landManager = instance.getManager("land", LandManager.class);
+		this.invadingManager = instance.getManager(InvadingManager.class);
+		this.kingdomManager = instance.getManager(KingdomManager.class);
+		this.playerManager = instance.getManager(PlayerManager.class);
+		this.landManager = instance.getManager(LandManager.class);
 	}
  
 	public Set<TurretType> getTypes() {
