@@ -1,10 +1,13 @@
 package com.songoda.kingdoms;
 
+import com.songoda.core.SongodaCore;
+import com.songoda.core.SongodaPlugin;
+import com.songoda.core.compatibility.CompatibleMaterial;
+import com.songoda.core.configuration.Config;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import com.songoda.kingdoms.api.KingdomsAPI;
 import com.songoda.kingdoms.command.ActionCommand;
@@ -21,19 +24,27 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class Kingdoms extends JavaPlugin {
+public class Kingdoms extends SongodaPlugin {
+
+	private static Kingdoms INSTANCE;
 
 	private final Map<String, FileConfiguration> configurations = new HashMap<>();
 	private final String packageName = "com.songoda.kingdoms";
 	private static String prefix = "[Kingdoms] ";
 	private ManagerHandler managerHandler;
 	private CommandHandler commandHandler;
-	private static Kingdoms instance;
 	private ActionCommand actions;
 
 	@Override
-	public void onEnable() {
-		instance = this;
+	public void onPluginLoad() {
+		INSTANCE = this;
+	}
+
+	@Override
+	public void onPluginEnable() {
+		// Register in Songoda Core
+		SongodaCore.registerPlugin(this, 65, CompatibleMaterial.GOLDEN_SWORD);
+
 		//Create all the default files.
 		for (String name : Arrays.asList("config", "messages", "turrets", "structures", "defender-upgrades", "ranks", "arsenal-items", "inventories", "powerups", "misc-upgrades", "map", "sounds")) {
 			File file = new File(getDataFolder(), name + ".yml");
@@ -58,21 +69,30 @@ public class Kingdoms extends JavaPlugin {
 				e.printStackTrace();
 			}
 		}
-		managerHandler = new ManagerHandler(instance);
+		managerHandler = new ManagerHandler(INSTANCE);
 		managerHandler.start();
 		commandHandler = new CommandHandler(this);
 		actions = new ActionCommand();
 		getCommand("kingdomsaction").setExecutor(actions);
 		KingdomsAPI.setInstance(this);
-		new Metrics(this);
 		if	(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null)
 			new PlaceholderAPI(this).register();
 		consoleMessage("Kingdoms has been enabled");
 	}
 
 	@Override
-	public void onDisable() {
+	public void onPluginDisable() {
 		managerHandler.getManagers().forEach(manager -> manager.onDisable());
+	}
+
+	@Override
+	public void onConfigReload() {
+
+	}
+
+	@Override
+	public List<Config> getExtraConfig() {
+		return null;
 	}
 
 	public <T extends ExternalManager> Optional<T> getExternalManager(String name, Class<T> expected) {
@@ -124,7 +144,7 @@ public class Kingdoms extends JavaPlugin {
 	}
 
 	public static void debugMessage(String string) {
-		if (instance.getConfig().getBoolean("debug"))
+		if (INSTANCE.getConfig().getBoolean("debug"))
 			consoleMessage("&b" + string);
 	}
 
@@ -140,7 +160,7 @@ public class Kingdoms extends JavaPlugin {
 	}
 
 	public static Kingdoms getInstance() {
-		return instance;
+		return INSTANCE;
 	}
 
 	public List<Manager> getManagers() {
