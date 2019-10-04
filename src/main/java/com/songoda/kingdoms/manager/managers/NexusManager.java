@@ -19,6 +19,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import com.songoda.kingdoms.events.NexusMoveEvent;
@@ -38,6 +39,7 @@ import com.songoda.kingdoms.objects.structures.Structure;
 import com.songoda.kingdoms.objects.structures.StructureType;
 import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.MessageBuilder;
+import com.songoda.kingdoms.utils.Utils;
 
 public class NexusManager extends Manager {
 
@@ -283,6 +285,8 @@ public class NexusManager extends Manager {
 	@EventHandler
 	public void onNexusClick(PlayerInteractEvent event) {
 		Player player = event.getPlayer();
+		if (Utils.methodExists(PlayerInteractEvent.class, "getHand") && event.getHand() != EquipmentSlot.HAND)
+			return;
 		Block block = event.getClickedBlock();
 		// Was a client side block.
 		if (block == null)

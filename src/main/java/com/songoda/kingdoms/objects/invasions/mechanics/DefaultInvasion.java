@@ -194,6 +194,7 @@ public class DefaultInvasion extends InvasionMechanic<CommandTrigger> {
 	public void onInvasionStop(StopReason reason, Invasion invasion) {
 		Set<KingdomPlayer> senders = Sets.newHashSet(invasion.getAttacking().getOnlinePlayers());
 		OfflineKingdom defender = invasion.getTarget();
+		getDefenders(defender).forEach(defenderEntity -> defenderEntity.getDefender().ifPresent(entity -> entity.remove()));
 		switch (reason) {
 			case DEFENDED:
 				if (defender.isOnline())
