@@ -33,6 +33,7 @@ import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -802,6 +803,8 @@ public class LandManager extends Manager {
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onKingdomInteract(PlayerInteractEvent event) {
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
+			return;
+		if (Utils.methodExists(PlayerInteractEvent.class, "getHand") && event.getHand() != EquipmentSlot.HAND)
 			return;
 		Block block = event.getClickedBlock();
 		if (block == null)

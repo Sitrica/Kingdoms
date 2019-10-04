@@ -13,6 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -29,6 +30,7 @@ import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.HologramBuilder;
 import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.utils.MessageBuilder;
+import com.songoda.kingdoms.utils.Utils;
 
 public class ArsenalManager extends Manager {
 
@@ -57,6 +59,8 @@ public class ArsenalManager extends Manager {
 			return;
 		Action action = event.getAction();
 		if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK)
+			return;
+		if (Utils.methodExists(PlayerInteractEvent.class, "getHand") && event.getHand() != EquipmentSlot.HAND)
 			return;
 		ItemStack itemstack = DeprecationUtils.getItemInMainHand(player);
 		if (itemstack == null)

@@ -65,7 +65,7 @@ public class ChatManager extends Manager {
 			case KINGDOM:
 				event.setCancelled(true);
 				senders.addAll(kingdom.getOnlinePlayers());
-				senders.forEach(k -> k.getPlayer().sendMessage(format(k, message)));
+				senders.forEach(k -> k.getPlayer().sendMessage(format(kingdomPlayer, message)));
 				break;
 			case PUBLIC:
 				if (ranks.getBoolean("format-public-chat", false))

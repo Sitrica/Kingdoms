@@ -28,6 +28,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.AnvilInventory;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -61,6 +62,7 @@ import com.songoda.kingdoms.placeholders.Placeholder;
 import com.songoda.kingdoms.utils.DeprecationUtils;
 import com.songoda.kingdoms.utils.Formatting;
 import com.songoda.kingdoms.utils.MessageBuilder;
+import com.songoda.kingdoms.utils.Utils;
 
 public class StructureManager extends Manager {
 
@@ -288,6 +290,8 @@ public class StructureManager extends Manager {
 	@EventHandler(ignoreCancelled = true)
 	public void onStructurePlace(PlayerInteractEvent event) {
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
+			return;
+		if (Utils.methodExists(PlayerInteractEvent.class, "getHand") && event.getHand() != EquipmentSlot.HAND)
 			return;
 		Player player = event.getPlayer();
 		ItemStack findItem = DeprecationUtils.getItemInMainHand(player);
