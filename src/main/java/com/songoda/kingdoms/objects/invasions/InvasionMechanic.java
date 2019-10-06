@@ -245,7 +245,7 @@ public abstract class InvasionMechanic<M extends InvasionTrigger> implements Lis
 		FileConfiguration configuration = instance.getConfig();
 		int value = configuration.getInt("invading.defender.health", 2048);
 		String name = new MessageBuilder("invading.defenders-name")
-				.setPlaceholderObject(instigator)
+				.replace("%player%", instigator.getName())
 				.setKingdom(target)
 				.get();
 		Material helmet = Utils.materialAttempt(configuration.getString("invading.defender.helmet", "PUMPKIN"), "PUMPKIN");
