@@ -68,7 +68,15 @@ public class CommandUndo extends AbstractCommand {
 					.send(player);
 			return ReturnType.SUCCESS;
 		}
-		int amount = Integer.parseInt(arguments[0]);
+		
+		int amount;
+		
+		try {
+			amount = Integer.parseInt(arguments[0]);
+		}catch(NumberFormatException ignored) {
+			amount = 0;
+		}
+		
 		if (amount <= 0) {
 			new MessageBuilder("commands.undo.not-valid-amount")
 					.setPlaceholderObject(kingdomPlayer)
@@ -79,7 +87,7 @@ public class CommandUndo extends AbstractCommand {
 		}
 		amount = kingdom.undoClaims(amount);
 		if (amount <= 0) {
-			new MessageBuilder("commands.no-recent-claims")
+			new MessageBuilder("commands.undo.no-recent-claims")
 					.setPlaceholderObject(kingdomPlayer)
 					.setKingdom(kingdom)
 					.send(player);
