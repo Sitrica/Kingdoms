@@ -1,7 +1,6 @@
 package com.songoda.kingdoms.objects.kingdom;
 
 import org.bukkit.configuration.file.FileConfiguration;
-import org.jetbrains.annotations.NotNull;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
@@ -20,7 +19,7 @@ public class RankPermissions {
 	private final Rank rank;
 	private int max;
 
-	public RankPermissions(@NotNull Rank rank) {
+	public RankPermissions(Rank rank) {
 		assert rank != null;
 		this.rank = rank;
 		this.configuration = Kingdoms.getInstance().getConfiguration("ranks").get();

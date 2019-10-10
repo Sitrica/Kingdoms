@@ -12,6 +12,10 @@ import org.bukkit.plugin.PluginManager;
 
 import com.songoda.kingdoms.Kingdoms;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
+import com.songoda.kingdoms.manager.managers.external.DynmapManager;
+import com.songoda.kingdoms.manager.managers.external.HolographicDisplaysManager;
+import com.songoda.kingdoms.manager.managers.external.VaultManager;
+import com.songoda.kingdoms.manager.managers.external.WorldGuardManager;
 import com.songoda.kingdoms.objects.ManagerOptional;
 import com.songoda.kingdoms.placeholders.DefaultPlaceholders;
 import com.songoda.kingdoms.utils.Utils;
@@ -30,6 +34,14 @@ public class ManagerHandler {
 		PluginManager pluginManager = instance.getServer().getPluginManager();
 		if (pluginManager.isPluginEnabled("Citizens"))
 			externalManagers.add(new CitizensManager());
+		if (pluginManager.isPluginEnabled("Vault"))
+			externalManagers.add(new VaultManager());
+		if (pluginManager.isPluginEnabled("WorldGuard"))
+			externalManagers.add(new WorldGuardManager());
+		if (pluginManager.isPluginEnabled("Dynmap"))
+			externalManagers.add(new DynmapManager());
+		if (pluginManager.isPluginEnabled("HolographicDisplays"))
+			externalManagers.add(new HolographicDisplaysManager());
 		List<Manager> sorted = new ArrayList<>();
 		DefaultPlaceholders.initalize();
 		for (Class<Manager> clazz : Utils.getClassesOf(instance, instance.getPackageName() + ".manager", Manager.class)) {
