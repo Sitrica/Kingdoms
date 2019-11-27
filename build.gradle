@@ -65,6 +65,15 @@ repositories {
 		url 'https://jitpack.io'
 	}
 
+	// Sitrica
+	maven {
+		url 'https://maven.pkg.github.com/Sitrica/SourCore/'
+		credentials {
+            username = "Sitrica"
+            password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_PACKAGES_KEY")
+        }
+	}
+
 	sourceCompatibility = 1.8
 
 }
@@ -106,8 +115,10 @@ dependencies {
 	// AnvilGUI
 	shade (group: 'net.wesjd', name: 'anvilgui', version: '1.2.1-SNAPSHOT')
 
+	implementation (group: 'com.sitrica', name: 'core', version: '1.0.1')
+
 	// EffectLib
-	shade (group: 'de.slikey', name: 'EffectLib', version: '6.2-SNAPSHOT')
+	//shade (group: 'de.slikey', name: 'EffectLib', version: '6.2-SNAPSHOT')
 
 	// H2 Database
 	shade (group: 'com.h2database', name: 'h2', version: '1.4.199')
