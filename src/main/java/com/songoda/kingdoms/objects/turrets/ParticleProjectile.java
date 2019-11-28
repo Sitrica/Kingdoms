@@ -7,7 +7,6 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.songoda.kingdoms.manager.managers.external.EffectLibManager.LineBuilder;
 import com.songoda.kingdoms.utils.IntervalUtils;
 import com.songoda.kingdoms.utils.Utils;
 
@@ -99,13 +98,8 @@ public class ParticleProjectile {
 		return size;
 	}
 	
-	public void shootLineParticle(LineBuilder builder, Runnable runnable) {
-		builder.iterations((int) iterations)
-				.withParticle(getParticle())
-				.withMaterial(getMaterial())
-				.withCallback(runnable)
-				.withColor(getColor())
-				.send(radius);
+	public void shootLineParticle() {
+		// TODO
 	}
 	
 }

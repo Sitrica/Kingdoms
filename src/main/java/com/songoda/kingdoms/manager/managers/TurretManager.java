@@ -44,7 +44,6 @@ import com.songoda.kingdoms.events.TurretPlaceEvent;
 import com.songoda.kingdoms.manager.Manager;
 import com.songoda.kingdoms.manager.managers.RankManager.Rank;
 import com.songoda.kingdoms.manager.managers.external.CitizensManager;
-import com.songoda.kingdoms.manager.managers.external.EffectLibManager;
 import com.songoda.kingdoms.objects.kingdom.Kingdom;
 import com.songoda.kingdoms.objects.kingdom.OfflineKingdom;
 import com.songoda.kingdoms.objects.land.Land;
@@ -76,7 +75,6 @@ public class TurretManager extends Manager {
 	public final String METADATA_CHANCE = "turret-chance";
 	public final String METADATA_HEALTH = "turret-health";
 	public final String METADATA_VALUE = "turret-value";
-	private Optional<EffectLibManager> effectLibManager;
 	private Optional<CitizensManager> citizensManager;
 	private InvadingManager invadingManager;
 	private KingdomManager kingdomManager;
@@ -93,7 +91,6 @@ public class TurretManager extends Manager {
 
 	@Override
 	public void initalize() {
-		this.effectLibManager = instance.getExternalManager("effectlib", EffectLibManager.class);
 		this.citizensManager = instance.getExternalManager("citizens", CitizensManager.class);
 		this.invadingManager = instance.getManager(InvadingManager.class);
 		this.kingdomManager = instance.getManager(KingdomManager.class);
@@ -361,33 +358,34 @@ public class TurretManager extends Manager {
 		// Execute
 		if (turret.getAmmo() > 0) {
 			turret.useAmmo();
-			if (type.isParticleProjectile() && effectLibManager.isPresent()) {
-				effectLibManager.get().shootParticle(turret, fromLocation, target, new Runnable() {
-					@Override
-					public void run() {
-						if (type.isHealer()) {
-							double health = target.getHealth();
-							HealthInfo info = type.getHealthInfo();
-							health += info.getHealth();
-							if (health > DeprecationUtils.getMaxHealth(target))
-								return;
-							EntityRegainHealthEvent event = new EntityRegainHealthEvent(target, info.getHealth(), RegainReason.CUSTOM);
-							Bukkit.getPluginManager().callEvent(event);
-							if (event.isCancelled())
-								return;
-							if (info.chance())
-								target.setHealth(health);
-							if (type.hasPotions()) {
-								for (PotionEffect effect : type.getPotions().getPotionEffects()) {
-									target.addPotionEffect(effect, true);
-								}
-							}
-							return;
-						}
-						target.damage(type.getDamage());
-					}
-				});
-			} else if (type.getProjectile() == EntityType.ARROW) {
+//			if (type.isParticleProjectile() && effectLibManager.isPresent()) {
+//				effectLibManager.get().shootParticle(turret, fromLocation, target, new Runnable() {
+//					@Override
+//					public void run() {
+//						if (type.isHealer()) {
+//							double health = target.getHealth();
+//							HealthInfo info = type.getHealthInfo();
+//							health += info.getHealth();
+//							if (health > DeprecationUtils.getMaxHealth(target))
+//								return;
+//							EntityRegainHealthEvent event = new EntityRegainHealthEvent(target, info.getHealth(), RegainReason.CUSTOM);
+//							Bukkit.getPluginManager().callEvent(event);
+//							if (event.isCancelled())
+//								return;
+//							if (info.chance())
+//								target.setHealth(health);
+//							if (type.hasPotions()) {
+//								for (PotionEffect effect : type.getPotions().getPotionEffects()) {
+//									target.addPotionEffect(effect, true);
+//								}
+//							}
+//							return;
+//						}
+//						target.damage(type.getDamage());
+//					}
+//				});
+//			} else
+			if (type.getProjectile() == EntityType.ARROW) {
 				Arrow arrow = (Arrow) location.getWorld().spawnArrow(fromLocation, direction, 1.5F, type.getArrowSpread());
 				arrow.setCritical(type.isCritical());
 				if (landOptional.isPresent())
