@@ -118,7 +118,7 @@ dependencies {
 	//shade (group: 'de.slikey', name: 'EffectLib', version: '6.2-SNAPSHOT')
 
 	// H2 Database
-	shade (group: 'com.h2database', name: 'h2', version: '1.4.199')
+	shade (group: 'com.h2database', name: 'h2', version: '1.4.200')
 
 	// JSON.org
 	shade (group: 'org.json', name: 'json', version: '20190722')
