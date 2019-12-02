@@ -95,7 +95,7 @@ dependencies {
 	implementation (group: 'net.citizensnpcs', name: 'citizensapi', version: '2.0.25')
 
 	// PlaceholderAPI
-	implementation (group: 'me.clip', name: 'placeholderapi', version: '2.10.3')
+	implementation (group: 'me.clip', name: 'placeholderapi', version: '2.10.4')
 
 	// WorldGuard
 	implementation (group: 'com.sk89q', name: "worldguard", version: '7.0.0')
