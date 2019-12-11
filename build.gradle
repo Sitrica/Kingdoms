@@ -84,7 +84,7 @@ dependencies {
 	}
 
 	// Spigot
-	implementation (group: 'org.spigotmc', name: 'spigot-api', version: '1.14.4-R0.1-SNAPSHOT')
+	implementation (group: 'org.spigotmc', name: 'spigot-api', version: '1.15-R0.1-SNAPSHOT')
 
 	// Dynmap
 	implementation (group: 'com.github.webbukkit', name: 'dynmap-api', version: 'v2.5') {
