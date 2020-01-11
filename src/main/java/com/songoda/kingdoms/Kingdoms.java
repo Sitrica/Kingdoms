@@ -37,6 +37,7 @@ public class Kingdoms extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
+		instance = this;
 		//Create all the default files.
 		for (String name : Arrays.asList("config", "messages", "turrets", "structures", "defender-upgrades", "ranks", "arsenal-items", "inventories", "powerups", "misc-upgrades", "map", "sounds")) {
 			File file = new File(getDataFolder(), name + ".yml");
