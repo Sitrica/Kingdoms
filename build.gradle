@@ -89,7 +89,7 @@ dependencies {
 	}
 
 	// Spigot
-	implementation (group: 'org.spigotmc', name: 'spigot-api', version: '1.15.1-R0.1-SNAPSHOT')
+	implementation (group: 'org.spigotmc', name: 'spigot-api', version: '1.15.2-R0.1-SNAPSHOT')
 
 	// Dynmap
 	implementation (group: 'com.github.webbukkit', name: 'dynmap-api', version: 'v2.5') {
@@ -121,7 +121,7 @@ dependencies {
 	shade (group: 'com.h2database', name: 'h2', version: '1.4.200')
 
 	// Sitrica Core
-	shade (group: 'com.sitrica', name: 'core', version: '1.0.4')
+	shade (group: 'com.sitrica', name: 'core', version: '1.0.8')
 
 	// JSON.org
 	shade (group: 'org.json', name: 'json', version: '20190722')
