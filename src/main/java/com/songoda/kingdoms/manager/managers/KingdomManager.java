@@ -48,6 +48,8 @@ import com.songoda.kingdoms.utils.MessageBuilder;
 
 public class KingdomManager extends Manager {
 
+	BukkitTask callEvent = null;
+	
 	private final AsyncLoadingCache<String, Optional<OfflineKingdom>> cache = Caffeine.newBuilder()
 			.expireAfterAccess(50, TimeUnit.MINUTES)
 			.removalListener((String name, Optional<OfflineKingdom> kingdom, RemovalCause cause) -> {
@@ -77,7 +79,7 @@ public class KingdomManager extends Manager {
 								kingdom.setInvasionCooldown(0);
 							}
 							updateUpgrades(kingdom);
-							instance.getServer().getScheduler().runTask(instance, () -> Bukkit.getPluginManager().callEvent(new KingdomLoadEvent(kingdom)));
+							callEvent = instance.getServer().getScheduler().runTask(instance, () -> Bukkit.getPluginManager().callEvent(new KingdomLoadEvent(kingdom)));
 						}
 						return Optional.ofNullable(kingdom);
 					}
@@ -98,7 +100,7 @@ public class KingdomManager extends Manager {
 		this.playerManager = instance.getManager( PlayerManager.class);
 		this.landManager = instance.getManager(LandManager.class);
 		String table = configuration.getString("database.kingdom-table", "Kingdoms");
-		if (configuration.getBoolean("database.mysql.enabled", false))
+		if (configuration.getBoolean("database.mysql.enabled", false) && configuration.getString("database.type").equals("MYSQL"))
 			database = getMySQLDatabase(table, OfflineKingdom.class);
 		else
 			database = getFileDatabase(table, OfflineKingdom.class);
@@ -574,9 +576,11 @@ public class KingdomManager extends Manager {
 
 	@Override
 	public synchronized void onDisable() {
+		saveAll();
 		if (autoSaveThread != null)
 			autoSaveThread.cancel();
-		saveAll();
+		if (callEvent != null)
+			callEvent.cancel();
 	}
 
 }
