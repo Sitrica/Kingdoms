@@ -62,7 +62,7 @@ public class H2Database<T> extends Database<T> {
 		new Thread(() -> {
 			try {
 				if (value != null) {
-					PreparedStatement statement = connection.prepareStatement("REPLACE INTO %table (`id`,`data`) VALUES(?,?);".replace("%table", tablename));
+					PreparedStatement statement = connection.prepareStatement("MERGE INTO %table (id, data) KEY (id) VALUES (?,?);".replace("%table", tablename));
 					statement.setString(1, key);
 					String json = serialize(value, type);
 					statement.setString(2, json);
