@@ -12,7 +12,7 @@ import org.bukkit.inventory.ItemStack;
 public class PlayerWaterlogEvent extends PlayerBucketEvent implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
-	
+
 	public PlayerWaterlogEvent(Player who, Block blockClicked, BlockFace blockFace, Material bucket, ItemStack itemInHand) {
 		super(who, blockClicked, blockFace, bucket, itemInHand);
 	}
