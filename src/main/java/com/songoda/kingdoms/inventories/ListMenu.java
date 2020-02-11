@@ -9,12 +9,15 @@ import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import com.songoda.kingdoms.Kingdoms;
+import com.songoda.kingdoms.manager.inventories.AnvilMenu;
 import com.songoda.kingdoms.manager.inventories.InventoryManager;
 import com.songoda.kingdoms.manager.inventories.KingdomInventory;
 import com.songoda.kingdoms.manager.inventories.PagesInventory;
@@ -26,6 +29,9 @@ import com.songoda.kingdoms.objects.player.KingdomPlayer;
 import com.songoda.kingdoms.placeholders.Placeholder;
 import com.songoda.kingdoms.utils.ItemStackBuilder;
 import com.songoda.kingdoms.utils.MessageBuilder;
+
+import net.wesjd.anvilgui.AnvilGUI;
+import net.wesjd.anvilgui.AnvilGUI.Response;
 
 public class ListMenu extends KingdomInventory {
 
@@ -48,13 +54,32 @@ public class ListMenu extends KingdomInventory {
 		inventory.setItem(3, new ItemStackBuilder(section.getConfigurationSection("alphabetical")).build());
 		setAction(inventory, uuid, 3, event -> new ListSortingMenu("alphabetical").open(kingdomPlayer));
 		inventory.setItem(4, new ItemStackBuilder(section.getConfigurationSection("search")).build());
-		setAction(inventory, uuid, 4, event -> instance.getManager(SearchManager.class).openSearch(kingdomPlayer, result -> {
-			if (result == null)
-				return;
-			Bukkit.dispatchCommand(player, "k info " + result);
-		}));
+		setAction(inventory, uuid, 4, event -> openSearch(kingdomPlayer));
 		return inventory;
 	}
+	
+	public void openSearch(KingdomPlayer kingdomPlayer) {
+		Player p = kingdomPlayer.getPlayer();
+		ItemStack search = new ItemStackBuilder(inventories.getConfigurationSection("search.search-item"))
+				.setPlaceholderObject(kingdomPlayer)
+				.build();
+		new AnvilMenu.Builder()
+	    .onComplete((player, text) -> {
+			if (text != null){
+				Bukkit.dispatchCommand(player, "k info " + text);
+				return AnvilMenu.Response.close();
+			}else{
+				return AnvilMenu.Response.text("&4&lInput cant be empty...");
+			}
+	    })
+	    .preventClose()
+	    .text("Name here...")
+	    .item(search)
+	    .title("Search Kingdom")
+	    .plugin(instance)
+	    .open(p);
+	}
+	
 
 	private class ListSortingMenu extends PagesInventory {
 
