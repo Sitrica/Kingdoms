@@ -43,7 +43,7 @@ repositories {
 
 	// HolographicDisplays
 	maven {
-		url 'https://ci.filoghost.me/plugin/repository/everything/'
+		url 'https://repo.codemc.io/repository/maven-public/'
 	}
 
 	// AnvilGUI
