@@ -103,7 +103,7 @@ dependencies {
 	implementation (group: 'com.github.MilkBowl', name: 'VaultAPI', version: '1.7')
 
 	// PlaceholderAPI
-	implementation (group: 'me.clip', name: 'placeholderapi', version: '2.10.4')
+	implementation (group: 'me.clip', name: 'placeholderapi', version: '2.10.7')
 
 	// WorldGuard
 	implementation (group: 'com.sk89q.worldguard', name: "worldguard-bukkit", version: '7.0.3-SNAPSHOT')
