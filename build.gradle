@@ -106,7 +106,7 @@ dependencies {
 	implementation (group: 'me.clip', name: 'placeholderapi', version: '2.10.4')
 
 	// WorldGuard
-	implementation (group: 'com.sk89q.worldguard', name: "worldguard-bukkit", version: '7.0.3-SNAPSHOT')
+	implementation (group: 'com.sk89q.worldguard', name: "worldguard-bukkit", version: '7.0.5-SNAPSHOT')
 
 	// WorldEdit
 	implementation (group: 'com.sk89q.worldedit', name: "worldedit-bukkit", version: '7.2.0-SNAPSHOT')
