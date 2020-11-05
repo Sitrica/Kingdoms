@@ -84,7 +84,7 @@ compileTestJava.options.encoding = 'UTF-8'
 dependencies {
 
 	// HolographicDisplays
-	implementation (group: 'com.gmail.filoghost.holographicdisplays', name: 'holographicdisplays-plugin', version: '2.3.2') {
+	implementation (group: 'com.gmail.filoghost.holographicdisplays', name: 'holographicdisplays-plugin', version: '2.4.5') {
 		exclude group: 'org.bstats', module: 'bstats-bukkit-lite'
 	}
 
