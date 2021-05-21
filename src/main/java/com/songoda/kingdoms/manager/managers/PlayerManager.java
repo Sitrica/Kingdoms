@@ -40,12 +40,12 @@ public class PlayerManager extends Manager {
 			database = getFileDatabase(table, OfflineKingdomPlayer.class);
 		if (configuration.getBoolean("database.auto-save.enabled", true)) {
 			String interval = configuration.getString("database.auto-save.interval", "5 miniutes");
-			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, () -> users.forEach(player -> save(player)), 0, IntervalUtils.getInterval(interval) * 20);
+			autoSaveThread = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, () -> { if (!users.isEmpty()) users.forEach(player -> save(player)); }, 0, IntervalUtils.getInterval(interval) * 20);
 		}
 	}
 
 	public void save(OfflineKingdomPlayer player) {
-		database.put(player.getUniqueId() + "", player);
+		database.put(new StringBuilder().append(player.getUniqueId()).toString(), player);
 	}
 
 	public Optional<KingdomPlayer> getKingdomPlayer(UUID uuid) {
@@ -101,6 +101,7 @@ public class PlayerManager extends Manager {
 		Kingdom kingdom = kingdomPlayer.getKingdom();
 		if (kingdom == null)
 			return;
+		Kingdoms.debugMessage("Loaded kingdom " + kingdom.getName());
 		if (configuration.getBoolean("kingdom.join-at-kingdom", false))
 			player.teleport(kingdom.getSpawn());
 		if (!kingdomPlayer.isVanished()) {
@@ -136,7 +137,7 @@ public class PlayerManager extends Manager {
 		Player player = event.getPlayer();
 		UUID uuid = player.getUniqueId();
 		KingdomPlayer kingdomPlayer = getKingdomPlayer(player);
-		database.put(uuid + "", kingdomPlayer);
+		database.put(new StringBuilder().append(uuid).toString(), kingdomPlayer);
 		if (kingdomPlayer.isVanished())
 			return;
 		Kingdom kingdom = kingdomPlayer.getKingdom();
@@ -158,14 +159,18 @@ public class PlayerManager extends Manager {
 	public synchronized void onDisable() {
 		if (autoSaveThread != null)
 			autoSaveThread.cancel();
-		if (users.isEmpty())
-			return;
-		Kingdoms.consoleMessage("Saving [" + users.size() + "] loaded players...");
-		try {
-			users.forEach(player -> save(player));
-			Kingdoms.consoleMessage("Done!");
-		} catch (Exception e) {
-			Kingdoms.consoleMessage("SQL connection failed!");
+		if (!users.isEmpty()){
+			Kingdoms.consoleMessage("Saving [" + users.size() + "] loaded players...");
+			try {
+				users.forEach(player -> {
+					Player p = player.getKingdomPlayer().get().getPlayer();
+					KingdomPlayer kingdomPlayer = getKingdomPlayer(p);
+					database.put(new StringBuilder().append(p.getUniqueId()).toString(), kingdomPlayer);
+				});
+				Kingdoms.consoleMessage("Done!");
+			} catch (Exception e) {
+				Kingdoms.consoleMessage("SQL connection failed!");
+			}
 		}
 	}
 
