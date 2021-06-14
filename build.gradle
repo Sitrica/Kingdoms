@@ -97,7 +97,7 @@ dependencies {
 	}
 
 	// Citizens
-	implementation (group: 'net.citizensnpcs', name: 'citizensapi', version: '2.0.27-SNAPSHOT')
+	implementation (group: 'net.citizensnpcs', name: 'citizensapi', version: '2.0.28-SNAPSHOT')
 
 	// Vault
 	implementation (group: 'com.github.MilkBowl', name: 'VaultAPI', version: '1.7')
